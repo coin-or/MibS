@@ -10,7 +10,7 @@
 /*                                                                           */
 /* This software is licensed under the Eclipse Public License. Please see    */
 /* accompanying file for terms.                                              */
- *===========================================================================*/
+/*===========================================================================*/
 
 #ifndef MibSBranchStrategyStrong_h_
 #define MibSBranchStrategyStrong_h_

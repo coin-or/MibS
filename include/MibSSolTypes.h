@@ -10,7 +10,7 @@
 /*                                                                           */
 /* This software is licensed under the Eclipse Public License. Please see    */
 /* accompanying file for terms.                                              */
- *===========================================================================*/
+/*===========================================================================*/
 
 #ifndef MibSSolTypes_h_
 #define MibSSolTypes_h_

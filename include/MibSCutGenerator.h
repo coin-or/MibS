@@ -10,7 +10,7 @@
 /*                                                                           */
 /* This software is licensed under the Eclipse Public License. Please see    */
 /* accompanying file for terms.                                              */
- *===========================================================================*/
+/*===========================================================================*/
 
 #ifndef MibsCutGenerator_h_
 #define MibsCutGenerator_h_
