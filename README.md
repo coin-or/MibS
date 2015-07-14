@@ -10,7 +10,7 @@ with the MSys shell. On other platforms, the make command comes pre-installed.
 
 DEPENDENCIES
 
-MibS depends on the CHiPPS (https://projects.coin-or.org/CHiPPS) and SYMPHONY
+MibS depends on the [CHiPPS](https://projects.coin-or.org/CHiPPS) and [SYMPHONY]
 (https://projects.coin-or.org/SYMPHONY) projects of COIN-OR. First install the
 libraries of these two projects and their dependencies. This can be done by
 building from source or downloading a binary distribution.
@@ -18,7 +18,7 @@ building from source or downloading a binary distribution.
 BUILDING
 
 With CHiPPS and SYMPHONY installed, modify the Makefile to reflect the installation 
-directory of the above COIN-OR projects (edit the value of the variable '''COININSTDIR'''). Then execute the command
+directory of the above COIN-OR projects (edit the value of the variable 'COININSTDIR'). Then execute the command
 
 '''
 make
