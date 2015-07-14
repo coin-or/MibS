@@ -18,24 +18,24 @@ building from source or downloading a binary distribution.
 BUILDING
 
 With CHiPPS and SYMPHONY installed, modify the Makefile to reflect the installation 
-directory of the above COIN-OR projects (edit the value of the variable 'COININSTDIR'). Then execute the command
+directory of the above COIN-OR projects (edit the value of the variable `COININSTDIR`). Then execute the command
 
-'''
+```
 make
-'''
+```
 
 RUNNING
 
 To solve a bilevel program, you must provide both an MPS file and an auxiliary
 information file that specifies which variables and constraints are associated
 with the each level. Then call mibs like this:
-
+```
 mibs -Alps_instance file.mps -MibS_auxiliaryInfoFile aux_file.txt
-
+```
 It is also possible to specify additional settings in a parameter file with, e.g.,
-
+```
 mibs -param mibs.par
-
+```
 MibS has many parameters. See the example parameter file '''mibs.par''' and
 the header file '''MibParams.h''' for explanations.
 
