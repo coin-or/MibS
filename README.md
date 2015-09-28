@@ -18,7 +18,8 @@ building from source or downloading a binary distribution.
 BUILDING
 
 With CHiPPS and SYMPHONY installed, modify the Makefile to reflect the installation 
-directory of the above COIN-OR projects (edit the value of the variable '''COININSTDIR'''). Then execute the command
+directory of the above COIN-OR projects (edit the value of the variable '''COININSTDIR'''). 
+Then execute the command
 
 '''
 make
