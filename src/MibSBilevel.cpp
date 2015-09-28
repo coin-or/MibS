@@ -584,7 +584,10 @@ MibSBilevel::setUpModel(OsiSolverInterface * oSolver, bool newOsi,
   }else{
      nSolver = solver_;
   }
-  
+
+#define SYM_VERSION_IS_WS strcmp(SYMPHONY_VERSION, "WS")  
+
+#if SYMPHONY_VERSION_IS_WS
   if (probType == 1 && warmStartLL && !newOsi && doDualFixing){ //Interdiction
 
      /** Get upper bound from best known (feasible) lower level solution and try 
@@ -687,7 +690,7 @@ MibSBilevel::setUpModel(OsiSolverInterface * oSolver, bool newOsi,
      delete[] newUbVal;
      delete[] newLbVal;
   }else{
-
+#endif
      //FIXME: NEED TO GET ROW SENSE HERE
      
      /** Get contribution of upper-level columns **/
@@ -714,9 +717,11 @@ MibSBilevel::setUpModel(OsiSolverInterface * oSolver, bool newOsi,
      }
      
      delete [] upComp;
-  
+
+#if SYMPHONY_VERSION_IS_WS
   }
-  
+#endif
+
   //I don't think this is needed
   //if(!getWarmStart())
   //  setWarmStart(nSolver->getWarmStart());
