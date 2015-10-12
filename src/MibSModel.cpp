@@ -392,9 +392,13 @@ MibSModel::readProblemData()
    }
    
    CoinPackedMatrix colMatrix = *(mps->getMatrixByCol());
-   
-   objSense = BlisPar_->entry(BlisParams::objSense);
-   
+
+   //FIXME: MPS is always minimization, but should we be able to override?
+   //FIXME: In previous version of code, objSense was only set to -1
+   //       for interdiction problems...
+   //objSense = BlisPar_->entry(BlisParams::objSense);
+   objSense = -1.0;
+
    objCoef = new double [numCols];
    
    const double *mpsObj =  mps->getObjCoefficients();
