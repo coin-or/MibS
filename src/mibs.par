@@ -1,7 +1,7 @@
 #Alps_instance ./data/MIPS/RANDOM/NEW_MIPINT/miblp_10_10_50_0110_0_2.mps
 #MibS_auxiliaryInfoFile ./data/MIPS/RANDOM/NEW_MIPINT/NONSYMMETRIC/miblp_10_10_50_0110_0_2.mps.txt
-Alps_instance ./data/MCDM/NO_CORR/10_ITEMS_1000/K5010W19.KNP.mps
-MibS_auxiliaryInfoFile ./data/MCDM/NO_CORR/10_ITEMS_1000/K5010W19.KNP.txt
+Alps_instance ../data/MCDM/NO_CORR/10_ITEMS_1000/K5010W19.KNP.mps
+MibS_auxiliaryInfoFile ../data/MCDM/NO_CORR/10_ITEMS_1000/K5010W19.KNP.txt
 #Alps_timeLimit 5000
 #Alps_nodeLimit 4000000
 #Alps_nodeLimit 20000
