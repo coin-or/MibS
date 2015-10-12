@@ -139,6 +139,7 @@ void
 MibSModel::readInstance(const char* dataFile)
 {
    
+#if 0
    std::ifstream data_stream(dataFile);
    
    if (!data_stream){
@@ -149,11 +150,10 @@ MibSModel::readInstance(const char* dataFile)
    std::string key;
    std::string file;
    
-#if 0
    while (data_stream >> key){
       if(key == "UPPER"){
 	 data_stream >> file;
-	   setUpperFile(file);
+	 setUpperFile(file);
       }
       else if(key == "LOWER"){
 	 data_stream >> file;
@@ -168,7 +168,7 @@ MibSModel::readInstance(const char* dataFile)
 	 setUpperAmplDataFile(file);
       }
    }
-  data_stream.close();
+   data_stream.close();
 #endif
 
   setUpperFile(dataFile);
@@ -297,6 +297,38 @@ MibSModel::readAuxiliaryData()
 	    << getLowerDim() << "\n\n";
 
   
+}
+
+
+
+//#############################################################################
+void 
+MibSModel::loadAuxiliaryData(int lowerColNum, int lowerRowNum,
+			     const int *lowerColInd,
+			     const int *lowerRowInd,
+			     double interdictBudget, 
+			     const double *interdictCost, 
+			     double lowerObjSense,
+			     const double *lowerObjCoef)
+{
+   int *newLowerColInd = new int[lowerColNum];
+   int *newLowerRowInd = new int[lowerRowNum];
+   double *newInterdictCost = new double[lowerColNum];
+   double *newLowerObjCoef = new double[lowerColNum];
+
+   CoinDisjointCopyN(lowerColInd, lowerColNum, newLowerColInd);
+   CoinDisjointCopyN(lowerRowInd, lowerRowNum, newLowerRowInd);
+   CoinDisjointCopyN(interdictCost, lowerColNum, newInterdictCost);
+   CoinDisjointCopyN(lowerObjCoef, lowerColNum, newLowerObjCoef);
+
+   setLowerDim(lowerColNum);
+   setLowerRowNum(lowerRowNum);
+   setLowerColInd(newLowerColInd);
+   setLowerRowInd(newLowerRowInd);
+   setInterdictBudget(interdictBudget);
+   setInterdictCost(newInterdictCost);
+   setLowerObjSense(lowerObjSense);
+   setLowerObjCoeffs(newLowerObjCoef);
 }
 
 //#############################################################################
