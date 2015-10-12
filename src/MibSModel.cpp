@@ -172,8 +172,8 @@ MibSModel::readInstance(const char* dataFile)
 #endif
 
   setUpperFile(dataFile);
-  readLowerData(); // reads in lower-level vars, rows, obj coeffs
-  readUpperData(); // reads in max c^1x + d^1y s.t. (x,y) in Omega^I
+  readAuxiliaryData(); // reads in lower-level vars, rows, obj coeffs
+  readProblemData(); // reads in max c^1x + d^1y s.t. (x,y) in Omega^I
   
   setUpperColInd();
   setUpperRowInd();
@@ -221,7 +221,7 @@ MibSModel::setBlisParameters()
 
 //#############################################################################
 void 
-MibSModel::readLowerData()
+MibSModel::readAuxiliaryData()
 {
 
   std::ifstream data_stream(getLowerFile().c_str());
@@ -301,20 +301,13 @@ MibSModel::readLowerData()
 
 //#############################################################################
 void 
-MibSModel::readUpperData()
+MibSModel::readProblemData()
 {
 
    int j(0);
    
    int msgLevel(AlpsPar_->entry(AlpsParams::msgLevel));
    
-   const double *elements = NULL;
-   const int *indices = NULL;
-   const int *lengths = NULL;
-   const CoinBigIndex *starts;
-
-   int beg(0);
-
    //------------------------------------------------------
    // Read in data from MPS or AMPL/GMPL file.
    // AMPL/GMPL files often have a separate data file
@@ -353,156 +346,130 @@ MibSModel::readUpperData()
    
    mps->messageHandler()->setLogLevel(msgLevel);
    
-   int type(MibSPar_->entry(MibSParams::bilevelProblemType));
-
-   int numCols(0), numRows(0), numElems(0);
-   CoinPackedMatrix * colMatrix = new CoinPackedMatrix();
-   CoinPackedMatrix * rowMatrix = new CoinPackedMatrix();
-
-   double * varLB = NULL;
-   double * varUB = NULL;
-   double * conLB = NULL;
-   double * conUB = NULL;
-   double * objCoef = NULL;
+   double * varLB(NULL);
+   double * varUB(NULL);
+   double * conLB(NULL);
+   double * conUB(NULL);
+   double * objCoef(NULL);
 
    double objSense(0.0);
    
    char * colType = NULL;
 
-   numCols = mps->getNumCols(); 
-   numRows = mps->getNumRows();
-   numElems = mps->getNumElements();
+   int numCols = mps->getNumCols(); 
+   int numRows = mps->getNumRows();
    
-   switch(type){
+   varLB = new double [numCols];
+   varUB = new double [numCols];
+   
+   conLB = new double [numRows];
+   conUB = new double [numRows];
+   
+   memcpy(varLB, mps->getColLower(), sizeof(double) * numCols);
+   memcpy(varUB, mps->getColUpper(), sizeof(double) * numCols);
+   
+   memcpy(conLB, mps->getRowLower(), sizeof(double) * numRows);
+   memcpy(conUB, mps->getRowUpper(), sizeof(double) * numRows);
+   
+   //------------------------------------------------------
+   // Set colType_
+   //------------------------------------------------------
+   
+   colType = new char [numCols];   
+   
+   for(j = 0; j < numCols; ++j) {
+      if (mps->isContinuous(j)) {
+	 colType[j] = 'C';
+      }
+      else {
+	 if (varLB[j] == 0 && varUB[j] == 1.0) {
+	    colType[j] = 'B';
+	 }
+	 else {
+	    colType[j] = 'I';
+	 }
+      }
+   }
+   
+   CoinPackedMatrix colMatrix = *(mps->getMatrixByCol());
+   
+   objSense = BlisPar_->entry(BlisParams::objSense);
+   
+   objCoef = new double [numCols];
+   
+   const double *mpsObj =  mps->getObjCoefficients();
 
-   case 0: // general
-     {
-       
-       //------------------------------------------------------
-       // Get problem data.
-       //------------------------------------------------------
-       
-       /* 
-	  numCols = mps->getNumCols();
-	  numRows = mps->getNumRows();
-	  numElems = mps->getNumElements();
-       */
-       varLB = new double [numCols];
-       varUB = new double [numCols];
-       
-       conLB = new double [numRows];
-      conUB = new double [numRows];
+   if (objSense > 0.0) {
+      memcpy(objCoef, mpsObj, sizeof(double) * numCols);
+   }
+   else {
+      for (j = 0; j < numCols; ++j) {
+	 objCoef[j] = -mpsObj[j];
+      }
+   }    
+   
+   loadProblemData(colMatrix, varLB, varUB, objCoef, conLB, conUB, colType, 
+		   mps->getInfinity());
+
+   delete mps;
+}
+
+//#############################################################################
+void
+MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
+			   const double* colLB, const double* colUB,   
+			   const double* obj,
+			   const double* rowLB, const double* rowUB,
+			   const char *types,
+			   double infinity)
+{
+   //FIXME: THIS ISN'T TRUE IF WE LOAD AN INTERDICTION PROBLEM 
+   //AS A "GENERAL" PROBLEM.  FOR NOW, IT'S OK SINCE WE ONLY
+   //DO THIS FROM KNAP SOLVER, WHICH SHOULD SET THIS ITSELF.
+
+   int problemType(MibSPar_->entry(MibSParams::bilevelProblemType));
+
+   int j(0);
+   int beg(0);
+
+   int numRows = matrix.getNumRows();
+   int numCols = matrix.getNumCols();
+   int numElems = matrix.getNumElements();
+
+   double *varLB(NULL);  
+   double *varUB(NULL);  
+   double *conLB(NULL);  
+   double *conUB(NULL);  
+   double *objCoef(NULL);
+   char   *colType(NULL);
+
+   CoinPackedMatrix *newMatrix = NULL;
+
+   switch (problemType){
       
-      memcpy(varLB, mps->getColLower(), sizeof(double) * numCols);
-      memcpy(varUB, mps->getColUpper(), sizeof(double) * numCols);
-      
-      memcpy(conLB, mps->getRowLower(), sizeof(double) * numRows);
-      memcpy(conUB, mps->getRowUpper(), sizeof(double) * numRows);
-      
-      //FIXME: THIS ISN'T TRUE IF WE LOAD AN INTERDICTION PROBLEM 
-      //AS A "GENERAL" PROBLEM.  FOR NOW, IT'S OK SINCE WE ONLY
-      //DO THIS FROM KNAP SOLVER, WHICH SHOULD SET THIS ITSELF.
+    case 0:
+
       structRowInd_ = new int[numRows];
       CoinIotaN(structRowInd_, numRows, 0);
       structRowNum_ = numRows;
       
-      objSense = BlisPar_->entry(BlisParams::objSense);
+      //Make copies of the data
+      *newMatrix = matrix;
       
+      varLB = new double [numCols];
+      varUB = new double [numCols];
+      conLB = new double [numRows];
+      conUB = new double [numRows];
       objCoef = new double [numCols];
-      
-      if (objSense > 0.0) {
-	memcpy(objCoef, mps->getObjCoefficients(), 
-	       sizeof(double) * numCols);
-      }
-      else {
-        const double *mpsObj =  mps->getObjCoefficients();
-        for (j = 0; j < numCols; ++j) {
-	  objCoef[j] = - mpsObj[j];
-        }
-      }    
-      
-      //------------------------------------------------------
-      // Set colType_
-      //------------------------------------------------------
-      
-      colType = new char [numCols];   
-      
-      for(j = 0; j < numCols; ++j) {
-	if (mps->isContinuous(j)) {
-	  colType[j] = 'C';
-	}
-	else {
-	  if (varLB[j] == 0 && varUB[j] == 1.0) {
-	    colType[j] = 'B';
-	  }
-	  else {
-	    colType[j] = 'I';
-	  }
-	}
-      }
-      
-      *colMatrix = *(mps->getMatrixByCol());
-      
-      elements = colMatrix->getElements();
-      indices = colMatrix->getIndices();
-      lengths = colMatrix->getVectorLengths();
-      starts = colMatrix->getVectorStarts();
-      
-      setColMatrix(new CoinPackedMatrix(true, numRows, numCols, 
-      					colMatrix->getNumElements(),
-					elements, indices, starts,lengths));
-      
-      
-      setNumCons(numRows);
-      setNumVars(numCols);
-      
-      setConLb(conLB);
-      setConUb(conUB);
-      
-      setVarLb(varLB);
-      setVarUb(varUB);
-      
-      setObjCoef(objCoef);
-      
-      setColType(colType);
+      colType = new char [numCols];
+ 
+      CoinDisjointCopyN(colLB, numCols, varLB);
+      CoinDisjointCopyN(colUB, numCols, varUB);
+      CoinDisjointCopyN(rowLB, numRows, conLB);
+      CoinDisjointCopyN(rowUB, numRows, conUB);
+      CoinDisjointCopyN(obj, numCols, objCoef);
+      memcpy(colType, types, numCols);
 
-      //------------------------------------------------------
-      // Create variables and constraints.
-      //------------------------------------------------------
-					
-      for (j = 0; j < numCols_; ++j) {
-	
-	beg = starts[j];
-	
-	BlisVariable * var = new BlisVariable(varLB[j],
-					      varUB[j], 
-					      varLB[j], 
-					      varUB[j],
-					      objCoef[j], 
-					      lengths[j],
-					      indices + beg,
-					      elements + beg);
-	
-	var->setObjectIndex(j);
-	var->setRepType(BCPS_CORE);
-	var->setStatus(BCPS_NONREMOVALBE);
-	var->setIntType(colType_[j]);
-	variables_.push_back(var);
-	var = NULL;
-      }
-      
-      for (j = 0; j < numRows_; ++j) {
-	BlisConstraint *con = new BlisConstraint(conLB[j], 
-						 conUB[j], 
-						 conLB[j], 
-						 conUB[j]);
-	con->setObjectIndex(j);
-	con->setRepType(BCPS_CORE);
-	con->setStatus(BCPS_NONREMOVALBE);
-	constraints_.push_back(con);
-	con = NULL;        
-      }
-      
       // Set all objects as core by default.
       numCoreVariables_ = numCols;
       numCoreConstraints_ = numRows;
@@ -512,268 +479,218 @@ MibSModel::readUpperData()
       numCons_ = numRows;
       
       break;
-     }
-   case 1: // interdict
-     {
-       
-       //------------------------------------------------------
-       // Get problem data.
-       //------------------------------------------------------
-       
-       /*
-	 numCols = mps->getNumCols(); 
-	 numRows = mps->getNumRows();
-	 numElems = mps->getNumElements();
-       */
-       
-       //------------------------------------------------------
-	// Add interdict vars and aux UL rows
-	//------------------------------------------------------
-       
-       double * intCosts = getInterdictCost();
-       int numInterdictNZ(0);
-       //FIXME: ALLOW MORE THAN ONE ROW
-       int auxULRows(1);
-       int interdictRows(numCols);
-       int auxRows(auxULRows + interdictRows);
-       int numTotalCols(0), numTotalRows(0);
-       //int numAuxCols(2 * numCols);
-       int numAuxCols(1);
-       //int numAuxCols(0);//this breaks orig interdiction cut
-       int i(0);
-       
-       //FIXME:  NEED TO CHANGE THIS AROUND
-       //maxAuxCols_ = numAuxCols;
-       
-       for(i = 0; i < numCols; i++){
+      
+    case 1:
+      
+      //------------------------------------------------------
+      // Add interdict vars and aux UL rows
+      //------------------------------------------------------
+      
+      double * intCosts = getInterdictCost();
+      int numInterdictNZ(0);
+      //FIXME: ALLOW MORE THAN ONE ROW
+      int auxULRows(1);
+      int interdictRows(numCols);
+      int auxRows(auxULRows + interdictRows);
+      int numTotalCols(0), numTotalRows(0);
+      //int numAuxCols(2 * numCols);
+      int numAuxCols(1);
+      //int numAuxCols(0);//this breaks orig interdiction cut
+      int i(0);
+      
+      //FIXME:  NEED TO CHANGE THIS AROUND
+      //maxAuxCols_ = numAuxCols;
+      
+      for(i = 0; i < numCols; i++){
 	 if((intCosts[i] > etol_) || (intCosts[i] < - etol_)){
-	   numInterdictNZ++;
+	    numInterdictNZ++;
 	 }
-       }
-       
-       numTotalCols = 2 * numCols + numAuxCols;
-       numTotalRows = numRows + auxRows;
-       
-       int structRows(numTotalRows - interdictRows);
-       structRowInd_ = new int[structRows];
-       CoinIotaN(structRowInd_, structRows, 0);
-       structRowNum_ = structRows;
-       
-       numElems += (numInterdictNZ + 2 * numCols);
-       
-       varLB = new double [numTotalCols];
-       varUB = new double [numTotalCols];
-       
-       conLB = new double [numTotalRows];
-       conUB = new double [numTotalRows];
-       
-       CoinDisjointCopyN(mps->getColLower(), 
-			 numCols, varLB + numCols);
-       CoinDisjointCopyN(mps->getColUpper(), 
-			 numCols, varUB + numCols);
-       
-       CoinFillN(varLB, numCols, 0.0); 
-       CoinFillN(varUB, numCols, 1.0); 
-       
-       CoinFillN(varLB + 2 * numCols, numAuxCols, 0.0); 
-       CoinFillN(varUB + 2 * numCols, numAuxCols, 1.0); 
-       
-       CoinDisjointCopyN(mps->getRowLower(), 
-			 numRows, conLB + auxULRows);
-       CoinDisjointCopyN(mps->getRowUpper(), 
-			 numRows, conUB + auxULRows);
-       
-       /* Add interdiction budget row */
-       CoinFillN(conLB, auxULRows, - 1 * mps->getInfinity());
-       CoinFillN(conUB, auxULRows, getInterdictBudget());
-       
-       /* Add VUB rows */
-       CoinFillN(conLB + (numTotalRows - interdictRows), 
-		 interdictRows, - 1 * mps->getInfinity());
-       CoinDisjointCopyN(mps->getColUpper(), interdictRows, 
-			 conUB + (numTotalRows - interdictRows));
-       
-       objSense = - 1.0; // mps files are min (i.e. 1.0)     
-       //objSense = 1.0; // mps files are min (i.e. 1.0)     
-       
-       objCoef = new double [numTotalCols];
-       CoinZeroN(objCoef, numTotalCols);
-       const double *mpsObj =  mps->getObjCoefficients();
-       
-       if (objSense > 0.0) {
-	 for (j = 0; j < numCols; ++j) {
-	   objCoef[j + numCols] = mpsObj[j];
-	 }
-       }
-       else {
-	 for (j = 0; j < numCols; ++j) {
-	   objCoef[j + numCols] = - mpsObj[j];
-	 }
-       }    
-       
-       //------------------------------------------------------
-       // Set colType_
-       //------------------------------------------------------
-       
-       colType = new char [numTotalCols];   
-       
-       for(j = 0; j < numCols; ++j) {
+      }
+      
+      numTotalCols = 2 * numCols + numAuxCols;
+      numTotalRows = numRows + auxRows;
+      
+      int structRows(numTotalRows - interdictRows);
+      structRowInd_ = new int[structRows];
+      CoinIotaN(structRowInd_, structRows, 0);
+      structRowNum_ = structRows;
+      
+      numElems += (numInterdictNZ + 2 * numCols);
+      
+      varLB = new double [numTotalCols];
+      varUB = new double [numTotalCols];
+      
+      conLB = new double [numTotalRows];
+      conUB = new double [numTotalRows];
+      
+      CoinDisjointCopyN(colLB, numCols, varLB + numCols);
+      CoinDisjointCopyN(colUB, numCols, varUB + numCols);
+
+      CoinFillN(varLB, numCols, 0.0); 
+      CoinFillN(varUB, numCols, 1.0); 
+      
+      CoinFillN(varLB + 2 * numCols, numAuxCols, 0.0); 
+      CoinFillN(varUB + 2 * numCols, numAuxCols, 1.0); 
+      
+      CoinDisjointCopyN(rowLB, numRows, conLB + auxULRows);
+      CoinDisjointCopyN(rowUB, numRows, conUB + auxULRows);
+      
+      /* Add interdiction budget row */
+      CoinFillN(conLB, auxULRows, - 1 * infinity);
+      CoinFillN(conUB, auxULRows, getInterdictBudget());
+      
+      /* Add VUB rows */
+      CoinFillN(conLB + (numTotalRows - interdictRows), 
+		interdictRows, - 1 * infinity);
+      CoinDisjointCopyN(rowUB, interdictRows, conUB + (numTotalRows - interdictRows));
+      
+      objCoef = new double [numTotalCols];
+      CoinZeroN(objCoef, numTotalCols);
+      
+      CoinDisjointCopyN(obj, numCols, objCoef + numCols);
+      
+      //------------------------------------------------------
+      // Set colType_
+      //------------------------------------------------------
+      
+      colType = new char [numTotalCols];   
+      
+      for(j = 0; j < numCols; ++j) {
 	 colType[j] = 'B';
-       }
-       
-       for(j = 0; j < numCols; ++j) {
-	 if (mps->isContinuous(j)) {
-	   colType[j + numCols] = 'C';
-	 }
-	 else {
-	   if (varLB[j + numCols] == 0 
-	       && varUB[j + numCols] == 1.0) {
-	     colType[j + numCols] = 'B';
-	   }
-	   else {
-	     colType[j + numCols] = 'I';
-	   }
-	 }
-       }
-       
-       /* Auxilliary indicator columns, used later*/
-       
-       for(j = 0; j < numAuxCols; ++j) {
+      }
+      
+      CoinDisjointCopyN(types, numCols, colType + numCols);
+      
+      /* Auxilliary indicator columns, used later*/
+      
+      for(j = 0; j < numAuxCols; ++j) {
 	 colType[j + 2 * numCols] = 'B';
-       }
+      }
        
-       *rowMatrix = *(mps->getMatrixByRow());
-       const double * matElements = rowMatrix->getElements();
-       const int * matIndices = rowMatrix->getIndices();
-       const int * matStarts = rowMatrix->getVectorStarts();
-       
-       CoinPackedMatrix * newMat = new CoinPackedMatrix(false, 0, 0);
-       newMat->setDimensions(0, numTotalCols);
-       int start(0), end(0), tmp(0), index(0);
-       
-       /* Add interdiction budget row */
-       
-       for(i = 0; i < auxULRows; i++){
+      CoinPackedMatrix rowMatrix;
+      rowMatrix = matrix;
+      rowMatrix.reverseOrdering();
+      const double * matElements = rowMatrix.getElements();
+      const int * matIndices = rowMatrix.getIndices();
+      const int * matStarts = rowMatrix.getVectorStarts();
+      
+      newMatrix = new CoinPackedMatrix(false, 0, 0);
+      newMatrix->setDimensions(0, numTotalCols);
+      int start(0), end(0), tmp(0), index(0);
+      
+      /* Add interdiction budget row */
+      
+      for(i = 0; i < auxULRows; i++){
 	 CoinPackedVector row;
 	 for(j = 0; j < numCols; j++){
-	   row.insert(j, intCosts[j]);
+	    row.insert(j, intCosts[j]);
 	 }
-	 newMat->appendRow(row);
-       }
-       
-       /* lower-level rows */
-       
-       for(i = auxULRows; i < (numTotalRows - interdictRows); i++){
+	 newMatrix->appendRow(row);
+      }
+      
+      /* lower-level rows */
+      
+      for(i = auxULRows; i < (numTotalRows - interdictRows); i++){
 	 CoinPackedVector row;
 	 tmp = i - auxULRows;
 	 start = matStarts[tmp];
-	 end = start + rowMatrix->getVectorSize(tmp);
+	 end = start + rowMatrix.getVectorSize(tmp);
 	 for(j = start; j < end; j++){
-	   index = matIndices[j] + numCols;
-	   row.insert(index, matElements[j]);
+	    index = matIndices[j] + numCols;
+	    row.insert(index, matElements[j]);
 	 }
-	 newMat->appendRow(row);
-       }
-       
-       /* Add VUB rows */
-       
-       for(i = (numTotalRows - interdictRows); i < numTotalRows; i++){
+	 newMatrix->appendRow(row);
+      }
+      
+      /* Add VUB rows */
+      
+      for(i = (numTotalRows - interdictRows); i < numTotalRows; i++){
 	 CoinPackedVector row;
 	 tmp = i - (numTotalRows - interdictRows);
-	 row.insert(tmp, mps->getColUpper()[tmp]);
+	 row.insert(tmp, colUB[tmp]);
 	 row.insert(tmp + numCols, 1.0);
-	 newMat->appendRow(row);
-       }
-       
-       newMat->reverseOrdering();
-       
-       //newMat->dumpMatrix();
-       
-       elements = newMat->getElements();
-       indices = newMat->getIndices();
-       lengths = newMat->getVectorLengths();
-       starts = newMat->getVectorStarts();
-       
-       setColMatrix(new CoinPackedMatrix(true, numTotalRows, numTotalCols, 
-					 numElems,
-					 elements, indices, 
-					 starts, lengths));
-       //delete newMat;
-       
-       setNumCons(numTotalRows);
-       setNumVars(numTotalCols);
-       
-       setConLb(conLB);
-       setConUb(conUB);
+	 newMatrix->appendRow(row);
+      }
       
-       setVarLb(varLB);
-       setVarUb(varUB);
-       
-       setObjCoef(objCoef);
-	
-       setColType(colType);
-       
-       //------------------------------------------------------
-       // Create variables and constraints.
-	//------------------------------------------------------
-       
-       for (j = 0; j < numTotalCols; ++j) {
-	  
-	 beg = starts[j];
-	 
-	 BlisVariable * var = new BlisVariable(varLB[j],
-					       varUB[j], 
-					       varLB[j], 
-					       varUB[j],
-					       objCoef[j], 
-					       lengths[j],
-					       indices + beg,
-					       elements + beg);
-	 
-	 var->setObjectIndex(j);
-	 var->setRepType(BCPS_CORE);
-	 var->setStatus(BCPS_NONREMOVALBE);
-	 var->setIntType(colType_[j]);
-	 variables_.push_back(var);
-	 var = NULL;
-       }
-       
-       for (j = 0; j < numRows_; ++j) {
-	 BlisConstraint *con = new BlisConstraint(conLB[j], 
-						  conUB[j], 
-						  conLB[j], 
-						  conUB[j]);
-	 con->setObjectIndex(j);
-	 con->setRepType(BCPS_CORE);
-	 con->setStatus(BCPS_NONREMOVALBE);
-	 constraints_.push_back(con);
-	 con = NULL;        
-       }
-       
-       // Set all objects as core by default.
-       numCoreVariables_ = numTotalCols;
-       numCoreConstraints_ = numTotalRows;
-       
-       numOrigVars_ = 2 * numCols;
-       numOrigCons_ = numTotalRows;
-       numVars_ = numTotalCols;
-       numCons_ = numTotalRows;
-       
-       // store the indices of the structural constraints
-       //for(i = 0; i < interdictRows; i++)
-       //	vubRowInd_[i] = lowerRowInd_[numTotalRows - interdictRows + i];
-       
-       break;
-     }
+      newMatrix->reverseOrdering();
+      
+      //------------------------------------------------------
+      // Create variables and constraints.
+      //------------------------------------------------------
+      
+      // Set all objects as core by default.
+      numCoreVariables_ = numTotalCols;
+      numCoreConstraints_ = numTotalRows;
+      
+      numOrigVars_ = 2 * numCols;
+      numOrigCons_ = numTotalRows;
+      numVars_ = numTotalCols;
+      numCons_ = numTotalRows;
+      
+      // store the indices of the structural constraints
+      //for(i = 0; i < interdictRows; i++)
+      //	vubRowInd_[i] = lowerRowInd_[numTotalRows - interdictRows + i];
+      
+      break;
+      
+   }
+
+   setColMatrix(newMatrix);   
+   
+   setNumCons(numCons_);
+   setNumVars(numVars_);
+   
+   setConLb(conLB);
+   setConUb(conUB);
+   
+   setVarLb(varLB);
+   setVarUb(varUB);
+   
+   setObjCoef(objCoef);
+   
+   setColType(colType);
+
+   //------------------------------------------------------
+   // Create variables and constraints.
+   //------------------------------------------------------
+
+   const double *elements = newMatrix->getElements();
+   const int *indices = newMatrix->getIndices();
+   const int *lengths = newMatrix->getVectorLengths();
+   const CoinBigIndex *starts = newMatrix->getVectorStarts();
+      
+   for (j = 0; j < numVars_; ++j) {
+      
+      beg = starts[j];
+      
+      BlisVariable * var = new BlisVariable(varLB[j],
+					    varUB[j], 
+					    varLB[j], 
+					    varUB[j],
+					    objCoef[j], 
+					    lengths[j],
+					    indices + beg,
+					    elements + beg);
+      
+      var->setObjectIndex(j);
+      var->setRepType(BCPS_CORE);
+      var->setStatus(BCPS_NONREMOVALBE);
+      var->setIntType(colType_[j]);
+      variables_.push_back(var);
+      var = NULL;
    }
    
-   delete mps;
-   //delete rowMatrix;
-   //delete colMatrix;
-   delete [] elements;
-   delete [] indices;
-   delete [] lengths;
-   
+   for (j = 0; j < numCons_; ++j) {
+      BlisConstraint *con = new BlisConstraint(conLB[j], 
+					       conUB[j], 
+					       conLB[j], 
+					       conUB[j]);
+      con->setObjectIndex(j);
+      con->setRepType(BCPS_CORE);
+      con->setStatus(BCPS_NONREMOVALBE);
+      constraints_.push_back(con);
+      con = NULL;        
+   }
 }
 
 //#############################################################################

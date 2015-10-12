@@ -302,12 +302,19 @@ class MibSModel : public BlisModel {
   /** Set the Blis parameters **/
   void setBlisParameters();
   
-  /** Read upper-level file **/
-  void readUpperData();
+  /** Read problem description file **/
+  void readProblemData();
 
-  /** Read lower-level file **/
-  void readLowerData();  
+  /** Read auxiliary data file **/
+  void readAuxiliaryData();  
 
+  /** Set problem data directly when using MibS as a library **/
+  void loadProblemData(const CoinPackedMatrix& matrix,
+		       const double* colLB, const double* colUB,   
+		       const double* obj,
+		       const double* rowLB, const double* rowUB,
+		       const char *type, double infinity);
+  
   /** Set integer indices and number of integer variables **/
   void findIntegers();
 
