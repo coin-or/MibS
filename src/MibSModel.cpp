@@ -546,7 +546,7 @@ MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
       /* Add VUB rows */
       CoinFillN(conLB + (numTotalRows - interdictRows), 
 		interdictRows, - 1 * infinity);
-      CoinDisjointCopyN(rowUB, interdictRows, conUB + (numTotalRows - interdictRows));
+      CoinDisjointCopyN(colUB, interdictRows, conUB + (numTotalRows - interdictRows));
       
       objCoef = new double [numTotalCols];
       CoinZeroN(objCoef, numTotalCols);
