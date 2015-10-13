@@ -194,6 +194,12 @@ class MibSModel : public BlisModel {
   /** Set the lower-level row number **/
   inline void setLowerRowNum(int val) {lowerRowNum_ = val;}
 
+  /** Set the interdiction cost **/
+  inline void setInterdictCost(double *ptr) {interdictCost_ = ptr;}
+
+  /** Set the interdiction budget **/
+  inline void setInterdictBudget(double val) {interdictBudget_ = val;}
+
   /** Set UL column indices **/
   void setUpperColInd(); 
 
@@ -302,11 +308,20 @@ class MibSModel : public BlisModel {
   /** Set the Blis parameters **/
   void setBlisParameters();
   
+  /** Read auxiliary data file **/
+  void readAuxiliaryData();
+
+  /** Set auxiliary data directly when using MibS as a library **/
+  void loadAuxiliaryData(int lowerColNum, int lowerRowNum,
+			 const int *lowerColInd,
+			 const int *lowerRowInd,
+			 double interdictBudget, 
+			 const double *interdictCost, 
+			 double lowerObjSense,
+			 const double *lowerObjCoef);
+
   /** Read problem description file **/
   void readProblemData();
-
-  /** Read auxiliary data file **/
-  void readAuxiliaryData();  
 
   /** Set problem data directly when using MibS as a library **/
   void loadProblemData(const CoinPackedMatrix& matrix,

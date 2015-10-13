@@ -311,24 +311,24 @@ MibSModel::loadAuxiliaryData(int lowerColNum, int lowerRowNum,
 			     double lowerObjSense,
 			     const double *lowerObjCoef)
 {
-   int *newLowerColInd = new int[lowerColNum];
-   int *newLowerRowInd = new int[lowerRowNum];
-   double *newInterdictCost = new double[lowerColNum];
-   double *newLowerObjCoef = new double[lowerColNum];
+   int *copyLowerColInd = new int[lowerColNum];
+   int *copyLowerRowInd = new int[lowerRowNum];
+   double *copyInterdictCost = new double[lowerColNum];
+   double *copyLowerObjCoef = new double[lowerColNum];
 
-   CoinDisjointCopyN(lowerColInd, lowerColNum, newLowerColInd);
-   CoinDisjointCopyN(lowerRowInd, lowerRowNum, newLowerRowInd);
-   CoinDisjointCopyN(interdictCost, lowerColNum, newInterdictCost);
-   CoinDisjointCopyN(lowerObjCoef, lowerColNum, newLowerObjCoef);
+   CoinDisjointCopyN(lowerColInd, lowerColNum, copyLowerColInd);
+   CoinDisjointCopyN(lowerRowInd, lowerRowNum, copyLowerRowInd);
+   CoinDisjointCopyN(interdictCost, lowerColNum, copyInterdictCost);
+   CoinDisjointCopyN(lowerObjCoef, lowerColNum, copyLowerObjCoef);
 
    setLowerDim(lowerColNum);
    setLowerRowNum(lowerRowNum);
-   setLowerColInd(newLowerColInd);
-   setLowerRowInd(newLowerRowInd);
+   setLowerColInd(copyLowerColInd);
+   setLowerRowInd(copyLowerRowInd);
    setInterdictBudget(interdictBudget);
-   setInterdictCost(newInterdictCost);
+   setInterdictCost(copyInterdictCost);
    setLowerObjSense(lowerObjSense);
-   setLowerObjCoeffs(newLowerObjCoef);
+   setLowerObjCoeffs(copyLowerObjCoef);
 }
 
 //#############################################################################
@@ -378,11 +378,7 @@ MibSModel::readProblemData()
    
    mps->messageHandler()->setLogLevel(msgLevel);
    
-   double * varLB(NULL);
-   double * varUB(NULL);
-   double * conLB(NULL);
-   double * conUB(NULL);
-   double * objCoef(NULL);
+   CoinPackedMatrix matrix = *(mps->getMatrixByCol());
 
    double objSense(0.0);
    
@@ -391,11 +387,11 @@ MibSModel::readProblemData()
    int numCols = mps->getNumCols(); 
    int numRows = mps->getNumRows();
    
-   varLB = new double [numCols];
-   varUB = new double [numCols];
+   double *varLB = new double [numCols];
+   double *varUB = new double [numCols];
    
-   conLB = new double [numRows];
-   conUB = new double [numRows];
+   double *conLB = new double [numRows];
+   double *conUB = new double [numRows];
    
    memcpy(varLB, mps->getColLower(), sizeof(double) * numCols);
    memcpy(varUB, mps->getColUpper(), sizeof(double) * numCols);
@@ -431,7 +427,7 @@ MibSModel::readProblemData()
    //objSense = BlisPar_->entry(BlisParams::objSense);
    objSense = -1.0;
 
-   objCoef = new double [numCols];
+   double *objCoef = new double [numCols];
    
    const double *mpsObj =  mps->getObjCoefficients();
 
@@ -444,7 +440,7 @@ MibSModel::readProblemData()
       }
    }    
    
-   loadProblemData(colMatrix, varLB, varUB, objCoef, conLB, conUB, colType, 
+   loadProblemData(matrix, varLB, varUB, objCoef, conLB, conUB, colType, 
 		   mps->getInfinity());
 
    delete mps;
