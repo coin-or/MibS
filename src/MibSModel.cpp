@@ -466,7 +466,6 @@ MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
 
    int numRows = matrix.getNumRows();
    int numCols = matrix.getNumCols();
-   int numElems = matrix.getNumElements();
 
    double *varLB(NULL);  
    double *varUB(NULL);  
@@ -547,8 +546,6 @@ MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
       CoinIotaN(structRowInd_, structRows, 0);
       structRowNum_ = structRows;
       
-      numElems += (numInterdictNZ + 2 * numCols);
-      
       varLB = new double [numTotalCols];
       varUB = new double [numTotalCols];
       
@@ -622,11 +619,10 @@ MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
       
       /* lower-level rows */
       
-      for(i = auxULRows; i < (numTotalRows - interdictRows); i++){
+      for(i = 0; i < numRows; i++){
 	 CoinPackedVector row;
-	 tmp = i - auxULRows;
-	 start = matStarts[tmp];
-	 end = start + rowMatrix.getVectorSize(tmp);
+	 start = matStarts[i];
+	 end = start + rowMatrix.getVectorSize(i);
 	 for(j = start; j < end; j++){
 	    index = matIndices[j] + numCols;
 	    row.insert(index, matElements[j]);
@@ -636,11 +632,10 @@ MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
       
       /* Add VUB rows */
       
-      for(i = (numTotalRows - interdictRows); i < numTotalRows; i++){
+      for(i = 0; i < numCols; i++){
 	 CoinPackedVector row;
-	 tmp = i - (numTotalRows - interdictRows);
-	 row.insert(tmp, colUB[tmp]);
-	 row.insert(tmp + numCols, 1.0);
+	 row.insert(i, colUB[i]);
+	 row.insert(i + numCols, 1.0);
 	 newMatrix->appendRow(row);
       }
       
