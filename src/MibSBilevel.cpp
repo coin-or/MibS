@@ -51,18 +51,20 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
   double *values = sol->getElements();
   int numElements(sol->getNumElements()); // number of nonzero elements
   
+#if 0
+  //FIXME: These don't seem to be used anymore. 
   if(!lowerSolution_)
     lowerSolution_ = new double[lN];
   if(!upperSolution_)
     upperSolution_ = new double[uN];
-  
+  CoinZeroN(lowerSolution_, lN);
+  CoinZeroN(upperSolution_, uN);
+#endif
+
   if(!lowerSolutionOrd_)
     lowerSolutionOrd_ = new double[lN];
   if(!upperSolutionOrd_)
     upperSolutionOrd_ = new double[uN];
-  
-  CoinZeroN(lowerSolution_, lN);
-  CoinZeroN(upperSolution_, uN);
   CoinZeroN(lowerSolutionOrd_, lN);
   CoinZeroN(upperSolutionOrd_, uN);
   
@@ -147,7 +149,7 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
     index = indices[i];
     value = CoinMax(values[i], lower[index]);
     value = CoinMin(value, upper[index]);
-    if(binarySearch(0, lN - 1, index, lowerColInd) < 0){
+    if(binarySearch(0, uN - 1, index, upperColInd) >= 0){
        if(fabs(floor(value + 0.5) - value) > etol){
 #if 1
 	  //This check is failing when Blis has already declared the solution integral
@@ -157,13 +159,6 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
 	     isBilevelFeasible_ = false;
 	  }
 #endif
-	  upperSolution_[uCount++] = value;	     
-       }
-       else{
-	  if(mibs->solver()->isInteger(index))
-	     upperSolution_[uCount++] = floor(value + 0.5);
-	  else
-	     upperSolution_[uCount++] = value;
        }
     }
     else{
@@ -172,7 +167,7 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
 	  //This check is failing when Blis has already declared the solution integral
 	  //It's not really needed
 	  if(mibs->solver()->isInteger(index)){
-	     isIntegral_ = false;
+	     //isIntegral_ = false;
 	     isBilevelFeasible_ = false;
 	  }
 #endif
@@ -203,7 +198,7 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
       lowerSolutionOrd_[pos] = values[i];
   }
 
-  if(isBilevelFeasible_)
+  if(isIntegral_)
      checkBilevelFeasiblity(mibs->isRoot_);
 
 }
@@ -329,6 +324,7 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
   double lowerObj = getLowerObj(sol, model_->getLowerObjSense());  
 
   int lN(model_->lowerDim_); // lower-level dimension
+  int uN(model_->upperDim_); // lower-level dimension
   if(!optLowerSolution_)
     optLowerSolution_ = new double[lN];
 
@@ -338,6 +334,7 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
   CoinZeroN(optLowerSolution_, lN);
   CoinZeroN(optLowerSolutionOrd_, lN);
   int * lowerColInd = model_->getLowerColInd();
+  int * upperColInd = model_->getUpperColInd();
 
   int index(0);
   
@@ -373,10 +370,16 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
      
   }
   else{
-     /** Current solution is not bilevel feasible **/
+     /** Current solution is not bilevel feasible, 
+	 but we may still have a solution **/
      
      //std::cout << "Solution is not bilevel feasible." << std::endl;
     
+     int numCols = model_->solver()->getNumCols();
+     const double * upperObjCoeffs = model_->solver()->getObjCoefficients();
+     double upperObj;
+     double objSense = model_->solver()->getObjSense();
+     double * newSolution = new double[numCols];  
      const double * values = lSolver->getColSolution();
      int lN(model_->getLowerDim());
      int i(0);
@@ -391,12 +394,29 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
      
      int pos(0);
 
-     for(i = 0; i < lN; i ++){
-       index = lowerColInd[i];
-       pos = binarySearch(0, lN - 1, index, lowerColInd);
-       optLowerSolutionOrd_[pos] = optLowerSolution_[i];
+     for(i = 0; i < numCols; i++){
+	pos = model_->bS_->binarySearch(0, lN - 1, i, lowerColInd);
+	if(pos < 0){
+	   pos = model_->bS_->binarySearch(0, uN - 1, i, upperColInd);
+	   newSolution[i] = sol[i];
+	}
+	else{
+	   newSolution[i] = optLowerSolution_[pos];
+	   optLowerSolutionOrd_[pos] = optLowerSolution_[pos];
+	}
+	upperObj += newSolution[i] * upperObjCoeffs[i];
      }
-
+	  
+     if(model_->checkUpperFeasibility(newSolution)){
+	MibSSolution *mibsSol = new MibSSolution(numCols, newSolution,
+						upperObj * objSense,
+						model_);
+	
+	model_->storeSolution(BlisSolutionTypeHeuristic, mibsSol);
+	delete mibsSol;
+     }
+     delete [] newSolution;
+     
      /* run a heuristic to find a better feasible solution */
      heuristic_->findHeuristicSolutions();
 
