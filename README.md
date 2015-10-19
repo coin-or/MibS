@@ -37,8 +37,8 @@ It is also possible to specify additional settings in a parameter file with, e.g
 ```
 mibs -param mibs.par
 ```
-MibS has many parameters. See the example parameter file '''mibs.par''' and
-the header file '''MibParams.h''' for explanations.
+MibS has many parameters. See the example parameter file `mibs.par` and
+the header file `MibParam.h` for explanations.
 
 HELP
 
