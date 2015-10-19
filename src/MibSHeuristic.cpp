@@ -109,9 +109,9 @@ MibSHeuristic::lowerObjHeuristic()
   int * uColIndices = model->getUpperColInd();
   double * lObjCoeffs = model->getLowerObjCoeffs();
   
-  int tCols(lCols + uCols);
-
-  assert(tCols == oSolver->getNumCols());
+  //int tCols(lCols + uCols);
+  int tCols(oSolver->getNumCols());
+  //assert(tCols == oSolver->getNumCols());
 
   hSolver->loadProblem(*oSolver->getMatrixByCol(),
 		       oSolver->getColLower(), oSolver->getColUpper(),
@@ -131,8 +131,11 @@ MibSHeuristic::lowerObjHeuristic()
 
   for(i = 0; i < lCols; i++){
     index = lColIndices[i];
-    nObjCoeffs[index] = lObjCoeffs[i] * objSense;
+    nObjCoeffs[index] = lObjCoeffs[i];
   }
+
+  //MibS objective sense is the opposite of OSI's!
+  hSolver->setObjSense(objSense);
 
   hSolver->setObjective(nObjCoeffs);
  
@@ -184,85 +187,108 @@ MibSHeuristic::lowerObjHeuristic()
 
     OsiSolverInterface * lSolver = model->bS_->setUpModel(hSolver, true);
 
+    if(0){
+       lSolver->writeLp("tmp");
+    }
+
+    if(0){
+       dynamic_cast<OsiCbcSolverInterface *> 
+	  (lSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
+    }    
+    else{
+       dynamic_cast<OsiSymSolverInterface *> 
+	  (lSolver)->setSymParam("prep_level", -1);
+       
+       dynamic_cast<OsiSymSolverInterface *> 
+	  (lSolver)->setSymParam("verbosity", -2);
+       
+       dynamic_cast<OsiSymSolverInterface *> 
+	  (lSolver)->setSymParam("max_active_nodes", 1);
+    }
+
     lSolver->branchAndBound();
 
-    const double * sol = hSolver->getColSolution();
-    double objVal(lSolver->getObjValue() * objSense);
-    double etol(etol_);
-    double lowerObj = getLowerObj(sol, objSense);  
-    
-    double * optUpperSolutionOrd = new double[uCols];
-    double * optLowerSolutionOrd = new double[lCols];
-    
-    CoinZeroN(optUpperSolutionOrd, uCols);
-    CoinZeroN(optLowerSolutionOrd, lCols);
-
-    if(fabs(objVal - lowerObj) < etol){
-    
-      /** Current solution is bilevel feasible **/
-    
-      for(i = 0; i < tCols; i++)
-	upperObjVal += 
-	  hSolver->getColSolution()[i] * oSolver->getObjCoefficients()[i];
-
-      mibSol = new MibSSolution(hSolver->getNumCols(),
-				hSolver->getColSolution(),
-				upperObjVal,
-				model);
-    
-      model->storeSolution(BlisSolutionTypeHeuristic, mibSol);
-      mibSol = NULL;
-    }
-    else{
-
-      /* solution is not bilevel feasible, create one that is */
-
-      const double * uSol = hSolver->getColSolution();
-      const double * lSol = lSolver->getColSolution();
-      int numElements(hSolver->getNumCols());
-      int i(0), pos(0), index(0);
-      double * lpSolution = new double[numElements];
-      double upperObj(0.0);
-
-      //FIXME: problem is still here.  indices may be wrong.  
-      //also is all this necessary, or can we just paste together uSol and lSol?
-      //this may be an old comment
-     
-      for(i = 0; i < numElements; i++){
-	pos = model->bS_->binarySearch(0, lCols - 1, i, lColIndices);
-	if(pos < 0){
-	  pos = model->bS_->binarySearch(0, uCols - 1, i, uColIndices);
-	  optUpperSolutionOrd[pos] = uSol[i];
-	}
-	else{
-	  optLowerSolutionOrd[pos] = lSol[pos];
-	}
-      }
-      
-      for(i = 0; i < uCols; i++){
-	index = uColIndices[i];
-	lpSolution[index] = optUpperSolutionOrd[i];
-	upperObj += 
-	  optUpperSolutionOrd[i] * oSolver->getObjCoefficients()[index];
-      }
-
-      for(i = 0; i < lCols; i++){
-	index = lColIndices[i];
-	lpSolution[index] = optLowerSolutionOrd[i];
-	upperObj += 
-	  optLowerSolutionOrd[i] * oSolver->getObjCoefficients()[index];
-      }
-      
-      if(model->checkUpperFeasibility(lpSolution)){
-	mibSol = new MibSSolution(hSolver->getNumCols(),
-				  lpSolution,
-				  upperObj * oSolver->getObjSense(),
-				  model);
-	
-	model->storeSolution(BlisSolutionTypeHeuristic, mibSol);
-	mibSol = NULL;
-      }
-      delete [] lpSolution;
+    if (lSolver->isProvenOptimal()){
+       const double * sol = hSolver->getColSolution();
+       double objVal(lSolver->getObjValue() * objSense);
+       double etol(etol_);
+       double lowerObj = getLowerObj(sol, objSense);  
+       
+       double * optUpperSolutionOrd = new double[uCols];
+       double * optLowerSolutionOrd = new double[lCols];
+       
+       CoinZeroN(optUpperSolutionOrd, uCols);
+       CoinZeroN(optLowerSolutionOrd, lCols);
+       
+       if(fabs(objVal - lowerObj) < etol){
+	  
+	  /** Current solution is bilevel feasible **/
+	  
+	  for(i = 0; i < tCols; i++)
+	     upperObjVal += 
+		hSolver->getColSolution()[i] * oSolver->getObjCoefficients()[i];
+	  
+	  mibSol = new MibSSolution(hSolver->getNumCols(),
+				    hSolver->getColSolution(),
+				    upperObjVal,
+				    model);
+	  
+	  model->storeSolution(BlisSolutionTypeHeuristic, mibSol);
+	  mibSol = NULL;
+       }
+       else{
+	  
+	  /* solution is not bilevel feasible, create one that is */
+	  
+	  const double * uSol = hSolver->getColSolution();
+	  const double * lSol = lSolver->getColSolution();
+	  int numElements(hSolver->getNumCols());
+	  int i(0), pos(0), index(0);
+	  double * lpSolution = new double[numElements];
+	  double upperObj(0.0);
+	  
+	  //FIXME: problem is still here.  indices may be wrong.  
+	  //also is all this necessary, or can we just paste together uSol and lSol?
+	  //this may be an old comment
+	  
+	  for(i = 0; i < numElements; i++){
+	     pos = model->bS_->binarySearch(0, lCols - 1, i, lColIndices);
+	     if(pos < 0){
+		pos = model->bS_->binarySearch(0, uCols - 1, i, uColIndices);
+		if (pos >= 0){
+		   optUpperSolutionOrd[pos] = uSol[i];
+		}
+	     }
+	     else{
+		optLowerSolutionOrd[pos] = lSol[pos];
+	     }
+	  }
+	  
+	  for(i = 0; i < uCols; i++){
+	     index = uColIndices[i];
+	     lpSolution[index] = optUpperSolutionOrd[i];
+	     upperObj += 
+		optUpperSolutionOrd[i] * oSolver->getObjCoefficients()[index];
+	  }
+	  
+	  for(i = 0; i < lCols; i++){
+	     index = lColIndices[i];
+	     lpSolution[index] = optLowerSolutionOrd[i];
+	     upperObj += 
+		optLowerSolutionOrd[i] * oSolver->getObjCoefficients()[index];
+	  }
+	  
+	  if(model->checkUpperFeasibility(lpSolution)){
+	     mibSol = new MibSSolution(hSolver->getNumCols(),
+				       lpSolution,
+				       upperObj * oSolver->getObjSense(),
+				       model);
+	     
+	     model->storeSolution(BlisSolutionTypeHeuristic, mibSol);
+	     mibSol = NULL;
+	  }
+	  delete [] lpSolution;
+       }
     }
     delete lSolver;
   }
@@ -317,7 +343,9 @@ MibSHeuristic::objCutHeuristic()
     rhs += optLowerSolutionOrd[i] * lObjCoeffs[i] * objSense;
   }
 
-  hSolver->addRow(objCon, - hSolver->getInfinity(), rhs);
+  //Hmm, I think this was wrong before...?
+  //  hSolver->addRow(objCon, - hSolver->getInfinity(), rhs);
+  hSolver->addRow(objCon, rhs, hSolver->getInfinity());
 
   /* optimize w.r.t. to the UL objective with the new row */
   if(0){
@@ -345,6 +373,21 @@ MibSHeuristic::objCutHeuristic()
     MibSSolution *mibSol = NULL;
 
     OsiSolverInterface * lSolver = model->bS_->setUpModel(hSolver, true);
+
+    if(0){
+       dynamic_cast<OsiCbcSolverInterface *> 
+	  (lSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
+    }    
+    else{
+       dynamic_cast<OsiSymSolverInterface *> 
+	  (lSolver)->setSymParam("prep_level", -1);
+       
+       dynamic_cast<OsiSymSolverInterface *> 
+	  (lSolver)->setSymParam("verbosity", -2);
+       
+       dynamic_cast<OsiSymSolverInterface *> 
+	  (lSolver)->setSymParam("max_active_nodes", 1);
+    }
 
     lSolver->branchAndBound();
 
@@ -394,7 +437,9 @@ MibSHeuristic::objCutHeuristic()
 	 pos = model->bS_->binarySearch(0, uCols - 1, i, uColIndices);
 	 //optUpperSolutionOrd[pos] = values[i];
 	 //optUpperSolutionOrd[pos] = uSol[pos];
-	 optUpperSolutionOrd[pos] = uSol[i];
+	 if (pos >= 0){
+	    optUpperSolutionOrd[pos] = uSol[i];
+	 }
        }
        else{
 	 //optLowerSolutionOrd[pos] = lSol[i];
@@ -883,6 +928,21 @@ MibSHeuristic::checkLowerFeasibility(OsiSolverInterface * si,
   MibSModel * model = MibSModel_;
   OsiSolverInterface * lSolver = model->bS_->setUpModel(si, true, solution);
 
+  if(0){
+     dynamic_cast<OsiCbcSolverInterface *> 
+	(lSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
+  }    
+  else{
+     dynamic_cast<OsiSymSolverInterface *> 
+	(lSolver)->setSymParam("prep_level", -1);
+     
+     dynamic_cast<OsiSymSolverInterface *> 
+	(lSolver)->setSymParam("verbosity", -2);
+     
+     dynamic_cast<OsiSymSolverInterface *> 
+	(lSolver)->setSymParam("max_active_nodes", 1);
+  }
+
   lSolver->branchAndBound();
 
   if(lSolver->isProvenOptimal())
@@ -925,6 +985,20 @@ MibSHeuristic::getBilevelSolution(const double * sol, double origLower)
      }
   }
   
+  if(0){
+     dynamic_cast<OsiCbcSolverInterface *> 
+	(lSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
+  }    
+  else{
+     dynamic_cast<OsiSymSolverInterface *> 
+	(lSolver)->setSymParam("prep_level", -1);
+     
+     dynamic_cast<OsiSymSolverInterface *> 
+	(lSolver)->setSymParam("verbosity", -2);
+     
+     dynamic_cast<OsiSymSolverInterface *> 
+	(lSolver)->setSymParam("max_active_nodes", 1);
+  }
 
   lSolver->branchAndBound();
 
@@ -1041,8 +1115,16 @@ MibSHeuristic::getBilevelSolution1(const double * sol)
     dynamic_cast<OsiCbcSolverInterface *> 
       (lSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
   }
-
-  //lSolver->writeLp("bilevelsolver");
+  else{
+     dynamic_cast<OsiSymSolverInterface *> 
+	(lSolver)->setSymParam("prep_level", -1);
+     
+     dynamic_cast<OsiSymSolverInterface *> 
+	(lSolver)->setSymParam("verbosity", -2);
+     
+     dynamic_cast<OsiSymSolverInterface *> 
+	(lSolver)->setSymParam("max_active_nodes", 1);
+  }
 
   lSolver->branchAndBound();
 
@@ -1376,7 +1458,6 @@ MibSHeuristic::solveSubproblem(double beta)
     //return NULL;
     //abort();
   }
-
 }
 
 //#############################################################################
