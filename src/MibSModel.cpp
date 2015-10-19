@@ -647,7 +647,7 @@ MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
       
       /* lower-level rows */
       
-      for(i = 0; i < numRows; i++){
+      for (i = 0; i < numRows; i++){
 	 CoinPackedVector row;
 	 start = matStarts[i];
 	 end = start + rowMatrix.getVectorSize(i);
@@ -660,7 +660,7 @@ MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
       
       /* Add VUB rows */
       
-      for(i = 0; i < numCols; i++){
+      for (i = 0; i < numCols; i++){
 	 CoinPackedVector row;
 	 row.insert(i, colUB[i]);
 	 row.insert(i + numCols, 1.0);
@@ -671,6 +671,14 @@ MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
       
       setUpperDim(numCols);
       setUpperRowNum(1);
+
+      int *upperColInd = new int[numCols];
+      int *upperRowInd = new int[1];      
+      CoinIotaN(upperColInd, numCols, 0);
+      upperRowInd[0] = 0;
+
+      setUpperColInd(upperColInd);
+      setUpperRowInd(upperRowInd);
       
       // store the indices of the structural constraints
       //for(i = 0; i < interdictRows; i++)
