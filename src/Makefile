@@ -13,12 +13,12 @@
 #===========================================================================#
 
 # CHANGEME: This should be the name of your executable
-EXE = mibs
+EXE = int_branch_parallel
 
 # CHANGEME: Here is the name of all object files corresponding to the source
 #           code that you wrote in order to define the problem statement
 
-OBJS =  MibSMain.o \
+OBJS =  main_parallel.o \
 	MibSCutGenerator.o \
 	MibSModel.o \
 	MibSBilevel.o \
@@ -36,7 +36,7 @@ OBJS =  MibSMain.o \
 ADDLIBS =
 
 # CHANGEME: Additional flags for compilation (e.g., include flags)
-ADDINCFLAGS = -I../include
+ADDINCFLAGS = -I../include -I/home/ted/cplex126/cplex/include/ilcplex 
 
 # CHANGEME: Directory to the sources for the (example) problem definition
 # files
@@ -50,7 +50,7 @@ SRCDIR = .
 CXX = g++
 
 # C++ Compiler options
-CXXFLAGS = -g -pipe -pedantic-errors -Wparentheses -Wreturn-type -Wcast-qual -Wall -Wpointer-arith -Wwrite-strings -Wconversion
+CXXFLAGS = -g -pipe -Wparentheses -Wreturn-type -Wcast-qual -Wall -Wpointer-arith -Wwrite-strings -Wconversion
 
 # additional C++ Compiler options for linking
 CXXLINKFLAGS = 
@@ -70,6 +70,12 @@ else
 LIBS =  `cat $(COINDOCDIR)/Blis/blis_addlibs.txt` \
         `cat $(COINDOCDIR)/Cbc/cbc_addlibs.txt` \
         `cat $(COINDOCDIR)/SYMPHONY/sym_addlibs.txt`
+endif
+
+USE_CPLEX = TRUE
+
+ifeq ($(USE_CPLEX),TRUE)
+LIBS += -I/home/ted/cplex126/cplex/include/ilcplex -L/home/ted/cplex126/cplex/lib/x86-64_linux/static_pic/ -lcplex -lpthread -lm
 endif
 
 ###########################################################################
