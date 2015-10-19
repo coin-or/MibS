@@ -56,7 +56,7 @@
 //#############################################################################
 MibSModel::MibSModel()
 {
-  initializeData();
+  initialize();
 }
 
 //#############################################################################
@@ -81,7 +81,7 @@ MibSModel::~MibSModel()
 
 //#############################################################################
 void 
-MibSModel::initializeData()
+MibSModel::initialize()
 {
 
   llDataFile_ = "";
@@ -113,13 +113,22 @@ MibSModel::initializeData()
   origRowUb_ = NULL;
   lowerObjCoeffs_ = NULL;
   interdictCost_ = NULL;
-  bS_ = NULL;
+  bS_ = new MibSBilevel();
   //simpleCutOnly_ = true; //FIXME: should make this a parameter
   //bindingMethod_ = "BLAND"; //FIXME: should make this a parameter
   //bindingMethod_ = "BASIS"; //FIXME: should make this a parameter
   MibSPar_ = new MibSParams;
   //maxAuxCols_ = 0; //FIXME: should make this a parameter
   solIsUpdated_ = false;
+
+  MibSCutGenerator *cg = new MibSCutGenerator(this);
+
+  cg->setStrategy(BlisCutStrategyPeriodic);
+  cg->setCutGenerationFreq(1);  // Generate cuts at every node
+
+  addCutGenerator(cg);
+
+  setBlisParameters();
 }
 
 //#############################################################################
@@ -174,25 +183,6 @@ MibSModel::readInstance(const char* dataFile)
   setUpperFile(dataFile);
   readAuxiliaryData(); // reads in lower-level vars, rows, obj coeffs
   readProblemData(); // reads in max c^1x + d^1y s.t. (x,y) in Omega^I
-  
-  setUpperColInd();
-  setUpperRowInd();
-  setBounds(); // stores the original column and row bounds
-  checkProblemType(); // checks if MibS can solve problem entered
-  setProblemType(); //determine the type of MIBLP  
-
-  bS_ = new MibSBilevel();
-  
-  MibSCutGenerator *cg = new MibSCutGenerator(this);
-
-  cg->setStrategy(BlisCutStrategyPeriodic);
-  cg->setCutGenerationFreq(1);  // Generate cuts at every node
-
-  addCutGenerator(cg);
-
-  setBlisParameters();
-  
-
 }
 
 //#############################################################################
@@ -295,8 +285,6 @@ MibSModel::readAuxiliaryData()
   std::cout << "LL Data File: " << getLowerFile() << "\n";
   std::cout << "Number of LL Variables:   " 
 	    << getLowerDim() << "\n\n";
-
-  
 }
 
 
@@ -306,29 +294,74 @@ void
 MibSModel::loadAuxiliaryData(int lowerColNum, int lowerRowNum,
 			     const int *lowerColInd,
 			     const int *lowerRowInd,
-			     double interdictBudget, 
-			     const double *interdictCost, 
 			     double lowerObjSense,
-			     const double *lowerObjCoef)
+			     const double *lowerObjCoef,
+			     int upperColNum, int upperRowNum,
+			     const int *upperColInd,
+			     const int *upperRowInd,
+			     int structRowNum, 
+			     const int *structRowInd,
+			     double interdictBudget, 
+			     const double *interdictCost)
 {
    int *copyLowerColInd = new int[lowerColNum];
    int *copyLowerRowInd = new int[lowerRowNum];
-   double *copyInterdictCost = new double[lowerColNum];
    double *copyLowerObjCoef = new double[lowerColNum];
+   int *copyUpperColInd = NULL;
+   int *copyUpperRowInd = NULL;
+   int *copyStructRowInd = NULL;
+   double *copyInterdictCost = NULL;   
+   if (upperColInd != NULL){
+      copyUpperColInd = new int[upperColNum];
+   }
+   if (upperRowInd != NULL){
+      copyUpperRowInd = new int[upperRowNum];
+   }
+   if (structRowInd != NULL){
+      copyStructRowInd = new int[structRowNum];
+   }
+   if (interdictCost != NULL){
+      copyInterdictCost = new double[lowerColNum];
+   }
 
    CoinDisjointCopyN(lowerColInd, lowerColNum, copyLowerColInd);
    CoinDisjointCopyN(lowerRowInd, lowerRowNum, copyLowerRowInd);
-   CoinDisjointCopyN(interdictCost, lowerColNum, copyInterdictCost);
    CoinDisjointCopyN(lowerObjCoef, lowerColNum, copyLowerObjCoef);
+   if (upperColInd != NULL){
+      CoinDisjointCopyN(upperColInd, upperColNum, copyUpperColInd);
+   }
+   if (upperRowInd != NULL){
+      CoinDisjointCopyN(upperRowInd, upperRowNum, copyUpperRowInd);
+   }
+   if (structRowInd != NULL){
+      CoinDisjointCopyN(structRowInd, structRowNum, copyStructRowInd);
+   }
+   if (interdictCost != NULL){
+      CoinDisjointCopyN(interdictCost, lowerColNum, copyInterdictCost);
+   }
 
    setLowerDim(lowerColNum);
    setLowerRowNum(lowerRowNum);
    setLowerColInd(copyLowerColInd);
    setLowerRowInd(copyLowerRowInd);
-   setInterdictBudget(interdictBudget);
-   setInterdictCost(copyInterdictCost);
    setLowerObjSense(lowerObjSense);
    setLowerObjCoeffs(copyLowerObjCoef);
+   if (upperColInd != NULL){
+      setUpperDim(upperColNum);
+      setUpperColInd(copyUpperColInd);
+   }
+   if (upperRowInd != NULL){
+      setUpperRowNum(upperRowNum);
+      setUpperRowInd(copyUpperRowInd);
+   }
+   if (structRowInd != NULL){
+      setStructRowNum(structRowNum);
+      setStructRowInd(copyStructRowInd);
+   }
+   if (interdictCost != NULL){
+      setInterdictBudget(interdictBudget);
+      setInterdictCost(copyInterdictCost);
+   }
 }
 
 //#############################################################################
@@ -480,11 +513,14 @@ MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
       
     case 0:
 
-      structRowInd_ = new int[numRows];
-      CoinIotaN(structRowInd_, numRows, 0);
-      structRowNum_ = numRows;
+      if (!structRowInd_){
+	 structRowInd_ = new int[numRows];
+	 CoinIotaN(structRowInd_, numRows, 0);
+	 structRowNum_ = numRows;
+      }
       
       //Make copies of the data
+      newMatrix = new CoinPackedMatrix();
       *newMatrix = matrix;
       
       varLB = new double [numCols];
@@ -501,14 +537,6 @@ MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
       CoinDisjointCopyN(obj, numCols, objCoef);
       memcpy(colType, types, numCols);
 
-      // Set all objects as core by default.
-      numCoreVariables_ = numCols;
-      numCoreConstraints_ = numRows;
-      numOrigVars_ = numCols;
-      numOrigCons_ = numRows;
-      numVars_ = numCols;
-      numCons_ = numRows;
-      
       break;
       
     case 1:
@@ -641,18 +669,8 @@ MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
       
       newMatrix->reverseOrdering();
       
-      //------------------------------------------------------
-      // Create variables and constraints.
-      //------------------------------------------------------
-      
-      // Set all objects as core by default.
-      numCoreVariables_ = numTotalCols;
-      numCoreConstraints_ = numTotalRows;
-      
-      numOrigVars_ = 2 * numCols;
-      numOrigCons_ = numTotalRows;
-      numVars_ = numTotalCols;
-      numCons_ = numTotalRows;
+      setUpperDim(numCols);
+      setUpperRowNum(1);
       
       // store the indices of the structural constraints
       //for(i = 0; i < interdictRows; i++)
@@ -664,6 +682,8 @@ MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
 
    setColMatrix(newMatrix);   
    
+   numCoreConstraints_ = numCons_ = newMatrix->getMinorDim();
+   numCoreVariables_   = numVars_ = newMatrix->getMajorDim();
    setNumCons(numCons_);
    setNumVars(numVars_);
    
@@ -718,6 +738,79 @@ MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
       constraints_.push_back(con);
       con = NULL;        
    }
+
+   setUpperColData();
+   setUpperRowData();
+   setBounds(); // stores the original column and row bounds
+   //checkProblemType(); // checks if MibS can solve problem entered
+   setProblemType(); //determine the type of MIBLP
+}
+
+//#############################################################################
+void 
+MibSModel::setUpperColData()
+{
+
+   int lowerColNum(lowerDim_);
+   if (!upperDim_){
+      upperDim_ = numVars_ - lowerDim_;
+      int * lowerColInd = getLowerColInd();
+      
+      if(!getUpperColInd())
+	 upperColInd_ = new int[upperDim_];
+      
+      int i(0), cnt(0);
+
+      for (i = 0; i < lowerDim_ + upperDim_; i++){
+	 if((!findIndex(i, lowerColNum, lowerColInd)) 
+	    && (colType_[i] != 'C')){
+	    upperColInd_[cnt] = i;
+	    cnt++;
+	    if(0)
+	       std::cout << "i: " << i << std::endl;
+	 }
+      }
+
+      for(i = 0; i < lowerDim_ + upperDim_; i++){
+	 if((!findIndex(i, lowerColNum, lowerColInd)) 
+	    && (colType_[i] == 'C')){
+	    upperColInd_[cnt] = i;
+	    cnt++;
+	 }
+      }
+   
+      assert(cnt == upperDim_);
+   }
+   numOrigVars_ = lowerDim_ + upperDim_;
+}
+
+//#############################################################################
+void 
+MibSModel::setUpperRowData()
+{
+
+   //FIXME: MAKE THIS MORE SIMPLE
+
+   int lowerRowNum(lowerRowNum_);
+   if (!upperRowNum_){
+      upperRowNum_ = numCons_ - lowerRowNum_;
+      int * lowerRowInd = getLowerRowInd();
+   
+      if(!getUpperRowInd())
+	 upperRowInd_ = new int[upperRowNum_];
+
+      int i(0), cnt(0);
+      
+      for(i = 0; i < lowerRowNum_ + upperRowNum_; i++){
+	 if(!findIndex(i, lowerRowNum, lowerRowInd)){
+	    upperRowInd_[cnt] = i;
+	    cnt++;
+	 }
+      }
+      assert(cnt == upperRowNum_);
+   }
+
+   numOrigCons_ = lowerRowNum_ + upperRowNum_;
 }
 
 //#############################################################################
@@ -1480,79 +1573,6 @@ MibSModel::findIndex(int index, int size, int * indices)
 
   return found;
 
-
-}
-
-//#############################################################################
-void 
-MibSModel::setUpperColInd()
-{
-
-   //FIXME: MAKE THIS MORE SIMPLE
-
-   int lowerDim(lowerDim_);
-   int totalDim(numOrigVars_);
-   int upperDim(numOrigVars_ - lowerDim_);
-   int * lowerColInd = getLowerColInd();
-   
-   if(!getUpperColInd())
-     upperColInd_ = new int[upperDim];
-
-   /** Set upper-level dimension **/
-   setUpperDim(upperDim);
-
-   int i(0), cnt(0);
-
-   for(i = 0; i < totalDim; i++){
-      if((!findIndex(i, lowerDim, lowerColInd)) 
-	 && (colType_[i] != 'C')){
-	 upperColInd_[cnt] = i;
-	 cnt++;
-	 if(0)
-	   std::cout << "i: " << i << std::endl;
-      }
-   }
-
-   for(i = 0; i < totalDim; i++){
-      if((!findIndex(i, lowerDim, lowerColInd)) 
-	 && (colType_[i] == 'C')){
-	 upperColInd_[cnt] = i;
-	 cnt++;
-      }
-   }
-
-   assert(cnt == upperDim);
-
-}
-
-//#############################################################################
-void 
-MibSModel::setUpperRowInd()
-{
-
-   //FIXME: MAKE THIS MORE SIMPLE
-
-   int lowerRowNum(lowerRowNum_);
-   int totalRowNum(numOrigCons_);
-   int upperRowNum(numOrigCons_ - lowerRowNum_);
-   int * lowerRowInd = getLowerRowInd();
-   
-   if(!getUpperRowInd())
-     upperRowInd_ = new int[upperRowNum];
-
-   /** Set upper-level row numbers **/
-   setUpperRowNum(upperRowNum);
-
-   int i(0), cnt(0);
-
-   for(i = 0; i < totalRowNum; i++){
-      if(!findIndex(i, lowerRowNum, lowerRowInd)){
-	 upperRowInd_[cnt] = i;
-	 cnt++;
-      }
-   }
-
-   assert(cnt == upperRowNum);
 
 }
 

@@ -194,6 +194,9 @@ class MibSModel : public BlisModel {
   /** Set the lower-level row number **/
   inline void setLowerRowNum(int val) {lowerRowNum_ = val;}
 
+  /** Set the number of structural rows **/
+  inline void setStructRowNum(int val) {structRowNum_ = val;}
+
   /** Set the interdiction cost **/
   inline void setInterdictCost(double *ptr) {interdictCost_ = ptr;}
 
@@ -201,16 +204,25 @@ class MibSModel : public BlisModel {
   inline void setInterdictBudget(double val) {interdictBudget_ = val;}
 
   /** Set UL column indices **/
-  void setUpperColInd(); 
+  void setUpperColInd(int *ptr) {upperColInd_ = ptr;} 
+
+  /** Set UL column data **/
+  void setUpperColData();
 
   /** Set UL row indices **/
-  void setUpperRowInd(); 
+  void setUpperRowInd(int *ptr) {upperRowInd_ = ptr;} 
+
+  /** Set UL row indices **/
+  void setUpperRowData();
 
   /** Set pointer to array of LL column indices **/
   void setLowerColInd(int *ptr) {lowerColInd_ = ptr;} 
 
   /** Set pointer to array of LL row indices **/
   void setLowerRowInd(int *ptr) {lowerRowInd_ = ptr;} 
+
+  /** Set pointer to array of structural row indices **/
+  void setStructRowInd(int *ptr) {structRowInd_ = ptr;} 
 
   /** Set pointer to array of LL objective coefficients **/
   void setLowerObjCoeffs(double *ptr) {lowerObjCoeffs_ = ptr;} 
@@ -315,10 +327,15 @@ class MibSModel : public BlisModel {
   void loadAuxiliaryData(int lowerColNum, int lowerRowNum,
 			 const int *lowerColInd,
 			 const int *lowerRowInd,
-			 double interdictBudget, 
-			 const double *interdictCost, 
 			 double lowerObjSense,
-			 const double *lowerObjCoef);
+			 const double *lowerObjCoef,
+			 int upperColNum, int upperRowNum,
+			 const int *upperColInd,
+			 const int *upperRowInd,
+			 int structRowNum, 
+			 const int *structRowInd,
+			 double interdictBudget, 
+			 const double *interdictCost);
 
   /** Read problem description file **/
   void readProblemData();
@@ -389,7 +406,7 @@ class MibSModel : public BlisModel {
  private:
 
   /** Initialize the object data **/
-  void initializeData();
+  void initialize();
 
   bool findIndex(int index, int size, int * indices);
 
