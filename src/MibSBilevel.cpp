@@ -51,7 +51,6 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
   double *values = sol->getElements();
   int numElements(sol->getNumElements()); // number of nonzero elements
   
-#if 0
   //FIXME: These don't seem to be used anymore. 
   if(!lowerSolution_)
     lowerSolution_ = new double[lN];
@@ -59,7 +58,6 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
     upperSolution_ = new double[uN];
   CoinZeroN(lowerSolution_, lN);
   CoinZeroN(upperSolution_, uN);
-#endif
 
   if(!lowerSolutionOrd_)
     lowerSolutionOrd_ = new double[lN];
@@ -171,14 +169,7 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
 	     isBilevelFeasible_ = false;
 	  }
 #endif
-	  lowerSolution_[lCount++] = value;
        }    
-       else{
-	  if(mibs->solver()->isInteger(index))
-	     lowerSolution_[lCount++] = floor(value + 0.5);
-	  else
-	     lowerSolution_[lCount++] = value;
-       }
     }
   }
  
