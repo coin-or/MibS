@@ -33,7 +33,7 @@ class MibSBranchStrategyPseudo : public BlisBranchStrategyPseudo {
 
   ~MibSBranchStrategyPseudo();
 
-  int createCandBranchObjects(int numPassesLeft);
+  int createCandBranchObjects(int numPassesLeft, double ub);
 
 };
 

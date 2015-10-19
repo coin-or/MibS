@@ -44,7 +44,7 @@ MibSBranchStrategyMaxInf::~MibSBranchStrategyMaxInf()
 
 /** Create a set of candidate branching objects. */
 int 
-MibSBranchStrategyMaxInf::createCandBranchObjects(int numPassesLeft)
+MibSBranchStrategyMaxInf::createCandBranchObjects(int numPassesLeft, double ub)
 {
 
     int numInfs = 0;

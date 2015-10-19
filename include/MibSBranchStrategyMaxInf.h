@@ -33,7 +33,7 @@ class MibSBranchStrategyMaxInf : public BlisBranchStrategyMaxInf {
 
   ~MibSBranchStrategyMaxInf();
 
-  int createCandBranchObjects(int numPassesLeft);
+  int createCandBranchObjects(int numPassesLeft, double ub);
 
 };
 

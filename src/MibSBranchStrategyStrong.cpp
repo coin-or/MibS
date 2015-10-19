@@ -45,7 +45,7 @@ MibSBranchStrategyStrong::~MibSBranchStrategyStrong()
 
 /** Create a set of candidate branching objects. */
 int 
-MibSBranchStrategyStrong::createCandBranchObjects(int numPassesLeft)
+MibSBranchStrategyStrong::createCandBranchObjects(int numPassesLeft, double ub)
 {
     int bStatus = 0;
     int i, j, pass;

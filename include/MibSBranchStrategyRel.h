@@ -33,7 +33,7 @@ class MibSBranchStrategyRel : public BlisBranchStrategyRel {
 
   ~MibSBranchStrategyRel();
 
-  int createCandBranchObjects(int numPassesLeft);
+  int createCandBranchObjects(int numPassesLeft, double ub);
 
 };
 
