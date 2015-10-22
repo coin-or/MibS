@@ -458,20 +458,12 @@ MibSModel::readProblemData()
    //FIXME: In previous version of code, objSense was only set to -1
    //       for interdiction problems...
    //objSense = BlisPar_->entry(BlisParams::objSense);
-   objSense = -1.0;
 
    double *objCoef = new double [numCols];
    
    const double *mpsObj =  mps->getObjCoefficients();
 
-   if (objSense > 0.0) {
-      memcpy(objCoef, mpsObj, sizeof(double) * numCols);
-   }
-   else {
-      for (j = 0; j < numCols; ++j) {
-	 objCoef[j] = -mpsObj[j];
-      }
-   }    
+   memcpy(objCoef, mpsObj, sizeof(double) * numCols);
    
    loadProblemData(matrix, varLB, varUB, objCoef, conLB, conUB, colType, 
 		   mps->getInfinity());
