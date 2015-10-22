@@ -67,6 +67,7 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
   CoinZeroN(upperSolutionOrd_, uN);
   
   isIntegral_ = true;
+  isUpperIntegral_ = true;
   isBilevelFeasible_ = true;
   
   int * lowerColInd = mibs->getLowerColInd();
@@ -153,6 +154,7 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
 	  //This check is failing when Blis has already declared the solution integral
 	  //It's not really needed
 	  if(mibs->solver()->isInteger(index)){
+	     isUpperIntegral_ = false;
 	     isIntegral_ = false;
 	     isBilevelFeasible_ = false;
 	  }
@@ -165,7 +167,7 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
 	  //This check is failing when Blis has already declared the solution integral
 	  //It's not really needed
 	  if(mibs->solver()->isInteger(index)){
-	     //isIntegral_ = false;
+	     isIntegral_ = false;
 	     isBilevelFeasible_ = false;
 	  }
 #endif
@@ -189,7 +191,7 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
       lowerSolutionOrd_[pos] = values[i];
   }
 
-  if(isIntegral_)
+  if(isUpperIntegral_)
      checkBilevelFeasiblity(mibs->isRoot_);
 
 }
@@ -258,7 +260,7 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
      }
      //Always uncomment for debugging!!
      sym_set_int_param(env, "do_primal_heuristic", FALSE);
-     sym_set_int_param(env, "verbosity", -2);
+     sym_set_int_param(env, "verbosity", 5);
      sym_set_int_param(env, "prep_level", -1);
      sym_set_int_param(env, "max_active_nodes", maxThreadsLL);
      sym_set_int_param(env, "tighten_root_bounds", FALSE);

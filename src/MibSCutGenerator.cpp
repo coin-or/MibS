@@ -2479,19 +2479,25 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
       delete sol;
       return feasibilityCuts(conPool) ? true : false;
     }
-    else if(bS->isIntegral_ && cutTypes == 1){
+    else if(bS->isUpperIntegral_ && cutTypes == 1){
       //interdiction problem
       delete sol;
-      return (feasibilityCuts(conPool) &&
-	      interdictionCuts(conPool)) ? true : false;
+      int status = false;
+      if (bS->isIntegral_){
+	 status = feasibilityCuts(conPool) ? true : false;
+      }
+      return (status && (interdictionCuts(conPool) ? true : false));
     }
-    else if(bS->isIntegral_ && cutTypes == 2){
+    else if(bS->isUpperIntegral_ && cutTypes == 2){
       //problem with binary UL variables and integer LL variables
       delete sol;
-      return (feasibilityCuts(conPool) &&
-	      binaryCuts(conPool)) ? true : false;
+      int status = false;
+      if (bS->isIntegral_){
+	 status = feasibilityCuts(conPool) ? true : false;
+      }
+      return (status && (binaryCuts(conPool) ? true : false));
     }
-    else if(bS->isIntegral_ && cutTypes == 3){
+    else if(bS->isUpperIntegral_ && cutTypes == 3){
       //problem with binary UL variables and general LL variables
       delete sol;
       return binaryCuts(conPool) ? true : false;
