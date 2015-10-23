@@ -413,7 +413,7 @@ MibSModel::readProblemData()
    
    CoinPackedMatrix matrix = *(mps->getMatrixByCol());
 
-   double objSense(0.0);
+   double objSense(1.0);
    
    char * colType = NULL;
 
@@ -466,7 +466,7 @@ MibSModel::readProblemData()
    memcpy(objCoef, mpsObj, sizeof(double) * numCols);
    
    loadProblemData(matrix, varLB, varUB, objCoef, conLB, conUB, colType, 
-		   mps->getInfinity());
+		   objSense, mps->getInfinity());
 
    delete mps;
 }
@@ -477,7 +477,7 @@ MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
 			   const double* colLB, const double* colUB,   
 			   const double* obj,
 			   const double* rowLB, const double* rowUB,
-			   const char *types,
+			   const char *types, double objSense,
 			   double infinity)
 {
    //FIXME: THIS ISN'T TRUE IF WE LOAD AN INTERDICTION PROBLEM 
@@ -595,8 +595,9 @@ MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
       
       objCoef = new double [numTotalCols];
       CoinZeroN(objCoef, numTotalCols);
-      
-      CoinDisjointCopyN(obj, numCols, objCoef + numCols);
+      for (j = 0; j < numCols; j++){ 
+	 objCoef[j + numCols] = -obj[j];
+      }
       
       //------------------------------------------------------
       // Set colType_
@@ -696,6 +697,8 @@ MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
    setObjCoef(objCoef);
    
    setColType(colType);
+
+   BlisPar_->setEntry(BlisParams::objSense, objSense);
 
    //------------------------------------------------------
    // Create variables and constraints.
@@ -1015,7 +1018,7 @@ MibSModel::setupSelf()
 			  objCoef_,
 			  conLB_, conUB_);
    
-   lpSolver_->setObjSense(1.0);
+   lpSolver_->setObjSense(BlisPar_->entry(BlisParams::objSense));
    lpSolver_->setInteger(intColIndices_, numIntObjects_);
 
    //------------------------------------------------------
