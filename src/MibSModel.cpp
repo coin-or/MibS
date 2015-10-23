@@ -595,6 +595,8 @@ MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
       
       objCoef = new double [numTotalCols];
       CoinZeroN(objCoef, numTotalCols);
+      //This is a work-around because the MPS files in our test set have the lower-level
+      //objective instead of the upper level one
       for (j = 0; j < numCols; j++){ 
 	 objCoef[j + numCols] = -obj[j];
       }
