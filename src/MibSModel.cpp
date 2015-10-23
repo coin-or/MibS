@@ -413,7 +413,7 @@ MibSModel::readProblemData()
    
    CoinPackedMatrix matrix = *(mps->getMatrixByCol());
 
-   double objSense(0.0);
+   double objSense(1.0);
    
    char * colType = NULL;
 
@@ -458,23 +458,15 @@ MibSModel::readProblemData()
    //FIXME: In previous version of code, objSense was only set to -1
    //       for interdiction problems...
    //objSense = BlisPar_->entry(BlisParams::objSense);
-   objSense = -1.0;
 
    double *objCoef = new double [numCols];
    
    const double *mpsObj =  mps->getObjCoefficients();
 
-   if (objSense > 0.0) {
-      memcpy(objCoef, mpsObj, sizeof(double) * numCols);
-   }
-   else {
-      for (j = 0; j < numCols; ++j) {
-	 objCoef[j] = -mpsObj[j];
-      }
-   }    
+   memcpy(objCoef, mpsObj, sizeof(double) * numCols);
    
    loadProblemData(matrix, varLB, varUB, objCoef, conLB, conUB, colType, 
-		   mps->getInfinity());
+		   objSense, mps->getInfinity());
 
    delete mps;
 }
@@ -485,7 +477,7 @@ MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
 			   const double* colLB, const double* colUB,   
 			   const double* obj,
 			   const double* rowLB, const double* rowUB,
-			   const char *types,
+			   const char *types, double objSense,
 			   double infinity)
 {
    //FIXME: THIS ISN'T TRUE IF WE LOAD AN INTERDICTION PROBLEM 
@@ -603,8 +595,11 @@ MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
       
       objCoef = new double [numTotalCols];
       CoinZeroN(objCoef, numTotalCols);
-      
-      CoinDisjointCopyN(obj, numCols, objCoef + numCols);
+      //This is a work-around because the MPS files in our test set have the lower-level
+      //objective instead of the upper level one
+      for (j = 0; j < numCols; j++){ 
+	 objCoef[j + numCols] = -obj[j];
+      }
       
       //------------------------------------------------------
       // Set colType_
@@ -647,7 +642,7 @@ MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
       
       /* lower-level rows */
       
-      for(i = 0; i < numRows; i++){
+      for (i = 0; i < numRows; i++){
 	 CoinPackedVector row;
 	 start = matStarts[i];
 	 end = start + rowMatrix.getVectorSize(i);
@@ -660,7 +655,7 @@ MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
       
       /* Add VUB rows */
       
-      for(i = 0; i < numCols; i++){
+      for (i = 0; i < numCols; i++){
 	 CoinPackedVector row;
 	 row.insert(i, colUB[i]);
 	 row.insert(i + numCols, 1.0);
@@ -671,6 +666,14 @@ MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
       
       setUpperDim(numCols);
       setUpperRowNum(1);
+
+      int *upperColInd = new int[numCols];
+      int *upperRowInd = new int[1];      
+      CoinIotaN(upperColInd, numCols, 0);
+      upperRowInd[0] = 0;
+
+      setUpperColInd(upperColInd);
+      setUpperRowInd(upperRowInd);
       
       // store the indices of the structural constraints
       //for(i = 0; i < interdictRows; i++)
@@ -696,6 +699,8 @@ MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
    setObjCoef(objCoef);
    
    setColType(colType);
+
+   BlisPar_->setEntry(BlisParams::objSense, objSense);
 
    //------------------------------------------------------
    // Create variables and constraints.
@@ -1015,7 +1020,7 @@ MibSModel::setupSelf()
 			  objCoef_,
 			  conLB_, conUB_);
    
-   lpSolver_->setObjSense(1.0);
+   lpSolver_->setObjSense(BlisPar_->entry(BlisParams::objSense));
    lpSolver_->setInteger(intColIndices_, numIntObjects_);
 
    //------------------------------------------------------

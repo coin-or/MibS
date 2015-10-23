@@ -67,6 +67,7 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
   CoinZeroN(upperSolutionOrd_, uN);
   
   isIntegral_ = true;
+  isUpperIntegral_ = true;
   isBilevelFeasible_ = true;
   
   int * lowerColInd = mibs->getLowerColInd();
@@ -153,6 +154,7 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
 	  //This check is failing when Blis has already declared the solution integral
 	  //It's not really needed
 	  if(mibs->solver()->isInteger(index)){
+	     isUpperIntegral_ = false;
 	     isIntegral_ = false;
 	     isBilevelFeasible_ = false;
 	  }
@@ -165,7 +167,7 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
 	  //This check is failing when Blis has already declared the solution integral
 	  //It's not really needed
 	  if(mibs->solver()->isInteger(index)){
-	     //isIntegral_ = false;
+	     isIntegral_ = false;
 	     isBilevelFeasible_ = false;
 	  }
 #endif
@@ -189,7 +191,7 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
       lowerSolutionOrd_[pos] = values[i];
   }
 
-  if(isIntegral_)
+  if(isUpperIntegral_)
      checkBilevelFeasiblity(mibs->isRoot_);
 
 }
@@ -368,7 +370,7 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
     
      int numCols = model_->solver()->getNumCols();
      const double * upperObjCoeffs = model_->solver()->getObjCoefficients();
-     double upperObj;
+     double upperObj(0);
      double objSense = model_->solver()->getObjSense();
      double * newSolution = new double[numCols];  
      const double * values = lSolver->getColSolution();
@@ -400,11 +402,10 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 	  
      if(model_->checkUpperFeasibility(newSolution)){
 	MibSSolution *mibsSol = new MibSSolution(numCols, newSolution,
-						upperObj * objSense,
-						model_);
+						 upperObj * objSense,
+						 model_);
 	
 	model_->storeSolution(BlisSolutionTypeHeuristic, mibsSol);
-	delete mibsSol;
      }
      delete [] newSolution;
      

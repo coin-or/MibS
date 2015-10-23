@@ -345,7 +345,8 @@ class MibSModel : public BlisModel {
 		       const double* colLB, const double* colUB,   
 		       const double* obj,
 		       const double* rowLB, const double* rowUB,
-		       const char *type, double infinity);
+		       const char *type, double objSense,
+		       double infinity);
   
   /** Set integer indices and number of integer variables **/
   void findIntegers();
