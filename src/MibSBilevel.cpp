@@ -368,11 +368,6 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
      
      //std::cout << "Solution is not bilevel feasible." << std::endl;
     
-     int numCols = model_->solver()->getNumCols();
-     const double * upperObjCoeffs = model_->solver()->getObjCoefficients();
-     double upperObj(0);
-     double objSense = model_->solver()->getObjSense();
-     double * newSolution = new double[numCols];  
      const double * values = lSolver->getColSolution();
      int lN(model_->getLowerDim());
      int i(0);
@@ -385,8 +380,19 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 	   optLowerSolution_[i] = (double) values[i];
      }
      
+     int numCols = model_->solver()->getNumCols();
      int pos(0);
 
+#if 1
+     for(i = 0; i < numCols; i++){
+	if ((pos = model_->bS_->binarySearch(0, lN - 1, i, lowerColInd)) >= 0){
+	   optLowerSolutionOrd_[pos] = optLowerSolution_[pos];
+	}
+     }
+#else
+     double upperObj(0);
+     double * newSolution = new double[numCols];  
+     const double * upperObjCoeffs = model_->solver()->getObjCoefficients();
      for(i = 0; i < numCols; i++){
 	pos = model_->bS_->binarySearch(0, lN - 1, i, lowerColInd);
 	if(pos < 0){
@@ -399,15 +405,16 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 	}
 	upperObj += newSolution[i] * upperObjCoeffs[i];
      }
-	  
+
      if(model_->checkUpperFeasibility(newSolution)){
 	MibSSolution *mibsSol = new MibSSolution(numCols, newSolution,
-						 upperObj * objSense,
+						 upperObj,
 						 model_);
 	
 	model_->storeSolution(BlisSolutionTypeHeuristic, mibsSol);
      }
      delete [] newSolution;
+#endif	  
      
      /* run a heuristic to find a better feasible solution */
      heuristic_->findHeuristicSolutions();
