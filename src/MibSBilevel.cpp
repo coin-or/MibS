@@ -370,7 +370,7 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
     
      int numCols = model_->solver()->getNumCols();
      const double * upperObjCoeffs = model_->solver()->getObjCoefficients();
-     double upperObj;
+     double upperObj(0);
      double objSense = model_->solver()->getObjSense();
      double * newSolution = new double[numCols];  
      const double * values = lSolver->getColSolution();
@@ -402,11 +402,10 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 	  
      if(model_->checkUpperFeasibility(newSolution)){
 	MibSSolution *mibsSol = new MibSSolution(numCols, newSolution,
-						upperObj * objSense,
-						model_);
+						 upperObj * objSense,
+						 model_);
 	
 	model_->storeSolution(BlisSolutionTypeHeuristic, mibsSol);
-	delete mibsSol;
      }
      delete [] newSolution;
      
