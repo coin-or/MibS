@@ -1669,7 +1669,7 @@ MibSModel::userFeasibleSolution(const double * solution, bool &userFeasible)
       //std::cout << "This solution comes from MibSModel.cpp:1665" << std::endl;
       mibSol = new MibSSolution(getNumCols(),
 				lpSolution,
-				upperObj * solver()->getObjSense(),
+				upperObj,
 				this);
       
       storeSolution(BlisSolutionTypeHeuristic, mibSol);

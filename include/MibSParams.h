@@ -31,6 +31,7 @@ class MibSParams : public AlpsParameterSet {
      useNoGoodCut,
      useIncObjCut,
      useBendersCut,
+     useBoundCut,
      useObjCutHeuristic,
      useLowerObjHeuristic,
      useWSHeuristic,

@@ -16,6 +16,12 @@
 #include "OsiSymSolverInterface.hpp"
 #include "symphony.h"
 
+#if  COIN_HAS_MPI
+#include "AlpsKnowledgeBrokerMPI.h"
+#else
+#include "AlpsKnowledgeBrokerSerial.h"
+#endif
+
 #include "MibSCutGenerator.h"
 #include "MibSParams.h"
 #include "MibSTreeNode.h"
@@ -224,6 +230,90 @@ MibSCutGenerator::feasibilityCuts(BcpsConstraintPool &conPool)
     return 0;
   }
 
+}
+
+//#############################################################################
+int
+MibSCutGenerator::boundCuts(BcpsConstraintPool &conPool)
+{
+   /* Derive a bound on the lower level objective function value */
+
+   /** Set up lp solver **/
+   OsiClpSolverInterface lpSolver;
+   lpSolver.getModelPtr()->setDualBound(1.0e10);
+   lpSolver.messageHandler()->setLogLevel(0);
+   
+   /** Create new MibS model to solve bilevel **/
+   MibSModel boundModel;
+   boundModel.setSolver(&lpSolver);
+   
+   OsiSolverInterface * oSolver = localModel_->getSolver();
+   
+   int lCols(localModel_->getLowerDim());
+   int * lColIndices = localModel_->getLowerColInd();
+   double * lObjCoeffs = localModel_->getLowerObjCoeffs();
+   
+   int tCols(oSolver->getNumCols());
+   double * nObjCoeffs = new double[tCols];
+   int i(0), index(0);
+   double lObjSense = localModel_->getLowerObjSense();
+   
+   CoinZeroN(nObjCoeffs, tCols);
+   
+   for(i = 0; i < lCols; i++){
+      index = lColIndices[i];
+      nObjCoeffs[index] = -lObjSense * lObjCoeffs[i];
+   }
+
+   boundModel.loadAuxiliaryData(localModel_->getLowerDim(), localModel_->getLowerRowNum(),
+				localModel_->getLowerColInd(), localModel_->getLowerRowInd(),
+				localModel_->getLowerObjSense(), 
+				localModel_->getLowerObjCoeffs(),
+				localModel_->getUpperDim(), localModel_->getUpperRowNum(),
+				localModel_->getUpperColInd(), localModel_->getUpperRowInd(),
+				localModel_->structRowNum_, localModel_->structRowInd_,
+				0, NULL);
+				
+   CoinPackedMatrix matrix = *oSolver->getMatrixByCol();
+   int numCols = localModel_->getLowerDim() + localModel_->getUpperDim();
+   int auxCols = oSolver->getNumCols() - numCols;
+   int *indDel = new int[auxCols];
+   CoinIotaN(indDel, auxCols,numCols);
+   matrix.deleteCols(auxCols, indDel);
+
+   boundModel.loadProblemData(matrix,
+			      oSolver->getColLower(), oSolver->getColUpper(),
+			      nObjCoeffs,
+			      oSolver->getRowLower(), oSolver->getRowUpper(),
+			      localModel_->colType_, 1.0,
+			      oSolver->getInfinity());
+
+   delete[] indDel;
+   
+   int argc = 1;
+   char** argv = new char* [1];
+   argv[0] = "mibs";
+
+#ifdef  COIN_HAS_MPI
+   AlpsKnowledgeBrokerMPI broker(argc, argv, boundModel);
+#else
+   AlpsKnowledgeBrokerSerial broker(argc, argv, boundModel);
+#endif
+   
+   boundModel.MibSPar()->setEntry(MibSParams::bilevelCutTypes, 1);
+   boundModel.MibSPar()->setEntry(MibSParams::useBendersCut, true);
+   
+   boundModel.MibSPar()->setEntry(MibSParams::useLowerObjHeuristic, false);
+   boundModel.MibSPar()->setEntry(MibSParams::useObjCutHeuristic, false);
+   boundModel.MibSPar()->setEntry(MibSParams::useWSHeuristic, false);
+   boundModel.MibSPar()->setEntry(MibSParams::useGreedyHeuristic, false);
+
+   broker.search(&boundModel);
+
+   MibSSolution *solution = dynamic_cast<MibSSolution* >
+      (broker.getBestKnowledge(AlpsKnowledgeTypeSolution).first);
+   
+   broker.printBestSolution();
 }
 
 //#############################################################################
@@ -2464,8 +2554,15 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
     //  localModel_->MibSPar_->entry(MibSParams::bilevelProblemType);
     int cutTypes = 
       localModel_->MibSPar_->entry(MibSParams::bilevelCutTypes);
+
+    bool useBoundCut = 
+       localModel_->MibSPar_->entry(MibSParams::useBoundCut);
     
     CoinPackedVector *sol = localModel_->getSolution();
+
+    if (useBoundCut){
+       boundCuts(conPool);
+    }
 
     if(localModel_->solIsUpdated_)
       bS = localModel_->bS_;
