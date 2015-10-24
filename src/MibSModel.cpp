@@ -137,7 +137,7 @@ MibSModel::initialize()
 void 
 MibSModel::readParameters(const int argnum, const char * const * arglist)
 {
-  std::cout << "Reading parameters ..." << std::endl;
+   //std::cout << "Reading parameters ..." << std::endl;
   AlpsPar_->readFromArglist(argnum, arglist);
   BlisPar_->readFromArglist(argnum, arglist);
   MibSPar_->readFromArglist(argnum, arglist);
