@@ -250,6 +250,7 @@ MibSCutGenerator::boundCuts(BcpsConstraintPool &conPool)
    /** Create new MibS model to solve bilevel **/
    MibSModel boundModel;
    boundModel.setSolver(&lpSolver);
+   boundModel.AlpsPar()->setEntry(AlpsParams::msgLevel, 0);
    
    OsiSolverInterface * oSolver = localModel_->getSolver();
    
