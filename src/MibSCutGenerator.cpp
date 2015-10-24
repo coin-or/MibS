@@ -310,8 +310,9 @@ MibSCutGenerator::boundCuts(BcpsConstraintPool &conPool)
 
    broker.search(&boundModel);
 
-   MibSSolution *solution = dynamic_cast<MibSSolution* >
-      (broker.getBestKnowledge(AlpsKnowledgeTypeSolution).first);
+   if (boundModel.getNumSolutions() > 0){
+      double *solution = boundModel.incumbent();
+   }
    
    broker.printBestSolution();
 }
