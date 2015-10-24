@@ -238,6 +238,10 @@ MibSCutGenerator::boundCuts(BcpsConstraintPool &conPool)
 {
    /* Derive a bound on the lower level objective function value */
 
+   if (localModel_->boundingPass_ > 1){
+      return 0;
+   }
+
    /** Set up lp solver **/
    OsiClpSolverInterface lpSolver;
    lpSolver.getModelPtr()->setDualBound(1.0e10);
@@ -315,6 +319,9 @@ MibSCutGenerator::boundCuts(BcpsConstraintPool &conPool)
    }
    
    broker.printBestSolution();
+
+   //Change this when we actually add a cut
+   return 0;
 }
 
 //#############################################################################
