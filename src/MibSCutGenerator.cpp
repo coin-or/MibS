@@ -322,6 +322,25 @@ MibSCutGenerator::boundCuts(BcpsConstraintPool &conPool)
    broker.printBestSolution();
 
    //Change this when we actually add a cut
+   //double objval;
+   double objval(boundModel.getKnowledgeBroker()->getBestQuality());
+   //objval = boundModel.incObjValue_;
+   int numCuts(0);
+   double cutub(oSolver->getInfinity());                                                                              
+   std::vector<int> indexList;
+   std::vector<double> valsList;
+   for(i = 0; i < lCols; i++){
+     index = lColIndices[i];
+     indexList.push_back(index);
+     valsList.push_back(-lObjCoeffs[i]);
+   }
+   numCuts += addCut(conPool, objval, cutub, indexList, valsList,
+                     false);
+   indexList.clear();
+   valsList.clear();
+
+
+
    return 0;
 }
 
