@@ -332,7 +332,7 @@ MibSCutGenerator::boundCuts(BcpsConstraintPool &conPool)
    for(i = 0; i < lCols; i++){
      index = lColIndices[i];
      indexList.push_back(index);
-     valsList.push_back(-lObjCoeffs[i]);
+     valsList.push_back(-lObjSense *lObjCoeffs[i]);
    }
    numCuts += addCut(conPool, objval, cutub, indexList, valsList,
                      false);
