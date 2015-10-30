@@ -2,6 +2,8 @@
 #MibS_auxiliaryInfoFile ./data/MIPS/RANDOM/NEW_MIPINT/NONSYMMETRIC/miblp_10_10_50_0110_0_2.mps.txt
 Alps_instance /home/sat214/MIBS/OldMibS/data/MCDM/NO_CORR/10_ITEMS_1000/K5010W01.KNP.mps
 MibS_auxiliaryInfoFile /home/sat214/MIBS/OldMibS/data/MCDM/NO_CORR/10_ITEMS_1000/K5010W01.KNP.txt
+#Alps_instance /home/sat214/MIBS/OldMibS/data/moore90.mps
+#MibS_auxiliaryInfoFile /home/sat214/MIBS/OldMibS/data/moore90.txt
 #Alps_timeLimit 5000
 #Alps_nodeLimit 4000000
 #Alps_nodeLimit 20000
