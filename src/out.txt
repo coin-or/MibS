@@ -1,0 +1,4939 @@
+Alps_instance: /home/sat214/MIBS/OldMibS/data/MCDM/NO_CORR/10_ITEMS_1000/K5010W01.KNP.mps
+Alps_msgLevel: 250
+Blis_heurStrategy: 0
+MibS_auxiliaryInfoFile: /home/sat214/MIBS/OldMibS/data/MCDM/NO_CORR/10_ITEMS_1000/K5010W01.KNP.txt
+MibS_usePreprocessor: 0
+MibS_useLowerObjHeuristic: 0
+MibS_useObjCutHeuristic: 0
+MibS_useWSHeuristic: 0
+MibS_useGreedyHeuristic: 0
+MibS_usePureIntegerCut: 1
+MibS_useValFuncCut: 0
+MibS_useNoGoodCut: 0
+MibS_useIncObjCut: 0
+MibS_bilevelProblemType: 1
+MibS_bilevelCutTypes: 1
+MibS_cutStrategy: 2
+MibS_objBoundStrategy: 0
+MibS_blisCutStrategy: -1
+MibS_warmStartLL: 0
+MibS_maxThreadsLL: 1
+MibS_useBendersCut: 0
+MibS_useBoundCut: 1
+MibS_whichCutsLL: 2
+MibS_doDualFixing: 0
+==  Welcome to the Abstract Library for Parallel Search (ALPS) 
+==  Copyright 2000-2015 Lehigh University and others 
+==  All Rights Reserved. 
+==  Distributed under the Eclipse Public License 1.0 
+==  Version: Trunk (unstable) 
+==  Build Date: Aug 11 2015
+==  Revision Number: 2003
+Alps0030I Data file: /home/sat214/MIBS/OldMibS/data/MCDM/NO_CORR/10_ITEMS_1000/K5010W01.KNP.mps
+LL Data File: /home/sat214/MIBS/OldMibS/data/MCDM/NO_CORR/10_ITEMS_1000/K5010W01.KNP.txt
+Number of LL Variables:   10
+
+Coin0001I At line 1 NAME          BLANK
+Coin0001I At line 2 ROWS
+Coin0001I At line 5 COLUMNS
+Coin0001I At line 16 RHS
+Coin0001I At line 18 BOUNDS
+Coin0001I At line 29 ENDATA
+Coin0002I Problem BLANK has 1 rows, 10 columns and 10 elements
+Problem = K5010W01.KNP
+Data file = /home/sat214/MIBS/OldMibS/data/MCDM/NO_CORR/10_ITEMS_1000/K5010W01.KNP.mps
+Log file = K5010W01.KNP.log
+
+==  Bcps Version: Trunk (unstable)
+==  Bcps Revision Number: 2003
+==  Blis Version: Trunk (unstable)
+==  Blis Revision Number: 2003
+
+Blis0043I Objective coefficients are multiples of 1
+BLIS: Register Alps model.
+BLIS: Register Alps node.
+BLIS: Register Alps solution.
+BLIS: Register Bcps constraint.
+BLIS: Register Bcps variable.
+Alps0250I Starting search ...
+FEASIBLE SOL: numUnsatisfied = 0
+
+Bilevel feasible solution found:
+Upper-level objective value: 4520
+
+LL[0]: 1
+LL[1]: 1
+LL[2]: 1
+LL[3]: 1
+LL[4]: 1
+LL[6]: 1
+LL[9]: 1
+Heuristics found a better solution, old cutoff = 1e+80, new cutoff = 4519
+==  Welcome to the Abstract Library for Parallel Search (ALPS) 
+==  Copyright 2000-2015 Lehigh University and others 
+==  All Rights Reserved. 
+==  Distributed under the Eclipse Public License 1.0 
+==  Version: Trunk (unstable) 
+==  Build Date: Aug 11 2015
+==  Revision Number: 2003
+==  Bcps Version: Trunk (unstable)
+==  Bcps Revision Number: 2003
+==  Blis Version: Trunk (unstable)
+==  Blis Revision Number: 2003
+
+Blis0043I Objective coefficients are multiples of 1
+Alps0250I Starting search ...
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+         0           474       179.367  163.35%      0          1
+
+Alps0208I Search completed.
+Alps0260I Best solution found had quality 474
+Alps0264I Number of nodes processed:                47
+Alps0267I Number of nodes branched:                 23
+Alps0268I Number of nodes pruned before processing: 0
+Alps0270I Number of nodes left:                     0
+Alps0272I Tree depth: 9
+Alps0274I Search CPU time: 0.03 seconds
+Alps0278I Search wall-clock time: 0.04 seconds
+Blis0040I Checking feasibility took 0.0084 seconds
+Blis0053I Called MIBS cut generator 27 times, generated 16 cuts, CPU time 0.0000 seconds, current strategy 3
+Blis0063I Called Rounding heuristic 54 times, found 0 solutions, CPU time 0.0000 seconds, current strategy 2
+Blis0058I Relative optimality gap is 0.00%
+============================================
+Optimal solution:
+Cost = 474
+x[2] = 1
+x[4] = 1
+x[5] = 1
+x[6] = 1
+x[9] = 1
+y[7] = 1
+y[8] = 1
+============================================
+obj=474
+
+APPLYCUT: Select cuts to be added in LP from 3 candidates
+APPLYCUT: After selecting, added 3 cuts to LP and discared 0 cuts
+FEASIBLE SOL: numUnsatisfied = 3
+PROCESS: new cuts=3, delete slack cuts=0, numRows=15, numStartRows=12
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+         0          4520           474  851.79%      0          1
+
+
+Creating children of node 0 with indices: 1 2 
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+         1          4520           474  851.79%      0          2
+
+FEASIBLE SOL: numUnsatisfied = 1
+PROCESS: new cuts=0, delete slack cuts=0, numRows=15, numStartRows=15
+==  Welcome to the Abstract Library for Parallel Search (ALPS) 
+==  Copyright 2000-2015 Lehigh University and others 
+==  All Rights Reserved. 
+==  Distributed under the Eclipse Public License 1.0 
+==  Version: Trunk (unstable) 
+==  Build Date: Aug 11 2015
+==  Revision Number: 2003
+==  Bcps Version: Trunk (unstable)
+==  Bcps Revision Number: 2003
+==  Blis Version: Trunk (unstable)
+==  Blis Revision Number: 2003
+
+Blis0043I Objective coefficients are multiples of 1
+Alps0250I Starting search ...
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+         0                         474               0          1
+         1          1771           474  273.05%      0          2
+       100          1771          1533   15.51%      0         23
+       100          1771          1533   15.51%      0         23
+       200          1771          1625    8.98%      0         11
+
+Alps0208I Search completed.
+Alps0260I Best solution found had quality 1771
+Alps0264I Number of nodes processed:                257
+Alps0267I Number of nodes branched:                 128
+Alps0268I Number of nodes pruned before processing: 0
+Alps0270I Number of nodes left:                     0
+Alps0272I Tree depth: 13
+Alps0274I Search CPU time: 0.29 seconds
+Alps0278I Search wall-clock time: 0.31 seconds
+Blis0040I Checking feasibility took 0.0882 seconds
+Blis0053I Called MIBS cut generator 153 times, generated 220 cuts, CPU time 0.0360 seconds, current strategy 3
+Blis0063I Called Rounding heuristic 306 times, found 0 solutions, CPU time 0.0120 seconds, current strategy 2
+Blis0058I Relative optimality gap is 0.00%
+============================================
+Optimal solution:
+Cost = 1771
+x[3] = 1
+x[5] = 1
+x[6] = 1
+x[9] = 1
+y[2] = 1
+y[4] = 1
+y[7] = 1
+y[8] = 1
+============================================
+obj=1771
+
+APPLYCUT: Select cuts to be added in LP from 1 candidates
+APPLYCUT: After selecting, added 1 cuts to LP and discared 0 cuts
+FEASIBLE SOL: numUnsatisfied = 1
+PROCESS: new cuts=1, delete slack cuts=0, numRows=16, numStartRows=15
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+         1          4520           474  851.79%      1          2
+
+FEASIBLE SOL: numUnsatisfied = 1
+PROCESS: new cuts=0, delete slack cuts=0, numRows=15, numStartRows=15
+==  Welcome to the Abstract Library for Parallel Search (ALPS) 
+==  Copyright 2000-2015 Lehigh University and others 
+==  All Rights Reserved. 
+==  Distributed under the Eclipse Public License 1.0 
+==  Version: Trunk (unstable) 
+==  Build Date: Aug 11 2015
+==  Revision Number: 2003
+==  Bcps Version: Trunk (unstable)
+==  Bcps Revision Number: 2003
+==  Blis Version: Trunk (unstable)
+==  Blis Revision Number: 2003
+
+Blis0043I Objective coefficients are multiples of 1
+Alps0250I Starting search ...
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+         0                         474               0          1
+         2          1157           474  143.79%      0          3
+         3           969           474  104.21%      0          4
+        10           474           474    0.00%      0          5
+
+Alps0208I Search completed.
+Alps0260I Best solution found had quality 474
+Alps0265I Number of nodes fully processed:          10
+Alps0266I Number of nodes partially processed:      4
+Alps0267I Number of nodes branched:                 7
+Alps0268I Number of nodes pruned before processing: 1
+Alps0270I Number of nodes left:                     0
+Alps0272I Tree depth: 6
+Alps0274I Search CPU time: 0.04 seconds
+Alps0278I Search wall-clock time: 0.04 seconds
+Blis0040I Checking feasibility took 0.0186 seconds
+Blis0053I Called MIBS cut generator 18 times, generated 50 cuts, CPU time 0.0120 seconds, current strategy 3
+Blis0063I Called Rounding heuristic 36 times, found 0 solutions, CPU time 0.0000 seconds, current strategy 2
+Blis0058I Relative optimality gap is 0.00%
+============================================
+Optimal solution:
+Cost = 474
+x[2] = 1
+x[4] = 1
+x[5] = 1
+x[6] = 1
+x[9] = 1
+y[7] = 1
+y[8] = 1
+============================================
+obj=474
+
+APPLYCUT: Select cuts to be added in LP from 1 candidates
+WARNING: APPLYCUT: applied a weak cut, violation=-5.68434e-14
+APPLYCUT: After selecting, added 1 cuts to LP and discared 0 cuts
+FEASIBLE SOL: numUnsatisfied = 1
+PROCESS: new cuts=1, delete slack cuts=0, numRows=16, numStartRows=15
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+         1          4520           474  851.79%      1          2
+
+
+Creating children of node 2 with indices: 3 4 
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+         2          4520           474  851.79%      1          3
+
+FEASIBLE SOL: numUnsatisfied = 1
+PROCESS: new cuts=0, delete slack cuts=0, numRows=16, numStartRows=16
+==  Welcome to the Abstract Library for Parallel Search (ALPS) 
+==  Copyright 2000-2015 Lehigh University and others 
+==  All Rights Reserved. 
+==  Distributed under the Eclipse Public License 1.0 
+==  Version: Trunk (unstable) 
+==  Build Date: Aug 11 2015
+==  Revision Number: 2003
+==  Bcps Version: Trunk (unstable)
+==  Bcps Revision Number: 2003
+==  Blis Version: Trunk (unstable)
+==  Blis Revision Number: 2003
+
+Blis0043I Objective coefficients are multiples of 1
+Alps0250I Starting search ...
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+         0                         474               0          1
+         2          1204           474  153.68%      0          3
+         3          1157           474  143.79%      0          4
+         4           996           474  109.89%      0          3
+        10           474           474    0.00%      0          3
+
+Alps0208I Search completed.
+Alps0260I Best solution found had quality 474
+Alps0265I Number of nodes fully processed:          10
+Alps0266I Number of nodes partially processed:      2
+Alps0267I Number of nodes branched:                 6
+Alps0268I Number of nodes pruned before processing: 1
+Alps0270I Number of nodes left:                     0
+Alps0272I Tree depth: 6
+Alps0274I Search CPU time: 0.04 seconds
+Alps0278I Search wall-clock time: 0.04 seconds
+Blis0040I Checking feasibility took 0.0221 seconds
+Blis0053I Called MIBS cut generator 16 times, generated 62 cuts, CPU time 0.0040 seconds, current strategy 3
+Blis0063I Called Rounding heuristic 32 times, found 0 solutions, CPU time 0.0000 seconds, current strategy 2
+Blis0058I Relative optimality gap is 0.00%
+============================================
+Optimal solution:
+Cost = 474
+x[3] = 1
+x[4] = 1
+x[5] = 1
+x[6] = 1
+x[9] = 1
+y[7] = 1
+y[8] = 1
+============================================
+obj=474
+
+APPLYCUT: Select cuts to be added in LP from 1 candidates
+WARNING: APPLYCUT: applied a weak cut, violation=-5.68434e-14
+APPLYCUT: After selecting, added 1 cuts to LP and discared 0 cuts
+FEASIBLE SOL: numUnsatisfied = 1
+PROCESS: new cuts=1, delete slack cuts=0, numRows=17, numStartRows=16
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+         2          4520           474  851.79%      1          3
+
+FEASIBLE SOL: numUnsatisfied = 0
+
+Bilevel feasible solution found:
+Upper-level objective value: 3655
+
+UL[4]: 1
+LL[0]: 1
+LL[1]: 1
+LL[2]: 1
+LL[3]: 1
+LL[6]: 1
+LL[9]: 1
+Heuristics found a better solution, old cutoff = 4519, new cutoff = 3654
+PROCESS: new cuts=0, delete slack cuts=0, numRows=16, numStartRows=16
+==  Welcome to the Abstract Library for Parallel Search (ALPS) 
+==  Copyright 2000-2015 Lehigh University and others 
+==  All Rights Reserved. 
+==  Distributed under the Eclipse Public License 1.0 
+==  Version: Trunk (unstable) 
+==  Build Date: Aug 11 2015
+==  Revision Number: 2003
+==  Bcps Version: Trunk (unstable)
+==  Bcps Revision Number: 2003
+==  Blis Version: Trunk (unstable)
+==  Blis Revision Number: 2003
+
+Blis0043I Objective coefficients are multiples of 1
+Alps0250I Starting search ...
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+         0          1260       846.258   48.83%      0          1
+        29          1022          1022    0.00%      0          2
+
+Alps0208I Search completed.
+Alps0260I Best solution found had quality 1022
+Alps0265I Number of nodes fully processed:          29
+Alps0266I Number of nodes partially processed:      2
+Alps0267I Number of nodes branched:                 15
+Alps0268I Number of nodes pruned before processing: 0
+Alps0270I Number of nodes left:                     0
+Alps0272I Tree depth: 7
+Alps0274I Search CPU time: 0.03 seconds
+Alps0278I Search wall-clock time: 0.03 seconds
+Blis0040I Checking feasibility took 0.0058 seconds
+Blis0053I Called MIBS cut generator 19 times, generated 10 cuts, CPU time 0.0000 seconds, current strategy 3
+Blis0063I Called Rounding heuristic 38 times, found 0 solutions, CPU time 0.0000 seconds, current strategy 2
+Blis0058I Relative optimality gap is 0.00%
+============================================
+Optimal solution:
+Cost = 1022
+x[4] = 1
+x[5] = 1
+x[6] = 1
+x[7] = 1
+x[9] = 1
+y[0] = 1
+y[8] = 1
+============================================
+obj=1022
+
+APPLYCUT: Select cuts to be added in LP from 3 candidates
+APPLYCUT: After selecting, added 3 cuts to LP and discared 0 cuts
+FEASIBLE SOL: numUnsatisfied = 1
+PROCESS: new cuts=3, delete slack cuts=0, numRows=19, numStartRows=16
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+         2          3655           474  669.68%      2          3
+
+
+Creating children of node 3 with indices: 5 6 
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+         3          3655           474  669.68%      2          4
+
+FEASIBLE SOL: numUnsatisfied = 1
+PROCESS: new cuts=0, delete slack cuts=0, numRows=17, numStartRows=17
+==  Welcome to the Abstract Library for Parallel Search (ALPS) 
+==  Copyright 2000-2015 Lehigh University and others 
+==  All Rights Reserved. 
+==  Distributed under the Eclipse Public License 1.0 
+==  Version: Trunk (unstable) 
+==  Build Date: Aug 11 2015
+==  Revision Number: 2003
+==  Bcps Version: Trunk (unstable)
+==  Bcps Revision Number: 2003
+==  Blis Version: Trunk (unstable)
+==  Blis Revision Number: 2003
+
+Blis0043I Objective coefficients are multiples of 1
+Alps0250I Starting search ...
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+         0                         474               0          1
+         2           683           474   44.00%      0          1
+         4           474           474    0.00%      0          1
+
+Alps0208I Search completed.
+Alps0260I Best solution found had quality 474
+Alps0264I Number of nodes processed:                4
+Alps0267I Number of nodes branched:                 2
+Alps0268I Number of nodes pruned before processing: 1
+Alps0270I Number of nodes left:                     0
+Alps0272I Tree depth: 2
+Alps0274I Search CPU time: 0.01 seconds
+Alps0278I Search wall-clock time: 0.01 seconds
+Blis0040I Checking feasibility took 0.0045 seconds
+Blis0053I Called MIBS cut generator 4 times, generated 11 cuts, CPU time 0.0000 seconds, current strategy 3
+Blis0063I Called Rounding heuristic 8 times, found 0 solutions, CPU time 0.0000 seconds, current strategy 2
+Blis0058I Relative optimality gap is 0.00%
+============================================
+Optimal solution:
+Cost = 474
+x[4] = 1
+x[6] = 1
+x[9] = 1
+y[7] = 1
+y[8] = 1
+============================================
+obj=474
+
+APPLYCUT: Select cuts to be added in LP from 1 candidates
+WARNING: APPLYCUT: applied a weak cut, violation=5.68434e-14
+APPLYCUT: After selecting, added 1 cuts to LP and discared 0 cuts
+FEASIBLE SOL: numUnsatisfied = 1
+PROCESS: new cuts=1, delete slack cuts=0, numRows=18, numStartRows=17
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+         3          3655           474  669.68%      2          4
+
+FEASIBLE SOL: numUnsatisfied = 0
+
+Bilevel feasible solution found:
+Upper-level objective value: 3655
+
+UL[4]: 1
+LL[0]: 1
+LL[1]: 1
+LL[2]: 1
+LL[3]: 1
+LL[6]: 1
+LL[9]: 1
+Heuristics found a better solution, old cutoff = 3654, new cutoff = 3654
+PROCESS: new cuts=0, delete slack cuts=0, numRows=17, numStartRows=17
+==  Welcome to the Abstract Library for Parallel Search (ALPS) 
+==  Copyright 2000-2015 Lehigh University and others 
+==  All Rights Reserved. 
+==  Distributed under the Eclipse Public License 1.0 
+==  Version: Trunk (unstable) 
+==  Build Date: Aug 11 2015
+==  Revision Number: 2003
+==  Bcps Version: Trunk (unstable)
+==  Bcps Revision Number: 2003
+==  Blis Version: Trunk (unstable)
+==  Blis Revision Number: 2003
+
+Blis0043I Objective coefficients are multiples of 1
+Alps0250I Starting search ...
+         1           996                  0.00%      0          0
+
+Alps0208I Search completed.
+Alps0260I Best solution found had quality 996
+Alps0264I Number of nodes processed:                1
+Alps0267I Number of nodes branched:                 0
+Alps0268I Number of nodes pruned before processing: 0
+Alps0270I Number of nodes left:                     0
+Alps0272I Tree depth: 0
+Alps0274I Search CPU time: 0.00 seconds
+Alps0278I Search wall-clock time: 0.01 seconds
+Blis0040I Checking feasibility took 0.0081 seconds
+Blis0053I Called MIBS cut generator 3 times, generated 14 cuts, CPU time 0.0000 seconds, current strategy 3
+Blis0063I Called Rounding heuristic 6 times, found 0 solutions, CPU time 0.0000 seconds, current strategy 2
+Blis0058I Relative optimality gap is 0.00%
+============================================
+Optimal solution:
+Cost = 996
+x[2] = 1
+x[4] = 1
+x[6] = 1
+x[7] = 1
+x[9] = 1
+y[5] = 1
+y[8] = 1
+============================================
+obj=996
+
+APPLYCUT: Select cuts to be added in LP from 3 candidates
+APPLYCUT: After selecting, added 3 cuts to LP and discared 0 cuts
+FEASIBLE SOL: numUnsatisfied = 1
+PROCESS: new cuts=3, delete slack cuts=0, numRows=20, numStartRows=17
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+         3          3655           474  669.68%      2          4
+
+
+Creating children of node 5 with indices: 7 8 
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+         4          3655           474  669.68%      2          5
+
+FEASIBLE SOL: numUnsatisfied = 1
+PROCESS: new cuts=0, delete slack cuts=0, numRows=18, numStartRows=18
+==  Welcome to the Abstract Library for Parallel Search (ALPS) 
+==  Copyright 2000-2015 Lehigh University and others 
+==  All Rights Reserved. 
+==  Distributed under the Eclipse Public License 1.0 
+==  Version: Trunk (unstable) 
+==  Build Date: Aug 11 2015
+==  Revision Number: 2003
+==  Bcps Version: Trunk (unstable)
+==  Bcps Revision Number: 2003
+==  Blis Version: Trunk (unstable)
+==  Blis Revision Number: 2003
+
+Blis0043I Objective coefficients are multiples of 1
+Alps0250I Starting search ...
+
+Alps0202I Problem is infeasible. 1 nodes processed, 0 nodes left
+Alps0262I No solution found
+Alps0264I Number of nodes processed:                1
+Alps0267I Number of nodes branched:                 0
+Alps0268I Number of nodes pruned before processing: 0
+Alps0270I Number of nodes left:                     0
+Alps0272I Tree depth: 0
+Alps0274I Search CPU time: 0.00 seconds
+Alps0278I Search wall-clock time: 0.00 seconds
+Blis0040I Checking feasibility took 0.0000 seconds
+Blis0058I Relative optimality gap is 0.00%
+
+ALPS did not find a solution.
+obj=1e+80
+
+APPLYCUT: Select cuts to be added in LP from 1 candidates
+APPLYCUT: After selecting, added 1 cuts to LP and discared 0 cuts
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+         5          3655           474  669.68%      2          4
+
+FEASIBLE SOL: numUnsatisfied = 0
+
+Bilevel feasible solution found:
+Upper-level objective value: 3655
+
+UL[4]: 1
+LL[0]: 1
+LL[1]: 1
+LL[2]: 1
+LL[3]: 1
+LL[6]: 1
+LL[9]: 1
+Heuristics found a better solution, old cutoff = 3654, new cutoff = 3654
+PROCESS: new cuts=0, delete slack cuts=0, numRows=18, numStartRows=18
+==  Welcome to the Abstract Library for Parallel Search (ALPS) 
+==  Copyright 2000-2015 Lehigh University and others 
+==  All Rights Reserved. 
+==  Distributed under the Eclipse Public License 1.0 
+==  Version: Trunk (unstable) 
+==  Build Date: Aug 11 2015
+==  Revision Number: 2003
+==  Bcps Version: Trunk (unstable)
+==  Bcps Revision Number: 2003
+==  Blis Version: Trunk (unstable)
+==  Blis Revision Number: 2003
+
+Blis0043I Objective coefficients are multiples of 1
+Alps0250I Starting search ...
+         1           730                  0.00%      0          0
+
+Alps0208I Search completed.
+Alps0260I Best solution found had quality 730
+Alps0264I Number of nodes processed:                1
+Alps0267I Number of nodes branched:                 0
+Alps0268I Number of nodes pruned before processing: 0
+Alps0270I Number of nodes left:                     0
+Alps0272I Tree depth: 0
+Alps0274I Search CPU time: 0.01 seconds
+Alps0278I Search wall-clock time: 0.01 seconds
+Blis0040I Checking feasibility took 0.0054 seconds
+Blis0053I Called MIBS cut generator 2 times, generated 8 cuts, CPU time 0.0000 seconds, current strategy 3
+Blis0063I Called Rounding heuristic 4 times, found 0 solutions, CPU time 0.0000 seconds, current strategy 2
+Blis0058I Relative optimality gap is 0.00%
+============================================
+Optimal solution:
+Cost = 730
+x[4] = 1
+x[6] = 1
+x[7] = 1
+x[8] = 1
+x[9] = 1
+y[3] = 1
+============================================
+obj=730
+
+APPLYCUT: Select cuts to be added in LP from 3 candidates
+WARNING: APPLYCUT: applied a weak cut, violation=0
+APPLYCUT: After selecting, added 3 cuts to LP and discared 0 cuts
+FEASIBLE SOL: numUnsatisfied = 0
+
+Bilevel feasible solution found:
+Upper-level objective value: 3237
+
+UL[4]: 1
+UL[6]: 1
+LL[0]: 1
+LL[1]: 1
+LL[2]: 1
+LL[3]: 1
+LL[5]: 1
+Heuristics found a better solution, old cutoff = 3654, new cutoff = 3236
+PROCESS: new cuts=3, delete slack cuts=0, numRows=21, numStartRows=18
+
+APPLYCUT: Select cuts to be added in LP from 2 candidates
+APPLYCUT: After selecting, added 2 cuts to LP and discared 0 cuts
+FEASIBLE SOL: numUnsatisfied = 2
+PROCESS: new cuts=5, delete slack cuts=0, numRows=23, numStartRows=18
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+         5          3237           730  342.95%      2          4
+
+
+Creating children of node 8 with indices: 9 10 
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+         6          3237           730  342.95%      2          5
+
+FEASIBLE SOL: numUnsatisfied = 2
+PROCESS: new cuts=0, delete slack cuts=0, numRows=23, numStartRows=23
+==  Welcome to the Abstract Library for Parallel Search (ALPS) 
+==  Copyright 2000-2015 Lehigh University and others 
+==  All Rights Reserved. 
+==  Distributed under the Eclipse Public License 1.0 
+==  Version: Trunk (unstable) 
+==  Build Date: Aug 11 2015
+==  Revision Number: 2003
+==  Bcps Version: Trunk (unstable)
+==  Bcps Revision Number: 2003
+==  Blis Version: Trunk (unstable)
+==  Blis Revision Number: 2003
+
+Blis0043I Objective coefficients are multiples of 1
+Alps0250I Starting search ...
+         1           730                  0.00%      0          0
+
+Alps0208I Search completed.
+Alps0260I Best solution found had quality 730
+Alps0264I Number of nodes processed:                1
+Alps0267I Number of nodes branched:                 0
+Alps0268I Number of nodes pruned before processing: 0
+Alps0270I Number of nodes left:                     0
+Alps0272I Tree depth: 0
+Alps0274I Search CPU time: 0.01 seconds
+Alps0278I Search wall-clock time: 0.01 seconds
+Blis0040I Checking feasibility took 0.0052 seconds
+Blis0053I Called MIBS cut generator 2 times, generated 8 cuts, CPU time 0.0000 seconds, current strategy 3
+Blis0063I Called Rounding heuristic 4 times, found 0 solutions, CPU time 0.0000 seconds, current strategy 2
+Blis0058I Relative optimality gap is 0.00%
+============================================
+Optimal solution:
+Cost = 730
+x[4] = 1
+x[6] = 1
+x[7] = 1
+x[8] = 1
+x[9] = 1
+y[3] = 1
+============================================
+obj=730
+
+APPLYCUT: Select cuts to be added in LP from 1 candidates
+WARNING: APPLYCUT: applied a weak cut, violation=0
+APPLYCUT: After selecting, added 1 cuts to LP and discared 0 cuts
+FEASIBLE SOL: numUnsatisfied = 2
+PROCESS: new cuts=1, delete slack cuts=0, numRows=24, numStartRows=23
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+         6          3237           730  342.95%      2          5
+
+FEASIBLE SOL: numUnsatisfied = 0
+
+Bilevel feasible solution found:
+Upper-level objective value: 2946
+
+UL[0]: 1
+UL[4]: 1
+UL[6]: 1
+LL[1]: 1
+LL[2]: 1
+LL[3]: 1
+LL[5]: 1
+LL[9]: 1
+Heuristics found a better solution, old cutoff = 3236, new cutoff = 2945
+PROCESS: new cuts=0, delete slack cuts=0, numRows=23, numStartRows=23
+==  Welcome to the Abstract Library for Parallel Search (ALPS) 
+==  Copyright 2000-2015 Lehigh University and others 
+==  All Rights Reserved. 
+==  Distributed under the Eclipse Public License 1.0 
+==  Version: Trunk (unstable) 
+==  Build Date: Aug 11 2015
+==  Revision Number: 2003
+==  Bcps Version: Trunk (unstable)
+==  Bcps Revision Number: 2003
+==  Blis Version: Trunk (unstable)
+==  Blis Revision Number: 2003
+
+Blis0043I Objective coefficients are multiples of 1
+Alps0250I Starting search ...
+         1           966                  0.00%      0          0
+
+Alps0208I Search completed.
+Alps0260I Best solution found had quality 966
+Alps0264I Number of nodes processed:                1
+Alps0267I Number of nodes branched:                 0
+Alps0268I Number of nodes pruned before processing: 0
+Alps0270I Number of nodes left:                     0
+Alps0272I Tree depth: 0
+Alps0274I Search CPU time: 0.01 seconds
+Alps0278I Search wall-clock time: 0.01 seconds
+Blis0040I Checking feasibility took 0.0048 seconds
+Blis0053I Called MIBS cut generator 2 times, generated 8 cuts, CPU time 0.0000 seconds, current strategy 3
+Blis0063I Called Rounding heuristic 4 times, found 0 solutions, CPU time 0.0000 seconds, current strategy 2
+Blis0058I Relative optimality gap is 0.00%
+============================================
+Optimal solution:
+Cost = 966
+x[0] = 1
+x[4] = 1
+x[6] = 1
+x[7] = 1
+x[9] = 1
+y[3] = 1
+y[8] = 1
+============================================
+obj=966
+
+APPLYCUT: Select cuts to be added in LP from 3 candidates
+APPLYCUT: After selecting, added 3 cuts to LP and discared 0 cuts
+FEASIBLE SOL: numUnsatisfied = 3
+PROCESS: new cuts=3, delete slack cuts=0, numRows=26, numStartRows=23
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+         6          2946           730  303.15%      2          5
+
+
+Creating children of node 9 with indices: 11 12 
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+         7          2946           730  303.15%      2          6
+
+FEASIBLE SOL: numUnsatisfied = 2
+PROCESS: new cuts=0, delete slack cuts=0, numRows=24, numStartRows=24
+==  Welcome to the Abstract Library for Parallel Search (ALPS) 
+==  Copyright 2000-2015 Lehigh University and others 
+==  All Rights Reserved. 
+==  Distributed under the Eclipse Public License 1.0 
+==  Version: Trunk (unstable) 
+==  Build Date: Aug 11 2015
+==  Revision Number: 2003
+==  Bcps Version: Trunk (unstable)
+==  Bcps Revision Number: 2003
+==  Blis Version: Trunk (unstable)
+==  Blis Revision Number: 2003
+
+Blis0043I Objective coefficients are multiples of 1
+Alps0250I Starting search ...
+         1          1259                  0.00%      0          0
+
+Alps0208I Search completed.
+Alps0260I Best solution found had quality 1259
+Alps0264I Number of nodes processed:                1
+Alps0267I Number of nodes branched:                 0
+Alps0268I Number of nodes pruned before processing: 0
+Alps0270I Number of nodes left:                     0
+Alps0272I Tree depth: 0
+Alps0274I Search CPU time: 0.01 seconds
+Alps0278I Search wall-clock time: 0.01 seconds
+Blis0040I Checking feasibility took 0.0054 seconds
+Blis0053I Called MIBS cut generator 2 times, generated 10 cuts, CPU time 0.0000 seconds, current strategy 3
+Blis0063I Called Rounding heuristic 4 times, found 0 solutions, CPU time 0.0000 seconds, current strategy 2
+Blis0058I Relative optimality gap is 0.00%
+============================================
+Optimal solution:
+Cost = 1259
+x[4] = 1
+x[6] = 1
+x[7] = 1
+x[8] = 1
+x[9] = 1
+y[1] = 1
+y[3] = 1
+============================================
+obj=1259
+
+APPLYCUT: Select cuts to be added in LP from 1 candidates
+APPLYCUT: After selecting, added 1 cuts to LP and discared 0 cuts
+FEASIBLE SOL: numUnsatisfied = 3
+PROCESS: new cuts=1, delete slack cuts=0, numRows=25, numStartRows=24
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+         7          2946           730  303.15%      2          6
+
+FEASIBLE SOL: numUnsatisfied = 0
+
+Bilevel feasible solution found:
+Upper-level objective value: 3203
+
+UL[1]: 1
+UL[4]: 1
+UL[6]: 1
+LL[0]: 1
+LL[2]: 1
+LL[3]: 1
+LL[5]: 1
+LL[9]: 1
+Heuristics found a better solution, old cutoff = 2945, new cutoff = 2945
+PROCESS: new cuts=0, delete slack cuts=0, numRows=24, numStartRows=24
+==  Welcome to the Abstract Library for Parallel Search (ALPS) 
+==  Copyright 2000-2015 Lehigh University and others 
+==  All Rights Reserved. 
+==  Distributed under the Eclipse Public License 1.0 
+==  Version: Trunk (unstable) 
+==  Build Date: Aug 11 2015
+==  Revision Number: 2003
+==  Bcps Version: Trunk (unstable)
+==  Bcps Revision Number: 2003
+==  Blis Version: Trunk (unstable)
+==  Blis Revision Number: 2003
+
+Blis0043I Objective coefficients are multiples of 1
+Alps0250I Starting search ...
+         1           966                  0.00%      0          0
+
+Alps0208I Search completed.
+Alps0260I Best solution found had quality 966
+Alps0264I Number of nodes processed:                1
+Alps0267I Number of nodes branched:                 0
+Alps0268I Number of nodes pruned before processing: 0
+Alps0270I Number of nodes left:                     0
+Alps0272I Tree depth: 0
+Alps0274I Search CPU time: 0.00 seconds
+Alps0278I Search wall-clock time: 0.01 seconds
+Blis0040I Checking feasibility took 0.0045 seconds
+Blis0053I Called MIBS cut generator 2 times, generated 8 cuts, CPU time 0.0000 seconds, current strategy 3
+Blis0063I Called Rounding heuristic 4 times, found 0 solutions, CPU time 0.0000 seconds, current strategy 2
+Blis0058I Relative optimality gap is 0.00%
+============================================
+Optimal solution:
+Cost = 966
+x[1] = 1
+x[4] = 1
+x[6] = 1
+x[7] = 1
+x[9] = 1
+y[3] = 1
+y[8] = 1
+============================================
+obj=966
+
+APPLYCUT: Select cuts to be added in LP from 3 candidates
+APPLYCUT: After selecting, added 3 cuts to LP and discared 0 cuts
+FEASIBLE SOL: numUnsatisfied = 3
+PROCESS: new cuts=3, delete slack cuts=0, numRows=27, numStartRows=24
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+         7          2946           966  204.76%      2          6
+
+
+Creating children of node 10 with indices: 13 14 
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+         8          2946           966  204.76%      2          7
+
+
+Creating children of node 12 with indices: 15 16 
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+         9          2946           966  204.76%      2          8
+
+FEASIBLE SOL: numUnsatisfied = 3
+PROCESS: new cuts=0, delete slack cuts=0, numRows=26, numStartRows=26
+==  Welcome to the Abstract Library for Parallel Search (ALPS) 
+==  Copyright 2000-2015 Lehigh University and others 
+==  All Rights Reserved. 
+==  Distributed under the Eclipse Public License 1.0 
+==  Version: Trunk (unstable) 
+==  Build Date: Aug 11 2015
+==  Revision Number: 2003
+==  Bcps Version: Trunk (unstable)
+==  Bcps Revision Number: 2003
+==  Blis Version: Trunk (unstable)
+==  Blis Revision Number: 2003
+
+Blis0043I Objective coefficients are multiples of 1
+Alps0250I Starting search ...
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+         0                         966               0          1
+         1          2178           966  125.34%      0          2
+        20          1495          1495    0.00%      0          7
+
+Alps0208I Search completed.
+Alps0260I Best solution found had quality 1495
+Alps0265I Number of nodes fully processed:          20
+Alps0266I Number of nodes partially processed:      3
+Alps0267I Number of nodes branched:                 13
+Alps0268I Number of nodes pruned before processing: 4
+Alps0270I Number of nodes left:                     0
+Alps0272I Tree depth: 9
+Alps0274I Search CPU time: 0.04 seconds
+Alps0278I Search wall-clock time: 0.05 seconds
+Blis0040I Checking feasibility took 0.0171 seconds
+Blis0053I Called MIBS cut generator 22 times, generated 52 cuts, CPU time 0.0000 seconds, current strategy 3
+Blis0063I Called Rounding heuristic 44 times, found 0 solutions, CPU time 0.0000 seconds, current strategy 2
+Blis0058I Relative optimality gap is 0.00%
+============================================
+Optimal solution:
+Cost = 1495
+x[0] = 1
+x[4] = 1
+x[6] = 1
+x[7] = 1
+x[9] = 1
+y[1] = 1
+y[3] = 1
+y[8] = 1
+============================================
+obj=1495
+
+APPLYCUT: Select cuts to be added in LP from 1 candidates
+APPLYCUT: After selecting, added 1 cuts to LP and discared 0 cuts
+FEASIBLE SOL: numUnsatisfied = 1
+PROCESS: new cuts=1, delete slack cuts=0, numRows=27, numStartRows=26
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+         9          2946           966  204.76%      2          8
+
+FEASIBLE SOL: numUnsatisfied = 2
+PROCESS: new cuts=0, delete slack cuts=0, numRows=26, numStartRows=26
+==  Welcome to the Abstract Library for Parallel Search (ALPS) 
+==  Copyright 2000-2015 Lehigh University and others 
+==  All Rights Reserved. 
+==  Distributed under the Eclipse Public License 1.0 
+==  Version: Trunk (unstable) 
+==  Build Date: Aug 11 2015
+==  Revision Number: 2003
+==  Bcps Version: Trunk (unstable)
+==  Bcps Revision Number: 2003
+==  Blis Version: Trunk (unstable)
+==  Blis Revision Number: 2003
+
+Blis0043I Objective coefficients are multiples of 1
+Alps0250I Starting search ...
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+         0                         966               0          1
+         5          2146           966  122.03%      0          2
+         6          1204           966   24.61%      0          1
+        13           966                  0.00%      0          0
+
+Alps0208I Search completed.
+Alps0260I Best solution found had quality 966
+Alps0264I Number of nodes processed:                13
+Alps0267I Number of nodes branched:                 6
+Alps0268I Number of nodes pruned before processing: 0
+Alps0270I Number of nodes left:                     0
+Alps0272I Tree depth: 6
+Alps0274I Search CPU time: 0.02 seconds
+Alps0278I Search wall-clock time: 0.02 seconds
+Blis0040I Checking feasibility took 0.0087 seconds
+Blis0053I Called MIBS cut generator 9 times, generated 14 cuts, CPU time 0.0080 seconds, current strategy 3
+Blis0063I Called Rounding heuristic 18 times, found 0 solutions, CPU time 0.0000 seconds, current strategy 2
+Blis0058I Relative optimality gap is 0.00%
+============================================
+Optimal solution:
+Cost = 966
+x[0] = 1
+x[1] = 1
+x[4] = 1
+x[6] = 1
+x[7] = 1
+x[9] = 1
+y[3] = 1
+y[8] = 1
+============================================
+obj=966
+
+APPLYCUT: Select cuts to be added in LP from 1 candidates
+WARNING: APPLYCUT: applied a weak cut, violation=0
+APPLYCUT: After selecting, added 1 cuts to LP and discared 0 cuts
+FEASIBLE SOL: numUnsatisfied = 2
+PROCESS: new cuts=1, delete slack cuts=0, numRows=27, numStartRows=26
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+         9          2946           966  204.76%      2          8
+
+FEASIBLE SOL: numUnsatisfied = 3
+PROCESS: new cuts=0, delete slack cuts=0, numRows=27, numStartRows=27
+==  Welcome to the Abstract Library for Parallel Search (ALPS) 
+==  Copyright 2000-2015 Lehigh University and others 
+==  All Rights Reserved. 
+==  Distributed under the Eclipse Public License 1.0 
+==  Version: Trunk (unstable) 
+==  Build Date: Aug 11 2015
+==  Revision Number: 2003
+==  Bcps Version: Trunk (unstable)
+==  Bcps Revision Number: 2003
+==  Blis Version: Trunk (unstable)
+==  Blis Revision Number: 2003
+
+Blis0043I Objective coefficients are multiples of 1
+Alps0250I Starting search ...
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+         0                         966               0          1
+         4          1657           966   71.46%      0          1
+        11          1398       1216.76   14.88%      0          2
+
+Alps0208I Search completed.
+Alps0260I Best solution found had quality 1398
+Alps0265I Number of nodes fully processed:          12
+Alps0266I Number of nodes partially processed:      1
+Alps0267I Number of nodes branched:                 6
+Alps0268I Number of nodes pruned before processing: 0
+Alps0270I Number of nodes left:                     0
+Alps0272I Tree depth: 6
+Alps0274I Search CPU time: 0.03 seconds
+Alps0278I Search wall-clock time: 0.03 seconds
+Blis0040I Checking feasibility took 0.0093 seconds
+Blis0053I Called MIBS cut generator 11 times, generated 24 cuts, CPU time 0.0080 seconds, current strategy 3
+Blis0063I Called Rounding heuristic 22 times, found 0 solutions, CPU time 0.0000 seconds, current strategy 2
+Blis0058I Relative optimality gap is 0.00%
+============================================
+Optimal solution:
+Cost = 1398
+x[1] = 1
+x[4] = 1
+x[6] = 1
+x[7] = 1
+x[9] = 1
+y[2] = 1
+y[3] = 1
+y[8] = 1
+============================================
+obj=1398
+
+APPLYCUT: Select cuts to be added in LP from 1 candidates
+APPLYCUT: After selecting, added 1 cuts to LP and discared 0 cuts
+FEASIBLE SOL: numUnsatisfied = 3
+PROCESS: new cuts=1, delete slack cuts=0, numRows=28, numStartRows=27
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+         9          2946           966  204.76%      2          8
+
+FEASIBLE SOL: numUnsatisfied = 2
+PROCESS: new cuts=0, delete slack cuts=0, numRows=27, numStartRows=27
+==  Welcome to the Abstract Library for Parallel Search (ALPS) 
+==  Copyright 2000-2015 Lehigh University and others 
+==  All Rights Reserved. 
+==  Distributed under the Eclipse Public License 1.0 
+==  Version: Trunk (unstable) 
+==  Build Date: Aug 11 2015
+==  Revision Number: 2003
+==  Bcps Version: Trunk (unstable)
+==  Bcps Revision Number: 2003
+==  Blis Version: Trunk (unstable)
+==  Blis Revision Number: 2003
+
+Blis0043I Objective coefficients are multiples of 1
+Alps0250I Starting search ...
+
+Alps0202I Problem is infeasible. 1 nodes processed, 0 nodes left
+Alps0262I No solution found
+Alps0264I Number of nodes processed:                1
+Alps0267I Number of nodes branched:                 0
+Alps0268I Number of nodes pruned before processing: 0
+Alps0270I Number of nodes left:                     0
+Alps0272I Tree depth: 0
+Alps0274I Search CPU time: 0.00 seconds
+Alps0278I Search wall-clock time: 0.00 seconds
+Blis0040I Checking feasibility took 0.0000 seconds
+Blis0058I Relative optimality gap is 0.00%
+
+ALPS did not find a solution.
+obj=1e+80
+
+APPLYCUT: Select cuts to be added in LP from 1 candidates
+APPLYCUT: After selecting, added 1 cuts to LP and discared 0 cuts
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        10          2946           966  204.76%      2          7
+
+
+Creating children of node 14 with indices: 17 18 
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        11          2946           966  204.76%      2          8
+
+FEASIBLE SOL: numUnsatisfied = 1
+PROCESS: new cuts=0, delete slack cuts=0, numRows=27, numStartRows=27
+==  Welcome to the Abstract Library for Parallel Search (ALPS) 
+==  Copyright 2000-2015 Lehigh University and others 
+==  All Rights Reserved. 
+==  Distributed under the Eclipse Public License 1.0 
+==  Version: Trunk (unstable) 
+==  Build Date: Aug 11 2015
+==  Revision Number: 2003
+==  Bcps Version: Trunk (unstable)
+==  Bcps Revision Number: 2003
+==  Blis Version: Trunk (unstable)
+==  Blis Revision Number: 2003
+
+Blis0043I Objective coefficients are multiples of 1
+Alps0250I Starting search ...
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+         0                         966               0          1
+         2          1649           966   70.63%      0          1
+
+Alps0208I Search completed.
+Alps0260I Best solution found had quality 1649
+Alps0264I Number of nodes processed:                7
+Alps0267I Number of nodes branched:                 3
+Alps0268I Number of nodes pruned before processing: 0
+Alps0270I Number of nodes left:                     0
+Alps0272I Tree depth: 3
+Alps0274I Search CPU time: 0.03 seconds
+Alps0278I Search wall-clock time: 0.03 seconds
+Blis0040I Checking feasibility took 0.0129 seconds
+Blis0053I Called MIBS cut generator 8 times, generated 38 cuts, CPU time 0.0040 seconds, current strategy 3
+Blis0063I Called Rounding heuristic 16 times, found 0 solutions, CPU time 0.0000 seconds, current strategy 2
+Blis0058I Relative optimality gap is 0.00%
+============================================
+Optimal solution:
+Cost = 1649
+x[0] = 1
+x[1] = 1
+x[4] = 1
+x[7] = 1
+x[9] = 1
+y[3] = 1
+y[6] = 1
+y[8] = 1
+============================================
+obj=1649
+
+APPLYCUT: Select cuts to be added in LP from 1 candidates
+APPLYCUT: After selecting, added 1 cuts to LP and discared 0 cuts
+FEASIBLE SOL: numUnsatisfied = 1
+PROCESS: new cuts=1, delete slack cuts=0, numRows=28, numStartRows=27
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        11          2946           966  204.76%      2          8
+
+FEASIBLE SOL: numUnsatisfied = 1
+PROCESS: new cuts=0, delete slack cuts=0, numRows=27, numStartRows=27
+==  Welcome to the Abstract Library for Parallel Search (ALPS) 
+==  Copyright 2000-2015 Lehigh University and others 
+==  All Rights Reserved. 
+==  Distributed under the Eclipse Public License 1.0 
+==  Version: Trunk (unstable) 
+==  Build Date: Aug 11 2015
+==  Revision Number: 2003
+==  Bcps Version: Trunk (unstable)
+==  Bcps Revision Number: 2003
+==  Blis Version: Trunk (unstable)
+==  Blis Revision Number: 2003
+
+Blis0043I Objective coefficients are multiples of 1
+Alps0250I Starting search ...
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+         0                         966               0          1
+         4           966           966    0.00%      0          1
+
+Alps0208I Search completed.
+Alps0260I Best solution found had quality 966
+Alps0264I Number of nodes processed:                4
+Alps0267I Number of nodes branched:                 2
+Alps0268I Number of nodes pruned before processing: 1
+Alps0270I Number of nodes left:                     0
+Alps0272I Tree depth: 2
+Alps0274I Search CPU time: 0.01 seconds
+Alps0278I Search wall-clock time: 0.01 seconds
+Blis0040I Checking feasibility took 0.0024 seconds
+Blis0053I Called MIBS cut generator 3 times, generated 4 cuts, CPU time 0.0080 seconds, current strategy 3
+Blis0063I Called Rounding heuristic 6 times, found 0 solutions, CPU time 0.0000 seconds, current strategy 2
+Blis0058I Relative optimality gap is 0.00%
+============================================
+Optimal solution:
+Cost = 966
+x[0] = 1
+x[1] = 1
+x[4] = 1
+x[6] = 1
+x[7] = 1
+x[9] = 1
+y[3] = 1
+y[8] = 1
+============================================
+obj=966
+
+APPLYCUT: Select cuts to be added in LP from 1 candidates
+WARNING: APPLYCUT: applied a weak cut, violation=0
+APPLYCUT: After selecting, added 1 cuts to LP and discared 0 cuts
+FEASIBLE SOL: numUnsatisfied = 1
+PROCESS: new cuts=1, delete slack cuts=0, numRows=28, numStartRows=27
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        11          2946           966  204.76%      2          8
+
+
+Creating children of node 18 with indices: 19 20 
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        12          2946           966  204.76%      2          9
+
+FEASIBLE SOL: numUnsatisfied = 1
+PROCESS: new cuts=0, delete slack cuts=0, numRows=28, numStartRows=28
+==  Welcome to the Abstract Library for Parallel Search (ALPS) 
+==  Copyright 2000-2015 Lehigh University and others 
+==  All Rights Reserved. 
+==  Distributed under the Eclipse Public License 1.0 
+==  Version: Trunk (unstable) 
+==  Build Date: Aug 11 2015
+==  Revision Number: 2003
+==  Bcps Version: Trunk (unstable)
+==  Bcps Revision Number: 2003
+==  Blis Version: Trunk (unstable)
+==  Blis Revision Number: 2003
+
+Blis0043I Objective coefficients are multiples of 1
+Alps0250I Starting search ...
+
+Alps0202I Problem is infeasible. 1 nodes processed, 0 nodes left
+Alps0262I No solution found
+Alps0264I Number of nodes processed:                1
+Alps0267I Number of nodes branched:                 0
+Alps0268I Number of nodes pruned before processing: 0
+Alps0270I Number of nodes left:                     0
+Alps0272I Tree depth: 0
+Alps0274I Search CPU time: 0.00 seconds
+Alps0278I Search wall-clock time: 0.00 seconds
+Blis0040I Checking feasibility took 0.0000 seconds
+Blis0058I Relative optimality gap is 0.00%
+
+ALPS did not find a solution.
+obj=1e+80
+
+APPLYCUT: Select cuts to be added in LP from 1 candidates
+APPLYCUT: After selecting, added 1 cuts to LP and discared 0 cuts
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        13          2946           966  204.76%      2          8
+
+FEASIBLE SOL: numUnsatisfied = 0
+
+Bilevel feasible solution found:
+Upper-level objective value: 2417
+
+UL[0]: 1
+UL[1]: 1
+UL[4]: 1
+UL[6]: 1
+LL[2]: 1
+LL[3]: 1
+LL[5]: 1
+LL[9]: 1
+Heuristics found a better solution, old cutoff = 2945, new cutoff = 2416
+PROCESS: new cuts=0, delete slack cuts=0, numRows=28, numStartRows=28
+==  Welcome to the Abstract Library for Parallel Search (ALPS) 
+==  Copyright 2000-2015 Lehigh University and others 
+==  All Rights Reserved. 
+==  Distributed under the Eclipse Public License 1.0 
+==  Version: Trunk (unstable) 
+==  Build Date: Aug 11 2015
+==  Revision Number: 2003
+==  Bcps Version: Trunk (unstable)
+==  Bcps Revision Number: 2003
+==  Blis Version: Trunk (unstable)
+==  Blis Revision Number: 2003
+
+Blis0043I Objective coefficients are multiples of 1
+Alps0250I Starting search ...
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+         0          1699        1249.8   35.91%      0          1
+         5          1461          1461    0.00%      0          2
+
+Alps0208I Search completed.
+Alps0260I Best solution found had quality 1461
+Alps0265I Number of nodes fully processed:          5
+Alps0266I Number of nodes partially processed:      1
+Alps0267I Number of nodes branched:                 3
+Alps0268I Number of nodes pruned before processing: 1
+Alps0270I Number of nodes left:                     0
+Alps0272I Tree depth: 2
+Alps0274I Search CPU time: 0.00 seconds
+Alps0278I Search wall-clock time: 0.01 seconds
+Blis0040I Checking feasibility took 0.0024 seconds
+Blis0053I Called MIBS cut generator 5 times, generated 4 cuts, CPU time 0.0000 seconds, current strategy 3
+Blis0063I Called Rounding heuristic 10 times, found 0 solutions, CPU time 0.0000 seconds, current strategy 2
+Blis0058I Relative optimality gap is 0.00%
+============================================
+Optimal solution:
+Cost = 1461
+x[0] = 1
+x[1] = 1
+x[4] = 1
+x[5] = 1
+x[6] = 1
+x[7] = 1
+y[3] = 1
+y[8] = 1
+y[9] = 1
+============================================
+obj=1461
+
+APPLYCUT: Select cuts to be added in LP from 3 candidates
+APPLYCUT: After selecting, added 3 cuts to LP and discared 0 cuts
+FEASIBLE SOL: numUnsatisfied = 3
+PROCESS: new cuts=3, delete slack cuts=0, numRows=31, numStartRows=28
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        13          2417           996  142.53%      2          8
+
+
+Creating children of node 6 with indices: 21 22 
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        14          2417           996  142.53%      2          9
+
+FEASIBLE SOL: numUnsatisfied = 3
+PROCESS: new cuts=0, delete slack cuts=0, numRows=20, numStartRows=20
+==  Welcome to the Abstract Library for Parallel Search (ALPS) 
+==  Copyright 2000-2015 Lehigh University and others 
+==  All Rights Reserved. 
+==  Distributed under the Eclipse Public License 1.0 
+==  Version: Trunk (unstable) 
+==  Build Date: Aug 11 2015
+==  Revision Number: 2003
+==  Bcps Version: Trunk (unstable)
+==  Bcps Revision Number: 2003
+==  Blis Version: Trunk (unstable)
+==  Blis Revision Number: 2003
+
+Blis0043I Objective coefficients are multiples of 1
+Alps0250I Starting search ...
+
+Alps0202I Problem is infeasible. 1 nodes processed, 0 nodes left
+Alps0262I No solution found
+Alps0264I Number of nodes processed:                1
+Alps0267I Number of nodes branched:                 0
+Alps0268I Number of nodes pruned before processing: 0
+Alps0270I Number of nodes left:                     0
+Alps0272I Tree depth: 0
+Alps0274I Search CPU time: 0.00 seconds
+Alps0278I Search wall-clock time: 0.00 seconds
+Blis0040I Checking feasibility took 0.0000 seconds
+Blis0058I Relative optimality gap is 0.00%
+
+ALPS did not find a solution.
+obj=1e+80
+
+APPLYCUT: Select cuts to be added in LP from 1 candidates
+APPLYCUT: After selecting, added 1 cuts to LP and discared 0 cuts
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        15          2417           996  142.53%      2          8
+
+FEASIBLE SOL: numUnsatisfied = 0
+
+Bilevel feasible solution found:
+Upper-level objective value: 3237
+
+UL[4]: 1
+UL[6]: 1
+LL[0]: 1
+LL[1]: 1
+LL[2]: 1
+LL[3]: 1
+LL[5]: 1
+Heuristics found a better solution, old cutoff = 2416, new cutoff = 2416
+PROCESS: new cuts=0, delete slack cuts=0, numRows=20, numStartRows=20
+==  Welcome to the Abstract Library for Parallel Search (ALPS) 
+==  Copyright 2000-2015 Lehigh University and others 
+==  All Rights Reserved. 
+==  Distributed under the Eclipse Public License 1.0 
+==  Version: Trunk (unstable) 
+==  Build Date: Aug 11 2015
+==  Revision Number: 2003
+==  Bcps Version: Trunk (unstable)
+==  Bcps Revision Number: 2003
+==  Blis Version: Trunk (unstable)
+==  Blis Revision Number: 2003
+
+Blis0043I Objective coefficients are multiples of 1
+Alps0250I Starting search ...
+         1          1490                  0.00%      0          0
+
+Alps0208I Search completed.
+Alps0260I Best solution found had quality 1490
+Alps0264I Number of nodes processed:                1
+Alps0267I Number of nodes branched:                 0
+Alps0268I Number of nodes pruned before processing: 0
+Alps0270I Number of nodes left:                     0
+Alps0272I Tree depth: 0
+Alps0274I Search CPU time: 0.01 seconds
+Alps0278I Search wall-clock time: 0.01 seconds
+Blis0040I Checking feasibility took 0.0090 seconds
+Blis0053I Called MIBS cut generator 3 times, generated 14 cuts, CPU time 0.0000 seconds, current strategy 3
+Blis0063I Called Rounding heuristic 6 times, found 0 solutions, CPU time 0.0000 seconds, current strategy 2
+Blis0058I Relative optimality gap is 0.00%
+============================================
+Optimal solution:
+Cost = 1490
+x[4] = 1
+x[6] = 1
+x[7] = 1
+x[8] = 1
+x[9] = 1
+y[3] = 1
+y[5] = 1
+============================================
+obj=1490
+
+APPLYCUT: Select cuts to be added in LP from 3 candidates
+WARNING: APPLYCUT: applied a weak cut, violation=0
+APPLYCUT: After selecting, added 3 cuts to LP and discared 0 cuts
+FEASIBLE SOL: numUnsatisfied = 2
+PROCESS: new cuts=3, delete slack cuts=0, numRows=23, numStartRows=20
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        15          2417          1022  136.36%      3          8
+
+
+Creating children of node 4 with indices: 23 24 
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        16          2417          1022  136.36%      3          9
+
+FEASIBLE SOL: numUnsatisfied = 1
+PROCESS: new cuts=0, delete slack cuts=0, numRows=19, numStartRows=19
+==  Welcome to the Abstract Library for Parallel Search (ALPS) 
+==  Copyright 2000-2015 Lehigh University and others 
+==  All Rights Reserved. 
+==  Distributed under the Eclipse Public License 1.0 
+==  Version: Trunk (unstable) 
+==  Build Date: Aug 11 2015
+==  Revision Number: 2003
+==  Bcps Version: Trunk (unstable)
+==  Bcps Revision Number: 2003
+==  Blis Version: Trunk (unstable)
+==  Blis Revision Number: 2003
+
+Blis0043I Objective coefficients are multiples of 1
+Alps0250I Starting search ...
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+         0                        1022               0          1
+         2          1469          1022   43.70%      0          1
+         7          1281          1022   25.32%      0          4
+         8          1024          1022    0.20%      0          3
+        16          1022          1022    0.00%      0          1
+
+Alps0208I Search completed.
+Alps0260I Best solution found had quality 1022
+Alps0265I Number of nodes fully processed:          16
+Alps0266I Number of nodes partially processed:      1
+Alps0267I Number of nodes branched:                 8
+Alps0268I Number of nodes pruned before processing: 0
+Alps0270I Number of nodes left:                     0
+Alps0272I Tree depth: 5
+Alps0274I Search CPU time: 0.05 seconds
+Alps0278I Search wall-clock time: 0.05 seconds
+Blis0040I Checking feasibility took 0.0236 seconds
+Blis0053I Called MIBS cut generator 18 times, generated 77 cuts, CPU time 0.0120 seconds, current strategy 3
+Blis0063I Called Rounding heuristic 36 times, found 0 solutions, CPU time 0.0000 seconds, current strategy 2
+Blis0058I Relative optimality gap is 0.00%
+============================================
+Optimal solution:
+Cost = 1022
+x[1] = 1
+x[4] = 1
+x[6] = 1
+x[7] = 1
+x[9] = 1
+y[0] = 1
+y[8] = 1
+============================================
+obj=1022
+
+APPLYCUT: Select cuts to be added in LP from 1 candidates
+WARNING: APPLYCUT: applied a weak cut, violation=1.13687e-13
+APPLYCUT: After selecting, added 1 cuts to LP and discared 0 cuts
+FEASIBLE SOL: numUnsatisfied = 1
+PROCESS: new cuts=1, delete slack cuts=0, numRows=20, numStartRows=19
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        16          2417          1022  136.36%      3          9
+
+FEASIBLE SOL: numUnsatisfied = 0
+
+Bilevel feasible solution found:
+Upper-level objective value: 3237
+
+UL[4]: 1
+UL[6]: 1
+LL[0]: 1
+LL[1]: 1
+LL[2]: 1
+LL[3]: 1
+LL[5]: 1
+Heuristics found a better solution, old cutoff = 2416, new cutoff = 2416
+PROCESS: new cuts=0, delete slack cuts=0, numRows=19, numStartRows=19
+==  Welcome to the Abstract Library for Parallel Search (ALPS) 
+==  Copyright 2000-2015 Lehigh University and others 
+==  All Rights Reserved. 
+==  Distributed under the Eclipse Public License 1.0 
+==  Version: Trunk (unstable) 
+==  Build Date: Aug 11 2015
+==  Revision Number: 2003
+==  Bcps Version: Trunk (unstable)
+==  Bcps Revision Number: 2003
+==  Blis Version: Trunk (unstable)
+==  Blis Revision Number: 2003
+
+Blis0043I Objective coefficients are multiples of 1
+Alps0250I Starting search ...
+         1          1546                  0.00%      0          0
+
+Alps0208I Search completed.
+Alps0260I Best solution found had quality 1546
+Alps0264I Number of nodes processed:                1
+Alps0267I Number of nodes branched:                 0
+Alps0268I Number of nodes pruned before processing: 0
+Alps0270I Number of nodes left:                     0
+Alps0272I Tree depth: 0
+Alps0274I Search CPU time: 0.01 seconds
+Alps0278I Search wall-clock time: 0.01 seconds
+Blis0040I Checking feasibility took 0.0092 seconds
+Blis0053I Called MIBS cut generator 3 times, generated 12 cuts, CPU time 0.0000 seconds, current strategy 3
+Blis0063I Called Rounding heuristic 6 times, found 0 solutions, CPU time 0.0000 seconds, current strategy 2
+Blis0058I Relative optimality gap is 0.00%
+============================================
+Optimal solution:
+Cost = 1546
+x[4] = 1
+x[6] = 1
+x[7] = 1
+x[8] = 1
+x[9] = 1
+y[0] = 1
+y[5] = 1
+============================================
+obj=1546
+
+APPLYCUT: Select cuts to be added in LP from 3 candidates
+WARNING: APPLYCUT: applied a weak cut, violation=0
+APPLYCUT: After selecting, added 3 cuts to LP and discared 0 cuts
+FEASIBLE SOL: numUnsatisfied = 2
+PROCESS: new cuts=3, delete slack cuts=0, numRows=22, numStartRows=19
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        16          2417          1022  136.36%      3          9
+
+
+Creating children of node 23 with indices: 25 26 
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        17          2417          1022  136.36%      3         10
+
+FEASIBLE SOL: numUnsatisfied = 3
+PROCESS: new cuts=0, delete slack cuts=0, numRows=20, numStartRows=20
+==  Welcome to the Abstract Library for Parallel Search (ALPS) 
+==  Copyright 2000-2015 Lehigh University and others 
+==  All Rights Reserved. 
+==  Distributed under the Eclipse Public License 1.0 
+==  Version: Trunk (unstable) 
+==  Build Date: Aug 11 2015
+==  Revision Number: 2003
+==  Bcps Version: Trunk (unstable)
+==  Bcps Revision Number: 2003
+==  Blis Version: Trunk (unstable)
+==  Blis Revision Number: 2003
+
+Blis0043I Objective coefficients are multiples of 1
+Alps0250I Starting search ...
+
+Alps0202I Problem is infeasible. 1 nodes processed, 0 nodes left
+Alps0262I No solution found
+Alps0264I Number of nodes processed:                1
+Alps0267I Number of nodes branched:                 0
+Alps0268I Number of nodes pruned before processing: 0
+Alps0270I Number of nodes left:                     0
+Alps0272I Tree depth: 0
+Alps0274I Search CPU time: 0.00 seconds
+Alps0278I Search wall-clock time: 0.00 seconds
+Blis0040I Checking feasibility took 0.0000 seconds
+Blis0058I Relative optimality gap is 0.00%
+
+ALPS did not find a solution.
+obj=1e+80
+
+APPLYCUT: Select cuts to be added in LP from 1 candidates
+APPLYCUT: After selecting, added 1 cuts to LP and discared 0 cuts
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        18          2417          1022  136.36%      3          9
+
+FEASIBLE SOL: numUnsatisfied = 0
+
+Bilevel feasible solution found:
+Upper-level objective value: 3237
+
+UL[4]: 1
+UL[6]: 1
+LL[0]: 1
+LL[1]: 1
+LL[2]: 1
+LL[3]: 1
+LL[5]: 1
+Heuristics found a better solution, old cutoff = 2416, new cutoff = 2416
+PROCESS: new cuts=0, delete slack cuts=0, numRows=20, numStartRows=20
+==  Welcome to the Abstract Library for Parallel Search (ALPS) 
+==  Copyright 2000-2015 Lehigh University and others 
+==  All Rights Reserved. 
+==  Distributed under the Eclipse Public License 1.0 
+==  Version: Trunk (unstable) 
+==  Build Date: Aug 11 2015
+==  Revision Number: 2003
+==  Bcps Version: Trunk (unstable)
+==  Bcps Revision Number: 2003
+==  Blis Version: Trunk (unstable)
+==  Blis Revision Number: 2003
+
+Blis0043I Objective coefficients are multiples of 1
+Alps0250I Starting search ...
+         1          1516                  0.00%      0          0
+
+Alps0208I Search completed.
+Alps0260I Best solution found had quality 1516
+Alps0264I Number of nodes processed:                1
+Alps0267I Number of nodes branched:                 0
+Alps0268I Number of nodes pruned before processing: 0
+Alps0270I Number of nodes left:                     0
+Alps0272I Tree depth: 0
+Alps0274I Search CPU time: 0.01 seconds
+Alps0278I Search wall-clock time: 0.01 seconds
+Blis0040I Checking feasibility took 0.0055 seconds
+Blis0053I Called MIBS cut generator 2 times, generated 8 cuts, CPU time 0.0000 seconds, current strategy 3
+Blis0063I Called Rounding heuristic 4 times, found 0 solutions, CPU time 0.0000 seconds, current strategy 2
+Blis0058I Relative optimality gap is 0.00%
+============================================
+Optimal solution:
+Cost = 1516
+x[4] = 1
+x[6] = 1
+x[7] = 1
+x[8] = 1
+x[9] = 1
+y[0] = 1
+y[3] = 1
+============================================
+obj=1516
+
+APPLYCUT: Select cuts to be added in LP from 3 candidates
+WARNING: APPLYCUT: applied a weak cut, violation=0
+APPLYCUT: After selecting, added 3 cuts to LP and discared 0 cuts
+FEASIBLE SOL: numUnsatisfied = 2
+PROCESS: new cuts=3, delete slack cuts=0, numRows=23, numStartRows=20
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        18          2417          1259   91.90%      3          9
+
+
+Creating children of node 11 with indices: 27 28 
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        19          2417          1259   91.90%      3         10
+
+FEASIBLE SOL: numUnsatisfied = 3
+PROCESS: new cuts=0, delete slack cuts=0, numRows=25, numStartRows=25
+==  Welcome to the Abstract Library for Parallel Search (ALPS) 
+==  Copyright 2000-2015 Lehigh University and others 
+==  All Rights Reserved. 
+==  Distributed under the Eclipse Public License 1.0 
+==  Version: Trunk (unstable) 
+==  Build Date: Aug 11 2015
+==  Revision Number: 2003
+==  Bcps Version: Trunk (unstable)
+==  Bcps Revision Number: 2003
+==  Blis Version: Trunk (unstable)
+==  Blis Revision Number: 2003
+
+Blis0043I Objective coefficients are multiples of 1
+Alps0250I Starting search ...
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+         0                        1259               0          1
+         1          2612          1259  107.38%      0          2
+         3          1691          1691    0.00%      0          2
+
+Alps0208I Search completed.
+Alps0260I Best solution found had quality 1691
+Alps0265I Number of nodes fully processed:          3
+Alps0266I Number of nodes partially processed:      1
+Alps0267I Number of nodes branched:                 2
+Alps0268I Number of nodes pruned before processing: 1
+Alps0270I Number of nodes left:                     0
+Alps0272I Tree depth: 2
+Alps0274I Search CPU time: 0.02 seconds
+Alps0278I Search wall-clock time: 0.02 seconds
+Blis0040I Checking feasibility took 0.0089 seconds
+Blis0053I Called MIBS cut generator 6 times, generated 18 cuts, CPU time 0.0000 seconds, current strategy 3
+Blis0063I Called Rounding heuristic 12 times, found 0 solutions, CPU time 0.0000 seconds, current strategy 2
+Blis0058I Relative optimality gap is 0.00%
+============================================
+Optimal solution:
+Cost = 1691
+x[4] = 1
+x[6] = 1
+x[7] = 1
+x[8] = 1
+x[9] = 1
+y[1] = 1
+y[2] = 1
+y[3] = 1
+============================================
+obj=1691
+
+APPLYCUT: Select cuts to be added in LP from 1 candidates
+APPLYCUT: After selecting, added 1 cuts to LP and discared 0 cuts
+FEASIBLE SOL: numUnsatisfied = 1
+PROCESS: new cuts=1, delete slack cuts=0, numRows=26, numStartRows=25
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        19          2417          1259   91.90%      3         10
+
+FEASIBLE SOL: numUnsatisfied = 2
+PROCESS: new cuts=0, delete slack cuts=0, numRows=25, numStartRows=25
+==  Welcome to the Abstract Library for Parallel Search (ALPS) 
+==  Copyright 2000-2015 Lehigh University and others 
+==  All Rights Reserved. 
+==  Distributed under the Eclipse Public License 1.0 
+==  Version: Trunk (unstable) 
+==  Build Date: Aug 11 2015
+==  Revision Number: 2003
+==  Bcps Version: Trunk (unstable)
+==  Bcps Revision Number: 2003
+==  Blis Version: Trunk (unstable)
+==  Blis Revision Number: 2003
+
+Blis0043I Objective coefficients are multiples of 1
+Alps0250I Starting search ...
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+         0                        1259               0          1
+         1          1495          1259   18.73%      0          2
+
+Alps0208I Search completed.
+Alps0260I Best solution found had quality 1495
+Alps0264I Number of nodes processed:                11
+Alps0267I Number of nodes branched:                 5
+Alps0268I Number of nodes pruned before processing: 0
+Alps0270I Number of nodes left:                     0
+Alps0272I Tree depth: 4
+Alps0274I Search CPU time: 0.02 seconds
+Alps0278I Search wall-clock time: 0.02 seconds
+Blis0040I Checking feasibility took 0.0075 seconds
+Blis0053I Called MIBS cut generator 8 times, generated 16 cuts, CPU time 0.0000 seconds, current strategy 3
+Blis0063I Called Rounding heuristic 16 times, found 0 solutions, CPU time 0.0000 seconds, current strategy 2
+Blis0058I Relative optimality gap is 0.00%
+============================================
+Optimal solution:
+Cost = 1495
+x[2] = 1
+x[4] = 1
+x[6] = 1
+x[7] = 1
+x[9] = 1
+y[1] = 1
+y[3] = 1
+y[8] = 1
+============================================
+obj=1495
+
+APPLYCUT: Select cuts to be added in LP from 1 candidates
+APPLYCUT: After selecting, added 1 cuts to LP and discared 0 cuts
+FEASIBLE SOL: numUnsatisfied = 1
+PROCESS: new cuts=1, delete slack cuts=0, numRows=26, numStartRows=25
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        19          2417          1398   72.84%      3         10
+
+
+Creating children of node 15 with indices: 29 30 
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        20          2417          1398   72.84%      3         11
+
+FEASIBLE SOL: numUnsatisfied = 3
+PROCESS: new cuts=0, delete slack cuts=0, numRows=28, numStartRows=28
+==  Welcome to the Abstract Library for Parallel Search (ALPS) 
+==  Copyright 2000-2015 Lehigh University and others 
+==  All Rights Reserved. 
+==  Distributed under the Eclipse Public License 1.0 
+==  Version: Trunk (unstable) 
+==  Build Date: Aug 11 2015
+==  Revision Number: 2003
+==  Bcps Version: Trunk (unstable)
+==  Bcps Revision Number: 2003
+==  Blis Version: Trunk (unstable)
+==  Blis Revision Number: 2003
+
+Blis0043I Objective coefficients are multiples of 1
+Alps0250I Starting search ...
+
+Alps0202I Problem is infeasible. 1 nodes processed, 0 nodes left
+Alps0262I No solution found
+Alps0264I Number of nodes processed:                1
+Alps0267I Number of nodes branched:                 0
+Alps0268I Number of nodes pruned before processing: 0
+Alps0270I Number of nodes left:                     0
+Alps0272I Tree depth: 0
+Alps0274I Search CPU time: 0.00 seconds
+Alps0278I Search wall-clock time: 0.00 seconds
+Blis0040I Checking feasibility took 0.0000 seconds
+Blis0058I Relative optimality gap is 0.00%
+
+ALPS did not find a solution.
+obj=1e+80
+
+APPLYCUT: Select cuts to be added in LP from 1 candidates
+APPLYCUT: After selecting, added 1 cuts to LP and discared 0 cuts
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        21          2417          1398   72.84%      4         10
+
+FEASIBLE SOL: numUnsatisfied = 2
+PROCESS: new cuts=0, delete slack cuts=0, numRows=28, numStartRows=28
+==  Welcome to the Abstract Library for Parallel Search (ALPS) 
+==  Copyright 2000-2015 Lehigh University and others 
+==  All Rights Reserved. 
+==  Distributed under the Eclipse Public License 1.0 
+==  Version: Trunk (unstable) 
+==  Build Date: Aug 11 2015
+==  Revision Number: 2003
+==  Bcps Version: Trunk (unstable)
+==  Bcps Revision Number: 2003
+==  Blis Version: Trunk (unstable)
+==  Blis Revision Number: 2003
+
+Blis0043I Objective coefficients are multiples of 1
+Alps0250I Starting search ...
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+         0                        1398               0          1
+        15          2578          1398   84.35%      0          6
+        19          2083          1398   48.96%      0          4
+        20          1636          1398   17.01%      0          3
+
+Alps0208I Search completed.
+Alps0260I Best solution found had quality 1636
+Alps0264I Number of nodes processed:                29
+Alps0267I Number of nodes branched:                 14
+Alps0268I Number of nodes pruned before processing: 0
+Alps0270I Number of nodes left:                     0
+Alps0272I Tree depth: 6
+Alps0274I Search CPU time: 0.06 seconds
+Alps0278I Search wall-clock time: 0.06 seconds
+Blis0040I Checking feasibility took 0.0227 seconds
+Blis0053I Called MIBS cut generator 22 times, generated 78 cuts, CPU time 0.0120 seconds, current strategy 3
+Blis0063I Called Rounding heuristic 44 times, found 0 solutions, CPU time 0.0000 seconds, current strategy 2
+Blis0058I Relative optimality gap is 0.00%
+============================================
+Optimal solution:
+Cost = 1636
+x[1] = 1
+x[4] = 1
+x[5] = 1
+x[6] = 1
+x[9] = 1
+y[2] = 1
+y[3] = 1
+y[7] = 1
+y[8] = 1
+============================================
+obj=1636
+
+APPLYCUT: Select cuts to be added in LP from 1 candidates
+APPLYCUT: After selecting, added 1 cuts to LP and discared 0 cuts
+FEASIBLE SOL: numUnsatisfied = 1
+PROCESS: new cuts=1, delete slack cuts=0, numRows=29, numStartRows=28
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        21          2417          1461   65.39%      4         10
+
+
+Creating children of node 20 with indices: 31 32 
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        22          2417          1461   65.39%      4         11
+
+FEASIBLE SOL: numUnsatisfied = 1
+PROCESS: new cuts=0, delete slack cuts=0, numRows=31, numStartRows=31
+==  Welcome to the Abstract Library for Parallel Search (ALPS) 
+==  Copyright 2000-2015 Lehigh University and others 
+==  All Rights Reserved. 
+==  Distributed under the Eclipse Public License 1.0 
+==  Version: Trunk (unstable) 
+==  Build Date: Aug 11 2015
+==  Revision Number: 2003
+==  Bcps Version: Trunk (unstable)
+==  Bcps Revision Number: 2003
+==  Blis Version: Trunk (unstable)
+==  Blis Revision Number: 2003
+
+Blis0043I Objective coefficients are multiples of 1
+Alps0250I Starting search ...
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+         0                        1461               0          1
+         1          2131          1461   45.83%      0          2
+         6          1893        1681.8   12.55%      0          1
+
+Alps0208I Search completed.
+Alps0260I Best solution found had quality 1893
+Alps0264I Number of nodes processed:                7
+Alps0267I Number of nodes branched:                 3
+Alps0268I Number of nodes pruned before processing: 0
+Alps0270I Number of nodes left:                     0
+Alps0272I Tree depth: 2
+Alps0274I Search CPU time: 0.02 seconds
+Alps0278I Search wall-clock time: 0.02 seconds
+Blis0040I Checking feasibility took 0.0054 seconds
+Blis0053I Called MIBS cut generator 7 times, generated 20 cuts, CPU time 0.0000 seconds, current strategy 3
+Blis0063I Called Rounding heuristic 14 times, found 0 solutions, CPU time 0.0000 seconds, current strategy 2
+Blis0058I Relative optimality gap is 0.00%
+============================================
+Optimal solution:
+Cost = 1893
+x[0] = 1
+x[1] = 1
+x[4] = 1
+x[5] = 1
+x[6] = 1
+x[7] = 1
+y[2] = 1
+y[3] = 1
+y[8] = 1
+y[9] = 1
+============================================
+obj=1893
+
+APPLYCUT: Select cuts to be added in LP from 1 candidates
+APPLYCUT: After selecting, added 1 cuts to LP and discared 0 cuts
+FEASIBLE SOL: numUnsatisfied = 1
+PROCESS: new cuts=1, delete slack cuts=0, numRows=32, numStartRows=31
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        22          2417          1461   65.39%      4         11
+
+FEASIBLE SOL: numUnsatisfied = 1
+PROCESS: new cuts=0, delete slack cuts=0, numRows=31, numStartRows=31
+==  Welcome to the Abstract Library for Parallel Search (ALPS) 
+==  Copyright 2000-2015 Lehigh University and others 
+==  All Rights Reserved. 
+==  Distributed under the Eclipse Public License 1.0 
+==  Version: Trunk (unstable) 
+==  Build Date: Aug 11 2015
+==  Revision Number: 2003
+==  Bcps Version: Trunk (unstable)
+==  Bcps Revision Number: 2003
+==  Blis Version: Trunk (unstable)
+==  Blis Revision Number: 2003
+
+Blis0043I Objective coefficients are multiples of 1
+Alps0250I Starting search ...
+
+Alps0202I Problem is infeasible. 1 nodes processed, 0 nodes left
+Alps0262I No solution found
+Alps0264I Number of nodes processed:                1
+Alps0267I Number of nodes branched:                 0
+Alps0268I Number of nodes pruned before processing: 0
+Alps0270I Number of nodes left:                     0
+Alps0272I Tree depth: 0
+Alps0274I Search CPU time: 0.00 seconds
+Alps0278I Search wall-clock time: 0.00 seconds
+Blis0040I Checking feasibility took 0.0000 seconds
+Blis0058I Relative optimality gap is 0.00%
+
+ALPS did not find a solution.
+obj=1e+80
+
+APPLYCUT: Select cuts to be added in LP from 1 candidates
+APPLYCUT: After selecting, added 1 cuts to LP and discared 0 cuts
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        23          2417          1490   62.17%      4         10
+
+
+Creating children of node 22 with indices: 33 34 
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        24          2417          1490   62.17%      4         11
+
+FEASIBLE SOL: numUnsatisfied = 0
+
+Bilevel feasible solution found:
+Upper-level objective value: 2946
+
+UL[0]: 1
+UL[4]: 1
+LL[1]: 1
+LL[2]: 1
+LL[3]: 1
+LL[5]: 1
+LL[9]: 1
+Heuristics found a better solution, old cutoff = 2416, new cutoff = 2416
+PROCESS: new cuts=0, delete slack cuts=0, numRows=23, numStartRows=23
+==  Welcome to the Abstract Library for Parallel Search (ALPS) 
+==  Copyright 2000-2015 Lehigh University and others 
+==  All Rights Reserved. 
+==  Distributed under the Eclipse Public License 1.0 
+==  Version: Trunk (unstable) 
+==  Build Date: Aug 11 2015
+==  Revision Number: 2003
+==  Bcps Version: Trunk (unstable)
+==  Bcps Revision Number: 2003
+==  Blis Version: Trunk (unstable)
+==  Blis Revision Number: 2003
+
+Blis0043I Objective coefficients are multiples of 1
+Alps0250I Starting search ...
+         1          2173                  0.00%      0          0
+
+Alps0208I Search completed.
+Alps0260I Best solution found had quality 2173
+Alps0264I Number of nodes processed:                1
+Alps0267I Number of nodes branched:                 0
+Alps0268I Number of nodes pruned before processing: 0
+Alps0270I Number of nodes left:                     0
+Alps0272I Tree depth: 0
+Alps0274I Search CPU time: 0.01 seconds
+Alps0278I Search wall-clock time: 0.01 seconds
+Blis0040I Checking feasibility took 0.0049 seconds
+Blis0053I Called MIBS cut generator 1 times, generated 4 cuts, CPU time 0.0000 seconds, current strategy 3
+Blis0063I Called Rounding heuristic 2 times, found 0 solutions, CPU time 0.0000 seconds, current strategy 2
+Blis0058I Relative optimality gap is 0.00%
+============================================
+Optimal solution:
+Cost = 2173
+x[4] = 1
+x[9] = 1
+y[3] = 1
+y[5] = 1
+y[6] = 1
+============================================
+obj=2173
+
+APPLYCUT: Select cuts to be added in LP from 3 candidates
+APPLYCUT: After selecting, added 3 cuts to LP and discared 0 cuts
+FEASIBLE SOL: numUnsatisfied = 2
+PROCESS: new cuts=3, delete slack cuts=0, numRows=26, numStartRows=23
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        24          2417          1490   62.17%      4         11
+
+FEASIBLE SOL: numUnsatisfied = 0
+
+Bilevel feasible solution found:
+Upper-level objective value: 2946
+
+UL[0]: 1
+UL[4]: 1
+UL[6]: 1
+LL[1]: 1
+LL[2]: 1
+LL[3]: 1
+LL[5]: 1
+LL[9]: 1
+Heuristics found a better solution, old cutoff = 2416, new cutoff = 2416
+PROCESS: new cuts=0, delete slack cuts=0, numRows=23, numStartRows=23
+==  Welcome to the Abstract Library for Parallel Search (ALPS) 
+==  Copyright 2000-2015 Lehigh University and others 
+==  All Rights Reserved. 
+==  Distributed under the Eclipse Public License 1.0 
+==  Version: Trunk (unstable) 
+==  Build Date: Aug 11 2015
+==  Revision Number: 2003
+==  Bcps Version: Trunk (unstable)
+==  Bcps Revision Number: 2003
+==  Blis Version: Trunk (unstable)
+==  Blis Revision Number: 2003
+
+Blis0043I Objective coefficients are multiples of 1
+Alps0250I Starting search ...
+         1          1490                  0.00%      0          0
+
+Alps0208I Search completed.
+Alps0260I Best solution found had quality 1490
+Alps0264I Number of nodes processed:                1
+Alps0267I Number of nodes branched:                 0
+Alps0268I Number of nodes pruned before processing: 0
+Alps0270I Number of nodes left:                     0
+Alps0272I Tree depth: 0
+Alps0274I Search CPU time: 0.00 seconds
+Alps0278I Search wall-clock time: 0.01 seconds
+Blis0040I Checking feasibility took 0.0059 seconds
+Blis0053I Called MIBS cut generator 2 times, generated 8 cuts, CPU time 0.0040 seconds, current strategy 3
+Blis0063I Called Rounding heuristic 4 times, found 0 solutions, CPU time 0.0000 seconds, current strategy 2
+Blis0058I Relative optimality gap is 0.00%
+============================================
+Optimal solution:
+Cost = 1490
+x[4] = 1
+x[6] = 1
+x[7] = 1
+x[8] = 1
+x[9] = 1
+y[3] = 1
+y[5] = 1
+============================================
+obj=1490
+
+APPLYCUT: Select cuts to be added in LP from 3 candidates
+WARNING: APPLYCUT: applied a weak cut, violation=0
+APPLYCUT: After selecting, added 3 cuts to LP and discared 0 cuts
+FEASIBLE SOL: numUnsatisfied = 2
+PROCESS: new cuts=3, delete slack cuts=0, numRows=26, numStartRows=23
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        24          2417          1490   62.17%      4         11
+
+
+Creating children of node 34 with indices: 35 36 
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        25          2417          1490   62.17%      4         12
+
+FEASIBLE SOL: numUnsatisfied = 2
+PROCESS: new cuts=0, delete slack cuts=0, numRows=26, numStartRows=26
+==  Welcome to the Abstract Library for Parallel Search (ALPS) 
+==  Copyright 2000-2015 Lehigh University and others 
+==  All Rights Reserved. 
+==  Distributed under the Eclipse Public License 1.0 
+==  Version: Trunk (unstable) 
+==  Build Date: Aug 11 2015
+==  Revision Number: 2003
+==  Bcps Version: Trunk (unstable)
+==  Bcps Revision Number: 2003
+==  Blis Version: Trunk (unstable)
+==  Blis Revision Number: 2003
+
+Blis0043I Objective coefficients are multiples of 1
+Alps0250I Starting search ...
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+         0                        1490               0          1
+         2          2019          1490   35.48%      0          1
+
+Alps0208I Search completed.
+Alps0260I Best solution found had quality 2019
+Alps0264I Number of nodes processed:                3
+Alps0267I Number of nodes branched:                 1
+Alps0268I Number of nodes pruned before processing: 0
+Alps0270I Number of nodes left:                     0
+Alps0272I Tree depth: 1
+Alps0274I Search CPU time: 0.01 seconds
+Alps0278I Search wall-clock time: 0.02 seconds
+Blis0040I Checking feasibility took 0.0116 seconds
+Blis0053I Called MIBS cut generator 4 times, generated 17 cuts, CPU time 0.0000 seconds, current strategy 3
+Blis0063I Called Rounding heuristic 8 times, found 0 solutions, CPU time 0.0000 seconds, current strategy 2
+Blis0058I Relative optimality gap is 0.00%
+============================================
+Optimal solution:
+Cost = 2019
+x[4] = 1
+x[6] = 1
+x[7] = 1
+x[9] = 1
+y[1] = 1
+y[3] = 1
+y[5] = 1
+============================================
+obj=2019
+
+APPLYCUT: Select cuts to be added in LP from 1 candidates
+APPLYCUT: After selecting, added 1 cuts to LP and discared 0 cuts
+FEASIBLE SOL: numUnsatisfied = 2
+PROCESS: new cuts=1, delete slack cuts=0, numRows=27, numStartRows=26
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        25          2417          1490   62.17%      4         12
+
+FEASIBLE SOL: numUnsatisfied = 0
+
+Bilevel feasible solution found:
+Upper-level objective value: 2417
+
+UL[0]: 1
+UL[1]: 1
+UL[4]: 1
+UL[6]: 1
+LL[2]: 1
+LL[3]: 1
+LL[5]: 1
+LL[9]: 1
+Heuristics found a better solution, old cutoff = 2416, new cutoff = 2416
+PROCESS: new cuts=0, delete slack cuts=0, numRows=26, numStartRows=26
+==  Welcome to the Abstract Library for Parallel Search (ALPS) 
+==  Copyright 2000-2015 Lehigh University and others 
+==  All Rights Reserved. 
+==  Distributed under the Eclipse Public License 1.0 
+==  Version: Trunk (unstable) 
+==  Build Date: Aug 11 2015
+==  Revision Number: 2003
+==  Bcps Version: Trunk (unstable)
+==  Bcps Revision Number: 2003
+==  Blis Version: Trunk (unstable)
+==  Blis Revision Number: 2003
+
+Blis0043I Objective coefficients are multiples of 1
+Alps0250I Starting search ...
+         1          1726                  0.00%      0          0
+
+Alps0208I Search completed.
+Alps0260I Best solution found had quality 1726
+Alps0264I Number of nodes processed:                1
+Alps0267I Number of nodes branched:                 0
+Alps0268I Number of nodes pruned before processing: 0
+Alps0270I Number of nodes left:                     0
+Alps0272I Tree depth: 0
+Alps0274I Search CPU time: 0.01 seconds
+Alps0278I Search wall-clock time: 0.01 seconds
+Blis0040I Checking feasibility took 0.0047 seconds
+Blis0053I Called MIBS cut generator 2 times, generated 8 cuts, CPU time 0.0000 seconds, current strategy 3
+Blis0063I Called Rounding heuristic 4 times, found 0 solutions, CPU time 0.0000 seconds, current strategy 2
+Blis0058I Relative optimality gap is 0.00%
+============================================
+Optimal solution:
+Cost = 1726
+x[1] = 1
+x[4] = 1
+x[6] = 1
+x[7] = 1
+x[9] = 1
+y[3] = 1
+y[5] = 1
+y[8] = 1
+============================================
+obj=1726
+
+APPLYCUT: Select cuts to be added in LP from 3 candidates
+APPLYCUT: After selecting, added 3 cuts to LP and discared 0 cuts
+FEASIBLE SOL: numUnsatisfied = 1
+PROCESS: new cuts=3, delete slack cuts=0, numRows=29, numStartRows=26
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        25          2417          1495   61.63%      4         12
+
+
+Creating children of node 13 with indices: 37 38 
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        26          2417          1495   61.63%      4         13
+
+
+Creating children of node 28 with indices: 39 40 
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        27          2417          1495   61.63%      4         14
+
+FEASIBLE SOL: numUnsatisfied = 1
+PROCESS: new cuts=0, delete slack cuts=0, numRows=27, numStartRows=27
+==  Welcome to the Abstract Library for Parallel Search (ALPS) 
+==  Copyright 2000-2015 Lehigh University and others 
+==  All Rights Reserved. 
+==  Distributed under the Eclipse Public License 1.0 
+==  Version: Trunk (unstable) 
+==  Build Date: Aug 11 2015
+==  Revision Number: 2003
+==  Bcps Version: Trunk (unstable)
+==  Bcps Revision Number: 2003
+==  Blis Version: Trunk (unstable)
+==  Blis Revision Number: 2003
+
+Blis0043I Objective coefficients are multiples of 1
+Alps0250I Starting search ...
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+         0                        1495               0          1
+       100                        1495               0          5
+
+Alps0202I Problem is infeasible. 131 nodes processed, 0 nodes left
+Alps0262I No solution found
+Alps0264I Number of nodes processed:                131
+Alps0267I Number of nodes branched:                 65
+Alps0268I Number of nodes pruned before processing: 0
+Alps0270I Number of nodes left:                     0
+Alps0272I Tree depth: 9
+Alps0274I Search CPU time: 0.10 seconds
+Alps0278I Search wall-clock time: 0.11 seconds
+Blis0040I Checking feasibility took 0.0008 seconds
+Blis0053I Called MIBS cut generator 65 times, generated 0 cuts, CPU time 0.0360 seconds, current strategy 3
+Blis0063I Called Rounding heuristic 130 times, found 0 solutions, CPU time 0.0000 seconds, current strategy 2
+Blis0058I Relative optimality gap is 0.00%
+
+ALPS did not find a solution.
+obj=1e+80
+
+APPLYCUT: Select cuts to be added in LP from 1 candidates
+APPLYCUT: After selecting, added 1 cuts to LP and discared 0 cuts
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        28          2417          1495   61.63%      4         13
+
+FEASIBLE SOL: numUnsatisfied = 3
+PROCESS: new cuts=0, delete slack cuts=0, numRows=27, numStartRows=27
+==  Welcome to the Abstract Library for Parallel Search (ALPS) 
+==  Copyright 2000-2015 Lehigh University and others 
+==  All Rights Reserved. 
+==  Distributed under the Eclipse Public License 1.0 
+==  Version: Trunk (unstable) 
+==  Build Date: Aug 11 2015
+==  Revision Number: 2003
+==  Bcps Version: Trunk (unstable)
+==  Bcps Revision Number: 2003
+==  Blis Version: Trunk (unstable)
+==  Blis Revision Number: 2003
+
+Blis0043I Objective coefficients are multiples of 1
+Alps0250I Starting search ...
+
+Alps0202I Problem is infeasible. 1 nodes processed, 0 nodes left
+Alps0262I No solution found
+Alps0264I Number of nodes processed:                1
+Alps0267I Number of nodes branched:                 0
+Alps0268I Number of nodes pruned before processing: 0
+Alps0270I Number of nodes left:                     0
+Alps0272I Tree depth: 0
+Alps0274I Search CPU time: 0.00 seconds
+Alps0278I Search wall-clock time: 0.00 seconds
+Blis0040I Checking feasibility took 0.0000 seconds
+Blis0058I Relative optimality gap is 0.00%
+
+ALPS did not find a solution.
+obj=1e+80
+
+APPLYCUT: Select cuts to be added in LP from 1 candidates
+APPLYCUT: After selecting, added 1 cuts to LP and discared 0 cuts
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        29          2417          1495   61.63%      4         12
+
+FEASIBLE SOL: numUnsatisfied = 2
+PROCESS: new cuts=0, delete slack cuts=0, numRows=26, numStartRows=26
+==  Welcome to the Abstract Library for Parallel Search (ALPS) 
+==  Copyright 2000-2015 Lehigh University and others 
+==  All Rights Reserved. 
+==  Distributed under the Eclipse Public License 1.0 
+==  Version: Trunk (unstable) 
+==  Build Date: Aug 11 2015
+==  Revision Number: 2003
+==  Bcps Version: Trunk (unstable)
+==  Bcps Revision Number: 2003
+==  Blis Version: Trunk (unstable)
+==  Blis Revision Number: 2003
+
+Blis0043I Objective coefficients are multiples of 1
+Alps0250I Starting search ...
+
+Alps0202I Problem is infeasible. 1 nodes processed, 0 nodes left
+Alps0262I No solution found
+Alps0264I Number of nodes processed:                1
+Alps0267I Number of nodes branched:                 0
+Alps0268I Number of nodes pruned before processing: 0
+Alps0270I Number of nodes left:                     0
+Alps0272I Tree depth: 0
+Alps0274I Search CPU time: 0.00 seconds
+Alps0278I Search wall-clock time: 0.00 seconds
+Blis0040I Checking feasibility took 0.0000 seconds
+Blis0058I Relative optimality gap is 0.00%
+
+ALPS did not find a solution.
+obj=1e+80
+
+APPLYCUT: Select cuts to be added in LP from 1 candidates
+APPLYCUT: After selecting, added 1 cuts to LP and discared 0 cuts
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        30          2417          1495   61.63%      4         11
+
+FEASIBLE SOL: numUnsatisfied = 1
+PROCESS: new cuts=0, delete slack cuts=0, numRows=26, numStartRows=26
+==  Welcome to the Abstract Library for Parallel Search (ALPS) 
+==  Copyright 2000-2015 Lehigh University and others 
+==  All Rights Reserved. 
+==  Distributed under the Eclipse Public License 1.0 
+==  Version: Trunk (unstable) 
+==  Build Date: Aug 11 2015
+==  Revision Number: 2003
+==  Bcps Version: Trunk (unstable)
+==  Bcps Revision Number: 2003
+==  Blis Version: Trunk (unstable)
+==  Blis Revision Number: 2003
+
+Blis0043I Objective coefficients are multiples of 1
+Alps0250I Starting search ...
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+         0                        1495               0          1
+
+Alps0202I Problem is infeasible. 31 nodes processed, 0 nodes left
+Alps0262I No solution found
+Alps0264I Number of nodes processed:                31
+Alps0267I Number of nodes branched:                 15
+Alps0268I Number of nodes pruned before processing: 0
+Alps0270I Number of nodes left:                     0
+Alps0272I Tree depth: 6
+Alps0274I Search CPU time: 0.03 seconds
+Alps0278I Search wall-clock time: 0.03 seconds
+Blis0040I Checking feasibility took 0.0002 seconds
+Blis0053I Called MIBS cut generator 15 times, generated 0 cuts, CPU time 0.0120 seconds, current strategy 3
+Blis0063I Called Rounding heuristic 30 times, found 0 solutions, CPU time 0.0000 seconds, current strategy 2
+Blis0058I Relative optimality gap is 0.00%
+
+ALPS did not find a solution.
+obj=1e+80
+
+APPLYCUT: Select cuts to be added in LP from 1 candidates
+APPLYCUT: After selecting, added 1 cuts to LP and discared 0 cuts
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        31          2417          1516   59.39%      4         10
+
+
+Creating children of node 26 with indices: 41 42 
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        32          2417          1516   59.39%      4         11
+
+FEASIBLE SOL: numUnsatisfied = 2
+PROCESS: new cuts=0, delete slack cuts=0, numRows=23, numStartRows=23
+==  Welcome to the Abstract Library for Parallel Search (ALPS) 
+==  Copyright 2000-2015 Lehigh University and others 
+==  All Rights Reserved. 
+==  Distributed under the Eclipse Public License 1.0 
+==  Version: Trunk (unstable) 
+==  Build Date: Aug 11 2015
+==  Revision Number: 2003
+==  Bcps Version: Trunk (unstable)
+==  Bcps Revision Number: 2003
+==  Blis Version: Trunk (unstable)
+==  Blis Revision Number: 2003
+
+Blis0043I Objective coefficients are multiples of 1
+Alps0250I Starting search ...
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+         0          2728          2045   33.38%      0          1
+         6          2045          2045    0.00%      0          3
+
+Alps0208I Search completed.
+Alps0260I Best solution found had quality 2045
+Alps0265I Number of nodes fully processed:          6
+Alps0266I Number of nodes partially processed:      1
+Alps0267I Number of nodes branched:                 4
+Alps0268I Number of nodes pruned before processing: 2
+Alps0270I Number of nodes left:                     0
+Alps0272I Tree depth: 3
+Alps0274I Search CPU time: 0.02 seconds
+Alps0278I Search wall-clock time: 0.02 seconds
+Blis0040I Checking feasibility took 0.0081 seconds
+Blis0053I Called MIBS cut generator 8 times, generated 12 cuts, CPU time 0.0000 seconds, current strategy 3
+Blis0063I Called Rounding heuristic 16 times, found 0 solutions, CPU time 0.0000 seconds, current strategy 2
+Blis0058I Relative optimality gap is 0.00%
+============================================
+Optimal solution:
+Cost = 2045
+x[4] = 1
+x[6] = 1
+x[7] = 1
+x[8] = 1
+x[9] = 1
+y[0] = 1
+y[1] = 1
+y[3] = 1
+============================================
+obj=2045
+
+APPLYCUT: Select cuts to be added in LP from 1 candidates
+APPLYCUT: After selecting, added 1 cuts to LP and discared 0 cuts
+FEASIBLE SOL: numUnsatisfied = 4
+PROCESS: new cuts=1, delete slack cuts=0, numRows=24, numStartRows=23
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        32          2417          1516   59.39%      4         11
+
+FEASIBLE SOL: numUnsatisfied = 0
+
+Bilevel feasible solution found:
+Upper-level objective value: 3203
+
+UL[1]: 1
+UL[4]: 1
+UL[6]: 1
+LL[0]: 1
+LL[2]: 1
+LL[3]: 1
+LL[5]: 1
+LL[9]: 1
+Heuristics found a better solution, old cutoff = 2416, new cutoff = 2416
+PROCESS: new cuts=0, delete slack cuts=0, numRows=23, numStartRows=23
+==  Welcome to the Abstract Library for Parallel Search (ALPS) 
+==  Copyright 2000-2015 Lehigh University and others 
+==  All Rights Reserved. 
+==  Distributed under the Eclipse Public License 1.0 
+==  Version: Trunk (unstable) 
+==  Build Date: Aug 11 2015
+==  Revision Number: 2003
+==  Bcps Version: Trunk (unstable)
+==  Bcps Revision Number: 2003
+==  Blis Version: Trunk (unstable)
+==  Blis Revision Number: 2003
+
+Blis0043I Objective coefficients are multiples of 1
+Alps0250I Starting search ...
+         1          1752                  0.00%      0          0
+
+Alps0208I Search completed.
+Alps0260I Best solution found had quality 1752
+Alps0264I Number of nodes processed:                1
+Alps0267I Number of nodes branched:                 0
+Alps0268I Number of nodes pruned before processing: 0
+Alps0270I Number of nodes left:                     0
+Alps0272I Tree depth: 0
+Alps0274I Search CPU time: 0.01 seconds
+Alps0278I Search wall-clock time: 0.01 seconds
+Blis0040I Checking feasibility took 0.0040 seconds
+Blis0053I Called MIBS cut generator 2 times, generated 8 cuts, CPU time 0.0000 seconds, current strategy 3
+Blis0063I Called Rounding heuristic 4 times, found 0 solutions, CPU time 0.0000 seconds, current strategy 2
+Blis0058I Relative optimality gap is 0.00%
+============================================
+Optimal solution:
+Cost = 1752
+x[1] = 1
+x[4] = 1
+x[6] = 1
+x[7] = 1
+x[9] = 1
+y[0] = 1
+y[3] = 1
+y[8] = 1
+============================================
+obj=1752
+
+APPLYCUT: Select cuts to be added in LP from 3 candidates
+APPLYCUT: After selecting, added 3 cuts to LP and discared 0 cuts
+FEASIBLE SOL: numUnsatisfied = 3
+PROCESS: new cuts=3, delete slack cuts=0, numRows=26, numStartRows=23
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        32          2417          1546   56.30%      4         11
+
+
+Creating children of node 24 with indices: 43 44 
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        33          2417          1546   56.30%      4         12
+
+FEASIBLE SOL: numUnsatisfied = 2
+PROCESS: new cuts=0, delete slack cuts=0, numRows=22, numStartRows=22
+==  Welcome to the Abstract Library for Parallel Search (ALPS) 
+==  Copyright 2000-2015 Lehigh University and others 
+==  All Rights Reserved. 
+==  Distributed under the Eclipse Public License 1.0 
+==  Version: Trunk (unstable) 
+==  Build Date: Aug 11 2015
+==  Revision Number: 2003
+==  Bcps Version: Trunk (unstable)
+==  Bcps Revision Number: 2003
+==  Blis Version: Trunk (unstable)
+==  Blis Revision Number: 2003
+
+Blis0043I Objective coefficients are multiples of 1
+Alps0250I Starting search ...
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+         0          2758          2075   32.90%      0          1
+         2          2075          2075    0.00%      0          1
+
+Alps0208I Search completed.
+Alps0260I Best solution found had quality 2075
+Alps0265I Number of nodes fully processed:          2
+Alps0266I Number of nodes partially processed:      1
+Alps0267I Number of nodes branched:                 1
+Alps0268I Number of nodes pruned before processing: 0
+Alps0270I Number of nodes left:                     0
+Alps0272I Tree depth: 1
+Alps0274I Search CPU time: 0.01 seconds
+Alps0278I Search wall-clock time: 0.01 seconds
+Blis0040I Checking feasibility took 0.0046 seconds
+Blis0053I Called MIBS cut generator 3 times, generated 4 cuts, CPU time 0.0040 seconds, current strategy 3
+Blis0063I Called Rounding heuristic 6 times, found 0 solutions, CPU time 0.0000 seconds, current strategy 2
+Blis0058I Relative optimality gap is 0.00%
+============================================
+Optimal solution:
+Cost = 2075
+x[4] = 1
+x[6] = 1
+x[9] = 1
+y[0] = 1
+y[1] = 1
+y[5] = 1
+============================================
+obj=2075
+
+APPLYCUT: Select cuts to be added in LP from 1 candidates
+APPLYCUT: After selecting, added 1 cuts to LP and discared 0 cuts
+FEASIBLE SOL: numUnsatisfied = 3
+PROCESS: new cuts=1, delete slack cuts=0, numRows=23, numStartRows=22
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        33          2417          1546   56.30%      4         12
+
+FEASIBLE SOL: numUnsatisfied = 0
+
+Bilevel feasible solution found:
+Upper-level objective value: 3203
+
+UL[1]: 1
+UL[4]: 1
+UL[6]: 1
+LL[0]: 1
+LL[2]: 1
+LL[3]: 1
+LL[5]: 1
+LL[9]: 1
+Heuristics found a better solution, old cutoff = 2416, new cutoff = 2416
+PROCESS: new cuts=0, delete slack cuts=0, numRows=22, numStartRows=22
+==  Welcome to the Abstract Library for Parallel Search (ALPS) 
+==  Copyright 2000-2015 Lehigh University and others 
+==  All Rights Reserved. 
+==  Distributed under the Eclipse Public License 1.0 
+==  Version: Trunk (unstable) 
+==  Build Date: Aug 11 2015
+==  Revision Number: 2003
+==  Bcps Version: Trunk (unstable)
+==  Bcps Revision Number: 2003
+==  Blis Version: Trunk (unstable)
+==  Blis Revision Number: 2003
+
+Blis0043I Objective coefficients are multiples of 1
+Alps0250I Starting search ...
+         1          1782                  0.00%      0          0
+
+Alps0208I Search completed.
+Alps0260I Best solution found had quality 1782
+Alps0264I Number of nodes processed:                1
+Alps0267I Number of nodes branched:                 0
+Alps0268I Number of nodes pruned before processing: 0
+Alps0270I Number of nodes left:                     0
+Alps0272I Tree depth: 0
+Alps0274I Search CPU time: 0.01 seconds
+Alps0278I Search wall-clock time: 0.01 seconds
+Blis0040I Checking feasibility took 0.0081 seconds
+Blis0053I Called MIBS cut generator 3 times, generated 12 cuts, CPU time 0.0000 seconds, current strategy 3
+Blis0063I Called Rounding heuristic 6 times, found 0 solutions, CPU time 0.0000 seconds, current strategy 2
+Blis0058I Relative optimality gap is 0.00%
+============================================
+Optimal solution:
+Cost = 1782
+x[1] = 1
+x[4] = 1
+x[6] = 1
+x[7] = 1
+x[9] = 1
+y[0] = 1
+y[5] = 1
+y[8] = 1
+============================================
+obj=1782
+
+APPLYCUT: Select cuts to be added in LP from 3 candidates
+APPLYCUT: After selecting, added 3 cuts to LP and discared 0 cuts
+FEASIBLE SOL: numUnsatisfied = 3
+PROCESS: new cuts=3, delete slack cuts=0, numRows=25, numStartRows=22
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        33          2417          1636   47.71%      4         12
+
+
+Creating children of node 30 with indices: 45 46 
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        34          2417          1636   47.71%      4         13
+
+FEASIBLE SOL: numUnsatisfied = 1
+PROCESS: new cuts=0, delete slack cuts=0, numRows=29, numStartRows=29
+==  Welcome to the Abstract Library for Parallel Search (ALPS) 
+==  Copyright 2000-2015 Lehigh University and others 
+==  All Rights Reserved. 
+==  Distributed under the Eclipse Public License 1.0 
+==  Version: Trunk (unstable) 
+==  Build Date: Aug 11 2015
+==  Revision Number: 2003
+==  Bcps Version: Trunk (unstable)
+==  Bcps Revision Number: 2003
+==  Blis Version: Trunk (unstable)
+==  Blis Revision Number: 2003
+
+Blis0043I Objective coefficients are multiples of 1
+Alps0250I Starting search ...
+
+Alps0202I Problem is infeasible. 1 nodes processed, 0 nodes left
+Alps0262I No solution found
+Alps0264I Number of nodes processed:                1
+Alps0267I Number of nodes branched:                 0
+Alps0268I Number of nodes pruned before processing: 0
+Alps0270I Number of nodes left:                     0
+Alps0272I Tree depth: 0
+Alps0274I Search CPU time: 0.00 seconds
+Alps0278I Search wall-clock time: 0.00 seconds
+Blis0040I Checking feasibility took 0.0000 seconds
+Blis0058I Relative optimality gap is 0.00%
+
+ALPS did not find a solution.
+obj=1e+80
+
+APPLYCUT: Select cuts to be added in LP from 1 candidates
+APPLYCUT: After selecting, added 1 cuts to LP and discared 0 cuts
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        35          2417          1636   47.71%      4         12
+
+FEASIBLE SOL: numUnsatisfied = 2
+PROCESS: new cuts=0, delete slack cuts=0, numRows=29, numStartRows=29
+==  Welcome to the Abstract Library for Parallel Search (ALPS) 
+==  Copyright 2000-2015 Lehigh University and others 
+==  All Rights Reserved. 
+==  Distributed under the Eclipse Public License 1.0 
+==  Version: Trunk (unstable) 
+==  Build Date: Aug 11 2015
+==  Revision Number: 2003
+==  Bcps Version: Trunk (unstable)
+==  Bcps Revision Number: 2003
+==  Blis Version: Trunk (unstable)
+==  Blis Revision Number: 2003
+
+Blis0043I Objective coefficients are multiples of 1
+Alps0250I Starting search ...
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+         0                        1636               0          1
+         4          1893          1636   15.70%      0          1
+
+Alps0208I Search completed.
+Alps0260I Best solution found had quality 1893
+Alps0264I Number of nodes processed:                11
+Alps0267I Number of nodes branched:                 5
+Alps0268I Number of nodes pruned before processing: 0
+Alps0270I Number of nodes left:                     0
+Alps0272I Tree depth: 5
+Alps0274I Search CPU time: 0.02 seconds
+Alps0278I Search wall-clock time: 0.02 seconds
+Blis0040I Checking feasibility took 0.0074 seconds
+Blis0053I Called MIBS cut generator 8 times, generated 16 cuts, CPU time 0.0080 seconds, current strategy 3
+Blis0063I Called Rounding heuristic 16 times, found 0 solutions, CPU time 0.0000 seconds, current strategy 2
+Blis0058I Relative optimality gap is 0.00%
+============================================
+Optimal solution:
+Cost = 1893
+x[1] = 1
+x[4] = 1
+x[5] = 1
+x[6] = 1
+x[7] = 1
+y[2] = 1
+y[3] = 1
+y[8] = 1
+y[9] = 1
+============================================
+obj=1893
+
+APPLYCUT: Select cuts to be added in LP from 1 candidates
+APPLYCUT: After selecting, added 1 cuts to LP and discared 0 cuts
+FEASIBLE SOL: numUnsatisfied = 2
+PROCESS: new cuts=1, delete slack cuts=0, numRows=30, numStartRows=29
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        35          2417          1649   46.55%      4         12
+
+
+Creating children of node 17 with indices: 47 48 
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        36          2417          1649   46.55%      4         13
+
+FEASIBLE SOL: numUnsatisfied = 1
+PROCESS: new cuts=0, delete slack cuts=0, numRows=28, numStartRows=28
+==  Welcome to the Abstract Library for Parallel Search (ALPS) 
+==  Copyright 2000-2015 Lehigh University and others 
+==  All Rights Reserved. 
+==  Distributed under the Eclipse Public License 1.0 
+==  Version: Trunk (unstable) 
+==  Build Date: Aug 11 2015
+==  Revision Number: 2003
+==  Bcps Version: Trunk (unstable)
+==  Bcps Revision Number: 2003
+==  Blis Version: Trunk (unstable)
+==  Blis Revision Number: 2003
+
+Blis0043I Objective coefficients are multiples of 1
+Alps0250I Starting search ...
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+         0                        1649               0          1
+         2          1649          1649    0.00%      0          1
+
+Alps0208I Search completed.
+Alps0260I Best solution found had quality 1649
+Alps0264I Number of nodes processed:                2
+Alps0267I Number of nodes branched:                 1
+Alps0268I Number of nodes pruned before processing: 1
+Alps0270I Number of nodes left:                     0
+Alps0272I Tree depth: 1
+Alps0274I Search CPU time: 0.00 seconds
+Alps0278I Search wall-clock time: 0.01 seconds
+Blis0040I Checking feasibility took 0.0022 seconds
+Blis0053I Called MIBS cut generator 2 times, generated 4 cuts, CPU time 0.0000 seconds, current strategy 3
+Blis0063I Called Rounding heuristic 4 times, found 0 solutions, CPU time 0.0000 seconds, current strategy 2
+Blis0058I Relative optimality gap is 0.00%
+============================================
+Optimal solution:
+Cost = 1649
+x[0] = 1
+x[1] = 1
+x[4] = 1
+x[7] = 1
+y[3] = 1
+y[6] = 1
+y[8] = 1
+============================================
+obj=1649
+
+APPLYCUT: Select cuts to be added in LP from 1 candidates
+WARNING: APPLYCUT: applied a weak cut, violation=0
+APPLYCUT: After selecting, added 1 cuts to LP and discared 0 cuts
+FEASIBLE SOL: numUnsatisfied = 1
+PROCESS: new cuts=1, delete slack cuts=0, numRows=29, numStartRows=28
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        36          2417          1649   46.55%      4         13
+
+FEASIBLE SOL: numUnsatisfied = 1
+PROCESS: new cuts=0, delete slack cuts=0, numRows=28, numStartRows=28
+==  Welcome to the Abstract Library for Parallel Search (ALPS) 
+==  Copyright 2000-2015 Lehigh University and others 
+==  All Rights Reserved. 
+==  Distributed under the Eclipse Public License 1.0 
+==  Version: Trunk (unstable) 
+==  Build Date: Aug 11 2015
+==  Revision Number: 2003
+==  Bcps Version: Trunk (unstable)
+==  Bcps Revision Number: 2003
+==  Blis Version: Trunk (unstable)
+==  Blis Revision Number: 2003
+
+Blis0043I Objective coefficients are multiples of 1
+Alps0250I Starting search ...
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+         0                        1649               0          1
+         2          1908          1649   15.70%      0          1
+
+Alps0208I Search completed.
+Alps0260I Best solution found had quality 1908
+Alps0264I Number of nodes processed:                5
+Alps0267I Number of nodes branched:                 2
+Alps0268I Number of nodes pruned before processing: 0
+Alps0270I Number of nodes left:                     0
+Alps0272I Tree depth: 2
+Alps0274I Search CPU time: 0.02 seconds
+Alps0278I Search wall-clock time: 0.01 seconds
+Blis0040I Checking feasibility took 0.0053 seconds
+Blis0053I Called MIBS cut generator 5 times, generated 15 cuts, CPU time 0.0040 seconds, current strategy 3
+Blis0063I Called Rounding heuristic 10 times, found 0 solutions, CPU time 0.0000 seconds, current strategy 2
+Blis0058I Relative optimality gap is 0.00%
+============================================
+Optimal solution:
+Cost = 1908
+x[0] = 1
+x[1] = 1
+x[4] = 1
+x[7] = 1
+x[8] = 1
+y[3] = 1
+y[6] = 1
+y[9] = 1
+============================================
+obj=1908
+
+APPLYCUT: Select cuts to be added in LP from 1 candidates
+APPLYCUT: After selecting, added 1 cuts to LP and discared 0 cuts
+FEASIBLE SOL: numUnsatisfied = 0
+
+Bilevel feasible solution found:
+Upper-level objective value: 2668
+
+UL[0]: 1
+UL[1]: 1
+UL[4]: 1
+LL[3]: 1
+LL[5]: 1
+LL[6]: 1
+LL[9]: 1
+Heuristics found a better solution, old cutoff = 2416, new cutoff = 2416
+PROCESS: new cuts=1, delete slack cuts=0, numRows=29, numStartRows=28
+
+APPLYCUT: Select cuts to be added in LP from 2 candidates
+APPLYCUT: After selecting, added 2 cuts to LP and discared 0 cuts
+FEASIBLE SOL: numUnsatisfied = 0
+
+Bilevel feasible solution found:
+Upper-level objective value: 2668
+
+UL[0]: 1
+UL[1]: 1
+UL[2]: 1
+UL[4]: 1
+LL[3]: 1
+LL[5]: 1
+LL[6]: 1
+LL[9]: 1
+Heuristics found a better solution, old cutoff = 2416, new cutoff = 2416
+PROCESS: new cuts=3, delete slack cuts=0, numRows=31, numStartRows=28
+
+APPLYCUT: Select cuts to be added in LP from 2 candidates
+APPLYCUT: After selecting, added 2 cuts to LP and discared 0 cuts
+FEASIBLE SOL: numUnsatisfied = 2
+PROCESS: new cuts=5, delete slack cuts=0, numRows=33, numStartRows=28
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        36          2417          1649   46.55%      4         13
+
+
+Creating children of node 47 with indices: 49 50 
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        37          2417          1649   46.55%      4         14
+
+FEASIBLE SOL: numUnsatisfied = 1
+PROCESS: new cuts=0, delete slack cuts=0, numRows=29, numStartRows=29
+==  Welcome to the Abstract Library for Parallel Search (ALPS) 
+==  Copyright 2000-2015 Lehigh University and others 
+==  All Rights Reserved. 
+==  Distributed under the Eclipse Public License 1.0 
+==  Version: Trunk (unstable) 
+==  Build Date: Aug 11 2015
+==  Revision Number: 2003
+==  Bcps Version: Trunk (unstable)
+==  Bcps Revision Number: 2003
+==  Blis Version: Trunk (unstable)
+==  Blis Revision Number: 2003
+
+Blis0043I Objective coefficients are multiples of 1
+Alps0250I Starting search ...
+
+Alps0202I Problem is infeasible. 1 nodes processed, 0 nodes left
+Alps0262I No solution found
+Alps0264I Number of nodes processed:                1
+Alps0267I Number of nodes branched:                 0
+Alps0268I Number of nodes pruned before processing: 0
+Alps0270I Number of nodes left:                     0
+Alps0272I Tree depth: 0
+Alps0274I Search CPU time: 0.00 seconds
+Alps0278I Search wall-clock time: 0.00 seconds
+Blis0040I Checking feasibility took 0.0000 seconds
+Blis0058I Relative optimality gap is 0.00%
+
+ALPS did not find a solution.
+obj=1e+80
+
+APPLYCUT: Select cuts to be added in LP from 1 candidates
+APPLYCUT: After selecting, added 1 cuts to LP and discared 0 cuts
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        38          2417          1649   46.55%      4         13
+
+FEASIBLE SOL: numUnsatisfied = 1
+PROCESS: new cuts=0, delete slack cuts=0, numRows=29, numStartRows=29
+==  Welcome to the Abstract Library for Parallel Search (ALPS) 
+==  Copyright 2000-2015 Lehigh University and others 
+==  All Rights Reserved. 
+==  Distributed under the Eclipse Public License 1.0 
+==  Version: Trunk (unstable) 
+==  Build Date: Aug 11 2015
+==  Revision Number: 2003
+==  Bcps Version: Trunk (unstable)
+==  Bcps Revision Number: 2003
+==  Blis Version: Trunk (unstable)
+==  Blis Revision Number: 2003
+
+Blis0043I Objective coefficients are multiples of 1
+Alps0250I Starting search ...
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+         0                        1649               0          1
+
+Alps0202I Problem is infeasible. 3 nodes processed, 0 nodes left
+Alps0262I No solution found
+Alps0264I Number of nodes processed:                3
+Alps0267I Number of nodes branched:                 1
+Alps0268I Number of nodes pruned before processing: 0
+Alps0270I Number of nodes left:                     0
+Alps0272I Tree depth: 1
+Alps0274I Search CPU time: 0.00 seconds
+Alps0278I Search wall-clock time: 0.00 seconds
+Blis0040I Checking feasibility took 0.0000 seconds
+Blis0053I Called MIBS cut generator 1 times, generated 0 cuts, CPU time 0.0000 seconds, current strategy 3
+Blis0063I Called Rounding heuristic 2 times, found 0 solutions, CPU time 0.0000 seconds, current strategy 2
+Blis0058I Relative optimality gap is 0.00%
+
+ALPS did not find a solution.
+obj=1e+80
+
+APPLYCUT: Select cuts to be added in LP from 1 candidates
+APPLYCUT: After selecting, added 1 cuts to LP and discared 0 cuts
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        39          2417          1691   42.91%      5         12
+
+
+Creating children of node 27 with indices: 51 52 
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        40          2417          1691   42.91%      5         13
+
+FEASIBLE SOL: numUnsatisfied = 1
+PROCESS: new cuts=0, delete slack cuts=0, numRows=26, numStartRows=26
+==  Welcome to the Abstract Library for Parallel Search (ALPS) 
+==  Copyright 2000-2015 Lehigh University and others 
+==  All Rights Reserved. 
+==  Distributed under the Eclipse Public License 1.0 
+==  Version: Trunk (unstable) 
+==  Build Date: Aug 11 2015
+==  Revision Number: 2003
+==  Bcps Version: Trunk (unstable)
+==  Bcps Revision Number: 2003
+==  Blis Version: Trunk (unstable)
+==  Blis Revision Number: 2003
+
+Blis0043I Objective coefficients are multiples of 1
+Alps0250I Starting search ...
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+         0                        1691               0          1
+       100                        1691               0          5
+       126          2131          1691   26.00%      0          1
+
+Alps0208I Search completed.
+Alps0260I Best solution found had quality 2131
+Alps0264I Number of nodes processed:                127
+Alps0267I Number of nodes branched:                 63
+Alps0268I Number of nodes pruned before processing: 0
+Alps0270I Number of nodes left:                     0
+Alps0272I Tree depth: 9
+Alps0274I Search CPU time: 0.12 seconds
+Alps0278I Search wall-clock time: 0.12 seconds
+Blis0040I Checking feasibility took 0.0054 seconds
+Blis0053I Called MIBS cut generator 65 times, generated 10 cuts, CPU time 0.0560 seconds, current strategy 3
+Blis0063I Called Rounding heuristic 130 times, found 0 solutions, CPU time 0.0000 seconds, current strategy 2
+Blis0058I Relative optimality gap is 0.00%
+============================================
+Optimal solution:
+Cost = 2131
+x[4] = 1
+x[5] = 1
+x[6] = 1
+y[2] = 1
+y[3] = 1
+y[7] = 1
+y[8] = 1
+y[9] = 1
+============================================
+obj=2131
+
+APPLYCUT: Select cuts to be added in LP from 1 candidates
+APPLYCUT: After selecting, added 1 cuts to LP and discared 0 cuts
+FEASIBLE SOL: numUnsatisfied = 1
+PROCESS: new cuts=1, delete slack cuts=0, numRows=27, numStartRows=26
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        40          2417          1691   42.91%      5         13
+
+FEASIBLE SOL: numUnsatisfied = 3
+PROCESS: new cuts=0, delete slack cuts=0, numRows=26, numStartRows=26
+==  Welcome to the Abstract Library for Parallel Search (ALPS) 
+==  Copyright 2000-2015 Lehigh University and others 
+==  All Rights Reserved. 
+==  Distributed under the Eclipse Public License 1.0 
+==  Version: Trunk (unstable) 
+==  Build Date: Aug 11 2015
+==  Revision Number: 2003
+==  Bcps Version: Trunk (unstable)
+==  Bcps Revision Number: 2003
+==  Blis Version: Trunk (unstable)
+==  Blis Revision Number: 2003
+
+Blis0043I Objective coefficients are multiples of 1
+Alps0250I Starting search ...
+
+Alps0202I Problem is infeasible. 1 nodes processed, 0 nodes left
+Alps0262I No solution found
+Alps0264I Number of nodes processed:                1
+Alps0267I Number of nodes branched:                 0
+Alps0268I Number of nodes pruned before processing: 0
+Alps0270I Number of nodes left:                     0
+Alps0272I Tree depth: 0
+Alps0274I Search CPU time: 0.00 seconds
+Alps0278I Search wall-clock time: 0.00 seconds
+Blis0040I Checking feasibility took 0.0000 seconds
+Blis0058I Relative optimality gap is 0.00%
+
+ALPS did not find a solution.
+obj=1e+80
+
+APPLYCUT: Select cuts to be added in LP from 1 candidates
+APPLYCUT: After selecting, added 1 cuts to LP and discared 0 cuts
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        41          2417          1726   40.01%      5         12
+
+
+Creating children of node 36 with indices: 53 54 
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        42          2417          1726   40.01%      5         13
+
+FEASIBLE SOL: numUnsatisfied = 1
+PROCESS: new cuts=0, delete slack cuts=0, numRows=29, numStartRows=29
+==  Welcome to the Abstract Library for Parallel Search (ALPS) 
+==  Copyright 2000-2015 Lehigh University and others 
+==  All Rights Reserved. 
+==  Distributed under the Eclipse Public License 1.0 
+==  Version: Trunk (unstable) 
+==  Build Date: Aug 11 2015
+==  Revision Number: 2003
+==  Bcps Version: Trunk (unstable)
+==  Bcps Revision Number: 2003
+==  Blis Version: Trunk (unstable)
+==  Blis Revision Number: 2003
+
+Blis0043I Objective coefficients are multiples of 1
+Alps0250I Starting search ...
+
+Alps0202I Problem is infeasible. 1 nodes processed, 0 nodes left
+Alps0262I No solution found
+Alps0264I Number of nodes processed:                1
+Alps0267I Number of nodes branched:                 0
+Alps0268I Number of nodes pruned before processing: 0
+Alps0270I Number of nodes left:                     0
+Alps0272I Tree depth: 0
+Alps0274I Search CPU time: 0.00 seconds
+Alps0278I Search wall-clock time: 0.00 seconds
+Blis0040I Checking feasibility took 0.0000 seconds
+Blis0058I Relative optimality gap is 0.00%
+
+ALPS did not find a solution.
+obj=1e+80
+
+APPLYCUT: Select cuts to be added in LP from 1 candidates
+APPLYCUT: After selecting, added 1 cuts to LP and discared 0 cuts
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        43          2417          1726   40.01%      5         12
+
+FEASIBLE SOL: numUnsatisfied = 0
+
+Bilevel feasible solution found:
+Upper-level objective value: 3203
+
+UL[1]: 1
+UL[4]: 1
+UL[6]: 1
+LL[0]: 1
+LL[2]: 1
+LL[3]: 1
+LL[5]: 1
+LL[9]: 1
+Heuristics found a better solution, old cutoff = 2416, new cutoff = 2416
+reducedCostFix: numFixedUp = 0, numFixedDown = 4, numTighten 0
+PROCESS: new cuts=0, delete slack cuts=0, numRows=29, numStartRows=29
+==  Welcome to the Abstract Library for Parallel Search (ALPS) 
+==  Copyright 2000-2015 Lehigh University and others 
+==  All Rights Reserved. 
+==  Distributed under the Eclipse Public License 1.0 
+==  Version: Trunk (unstable) 
+==  Build Date: Aug 11 2015
+==  Revision Number: 2003
+==  Bcps Version: Trunk (unstable)
+==  Bcps Revision Number: 2003
+==  Blis Version: Trunk (unstable)
+==  Blis Revision Number: 2003
+
+Blis0043I Objective coefficients are multiples of 2
+Alps0250I Starting search ...
+
+Alps0202I Problem is infeasible. 1 nodes processed, 0 nodes left
+Alps0262I No solution found
+Alps0264I Number of nodes processed:                1
+Alps0267I Number of nodes branched:                 0
+Alps0268I Number of nodes pruned before processing: 0
+Alps0270I Number of nodes left:                     0
+Alps0272I Tree depth: 0
+Alps0274I Search CPU time: 0.00 seconds
+Alps0278I Search wall-clock time: 0.00 seconds
+Blis0040I Checking feasibility took 0.0000 seconds
+Blis0058I Relative optimality gap is 0.00%
+
+ALPS did not find a solution.
+obj=1e+80
+
+APPLYCUT: Select cuts to be added in LP from 3 candidates
+APPLYCUT: After selecting, added 3 cuts to LP and discared 0 cuts
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        44          2417          1752   37.93%      5         11
+
+
+Creating children of node 42 with indices: 55 56 
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        45          2417          1752   37.93%      5         12
+
+FEASIBLE SOL: numUnsatisfied = 3
+PROCESS: new cuts=0, delete slack cuts=0, numRows=26, numStartRows=26
+==  Welcome to the Abstract Library for Parallel Search (ALPS) 
+==  Copyright 2000-2015 Lehigh University and others 
+==  All Rights Reserved. 
+==  Distributed under the Eclipse Public License 1.0 
+==  Version: Trunk (unstable) 
+==  Build Date: Aug 11 2015
+==  Revision Number: 2003
+==  Bcps Version: Trunk (unstable)
+==  Bcps Revision Number: 2003
+==  Blis Version: Trunk (unstable)
+==  Blis Revision Number: 2003
+
+Blis0043I Objective coefficients are multiples of 1
+Alps0250I Starting search ...
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+         0                        1752               0          1
+         4          2443          1752   39.42%      0          1
+        10          2186       1978.53   10.48%      0          1
+        11          2184                  0.00%      0          0
+
+Alps0208I Search completed.
+Alps0260I Best solution found had quality 2184
+Alps0264I Number of nodes processed:                11
+Alps0267I Number of nodes branched:                 5
+Alps0268I Number of nodes pruned before processing: 0
+Alps0270I Number of nodes left:                     0
+Alps0272I Tree depth: 5
+Alps0274I Search CPU time: 0.03 seconds
+Alps0278I Search wall-clock time: 0.03 seconds
+Blis0040I Checking feasibility took 0.0137 seconds
+Blis0053I Called MIBS cut generator 11 times, generated 36 cuts, CPU time 0.0080 seconds, current strategy 3
+Blis0063I Called Rounding heuristic 22 times, found 0 solutions, CPU time 0.0000 seconds, current strategy 2
+Blis0058I Relative optimality gap is 0.00%
+============================================
+Optimal solution:
+Cost = 2184
+x[1] = 1
+x[4] = 1
+x[6] = 1
+x[7] = 1
+x[9] = 1
+y[0] = 1
+y[2] = 1
+y[3] = 1
+y[8] = 1
+============================================
+obj=2184
+
+APPLYCUT: Select cuts to be added in LP from 1 candidates
+APPLYCUT: After selecting, added 1 cuts to LP and discared 0 cuts
+FEASIBLE SOL: numUnsatisfied = 3
+PROCESS: new cuts=1, delete slack cuts=0, numRows=27, numStartRows=26
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        45          2417          1752   37.93%      5         12
+
+FEASIBLE SOL: numUnsatisfied = 2
+PROCESS: new cuts=0, delete slack cuts=0, numRows=26, numStartRows=26
+==  Welcome to the Abstract Library for Parallel Search (ALPS) 
+==  Copyright 2000-2015 Lehigh University and others 
+==  All Rights Reserved. 
+==  Distributed under the Eclipse Public License 1.0 
+==  Version: Trunk (unstable) 
+==  Build Date: Aug 11 2015
+==  Revision Number: 2003
+==  Bcps Version: Trunk (unstable)
+==  Bcps Revision Number: 2003
+==  Blis Version: Trunk (unstable)
+==  Blis Revision Number: 2003
+
+Blis0043I Objective coefficients are multiples of 1
+Alps0250I Starting search ...
+
+Alps0202I Problem is infeasible. 1 nodes processed, 0 nodes left
+Alps0262I No solution found
+Alps0264I Number of nodes processed:                1
+Alps0267I Number of nodes branched:                 0
+Alps0268I Number of nodes pruned before processing: 0
+Alps0270I Number of nodes left:                     0
+Alps0272I Tree depth: 0
+Alps0274I Search CPU time: 0.00 seconds
+Alps0278I Search wall-clock time: 0.00 seconds
+Blis0040I Checking feasibility took 0.0000 seconds
+Blis0058I Relative optimality gap is 0.00%
+
+ALPS did not find a solution.
+obj=1e+80
+
+APPLYCUT: Select cuts to be added in LP from 1 candidates
+APPLYCUT: After selecting, added 1 cuts to LP and discared 0 cuts
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        46          2417          1771   36.46%      5         11
+
+
+Creating children of node 1 with indices: 57 58 
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        47          2417          1771   36.46%      5         12
+
+FEASIBLE SOL: numUnsatisfied = 1
+PROCESS: new cuts=0, delete slack cuts=0, numRows=16, numStartRows=16
+==  Welcome to the Abstract Library for Parallel Search (ALPS) 
+==  Copyright 2000-2015 Lehigh University and others 
+==  All Rights Reserved. 
+==  Distributed under the Eclipse Public License 1.0 
+==  Version: Trunk (unstable) 
+==  Build Date: Aug 11 2015
+==  Revision Number: 2003
+==  Bcps Version: Trunk (unstable)
+==  Bcps Revision Number: 2003
+==  Blis Version: Trunk (unstable)
+==  Blis Revision Number: 2003
+
+Blis0043I Objective coefficients are multiples of 1
+Alps0250I Starting search ...
+
+Alps0202I Problem is infeasible. 1 nodes processed, 0 nodes left
+Alps0262I No solution found
+Alps0264I Number of nodes processed:                1
+Alps0267I Number of nodes branched:                 0
+Alps0268I Number of nodes pruned before processing: 0
+Alps0270I Number of nodes left:                     0
+Alps0272I Tree depth: 0
+Alps0274I Search CPU time: 0.00 seconds
+Alps0278I Search wall-clock time: 0.00 seconds
+Blis0040I Checking feasibility took 0.0000 seconds
+Blis0058I Relative optimality gap is 0.00%
+
+ALPS did not find a solution.
+obj=1e+80
+
+APPLYCUT: Select cuts to be added in LP from 1 candidates
+APPLYCUT: After selecting, added 1 cuts to LP and discared 0 cuts
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        48          2417          1771   36.46%      6         11
+
+FEASIBLE SOL: numUnsatisfied = 1
+PROCESS: new cuts=0, delete slack cuts=0, numRows=16, numStartRows=16
+==  Welcome to the Abstract Library for Parallel Search (ALPS) 
+==  Copyright 2000-2015 Lehigh University and others 
+==  All Rights Reserved. 
+==  Distributed under the Eclipse Public License 1.0 
+==  Version: Trunk (unstable) 
+==  Build Date: Aug 11 2015
+==  Revision Number: 2003
+==  Bcps Version: Trunk (unstable)
+==  Bcps Revision Number: 2003
+==  Blis Version: Trunk (unstable)
+==  Blis Revision Number: 2003
+
+Blis0043I Objective coefficients are multiples of 1
+Alps0250I Starting search ...
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+         0                        1771               0          1
+         5          3235          1771   82.62%      0          2
+        12          2120          1771   19.70%      0          3
+        14          2057          1771   16.14%      0          3
+        22          1863          1771    5.19%      0          3
+        34          1861          1771    5.08%      0          3
+
+Alps0208I Search completed.
+Alps0260I Best solution found had quality 1861
+Alps0264I Number of nodes processed:                41
+Alps0267I Number of nodes branched:                 20
+Alps0268I Number of nodes pruned before processing: 0
+Alps0270I Number of nodes left:                     0
+Alps0272I Tree depth: 9
+Alps0274I Search CPU time: 0.09 seconds
+Alps0278I Search wall-clock time: 0.09 seconds
+Blis0040I Checking feasibility took 0.0297 seconds
+Blis0053I Called MIBS cut generator 32 times, generated 110 cuts, CPU time 0.0120 seconds, current strategy 3
+Blis0063I Called Rounding heuristic 64 times, found 0 solutions, CPU time 0.0040 seconds, current strategy 2
+Blis0058I Relative optimality gap is 0.00%
+============================================
+Optimal solution:
+Cost = 1861
+x[2] = 1
+x[6] = 1
+x[7] = 1
+x[9] = 1
+y[4] = 1
+y[5] = 1
+y[8] = 1
+============================================
+obj=1861
+
+APPLYCUT: Select cuts to be added in LP from 1 candidates
+APPLYCUT: After selecting, added 1 cuts to LP and discared 0 cuts
+FEASIBLE SOL: numUnsatisfied = 1
+PROCESS: new cuts=1, delete slack cuts=0, numRows=17, numStartRows=16
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        48          2417          1782   35.61%      7         11
+
+
+Creating children of node 44 with indices: 59 60 
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        49          2417          1782   35.61%      7         12
+
+FEASIBLE SOL: numUnsatisfied = 3
+PROCESS: new cuts=0, delete slack cuts=0, numRows=25, numStartRows=25
+==  Welcome to the Abstract Library for Parallel Search (ALPS) 
+==  Copyright 2000-2015 Lehigh University and others 
+==  All Rights Reserved. 
+==  Distributed under the Eclipse Public License 1.0 
+==  Version: Trunk (unstable) 
+==  Build Date: Aug 11 2015
+==  Revision Number: 2003
+==  Bcps Version: Trunk (unstable)
+==  Bcps Revision Number: 2003
+==  Blis Version: Trunk (unstable)
+==  Blis Revision Number: 2003
+
+Blis0043I Objective coefficients are multiples of 1
+Alps0250I Starting search ...
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+         0                        1782               0          1
+         4          2473          1782   38.75%      0          1
+        10          2214          2229    0.00%      0          1
+
+Alps0208I Search completed.
+Alps0260I Best solution found had quality 2214
+Alps0265I Number of nodes fully processed:          10
+Alps0266I Number of nodes partially processed:      1
+Alps0267I Number of nodes branched:                 5
+Alps0268I Number of nodes pruned before processing: 0
+Alps0270I Number of nodes left:                     0
+Alps0272I Tree depth: 4
+Alps0274I Search CPU time: 0.04 seconds
+Alps0278I Search wall-clock time: 0.04 seconds
+Blis0040I Checking feasibility took 0.0205 seconds
+Blis0053I Called MIBS cut generator 13 times, generated 48 cuts, CPU time 0.0120 seconds, current strategy 3
+Blis0063I Called Rounding heuristic 26 times, found 0 solutions, CPU time 0.0000 seconds, current strategy 2
+Blis0058I Relative optimality gap is 0.00%
+============================================
+Optimal solution:
+Cost = 2214
+x[1] = 1
+x[4] = 1
+x[6] = 1
+x[7] = 1
+x[9] = 1
+y[0] = 1
+y[2] = 1
+y[5] = 1
+y[8] = 1
+============================================
+obj=2214
+
+APPLYCUT: Select cuts to be added in LP from 1 candidates
+APPLYCUT: After selecting, added 1 cuts to LP and discared 0 cuts
+FEASIBLE SOL: numUnsatisfied = 3
+PROCESS: new cuts=1, delete slack cuts=0, numRows=26, numStartRows=25
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        49          2417          1782   35.61%      7         12
+
+FEASIBLE SOL: numUnsatisfied = 2
+PROCESS: new cuts=0, delete slack cuts=0, numRows=25, numStartRows=25
+==  Welcome to the Abstract Library for Parallel Search (ALPS) 
+==  Copyright 2000-2015 Lehigh University and others 
+==  All Rights Reserved. 
+==  Distributed under the Eclipse Public License 1.0 
+==  Version: Trunk (unstable) 
+==  Build Date: Aug 11 2015
+==  Revision Number: 2003
+==  Bcps Version: Trunk (unstable)
+==  Bcps Revision Number: 2003
+==  Blis Version: Trunk (unstable)
+==  Blis Revision Number: 2003
+
+Blis0043I Objective coefficients are multiples of 1
+Alps0250I Starting search ...
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+         0                        1782               0          1
+         5          2724          1782   52.83%      0          2
+         9          1784          1782    0.11%      0          2
+        11          1782          1782    0.00%      0          2
+
+Alps0208I Search completed.
+Alps0260I Best solution found had quality 1782
+Alps0265I Number of nodes fully processed:          11
+Alps0266I Number of nodes partially processed:      1
+Alps0267I Number of nodes branched:                 6
+Alps0268I Number of nodes pruned before processing: 1
+Alps0270I Number of nodes left:                     0
+Alps0272I Tree depth: 6
+Alps0274I Search CPU time: 0.02 seconds
+Alps0278I Search wall-clock time: 0.02 seconds
+Blis0040I Checking feasibility took 0.0107 seconds
+Blis0053I Called MIBS cut generator 10 times, generated 14 cuts, CPU time 0.0040 seconds, current strategy 3
+Blis0063I Called Rounding heuristic 20 times, found 0 solutions, CPU time 0.0000 seconds, current strategy 2
+Blis0058I Relative optimality gap is 0.00%
+============================================
+Optimal solution:
+Cost = 1782
+x[1] = 1
+x[2] = 1
+x[4] = 1
+x[6] = 1
+x[7] = 1
+x[9] = 1
+y[0] = 1
+y[5] = 1
+y[8] = 1
+============================================
+obj=1782
+
+APPLYCUT: Select cuts to be added in LP from 1 candidates
+WARNING: APPLYCUT: applied a weak cut, violation=0
+APPLYCUT: After selecting, added 1 cuts to LP and discared 0 cuts
+FEASIBLE SOL: numUnsatisfied = 2
+PROCESS: new cuts=1, delete slack cuts=0, numRows=26, numStartRows=25
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        49          2417          1782   35.61%      7         12
+
+
+Creating children of node 60 with indices: 61 62 
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        50          2417          1782   35.61%      7         13
+
+FEASIBLE SOL: numUnsatisfied = 1
+PROCESS: new cuts=0, delete slack cuts=0, numRows=26, numStartRows=26
+==  Welcome to the Abstract Library for Parallel Search (ALPS) 
+==  Copyright 2000-2015 Lehigh University and others 
+==  All Rights Reserved. 
+==  Distributed under the Eclipse Public License 1.0 
+==  Version: Trunk (unstable) 
+==  Build Date: Aug 11 2015
+==  Revision Number: 2003
+==  Bcps Version: Trunk (unstable)
+==  Bcps Revision Number: 2003
+==  Blis Version: Trunk (unstable)
+==  Blis Revision Number: 2003
+
+Blis0043I Objective coefficients are multiples of 1
+Alps0250I Starting search ...
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+         0                        1782               0          1
+         4          2724          1782   52.83%      0          1
+
+Alps0208I Search completed.
+Alps0260I Best solution found had quality 2724
+Alps0264I Number of nodes processed:                7
+Alps0267I Number of nodes branched:                 3
+Alps0268I Number of nodes pruned before processing: 0
+Alps0270I Number of nodes left:                     0
+Alps0272I Tree depth: 3
+Alps0274I Search CPU time: 0.02 seconds
+Alps0278I Search wall-clock time: 0.02 seconds
+Blis0040I Checking feasibility took 0.0098 seconds
+Blis0053I Called MIBS cut generator 6 times, generated 18 cuts, CPU time 0.0080 seconds, current strategy 3
+Blis0063I Called Rounding heuristic 12 times, found 0 solutions, CPU time 0.0000 seconds, current strategy 2
+Blis0058I Relative optimality gap is 0.00%
+============================================
+Optimal solution:
+Cost = 2724
+x[1] = 1
+x[2] = 1
+x[4] = 1
+y[0] = 1
+y[5] = 1
+y[6] = 1
+y[9] = 1
+============================================
+obj=2724
+
+APPLYCUT: Select cuts to be added in LP from 1 candidates
+APPLYCUT: After selecting, added 1 cuts to LP and discared 0 cuts
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        51          2417          1782   35.61%      7         12
+
+FEASIBLE SOL: numUnsatisfied = 1
+PROCESS: new cuts=0, delete slack cuts=0, numRows=26, numStartRows=26
+==  Welcome to the Abstract Library for Parallel Search (ALPS) 
+==  Copyright 2000-2015 Lehigh University and others 
+==  All Rights Reserved. 
+==  Distributed under the Eclipse Public License 1.0 
+==  Version: Trunk (unstable) 
+==  Build Date: Aug 11 2015
+==  Revision Number: 2003
+==  Bcps Version: Trunk (unstable)
+==  Bcps Revision Number: 2003
+==  Blis Version: Trunk (unstable)
+==  Blis Revision Number: 2003
+
+Blis0043I Objective coefficients are multiples of 1
+Alps0250I Starting search ...
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+         0                        1782               0          1
+         3          2279          1782   27.87%      0          2
+         4          1784          1782    0.11%      0          1
+
+Alps0208I Search completed.
+Alps0260I Best solution found had quality 1784
+Alps0264I Number of nodes processed:                9
+Alps0267I Number of nodes branched:                 4
+Alps0268I Number of nodes pruned before processing: 0
+Alps0270I Number of nodes left:                     0
+Alps0272I Tree depth: 4
+Alps0274I Search CPU time: 0.02 seconds
+Alps0278I Search wall-clock time: 0.02 seconds
+Blis0040I Checking feasibility took 0.0090 seconds
+Blis0053I Called MIBS cut generator 7 times, generated 12 cuts, CPU time 0.0040 seconds, current strategy 3
+Blis0063I Called Rounding heuristic 14 times, found 0 solutions, CPU time 0.0000 seconds, current strategy 2
+Blis0058I Relative optimality gap is 0.00%
+============================================
+Optimal solution:
+Cost = 1784
+x[1] = 1
+x[2] = 1
+x[4] = 1
+x[6] = 1
+x[9] = 1
+y[0] = 1
+y[5] = 1
+y[7] = 1
+============================================
+obj=1784
+
+APPLYCUT: Select cuts to be added in LP from 1 candidates
+APPLYCUT: After selecting, added 1 cuts to LP and discared 0 cuts
+FEASIBLE SOL: numUnsatisfied = 1
+PROCESS: new cuts=1, delete slack cuts=0, numRows=27, numStartRows=26
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        51          2417          1784   35.46%      7         12
+
+
+Creating children of node 62 with indices: 63 64 
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        52          2417          1784   35.46%      7         13
+
+FEASIBLE SOL: numUnsatisfied = 1
+PROCESS: new cuts=0, delete slack cuts=0, numRows=27, numStartRows=27
+==  Welcome to the Abstract Library for Parallel Search (ALPS) 
+==  Copyright 2000-2015 Lehigh University and others 
+==  All Rights Reserved. 
+==  Distributed under the Eclipse Public License 1.0 
+==  Version: Trunk (unstable) 
+==  Build Date: Aug 11 2015
+==  Revision Number: 2003
+==  Bcps Version: Trunk (unstable)
+==  Bcps Revision Number: 2003
+==  Blis Version: Trunk (unstable)
+==  Blis Revision Number: 2003
+
+Blis0043I Objective coefficients are multiples of 1
+Alps0250I Starting search ...
+
+Alps0202I Problem is infeasible. 1 nodes processed, 0 nodes left
+Alps0262I No solution found
+Alps0264I Number of nodes processed:                1
+Alps0267I Number of nodes branched:                 0
+Alps0268I Number of nodes pruned before processing: 0
+Alps0270I Number of nodes left:                     0
+Alps0272I Tree depth: 0
+Alps0274I Search CPU time: 0.00 seconds
+Alps0278I Search wall-clock time: 0.00 seconds
+Blis0040I Checking feasibility took 0.0000 seconds
+Blis0058I Relative optimality gap is 0.00%
+
+ALPS did not find a solution.
+obj=1e+80
+
+APPLYCUT: Select cuts to be added in LP from 1 candidates
+APPLYCUT: After selecting, added 1 cuts to LP and discared 0 cuts
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        53          2417          1784   35.46%      7         12
+
+FEASIBLE SOL: numUnsatisfied = 0
+
+Bilevel feasible solution found:
+Upper-level objective value: 2771
+
+UL[1]: 1
+UL[2]: 1
+UL[4]: 1
+UL[6]: 1
+LL[0]: 1
+LL[3]: 1
+LL[5]: 1
+LL[9]: 1
+Heuristics found a better solution, old cutoff = 2416, new cutoff = 2416
+reducedCostFix: numFixedUp = 0, numFixedDown = 7, numTighten 0
+PROCESS: new cuts=0, delete slack cuts=0, numRows=27, numStartRows=27
+==  Welcome to the Abstract Library for Parallel Search (ALPS) 
+==  Copyright 2000-2015 Lehigh University and others 
+==  All Rights Reserved. 
+==  Distributed under the Eclipse Public License 1.0 
+==  Version: Trunk (unstable) 
+==  Build Date: Aug 11 2015
+==  Revision Number: 2003
+==  Bcps Version: Trunk (unstable)
+==  Bcps Revision Number: 2003
+==  Blis Version: Trunk (unstable)
+==  Blis Revision Number: 2003
+
+Alps0250I Starting search ...
+         1          2276                  0.00%      0          0
+
+Alps0208I Search completed.
+Alps0260I Best solution found had quality 2276
+Alps0264I Number of nodes processed:                1
+Alps0267I Number of nodes branched:                 0
+Alps0268I Number of nodes pruned before processing: 0
+Alps0270I Number of nodes left:                     0
+Alps0272I Tree depth: 0
+Alps0274I Search CPU time: 0.00 seconds
+Alps0278I Search wall-clock time: 0.00 seconds
+Blis0040I Checking feasibility took 0.0006 seconds
+Blis0058I Relative optimality gap is 0.00%
+============================================
+Optimal solution:
+Cost = 2276
+x[1] = 1
+x[2] = 1
+x[4] = 1
+x[6] = 1
+y[0] = 1
+y[3] = 1
+y[5] = 1
+============================================
+obj=2276
+
+APPLYCUT: Select cuts to be added in LP from 3 candidates
+WARNING: APPLYCUT: applied a weak cut, violation=0
+APPLYCUT: After selecting, added 3 cuts to LP and discared 0 cuts
+FEASIBLE SOL: numUnsatisfied = 0
+
+Bilevel feasible solution found:
+Upper-level objective value: 2514
+
+UL[1]: 1
+UL[2]: 1
+UL[4]: 1
+UL[6]: 1
+UL[9]: 1
+LL[0]: 1
+LL[3]: 1
+LL[5]: 1
+LL[7]: 1
+Heuristics found a better solution, old cutoff = 2416, new cutoff = 2416
+PROCESS: new cuts=3, delete slack cuts=0, numRows=30, numStartRows=27
+
+APPLYCUT: Select cuts to be added in LP from 2 candidates
+APPLYCUT: After selecting, added 2 cuts to LP and discared 0 cuts
+FEASIBLE SOL: numUnsatisfied = 2
+PROCESS: new cuts=5, delete slack cuts=0, numRows=32, numStartRows=27
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        53          2417          1861   29.86%      7         12
+
+
+Creating children of node 58 with indices: 65 66 
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        54          2417          1861   29.86%      7         13
+
+FEASIBLE SOL: numUnsatisfied = 1
+PROCESS: new cuts=0, delete slack cuts=0, numRows=17, numStartRows=17
+==  Welcome to the Abstract Library for Parallel Search (ALPS) 
+==  Copyright 2000-2015 Lehigh University and others 
+==  All Rights Reserved. 
+==  Distributed under the Eclipse Public License 1.0 
+==  Version: Trunk (unstable) 
+==  Build Date: Aug 11 2015
+==  Revision Number: 2003
+==  Bcps Version: Trunk (unstable)
+==  Bcps Revision Number: 2003
+==  Blis Version: Trunk (unstable)
+==  Blis Revision Number: 2003
+
+Blis0043I Objective coefficients are multiples of 1
+Alps0250I Starting search ...
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+         0                        1861               0          1
+         9          1875          1861    0.75%      0          2
+
+Alps0208I Search completed.
+Alps0260I Best solution found had quality 1875
+Alps0264I Number of nodes processed:                49
+Alps0267I Number of nodes branched:                 24
+Alps0268I Number of nodes pruned before processing: 0
+Alps0270I Number of nodes left:                     0
+Alps0272I Tree depth: 8
+Alps0274I Search CPU time: 0.05 seconds
+Alps0278I Search wall-clock time: 0.06 seconds
+Blis0040I Checking feasibility took 0.0079 seconds
+Blis0053I Called MIBS cut generator 27 times, generated 15 cuts, CPU time 0.0240 seconds, current strategy 3
+Blis0063I Called Rounding heuristic 54 times, found 0 solutions, CPU time 0.0000 seconds, current strategy 2
+Blis0058I Relative optimality gap is 0.00%
+============================================
+Optimal solution:
+Cost = 1875
+x[0] = 1
+x[7] = 1
+x[9] = 1
+y[2] = 1
+y[5] = 1
+y[6] = 1
+============================================
+obj=1875
+
+APPLYCUT: Select cuts to be added in LP from 1 candidates
+APPLYCUT: After selecting, added 1 cuts to LP and discared 0 cuts
+FEASIBLE SOL: numUnsatisfied = 1
+PROCESS: new cuts=1, delete slack cuts=0, numRows=18, numStartRows=17
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        54          2417          1861   29.86%      8         13
+
+FEASIBLE SOL: numUnsatisfied = 1
+PROCESS: new cuts=0, delete slack cuts=0, numRows=17, numStartRows=17
+==  Welcome to the Abstract Library for Parallel Search (ALPS) 
+==  Copyright 2000-2015 Lehigh University and others 
+==  All Rights Reserved. 
+==  Distributed under the Eclipse Public License 1.0 
+==  Version: Trunk (unstable) 
+==  Build Date: Aug 11 2015
+==  Revision Number: 2003
+==  Bcps Version: Trunk (unstable)
+==  Bcps Revision Number: 2003
+==  Blis Version: Trunk (unstable)
+==  Blis Revision Number: 2003
+
+Blis0043I Objective coefficients are multiples of 1
+Alps0250I Starting search ...
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+         0                        1861               0          1
+         4          2120          1861   13.91%      0          1
+        10          1863          1861    0.11%      0          3
+        11          1861          1861    0.00%      0          2
+
+Alps0208I Search completed.
+Alps0260I Best solution found had quality 1861
+Alps0265I Number of nodes fully processed:          11
+Alps0266I Number of nodes partially processed:      1
+Alps0267I Number of nodes branched:                 6
+Alps0268I Number of nodes pruned before processing: 1
+Alps0270I Number of nodes left:                     0
+Alps0272I Tree depth: 6
+Alps0274I Search CPU time: 0.03 seconds
+Alps0278I Search wall-clock time: 0.03 seconds
+Blis0040I Checking feasibility took 0.0114 seconds
+Blis0053I Called MIBS cut generator 11 times, generated 21 cuts, CPU time 0.0120 seconds, current strategy 3
+Blis0063I Called Rounding heuristic 22 times, found 0 solutions, CPU time 0.0000 seconds, current strategy 2
+Blis0058I Relative optimality gap is 0.00%
+============================================
+Optimal solution:
+Cost = 1861
+x[2] = 1
+x[6] = 1
+x[7] = 1
+x[9] = 1
+y[4] = 1
+y[5] = 1
+y[8] = 1
+============================================
+obj=1861
+
+APPLYCUT: Select cuts to be added in LP from 1 candidates
+WARNING: APPLYCUT: applied a weak cut, violation=0
+APPLYCUT: After selecting, added 1 cuts to LP and discared 0 cuts
+FEASIBLE SOL: numUnsatisfied = 1
+PROCESS: new cuts=1, delete slack cuts=0, numRows=18, numStartRows=17
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        54          2417          1861   29.86%      8         13
+
+
+Creating children of node 66 with indices: 67 68 
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        55          2417          1861   29.86%      8         14
+
+FEASIBLE SOL: numUnsatisfied = 1
+PROCESS: new cuts=0, delete slack cuts=0, numRows=18, numStartRows=18
+==  Welcome to the Abstract Library for Parallel Search (ALPS) 
+==  Copyright 2000-2015 Lehigh University and others 
+==  All Rights Reserved. 
+==  Distributed under the Eclipse Public License 1.0 
+==  Version: Trunk (unstable) 
+==  Build Date: Aug 11 2015
+==  Revision Number: 2003
+==  Bcps Version: Trunk (unstable)
+==  Bcps Revision Number: 2003
+==  Blis Version: Trunk (unstable)
+==  Blis Revision Number: 2003
+
+Blis0043I Objective coefficients are multiples of 1
+Alps0250I Starting search ...
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+         0                        1861               0          1
+         7          3533          1861   89.80%      0          2
+        13          1863          1861    0.11%      0          2
+        21          1861          1861    0.00%      0          4
+
+Alps0208I Search completed.
+Alps0260I Best solution found had quality 1861
+Alps0264I Number of nodes processed:                21
+Alps0267I Number of nodes branched:                 12
+Alps0268I Number of nodes pruned before processing: 4
+Alps0270I Number of nodes left:                     0
+Alps0272I Tree depth: 10
+Alps0274I Search CPU time: 0.02 seconds
+Alps0278I Search wall-clock time: 0.03 seconds
+Blis0040I Checking feasibility took 0.0073 seconds
+Blis0053I Called MIBS cut generator 14 times, generated 8 cuts, CPU time 0.0000 seconds, current strategy 3
+Blis0063I Called Rounding heuristic 28 times, found 0 solutions, CPU time 0.0000 seconds, current strategy 2
+Blis0058I Relative optimality gap is 0.00%
+============================================
+Optimal solution:
+Cost = 1861
+x[3] = 1
+x[6] = 1
+x[7] = 1
+x[9] = 1
+y[4] = 1
+y[5] = 1
+y[8] = 1
+============================================
+obj=1861
+
+APPLYCUT: Select cuts to be added in LP from 1 candidates
+WARNING: APPLYCUT: applied a weak cut, violation=-2.27374e-13
+APPLYCUT: After selecting, added 1 cuts to LP and discared 0 cuts
+FEASIBLE SOL: numUnsatisfied = 1
+PROCESS: new cuts=1, delete slack cuts=0, numRows=19, numStartRows=18
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        55          2417          1861   29.86%      8         14
+
+FEASIBLE SOL: numUnsatisfied = 0
+
+Bilevel feasible solution found:
+Upper-level objective value: 4068
+
+UL[6]: 1
+LL[0]: 1
+LL[2]: 1
+LL[3]: 1
+LL[4]: 1
+LL[5]: 1
+LL[9]: 1
+Heuristics found a better solution, old cutoff = 2416, new cutoff = 2416
+reducedCostFix: numFixedUp = 0, numFixedDown = 7, numTighten 0
+PROCESS: new cuts=0, delete slack cuts=0, numRows=18, numStartRows=18
+==  Welcome to the Abstract Library for Parallel Search (ALPS) 
+==  Copyright 2000-2015 Lehigh University and others 
+==  All Rights Reserved. 
+==  Distributed under the Eclipse Public License 1.0 
+==  Version: Trunk (unstable) 
+==  Build Date: Aug 11 2015
+==  Revision Number: 2003
+==  Bcps Version: Trunk (unstable)
+==  Bcps Revision Number: 2003
+==  Blis Version: Trunk (unstable)
+==  Blis Revision Number: 2003
+
+Alps0250I Starting search ...
+         1          2411                  0.00%      0          0
+
+Alps0208I Search completed.
+Alps0260I Best solution found had quality 2411
+Alps0264I Number of nodes processed:                1
+Alps0267I Number of nodes branched:                 0
+Alps0268I Number of nodes pruned before processing: 0
+Alps0270I Number of nodes left:                     0
+Alps0272I Tree depth: 0
+Alps0274I Search CPU time: 0.00 seconds
+Alps0278I Search wall-clock time: 0.00 seconds
+Blis0040I Checking feasibility took 0.0007 seconds
+Blis0058I Relative optimality gap is 0.00%
+============================================
+Optimal solution:
+Cost = 2411
+x[6] = 1
+y[0] = 1
+y[4] = 1
+y[5] = 1
+============================================
+obj=2411
+
+APPLYCUT: Select cuts to be added in LP from 3 candidates
+WARNING: APPLYCUT: applied a weak cut, violation=0
+APPLYCUT: After selecting, added 3 cuts to LP and discared 0 cuts
+FEASIBLE SOL: numUnsatisfied = 2
+PROCESS: new cuts=3, delete slack cuts=0, numRows=21, numStartRows=18
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        55          2417          1861   29.86%      8         14
+
+
+Creating children of node 67 with indices: 69 70 
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        56          2417          1861   29.86%      8         15
+
+FEASIBLE SOL: numUnsatisfied = 3
+PROCESS: new cuts=0, delete slack cuts=0, numRows=19, numStartRows=19
+==  Welcome to the Abstract Library for Parallel Search (ALPS) 
+==  Copyright 2000-2015 Lehigh University and others 
+==  All Rights Reserved. 
+==  Distributed under the Eclipse Public License 1.0 
+==  Version: Trunk (unstable) 
+==  Build Date: Aug 11 2015
+==  Revision Number: 2003
+==  Bcps Version: Trunk (unstable)
+==  Bcps Revision Number: 2003
+==  Blis Version: Trunk (unstable)
+==  Blis Revision Number: 2003
+
+Blis0043I Objective coefficients are multiples of 1
+Alps0250I Starting search ...
+
+Alps0202I Problem is infeasible. 1 nodes processed, 0 nodes left
+Alps0262I No solution found
+Alps0264I Number of nodes processed:                1
+Alps0267I Number of nodes branched:                 0
+Alps0268I Number of nodes pruned before processing: 0
+Alps0270I Number of nodes left:                     0
+Alps0272I Tree depth: 0
+Alps0274I Search CPU time: 0.00 seconds
+Alps0278I Search wall-clock time: 0.00 seconds
+Blis0040I Checking feasibility took 0.0000 seconds
+Blis0058I Relative optimality gap is 0.00%
+
+ALPS did not find a solution.
+obj=1e+80
+
+APPLYCUT: Select cuts to be added in LP from 1 candidates
+APPLYCUT: After selecting, added 1 cuts to LP and discared 0 cuts
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        57          2417          1861   29.86%      8         14
+
+FEASIBLE SOL: numUnsatisfied = 0
+
+Bilevel feasible solution found:
+Upper-level objective value: 4068
+
+UL[6]: 1
+LL[0]: 1
+LL[2]: 1
+LL[3]: 1
+LL[4]: 1
+LL[5]: 1
+LL[9]: 1
+Heuristics found a better solution, old cutoff = 2416, new cutoff = 2416
+reducedCostFix: numFixedUp = 0, numFixedDown = 6, numTighten 0
+PROCESS: new cuts=0, delete slack cuts=0, numRows=19, numStartRows=19
+==  Welcome to the Abstract Library for Parallel Search (ALPS) 
+==  Copyright 2000-2015 Lehigh University and others 
+==  All Rights Reserved. 
+==  Distributed under the Eclipse Public License 1.0 
+==  Version: Trunk (unstable) 
+==  Build Date: Aug 11 2015
+==  Revision Number: 2003
+==  Bcps Version: Trunk (unstable)
+==  Bcps Revision Number: 2003
+==  Blis Version: Trunk (unstable)
+==  Blis Revision Number: 2003
+
+Alps0250I Starting search ...
+         1          2355                  0.00%      0          0
+
+Alps0208I Search completed.
+Alps0260I Best solution found had quality 2355
+Alps0264I Number of nodes processed:                1
+Alps0267I Number of nodes branched:                 0
+Alps0268I Number of nodes pruned before processing: 0
+Alps0270I Number of nodes left:                     0
+Alps0272I Tree depth: 0
+Alps0274I Search CPU time: 0.00 seconds
+Alps0278I Search wall-clock time: 0.00 seconds
+Blis0040I Checking feasibility took 0.0007 seconds
+Blis0058I Relative optimality gap is 0.00%
+============================================
+Optimal solution:
+Cost = 2355
+x[6] = 1
+y[3] = 1
+y[4] = 1
+y[5] = 1
+============================================
+obj=2355
+
+APPLYCUT: Select cuts to be added in LP from 3 candidates
+WARNING: APPLYCUT: applied a weak cut, violation=0
+APPLYCUT: After selecting, added 3 cuts to LP and discared 0 cuts
+FEASIBLE SOL: numUnsatisfied = 2
+PROCESS: new cuts=3, delete slack cuts=0, numRows=22, numStartRows=19
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        57          2417          1875   28.89%      8         14
+
+
+Creating children of node 65 with indices: 71 72 
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        58          2417          1875   28.89%      8         15
+
+FEASIBLE SOL: numUnsatisfied = 3
+PROCESS: new cuts=0, delete slack cuts=0, numRows=18, numStartRows=18
+==  Welcome to the Abstract Library for Parallel Search (ALPS) 
+==  Copyright 2000-2015 Lehigh University and others 
+==  All Rights Reserved. 
+==  Distributed under the Eclipse Public License 1.0 
+==  Version: Trunk (unstable) 
+==  Build Date: Aug 11 2015
+==  Revision Number: 2003
+==  Bcps Version: Trunk (unstable)
+==  Bcps Revision Number: 2003
+==  Blis Version: Trunk (unstable)
+==  Blis Revision Number: 2003
+
+Blis0043I Objective coefficients are multiples of 1
+Alps0250I Starting search ...
+
+Alps0202I Problem is infeasible. 1 nodes processed, 0 nodes left
+Alps0262I No solution found
+Alps0264I Number of nodes processed:                1
+Alps0267I Number of nodes branched:                 0
+Alps0268I Number of nodes pruned before processing: 0
+Alps0270I Number of nodes left:                     0
+Alps0272I Tree depth: 0
+Alps0274I Search CPU time: 0.00 seconds
+Alps0278I Search wall-clock time: 0.00 seconds
+Blis0040I Checking feasibility took 0.0000 seconds
+Blis0058I Relative optimality gap is 0.00%
+
+ALPS did not find a solution.
+obj=1e+80
+
+APPLYCUT: Select cuts to be added in LP from 1 candidates
+APPLYCUT: After selecting, added 1 cuts to LP and discared 0 cuts
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        59          2417          1875   28.89%      8         14
+
+FEASIBLE SOL: numUnsatisfied = 1
+PROCESS: new cuts=0, delete slack cuts=0, numRows=18, numStartRows=18
+==  Welcome to the Abstract Library for Parallel Search (ALPS) 
+==  Copyright 2000-2015 Lehigh University and others 
+==  All Rights Reserved. 
+==  Distributed under the Eclipse Public License 1.0 
+==  Version: Trunk (unstable) 
+==  Build Date: Aug 11 2015
+==  Revision Number: 2003
+==  Bcps Version: Trunk (unstable)
+==  Bcps Revision Number: 2003
+==  Blis Version: Trunk (unstable)
+==  Blis Revision Number: 2003
+
+Blis0043I Objective coefficients are multiples of 1
+Alps0250I Starting search ...
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+         0                        1875               0          1
+
+Alps0202I Problem is infeasible. 5 nodes processed, 0 nodes left
+Alps0262I No solution found
+Alps0264I Number of nodes processed:                5
+Alps0267I Number of nodes branched:                 2
+Alps0268I Number of nodes pruned before processing: 0
+Alps0270I Number of nodes left:                     0
+Alps0272I Tree depth: 2
+Alps0274I Search CPU time: 0.01 seconds
+Alps0278I Search wall-clock time: 0.01 seconds
+Blis0040I Checking feasibility took 0.0000 seconds
+Blis0053I Called MIBS cut generator 2 times, generated 0 cuts, CPU time 0.0000 seconds, current strategy 3
+Blis0063I Called Rounding heuristic 4 times, found 0 solutions, CPU time 0.0000 seconds, current strategy 2
+Blis0058I Relative optimality gap is 0.00%
+
+ALPS did not find a solution.
+obj=1e+80
+
+APPLYCUT: Select cuts to be added in LP from 1 candidates
+APPLYCUT: After selecting, added 1 cuts to LP and discared 0 cuts
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        60          2417          1893   27.67%      8         13
+
+
+Creating children of node 31 with indices: 73 74 
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        61          2417          1893   27.67%      8         14
+
+
+Creating children of node 46 with indices: 75 76 
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        62          2417          1893   27.67%      8         15
+
+FEASIBLE SOL: numUnsatisfied = 0
+
+Bilevel feasible solution found:
+Upper-level objective value: 2131
+
+UL[0]: 1
+UL[1]: 1
+UL[4]: 1
+UL[5]: 1
+UL[6]: 1
+LL[2]: 1
+LL[3]: 1
+LL[7]: 1
+LL[8]: 1
+LL[9]: 1
+Heuristics found a better solution, old cutoff = 2416, new cutoff = 2130
+PROCESS: new cuts=0, delete slack cuts=0, numRows=32, numStartRows=32
+==  Welcome to the Abstract Library for Parallel Search (ALPS) 
+==  Copyright 2000-2015 Lehigh University and others 
+==  All Rights Reserved. 
+==  Distributed under the Eclipse Public License 1.0 
+==  Version: Trunk (unstable) 
+==  Build Date: Aug 11 2015
+==  Revision Number: 2003
+==  Bcps Version: Trunk (unstable)
+==  Bcps Revision Number: 2003
+==  Blis Version: Trunk (unstable)
+==  Blis Revision Number: 2003
+
+Blis0043I Objective coefficients are multiples of 1
+Alps0250I Starting search ...
+
+Alps0202I Problem is infeasible. 1 nodes processed, 0 nodes left
+Alps0262I No solution found
+Alps0264I Number of nodes processed:                1
+Alps0267I Number of nodes branched:                 0
+Alps0268I Number of nodes pruned before processing: 0
+Alps0270I Number of nodes left:                     0
+Alps0272I Tree depth: 0
+Alps0274I Search CPU time: 0.00 seconds
+Alps0278I Search wall-clock time: 0.00 seconds
+Blis0040I Checking feasibility took 0.0000 seconds
+Blis0058I Relative optimality gap is 0.00%
+
+ALPS did not find a solution.
+obj=1e+80
+
+APPLYCUT: Select cuts to be added in LP from 3 candidates
+APPLYCUT: After selecting, added 3 cuts to LP and discared 0 cuts
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        63          2131          1893   12.57%      8         14
+
+FEASIBLE SOL: numUnsatisfied = 1
+PROCESS: new cuts=0, delete slack cuts=0, numRows=32, numStartRows=32
+==  Welcome to the Abstract Library for Parallel Search (ALPS) 
+==  Copyright 2000-2015 Lehigh University and others 
+==  All Rights Reserved. 
+==  Distributed under the Eclipse Public License 1.0 
+==  Version: Trunk (unstable) 
+==  Build Date: Aug 11 2015
+==  Revision Number: 2003
+==  Bcps Version: Trunk (unstable)
+==  Bcps Revision Number: 2003
+==  Blis Version: Trunk (unstable)
+==  Blis Revision Number: 2003
+
+Blis0043I Objective coefficients are multiples of 1
+Alps0250I Starting search ...
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+         0                        1893               0          1
+
+Alps0202I Problem is infeasible. 3 nodes processed, 0 nodes left
+Alps0262I No solution found
+Alps0264I Number of nodes processed:                3
+Alps0267I Number of nodes branched:                 1
+Alps0268I Number of nodes pruned before processing: 0
+Alps0270I Number of nodes left:                     0
+Alps0272I Tree depth: 1
+Alps0274I Search CPU time: 0.00 seconds
+Alps0278I Search wall-clock time: 0.00 seconds
+Blis0040I Checking feasibility took 0.0000 seconds
+Blis0053I Called MIBS cut generator 1 times, generated 0 cuts, CPU time 0.0000 seconds, current strategy 3
+Blis0063I Called Rounding heuristic 2 times, found 0 solutions, CPU time 0.0000 seconds, current strategy 2
+Blis0058I Relative optimality gap is 0.00%
+
+ALPS did not find a solution.
+obj=1e+80
+
+APPLYCUT: Select cuts to be added in LP from 1 candidates
+APPLYCUT: After selecting, added 1 cuts to LP and discared 0 cuts
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        64          2131          1893   12.57%      8         13
+
+FEASIBLE SOL: numUnsatisfied = 1
+PROCESS: new cuts=0, delete slack cuts=0, numRows=30, numStartRows=30
+==  Welcome to the Abstract Library for Parallel Search (ALPS) 
+==  Copyright 2000-2015 Lehigh University and others 
+==  All Rights Reserved. 
+==  Distributed under the Eclipse Public License 1.0 
+==  Version: Trunk (unstable) 
+==  Build Date: Aug 11 2015
+==  Revision Number: 2003
+==  Bcps Version: Trunk (unstable)
+==  Bcps Revision Number: 2003
+==  Blis Version: Trunk (unstable)
+==  Blis Revision Number: 2003
+
+Blis0043I Objective coefficients are multiples of 1
+Alps0250I Starting search ...
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+         0                        1893               0          1
+         3          2578          1893   36.17%      0          2
+         4          2340          1893   23.60%      0          1
+
+Alps0208I Search completed.
+Alps0260I Best solution found had quality 2340
+Alps0264I Number of nodes processed:                7
+Alps0267I Number of nodes branched:                 3
+Alps0268I Number of nodes pruned before processing: 0
+Alps0270I Number of nodes left:                     0
+Alps0272I Tree depth: 3
+Alps0274I Search CPU time: 0.02 seconds
+Alps0278I Search wall-clock time: 0.02 seconds
+Blis0040I Checking feasibility took 0.0100 seconds
+Blis0053I Called MIBS cut generator 7 times, generated 25 cuts, CPU time 0.0000 seconds, current strategy 3
+Blis0063I Called Rounding heuristic 14 times, found 0 solutions, CPU time 0.0000 seconds, current strategy 2
+Blis0058I Relative optimality gap is 0.00%
+============================================
+Optimal solution:
+Cost = 2340
+x[1] = 1
+x[4] = 1
+x[5] = 1
+x[7] = 1
+x[8] = 1
+y[2] = 1
+y[3] = 1
+y[6] = 1
+y[9] = 1
+============================================
+obj=2340
+
+APPLYCUT: Select cuts to be added in LP from 1 candidates
+APPLYCUT: After selecting, added 1 cuts to LP and discared 0 cuts
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        65          2131          1893   12.57%      8         12
+
+FEASIBLE SOL: numUnsatisfied = 1
+PROCESS: new cuts=0, delete slack cuts=0, numRows=30, numStartRows=30
+==  Welcome to the Abstract Library for Parallel Search (ALPS) 
+==  Copyright 2000-2015 Lehigh University and others 
+==  All Rights Reserved. 
+==  Distributed under the Eclipse Public License 1.0 
+==  Version: Trunk (unstable) 
+==  Build Date: Aug 11 2015
+==  Revision Number: 2003
+==  Bcps Version: Trunk (unstable)
+==  Bcps Revision Number: 2003
+==  Blis Version: Trunk (unstable)
+==  Blis Revision Number: 2003
+
+Blis0043I Objective coefficients are multiples of 1
+Alps0250I Starting search ...
+
+Alps0202I Problem is infeasible. 1 nodes processed, 0 nodes left
+Alps0262I No solution found
+Alps0264I Number of nodes processed:                1
+Alps0267I Number of nodes branched:                 0
+Alps0268I Number of nodes pruned before processing: 0
+Alps0270I Number of nodes left:                     0
+Alps0272I Tree depth: 0
+Alps0274I Search CPU time: 0.00 seconds
+Alps0278I Search wall-clock time: 0.00 seconds
+Blis0040I Checking feasibility took 0.0000 seconds
+Blis0058I Relative optimality gap is 0.00%
+
+ALPS did not find a solution.
+obj=1e+80
+
+APPLYCUT: Select cuts to be added in LP from 1 candidates
+APPLYCUT: After selecting, added 1 cuts to LP and discared 0 cuts
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        66          2131          1908   11.68%      8         11
+
+
+Creating children of node 48 with indices: 77 78 
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        67          2131          1908   11.68%      8         12
+
+FEASIBLE SOL: numUnsatisfied = 0
+
+Bilevel feasible solution found:
+Upper-level objective value: 2578
+
+UL[0]: 1
+UL[1]: 1
+UL[4]: 1
+UL[5]: 1
+LL[2]: 1
+LL[3]: 1
+LL[6]: 1
+LL[7]: 1
+LL[9]: 1
+Heuristics found a better solution, old cutoff = 2130, new cutoff = 2130
+PROCESS: new cuts=0, delete slack cuts=0, numRows=33, numStartRows=33
+==  Welcome to the Abstract Library for Parallel Search (ALPS) 
+==  Copyright 2000-2015 Lehigh University and others 
+==  All Rights Reserved. 
+==  Distributed under the Eclipse Public License 1.0 
+==  Version: Trunk (unstable) 
+==  Build Date: Aug 11 2015
+==  Revision Number: 2003
+==  Bcps Version: Trunk (unstable)
+==  Bcps Revision Number: 2003
+==  Blis Version: Trunk (unstable)
+==  Blis Revision Number: 2003
+
+Blis0043I Objective coefficients are multiples of 1
+Alps0250I Starting search ...
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+         0                        1908               0          1
+         5          2340          1908   22.63%      0          2
+
+Alps0208I Search completed.
+Alps0260I Best solution found had quality 2340
+Alps0264I Number of nodes processed:                25
+Alps0267I Number of nodes branched:                 12
+Alps0268I Number of nodes pruned before processing: 0
+Alps0270I Number of nodes left:                     0
+Alps0272I Tree depth: 6
+Alps0274I Search CPU time: 0.04 seconds
+Alps0278I Search wall-clock time: 0.04 seconds
+Blis0040I Checking feasibility took 0.0086 seconds
+Blis0053I Called MIBS cut generator 17 times, generated 40 cuts, CPU time 0.0160 seconds, current strategy 3
+Blis0063I Called Rounding heuristic 34 times, found 0 solutions, CPU time 0.0000 seconds, current strategy 2
+Blis0058I Relative optimality gap is 0.00%
+============================================
+Optimal solution:
+Cost = 2340
+x[0] = 1
+x[1] = 1
+x[4] = 1
+x[7] = 1
+x[8] = 1
+y[2] = 1
+y[3] = 1
+y[6] = 1
+y[9] = 1
+============================================
+obj=2340
+
+APPLYCUT: Select cuts to be added in LP from 3 candidates
+APPLYCUT: After selecting, added 3 cuts to LP and discared 0 cuts
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        68          2131          1908   11.68%      8         11
+
+FEASIBLE SOL: numUnsatisfied = 0
+
+Bilevel feasible solution found:
+Upper-level objective value: 2146
+
+UL[0]: 1
+UL[1]: 1
+UL[2]: 1
+UL[4]: 1
+UL[5]: 1
+LL[3]: 1
+LL[6]: 1
+LL[7]: 1
+LL[9]: 1
+Heuristics found a better solution, old cutoff = 2130, new cutoff = 2130
+PROCESS: new cuts=0, delete slack cuts=0, numRows=33, numStartRows=33
+==  Welcome to the Abstract Library for Parallel Search (ALPS) 
+==  Copyright 2000-2015 Lehigh University and others 
+==  All Rights Reserved. 
+==  Distributed under the Eclipse Public License 1.0 
+==  Version: Trunk (unstable) 
+==  Build Date: Aug 11 2015
+==  Revision Number: 2003
+==  Bcps Version: Trunk (unstable)
+==  Bcps Revision Number: 2003
+==  Blis Version: Trunk (unstable)
+==  Blis Revision Number: 2003
+
+Blis0043I Objective coefficients are multiples of 1
+Alps0250I Starting search ...
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+         0                        1908               0          1
+         6          2144          1908   12.36%      0          3
+
+Alps0208I Search completed.
+Alps0260I Best solution found had quality 2144
+Alps0264I Number of nodes processed:                13
+Alps0267I Number of nodes branched:                 6
+Alps0268I Number of nodes pruned before processing: 0
+Alps0270I Number of nodes left:                     0
+Alps0272I Tree depth: 4
+Alps0274I Search CPU time: 0.02 seconds
+Alps0278I Search wall-clock time: 0.02 seconds
+Blis0040I Checking feasibility took 0.0061 seconds
+Blis0053I Called MIBS cut generator 9 times, generated 16 cuts, CPU time 0.0000 seconds, current strategy 3
+Blis0063I Called Rounding heuristic 18 times, found 0 solutions, CPU time 0.0000 seconds, current strategy 2
+Blis0058I Relative optimality gap is 0.00%
+============================================
+Optimal solution:
+Cost = 2144
+x[0] = 1
+x[1] = 1
+x[2] = 1
+x[4] = 1
+x[7] = 1
+y[3] = 1
+y[6] = 1
+y[8] = 1
+y[9] = 1
+============================================
+obj=2144
+
+APPLYCUT: Select cuts to be added in LP from 3 candidates
+APPLYCUT: After selecting, added 3 cuts to LP and discared 0 cuts
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        69          2131          2019    5.54%      8         10
+
+
+Creating children of node 35 with indices: 79 80 
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        70          2131          2019    5.54%      8         11
+
+FEASIBLE SOL: numUnsatisfied = 2
+PROCESS: new cuts=0, delete slack cuts=0, numRows=27, numStartRows=27
+==  Welcome to the Abstract Library for Parallel Search (ALPS) 
+==  Copyright 2000-2015 Lehigh University and others 
+==  All Rights Reserved. 
+==  Distributed under the Eclipse Public License 1.0 
+==  Version: Trunk (unstable) 
+==  Build Date: Aug 11 2015
+==  Revision Number: 2003
+==  Bcps Version: Trunk (unstable)
+==  Bcps Revision Number: 2003
+==  Blis Version: Trunk (unstable)
+==  Blis Revision Number: 2003
+
+Blis0043I Objective coefficients are multiples of 1
+Alps0250I Starting search ...
+         1          2451                  0.00%      0          0
+
+Alps0208I Search completed.
+Alps0260I Best solution found had quality 2451
+Alps0264I Number of nodes processed:                1
+Alps0267I Number of nodes branched:                 0
+Alps0268I Number of nodes pruned before processing: 0
+Alps0270I Number of nodes left:                     0
+Alps0272I Tree depth: 0
+Alps0274I Search CPU time: 0.00 seconds
+Alps0278I Search wall-clock time: 0.00 seconds
+Blis0040I Checking feasibility took 0.0030 seconds
+Blis0053I Called MIBS cut generator 1 times, generated 4 cuts, CPU time 0.0000 seconds, current strategy 3
+Blis0063I Called Rounding heuristic 2 times, found 0 solutions, CPU time 0.0000 seconds, current strategy 2
+Blis0058I Relative optimality gap is 0.00%
+============================================
+Optimal solution:
+Cost = 2451
+x[4] = 1
+x[6] = 1
+x[9] = 1
+y[1] = 1
+y[2] = 1
+y[3] = 1
+y[5] = 1
+============================================
+obj=2451
+
+APPLYCUT: Select cuts to be added in LP from 1 candidates
+APPLYCUT: After selecting, added 1 cuts to LP and discared 0 cuts
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        71          2131          2019    5.54%      8         10
+
+FEASIBLE SOL: numUnsatisfied = 0
+
+Bilevel feasible solution found:
+Upper-level objective value: 2514
+
+UL[0]: 1
+UL[2]: 1
+UL[4]: 1
+UL[6]: 1
+LL[1]: 1
+LL[3]: 1
+LL[5]: 1
+LL[9]: 1
+Heuristics found a better solution, old cutoff = 2130, new cutoff = 2130
+PROCESS: new cuts=0, delete slack cuts=0, numRows=27, numStartRows=27
+==  Welcome to the Abstract Library for Parallel Search (ALPS) 
+==  Copyright 2000-2015 Lehigh University and others 
+==  All Rights Reserved. 
+==  Distributed under the Eclipse Public License 1.0 
+==  Version: Trunk (unstable) 
+==  Build Date: Aug 11 2015
+==  Revision Number: 2003
+==  Bcps Version: Trunk (unstable)
+==  Bcps Revision Number: 2003
+==  Blis Version: Trunk (unstable)
+==  Blis Revision Number: 2003
+
+Blis0043I Objective coefficients are multiples of 1
+Alps0250I Starting search ...
+
+Alps0202I Problem is infeasible. 1 nodes processed, 0 nodes left
+Alps0262I No solution found
+Alps0264I Number of nodes processed:                1
+Alps0267I Number of nodes branched:                 0
+Alps0268I Number of nodes pruned before processing: 0
+Alps0270I Number of nodes left:                     0
+Alps0272I Tree depth: 0
+Alps0274I Search CPU time: 0.00 seconds
+Alps0278I Search wall-clock time: 0.00 seconds
+Blis0040I Checking feasibility took 0.0000 seconds
+Blis0058I Relative optimality gap is 0.00%
+
+ALPS did not find a solution.
+obj=1e+80
+
+APPLYCUT: Select cuts to be added in LP from 3 candidates
+APPLYCUT: After selecting, added 3 cuts to LP and discared 0 cuts
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        72          2131          2045    4.20%      8          9
+
+
+Creating children of node 41 with indices: 81 82 
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        73          2131          2045    4.20%      8         10
+
+FEASIBLE SOL: numUnsatisfied = 4
+PROCESS: new cuts=0, delete slack cuts=0, numRows=24, numStartRows=24
+==  Welcome to the Abstract Library for Parallel Search (ALPS) 
+==  Copyright 2000-2015 Lehigh University and others 
+==  All Rights Reserved. 
+==  Distributed under the Eclipse Public License 1.0 
+==  Version: Trunk (unstable) 
+==  Build Date: Aug 11 2015
+==  Revision Number: 2003
+==  Bcps Version: Trunk (unstable)
+==  Bcps Revision Number: 2003
+==  Blis Version: Trunk (unstable)
+==  Blis Revision Number: 2003
+
+Blis0043I Objective coefficients are multiples of 1
+Alps0250I Starting search ...
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+         0          2715          2477    9.60%      0          1
+         2          2477          2477    0.00%      0          1
+
+Alps0208I Search completed.
+Alps0260I Best solution found had quality 2477
+Alps0264I Number of nodes processed:                2
+Alps0267I Number of nodes branched:                 1
+Alps0268I Number of nodes pruned before processing: 1
+Alps0270I Number of nodes left:                     0
+Alps0272I Tree depth: 1
+Alps0274I Search CPU time: 0.02 seconds
+Alps0278I Search wall-clock time: 0.01 seconds
+Blis0040I Checking feasibility took 0.0086 seconds
+Blis0053I Called MIBS cut generator 4 times, generated 12 cuts, CPU time 0.0040 seconds, current strategy 3
+Blis0063I Called Rounding heuristic 8 times, found 0 solutions, CPU time 0.0000 seconds, current strategy 2
+Blis0058I Relative optimality gap is 0.00%
+============================================
+Optimal solution:
+Cost = 2477
+x[4] = 1
+x[7] = 1
+x[8] = 1
+x[9] = 1
+y[0] = 1
+y[1] = 1
+y[2] = 1
+y[3] = 1
+============================================
+obj=2477
+
+APPLYCUT: Select cuts to be added in LP from 1 candidates
+APPLYCUT: After selecting, added 1 cuts to LP and discared 0 cuts
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        74          2131          2045    4.20%      8          9
+
+FEASIBLE SOL: numUnsatisfied = 2
+PROCESS: new cuts=0, delete slack cuts=0, numRows=24, numStartRows=24
+==  Welcome to the Abstract Library for Parallel Search (ALPS) 
+==  Copyright 2000-2015 Lehigh University and others 
+==  All Rights Reserved. 
+==  Distributed under the Eclipse Public License 1.0 
+==  Version: Trunk (unstable) 
+==  Build Date: Aug 11 2015
+==  Revision Number: 2003
+==  Bcps Version: Trunk (unstable)
+==  Bcps Revision Number: 2003
+==  Blis Version: Trunk (unstable)
+==  Blis Revision Number: 2003
+
+Blis0043I Objective coefficients are multiples of 1
+Alps0250I Starting search ...
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+         0                        2045               0          1
+         1          2281          2045   11.53%      0          2
+
+Alps0208I Search completed.
+Alps0260I Best solution found had quality 2281
+Alps0264I Number of nodes processed:                13
+Alps0267I Number of nodes branched:                 6
+Alps0268I Number of nodes pruned before processing: 0
+Alps0270I Number of nodes left:                     0
+Alps0272I Tree depth: 5
+Alps0274I Search CPU time: 0.02 seconds
+Alps0278I Search wall-clock time: 0.03 seconds
+Blis0040I Checking feasibility took 0.0102 seconds
+Blis0053I Called MIBS cut generator 10 times, generated 24 cuts, CPU time 0.0000 seconds, current strategy 3
+Blis0063I Called Rounding heuristic 20 times, found 0 solutions, CPU time 0.0000 seconds, current strategy 2
+Blis0058I Relative optimality gap is 0.00%
+============================================
+Optimal solution:
+Cost = 2281
+x[2] = 1
+x[4] = 1
+x[6] = 1
+x[7] = 1
+x[9] = 1
+y[0] = 1
+y[1] = 1
+y[3] = 1
+y[8] = 1
+============================================
+obj=2281
+
+APPLYCUT: Select cuts to be added in LP from 1 candidates
+APPLYCUT: After selecting, added 1 cuts to LP and discared 0 cuts
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        75          2131          2075    2.70%      8          8
+
+
+Creating children of node 43 with indices: 83 84 
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        76          2131          2075    2.70%      8          9
+
+FEASIBLE SOL: numUnsatisfied = 4
+PROCESS: new cuts=0, delete slack cuts=0, numRows=23, numStartRows=23
+==  Welcome to the Abstract Library for Parallel Search (ALPS) 
+==  Copyright 2000-2015 Lehigh University and others 
+==  All Rights Reserved. 
+==  Distributed under the Eclipse Public License 1.0 
+==  Version: Trunk (unstable) 
+==  Build Date: Aug 11 2015
+==  Revision Number: 2003
+==  Bcps Version: Trunk (unstable)
+==  Bcps Revision Number: 2003
+==  Blis Version: Trunk (unstable)
+==  Blis Revision Number: 2003
+
+Blis0043I Objective coefficients are multiples of 1
+Alps0250I Starting search ...
+         1          2507                  0.00%      0          0
+
+Alps0208I Search completed.
+Alps0260I Best solution found had quality 2507
+Alps0264I Number of nodes processed:                1
+Alps0267I Number of nodes branched:                 0
+Alps0268I Number of nodes pruned before processing: 0
+Alps0270I Number of nodes left:                     0
+Alps0272I Tree depth: 0
+Alps0274I Search CPU time: 0.00 seconds
+Alps0278I Search wall-clock time: 0.00 seconds
+Blis0040I Checking feasibility took 0.0029 seconds
+Blis0053I Called MIBS cut generator 1 times, generated 4 cuts, CPU time 0.0000 seconds, current strategy 3
+Blis0063I Called Rounding heuristic 2 times, found 0 solutions, CPU time 0.0000 seconds, current strategy 2
+Blis0058I Relative optimality gap is 0.00%
+============================================
+Optimal solution:
+Cost = 2507
+x[4] = 1
+x[9] = 1
+y[0] = 1
+y[1] = 1
+y[2] = 1
+y[5] = 1
+============================================
+obj=2507
+
+APPLYCUT: Select cuts to be added in LP from 1 candidates
+APPLYCUT: After selecting, added 1 cuts to LP and discared 0 cuts
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        77          2131          2075    2.70%      9          8
+
+FEASIBLE SOL: numUnsatisfied = 1
+PROCESS: new cuts=0, delete slack cuts=0, numRows=23, numStartRows=23
+==  Welcome to the Abstract Library for Parallel Search (ALPS) 
+==  Copyright 2000-2015 Lehigh University and others 
+==  All Rights Reserved. 
+==  Distributed under the Eclipse Public License 1.0 
+==  Version: Trunk (unstable) 
+==  Build Date: Aug 11 2015
+==  Revision Number: 2003
+==  Bcps Version: Trunk (unstable)
+==  Bcps Revision Number: 2003
+==  Blis Version: Trunk (unstable)
+==  Blis Revision Number: 2003
+
+Blis0043I Objective coefficients are multiples of 1
+Alps0250I Starting search ...
+
+Alps0202I Problem is infeasible. 1 nodes processed, 0 nodes left
+Alps0262I No solution found
+Alps0264I Number of nodes processed:                1
+Alps0267I Number of nodes branched:                 0
+Alps0268I Number of nodes pruned before processing: 0
+Alps0270I Number of nodes left:                     0
+Alps0272I Tree depth: 0
+Alps0274I Search CPU time: 0.00 seconds
+Alps0278I Search wall-clock time: 0.00 seconds
+Blis0040I Checking feasibility took 0.0000 seconds
+Blis0058I Relative optimality gap is 0.00%
+
+ALPS did not find a solution.
+obj=1e+80
+
+APPLYCUT: Select cuts to be added in LP from 1 candidates
+APPLYCUT: After selecting, added 1 cuts to LP and discared 0 cuts
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+        78          2131          2131    0.00%      9          7
+
+
+Alps0208I Search completed.
+Alps0260I Best solution found had quality 2131
+Alps0265I Number of nodes fully processed:          78
+Alps0266I Number of nodes partially processed:      7
+Alps0267I Number of nodes branched:                 42
+Alps0268I Number of nodes pruned before processing: 0
+Alps0270I Number of nodes left:                     0
+Alps0272I Tree depth: 10
+Alps0274I Search CPU time: 9.05 seconds
+Alps0278I Search wall-clock time: 9.55 seconds
+Blis0040I Checking feasibility took 0.0572 seconds
+Blis0053I Called MIBS cut generator 138 times, generated 139 cuts, CPU time 8.8486 seconds, current strategy 3
+Blis0058I Relative optimality gap is 0.00%
+============================================
+Optimal solution:
+Cost = 2131
+x[0] = 1
+x[1] = 1
+x[4] = 1
+x[5] = 1
+x[6] = 1
+y[2] = 1
+y[3] = 1
+y[7] = 1
+y[8] = 1
+y[9] = 1
+============================================
