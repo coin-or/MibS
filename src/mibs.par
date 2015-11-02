@@ -2,13 +2,15 @@
 #MibS_auxiliaryInfoFile ./data/MIPS/RANDOM/NEW_MIPINT/NONSYMMETRIC/miblp_10_10_50_0110_0_2.mps.txt
 Alps_instance /home/sat214/MIBS/OldMibS/data/MCDM/NO_CORR/10_ITEMS_1000/K5010W01.KNP.mps
 MibS_auxiliaryInfoFile /home/sat214/MIBS/OldMibS/data/MCDM/NO_CORR/10_ITEMS_1000/K5010W01.KNP.txt
+#Alps_instance /home/sat214/MIBS/OldMibS/data/MIPS/RANDOM/RAND_BILEVEL/miblp_20_15_50_0110_10_10.mps
+#MibS_auxiliaryInfoFile /home/sat214/MIBS/OldMibS/data/MIPS/RANDOM/RAND_BILEVEL/miblp_20_15_50_0110_10_10.txt
 #Alps_instance /home/sat214/MIBS/OldMibS/data/moore90.mps
 #MibS_auxiliaryInfoFile /home/sat214/MIBS/OldMibS/data/moore90.txt
 #Alps_timeLimit 5000
 #Alps_nodeLimit 4000000
 #Alps_nodeLimit 20000
 
-Alps_msgLevel 5
+Alps_msgLevel 250
 #Alps_hubMsgLevel 0
 #Alps_workerMsgLevel 0
 #Alps_logFileLevel 3
@@ -78,7 +80,7 @@ MibS_usePureIntegerCut 1	# 0: false, 1: true
 MibS_useValFuncCut 0		# 0: false, 1: true 
 MibS_useNoGoodCut 0		# 0: false, 1: true 
 MibS_useIncObjCut 0		# 0: false, 1: true 
-MibS_bilevelProblemType 1	# 0: general, 1: interdict
+MibS_bilevelProblemType 0	# 0: general, 1: interdict
 MibS_bilevelCutTypes 1		# 0: general, 1: general/interdict, 2: #general/binary UL, 3: binary UL
 #MibS_whichActiveConMethod 1	# 0: simple, 1: basis 
 MibS_cutStrategy 2		# 0: branch only, 1: cut only, 2: use cut #and branch
