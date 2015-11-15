@@ -242,6 +242,10 @@ MibSCutGenerator::boundCuts(BcpsConstraintPool &conPool)
       return 0;
    }
 
+    if(!localModel_->isRoot_){
+     return 0;
+     }
+
    /** Set up lp solver **/
    OsiClpSolverInterface lpSolver;
    lpSolver.getModelPtr()->setDualBound(1.0e10);
@@ -251,7 +255,7 @@ MibSCutGenerator::boundCuts(BcpsConstraintPool &conPool)
    MibSModel boundModel;
    boundModel.setSolver(&lpSolver);
    boundModel.AlpsPar()->setEntry(AlpsParams::msgLevel, 0);
-   boundModel.AlpsPar()->setEntry(AlpsParams::timeLimit, 10);
+   boundModel.AlpsPar()->setEntry(AlpsParams::timeLimit, 1);
    
    OsiSolverInterface * oSolver = localModel_->getSolver();
    
@@ -321,7 +325,7 @@ MibSCutGenerator::boundCuts(BcpsConstraintPool &conPool)
    }
    
    broker.printBestSolution();
-
+if (boundModel.getNumSolutions() > 0){
    //Change this when we actually add a cut
    //double objval;
    //double objval(boundModel.getKnowledgeBroker()->getBestQuality());
@@ -354,7 +358,7 @@ MibSCutGenerator::boundCuts(BcpsConstraintPool &conPool)
    /** Create new MibS model to solve bilevel(with new upperbound) **/
    MibSModel NewboundModel;
    NewboundModel.setSolver(&lpSolver);
-   NewboundModel.AlpsPar()->setEntry(AlpsParams::msgLevel, 0);
+   NewboundModel.AlpsPar()->setEntry(AlpsParams::msgLevel, 5);
 
    NewboundModel.loadAuxiliaryData(localModel_->getLowerDim(), localModel_->getLowerRowNum(),
                                 localModel_->getLowerColInd(), localModel_->getLowerRowInd(),
@@ -393,8 +397,11 @@ MibSCutGenerator::boundCuts(BcpsConstraintPool &conPool)
    Newbroker.search(&NewboundModel);
 
    Newbroker.printBestSolution();
-
+   if (NewboundModel.getNumSolutions() > 0){
+   double objval1(boundModel.getKnowledgeBroker()->getBestQuality());
    double objval(NewboundModel.getKnowledgeBroker()->getBestQuality());
+   std::cout<<"obj="<<objval1<<std::endl;
+   std::cout<<"objWithRest="<<objval<<std::endl;
    int numCuts(0);
    double cutub(oSolver->getInfinity());                                                                              
    std::vector<int> indexList;
@@ -406,11 +413,13 @@ MibSCutGenerator::boundCuts(BcpsConstraintPool &conPool)
    }
    numCuts += addCut(conPool, objval, cutub, indexList, valsList,
                      false);
-   //std::cout<<"obj="<<objval<<std::endl;
+   std::cout<<"obj="<<objval1<<std::endl;
+   std::cout<<"objWithRest="<<objval<<std::endl;
    indexList.clear();
    valsList.clear();
+   }
    zeroList.clear();
-
+ }
    return 0;
 }
 
