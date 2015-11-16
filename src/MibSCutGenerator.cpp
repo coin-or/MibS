@@ -2553,6 +2553,14 @@ MibSCutGenerator::bendersInterdictionCuts(BcpsConstraintPool &conPool)
 
   //std::cout << "Generating No-Good Cuts." << std::endl;
 
+  std::string feasCheckSolver =
+    localModel_->MibSPar_->entry(MibSParams::feasCheckSolver);
+
+  if (feasCheckSolver != "SYMPHONY"){
+     std::cout << "Interdiction cuts only supported with SYMPHONY" << std::endl;
+     return 0;
+  }
+  
   OsiSolverInterface * solver = localModel_->solver();
   OsiSolverInterface * lSolver = localModel_->getMibSBilevel()->solver_;
 

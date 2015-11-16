@@ -16,6 +16,10 @@
 #include "OsiCbcSolverInterface.hpp"
 #include "symphony.h"
 #include "OsiSymSolverInterface.hpp"
+#ifdef USE_CPLEX
+#include "cplex.h"
+#include "OsiCpxSolverInterface.hpp"
+#endif
 
 #include "MibSBilevel.h"
 #include "MibSModel.h"
@@ -216,7 +220,10 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
   int probType =
     model_->MibSPar_->entry(MibSParams::bilevelProblemType);
 
-  if (warmStartLL && solver_){
+  std::string feasCheckSolver =
+     model_->MibSPar_->entry(MibSParams::feasCheckSolver);
+
+  if (warmStartLL && (feasCheckSolver == "SYMPHONY") && solver_){
      solver_ = setUpModel(model_->getSolver(), false);
   }else{
      if (solver_){
@@ -236,11 +243,10 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
   if(0)
     lSolver->writeLp("lowerlevel");
 
-  if(0){
+  if (feasCheckSolver == "Cbc"){
     dynamic_cast<OsiCbcSolverInterface *> 
       (lSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
-  }
-  else{
+  }else if (feasCheckSolver == "SYMPHONY"){
      //dynamic_cast<OsiSymSolverInterface *> 
      // (lSolver)->setSymParam("prep_level", -1);
     
@@ -283,15 +289,22 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 	sym_set_int_param(env, "generate_cgl_flowcover_cuts", 
 			  DO_NOT_GENERATE);
      }
+  }else if (feasCheckSolver == "CPLEX"){
+#ifdef USE_CPLEX
+     CPXENVptr cpxEnv = 
+	dynamic_cast<OsiCpxSolverInterface*>(lSolver)->getEnvironmentPtr();
+     assert(cpxEnv);
+     CPXsetintparam(cpxEnv, CPX_PARAM_SCRIND, CPX_OFF);
+#endif
   }
-  if (warmStartLL){
+  
+  if (warmStartLL && feasCheckSolver == "SYMPHONY"){
      lSolver->resolve();
+     setWarmStart(lSolver->getWarmStart());
   }else{
      lSolver->branchAndBound();
   }
 
-  setWarmStart(lSolver->getWarmStart());
-  
   const double * sol = model_->solver()->getColSolution();
   double objVal(lSolver->getObjValue() * model_->getLowerObjSense());
   
@@ -461,6 +474,9 @@ MibSBilevel::setUpModel(OsiSolverInterface * oSolver, bool newOsi,
   bool doDualFixing =
     model_->MibSPar_->entry(MibSParams::doDualFixing);
 
+  std::string feasCheckSolver =
+    model_->MibSPar_->entry(MibSParams::feasCheckSolver);
+
   OsiSolverInterface * nSolver;
 
   double etol(model_->etol_);
@@ -506,14 +522,22 @@ MibSBilevel::setUpModel(OsiSolverInterface * oSolver, bool newOsi,
   }
   
   if (newOsi){
-     //nSolver = new OsiCbcSolverInterface();
-     nSolver = new OsiSymSolverInterface();
-     //OsiSolverInterface * oSolver = model_->getSolver();
-     
-     //const double * matElements = matrix->getElements();
-     //const int * matIndices = matrix->getIndices();
-     //const int * matStarts = matrix->getVectorStarts();
-     
+     if (feasCheckSolver == "Cbc"){
+	nSolver = new OsiCbcSolverInterface();
+     }else if (feasCheckSolver == "SYMPHONY"){
+	nSolver = new OsiSymSolverInterface();
+     }else if (feasCheckSolver == "CPLEX"){
+#ifdef USE_CPLEX
+	nSolver = new OsiCpxSolverInterface();
+#else
+	throw CoinError("CPLEX chosen as solver, but it has not been enabled",
+			"setUpModel", "MibsBilevel");
+#endif
+     }else{
+	throw CoinError("Unknown solver chosen",
+			"setUpModel", "MibsBilevel");
+     }
+	
      int * integerVars = new int[lCols];
      double * objCoeffs = new double[lCols];
      
@@ -607,7 +631,8 @@ MibSBilevel::setUpModel(OsiSolverInterface * oSolver, bool newOsi,
 #define SYM_VERSION_IS_WS strcmp(SYMPHONY_VERSION, "WS")  
 
 #if SYMPHONY_VERSION_IS_WS
-  if (probType == 1 && warmStartLL && !newOsi && doDualFixing){ //Interdiction
+  if (feasCheckSolver == "SYMPHONY" && probType == 1 && warmStartLL &&
+      !newOsi && doDualFixing){ //Interdiction
 
      /** Get upper bound from best known (feasible) lower level solution and try 
 	 to fix additional variables by sensitivity analysis **/
@@ -624,7 +649,8 @@ MibSBilevel::setUpModel(OsiSolverInterface * oSolver, bool newOsi,
 	blisSol = dynamic_cast<BlisSolution*>(si->first);
 	sol = blisSol->getValues();
 	for (i = 0; i < uCols; i++){
-	   if (lpSol[uColIndices[i]] > 1 - etol && sol[lColIndices[i]] > 1-etol){
+	   if (lpSol[uColIndices[i]] > 1 - etol &&
+	       sol[lColIndices[i]] > 1-etol){
 	      break;
 	   }
 	}
@@ -661,8 +687,9 @@ MibSBilevel::setUpModel(OsiSolverInterface * oSolver, bool newOsi,
 	   if (newUbVal[i] == 1){
 	      // Try fixing it to zero
 	      newUbVal[i] = 0; 
-	      sym_get_lb_for_new_rhs(env, 0, NULL, NULL, uCols, newLbInd, newLbVal,
-				     uCols, newUbInd, newUbVal, &newLb);
+	      sym_get_lb_for_new_rhs(env, 0, NULL, NULL, uCols, newLbInd,
+				     newLbVal, uCols, newUbInd, newUbVal,
+				     &newLb);
 	      if (objSense*newLb > Ub + etol){
 		 //Victory! This variable can be fixed to 1 permanently
 		 newLbVal[i] = 1;
@@ -673,8 +700,9 @@ MibSBilevel::setUpModel(OsiSolverInterface * oSolver, bool newOsi,
 	      if (newLbVal[i] == 0){
 		 // Try fixing it to one
 		 newLbVal[i] = 1;
-		 sym_get_lb_for_new_rhs(env, 0, NULL, NULL, uCols, newLbInd, newLbVal,
-					uCols, newUbInd, newUbVal, &newLb);
+		 sym_get_lb_for_new_rhs(env, 0, NULL, NULL, uCols, newLbInd,
+					newLbVal, uCols, newUbInd, newUbVal,
+					&newLb);
 		 if (objSense*newLb > Ub + etol){
 		    //Victory! This variable can be fixed to 0 permanently
 		    newUbVal[i] = 0;

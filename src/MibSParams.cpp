@@ -127,6 +127,9 @@ MibSParams::createKeywordList() {
    keys_.push_back(make_pair(std::string("MibS_auxiliaryInfoFile"),
 			     AlpsParameter(AlpsStringPar, auxiliaryInfoFile)));
 
+   keys_.push_back(make_pair(std::string("MibS_feasCheckSolver"),
+			     AlpsParameter(AlpsStringPar, feasCheckSolver)));
+
 }
 
 //#############################################################################
@@ -205,6 +208,8 @@ MibSParams::setDefaultEntries() {
    //-------------------------------------------------------------
   
    setEntry(auxiliaryInfoFile, "");
+
+   setEntry(feasCheckSolver, "SYMPHONY");
 
 }
 

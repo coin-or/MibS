@@ -71,6 +71,7 @@ class MibSParams : public AlpsParameterSet {
   enum strParams{
       strDummy,
       auxiliaryInfoFile,
+      feasCheckSolver,
       endOfStrParams
   };
 
