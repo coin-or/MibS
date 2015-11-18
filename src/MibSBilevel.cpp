@@ -295,7 +295,7 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 	dynamic_cast<OsiCpxSolverInterface*>(lSolver)->getEnvironmentPtr();
      assert(cpxEnv);
      CPXsetintparam(cpxEnv, CPX_PARAM_SCRIND, CPX_OFF);
-     CPXsetintparam(cpxenv, CPX_PARAM_THREADS, maxThreadLL);
+     CPXsetintparam(cpxEnv, CPX_PARAM_THREADS, maxThreadsLL);
 #endif
   }
   
