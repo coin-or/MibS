@@ -240,7 +240,7 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
   //}
   //delete ws;
 
-  if(0)
+  if(1)
     lSolver->writeLp("lowerlevel");
 
   if (feasCheckSolver == "Cbc"){
@@ -291,6 +291,8 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
      }
   }else if (feasCheckSolver == "CPLEX"){
 #ifdef USE_CPLEX
+     lSolver->setHintParam(OsiDoReducePrint);
+     lSolver->messageHandler()->setLogLevel(0);
      CPXENVptr cpxEnv = 
 	dynamic_cast<OsiCpxSolverInterface*>(lSolver)->getEnvironmentPtr();
      assert(cpxEnv);
@@ -375,13 +377,12 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
      isBilevelFeasible_ = true;
      useBilevelBranching_ = false;
      
-  }
-  else{
+  }else if (lSolver->isProvenOptimal()){
      /** Current solution is not bilevel feasible, 
 	 but we may still have a solution **/
      
      //std::cout << "Solution is not bilevel feasible." << std::endl;
-    
+
      const double * values = lSolver->getColSolution();
      int lN(model_->getLowerDim());
      int i(0);

@@ -46,7 +46,7 @@ SRCDIR = .
 #  CPLEX directories                                                     #
 ##########################################################################
 
-USE_CPLEX = FALSE
+USE_CPLEX = TRUE
 CPLEXDIR      = /usr/local/cplex/
 CPLEXINCDIR   = $(CPLEXDIR)/include
 CPLEXLIBDIR   = $(CPLEXDIR)/lib/x86-64_linux/static_pic

@@ -47,6 +47,12 @@ MibSParams::createKeywordList() {
    keys_.push_back(make_pair(std::string("MibS_useBoundCut"),
 			     AlpsParameter(AlpsBoolPar, useBoundCut)));
    
+   keys_.push_back(make_pair(std::string("MibS_boundCutOptimal"),
+			     AlpsParameter(AlpsBoolPar, boundCutOptimal)));
+   
+   keys_.push_back(make_pair(std::string("MibS_boundCutRelaxUpper"),
+			     AlpsParameter(AlpsBoolPar, boundCutRelaxUpper)));
+   
    keys_.push_back(make_pair(std::string("MibS_useObjCutHeuristic"),
 			     AlpsParameter(AlpsBoolPar, useObjCutHeuristic)));
 
@@ -152,6 +158,10 @@ MibSParams::setDefaultEntries() {
    setEntry(useBendersCut, false);
    
    setEntry(useBoundCut, false);
+   
+   setEntry(boundCutOptimal, false);
+   
+   setEntry(boundCutRelaxUpper, true);
    
    setEntry(useObjCutHeuristic, true);
 

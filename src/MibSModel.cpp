@@ -196,7 +196,7 @@ MibSModel::setBlisParameters()
   /* Set Blis Parameters to keep cutting until no cut is found */
   BlisPar()->setEntry(BlisParams::cutFactor, ALPS_DBL_MAX);
   BlisPar()->setEntry(BlisParams::cutPass, ALPS_INT_MAX);
-  BlisPar()->setEntry(BlisParams::tailOff, -1000.0);
+  BlisPar()->setEntry(BlisParams::tailOff, -10000);
   BlisPar()->setEntry(BlisParams::denseConFactor, ALPS_DBL_MAX);
 
   /* Set cut generation frequency to 1 */
