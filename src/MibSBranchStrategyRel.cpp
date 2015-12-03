@@ -53,7 +53,7 @@ MibSBranchStrategyRel::~MibSBranchStrategyRel()
 
 /** Create a set of candidate branching objects. */
 int 
-MibSBranchStrategyRel::createCandBranchObjects(int numPassesLeft)
+MibSBranchStrategyRel::createCandBranchObjects(int numPassesLeft, double ub)
 {
 
    //FIXME::ADD IN BILEVEL BRANCHING

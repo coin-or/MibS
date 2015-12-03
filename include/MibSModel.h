@@ -194,17 +194,35 @@ class MibSModel : public BlisModel {
   /** Set the lower-level row number **/
   inline void setLowerRowNum(int val) {lowerRowNum_ = val;}
 
+  /** Set the number of structural rows **/
+  inline void setStructRowNum(int val) {structRowNum_ = val;}
+
+  /** Set the interdiction cost **/
+  inline void setInterdictCost(double *ptr) {interdictCost_ = ptr;}
+
+  /** Set the interdiction budget **/
+  inline void setInterdictBudget(double val) {interdictBudget_ = val;}
+
   /** Set UL column indices **/
-  void setUpperColInd(); 
+  void setUpperColInd(int *ptr) {upperColInd_ = ptr;} 
+
+  /** Set UL column data **/
+  void setUpperColData();
 
   /** Set UL row indices **/
-  void setUpperRowInd(); 
+  void setUpperRowInd(int *ptr) {upperRowInd_ = ptr;} 
+
+  /** Set UL row indices **/
+  void setUpperRowData();
 
   /** Set pointer to array of LL column indices **/
   void setLowerColInd(int *ptr) {lowerColInd_ = ptr;} 
 
   /** Set pointer to array of LL row indices **/
   void setLowerRowInd(int *ptr) {lowerRowInd_ = ptr;} 
+
+  /** Set pointer to array of structural row indices **/
+  void setStructRowInd(int *ptr) {structRowInd_ = ptr;} 
 
   /** Set pointer to array of LL objective coefficients **/
   void setLowerObjCoeffs(double *ptr) {lowerObjCoeffs_ = ptr;} 
@@ -302,12 +320,34 @@ class MibSModel : public BlisModel {
   /** Set the Blis parameters **/
   void setBlisParameters();
   
-  /** Read upper-level file **/
-  void readUpperData();
+  /** Read auxiliary data file **/
+  void readAuxiliaryData();
 
-  /** Read lower-level file **/
-  void readLowerData();  
+  /** Set auxiliary data directly when using MibS as a library **/
+  void loadAuxiliaryData(int lowerColNum, int lowerRowNum,
+			 const int *lowerColInd,
+			 const int *lowerRowInd,
+			 double lowerObjSense,
+			 const double *lowerObjCoef,
+			 int upperColNum, int upperRowNum,
+			 const int *upperColInd,
+			 const int *upperRowInd,
+			 int structRowNum, 
+			 const int *structRowInd,
+			 double interdictBudget, 
+			 const double *interdictCost);
 
+  /** Read problem description file **/
+  void readProblemData();
+
+  /** Set problem data directly when using MibS as a library **/
+  void loadProblemData(const CoinPackedMatrix& matrix,
+		       const double* colLB, const double* colUB,   
+		       const double* obj,
+		       const double* rowLB, const double* rowUB,
+		       const char *type, double objSense,
+		       double infinity);
+  
   /** Set integer indices and number of integer variables **/
   void findIntegers();
 
@@ -367,7 +407,7 @@ class MibSModel : public BlisModel {
  private:
 
   /** Initialize the object data **/
-  void initializeData();
+  void initialize();
 
   bool findIndex(int index, int size, int * indices);
 

@@ -38,6 +38,7 @@ class MibSBilevel {
 
    bool isIntegral_;
    bool isBilevelFeasible_;
+   bool isUpperIntegral_;
    bool useBilevelBranching_;
 
    double *upperSolution_;
@@ -56,7 +57,7 @@ class MibSBilevel {
  public:
    
    MibSBilevel() : isIntegral_(false), isBilevelFeasible_(false),
-      useBilevelBranching_(false){
+      isUpperIntegral_(false), useBilevelBranching_(false){
       upperSolution_ = 0;
       lowerSolution_ = 0;
       upperSolutionOrd_ = 0;

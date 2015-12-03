@@ -328,7 +328,7 @@ MibSTreeNode::process(bool isRoot, bool rampUp)
             getKnowledgeBroker()->tempTimer().start();
         }
 
-	if(0)
+	if (0)
 	   model->solver()->writeLp("treenode");
 
         lpStatus = static_cast<BlisLpStatus> (bound(model));
