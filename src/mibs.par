@@ -6,7 +6,7 @@
 #MibS_auxiliaryInfoFile ../data/MIPS/RANDOM/RAND_BILEVEL/miblp_20_15_50_0110_10_10.txt
 #Alps_instance ../data/moore90.mps
 #MibS_auxiliaryInfoFile ../data/moore90.txt
-Alps_timeLimit 200
+Alps_timeLimit 20
 #Alps_nodeLimit 4000000
 #Alps_nodeLimit 20000
 

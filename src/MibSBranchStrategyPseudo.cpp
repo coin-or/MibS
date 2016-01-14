@@ -139,52 +139,71 @@ MibSBranchStrategyPseudo::createCandBranchObjects(int numPassesLeft, double ub)
             
         infObjects.clear();
         firstObjects.clear();
+
+	//New Part
+	int found = 0;
+	int index = 0;
+	for (i = 0; i < numObjects; ++i) {
+	    
+	    object = model->objects(i);
+	    infeasibility = object->infeasibility(model, preferDir);
+	    if ((index < uN) && (infeasibility)) {
+		found = 1;
+		break;
+	    }
+	    ++index;
+	}
+	
+	index = -1;
+	
         
         for (i = 0; i < numObjects; ++i) {
                 
             object = model->objects(i);
-            infeasibility = object->infeasibility(model, preferDir);
-            
-            if (infeasibility) {
+	    ++index;
+	    if ((index < uN) || (!found)) {
+	        infeasibility = object->infeasibility(model, preferDir);
+		
+		if (infeasibility) {
+		    ++numInfs;
+		    intObject = dynamic_cast<BlisObjectInt *>(object);
                 
-                ++numInfs;
-                intObject = dynamic_cast<BlisObjectInt *>(object);
-                
-                if (intObject) {
-                    infObjects.push_back(intObject);
+		    if (intObject) {
+			infObjects.push_back(intObject);
                     
-                    if (!selectNow) {
-                        minCount = 
-                            ALPS_MIN(intObject->pseudocost().getDownCount(),
-                                     intObject->pseudocost().getUpCount());
+			if (!selectNow) {
+			    minCount = 
+				ALPS_MIN(intObject->pseudocost().getDownCount(),
+					 intObject->pseudocost().getUpCount());
                         
-                        if (minCount < 1) {
-                            firstObjects.push_back(intObject);
-                        }
+			    if (minCount < 1) {
+				firstObjects.push_back(intObject);
+			    }
                     }
 
 #ifdef BLIS_DEBUG
-                    if (intObject->columnIndex() == 40) {
-                        std::cout << "x[40] = " << saveSolution[40] 
-                                  << std::endl;
-                    }
+			if (intObject->columnIndex() == 40) {
+			    std::cout << "x[40] = " << saveSolution[40] 
+				      << std::endl;
+			}
 #endif
-
-                    intObject = NULL;
-                }
-                else {
-                    // TODO: currently all are integer objects.
+			
+			intObject = NULL;
+		    }
+		    else {
+			// TODO: currently all are integer objects.
 #ifdef BLIS_DEBU
-                    assert(0);
+			assert(0);
 #endif
-                }
+		    }
                 
-            }
-        }
+		}
+	    }
+	}
             
         if (numInfs) {
 #if 0
-            std::cout << "PSEUDO: numInfs = " << numInfs
+	  std::cout << "PSEUDO: numInfs = " << numInfs
                       << std::endl;
 #endif
             break;

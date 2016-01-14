@@ -32,6 +32,7 @@ class MibSModel : public BlisModel {
    friend class MibSCutGenerator;
    friend class MibSBilevel;
    friend class MibSBranchStrategyMaxInf;
+   friend class MibSBranchStrategyPseudo;
    friend class MibSTreeNode;
    friend class MibSHeuristic;
 

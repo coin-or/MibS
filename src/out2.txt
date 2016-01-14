@@ -1,0 +1,98 @@
+Alps_instance: /home/sat214/MIBS/OldMibS/data/MCDM/NO_CORR/10_ITEMS_1000/K5010W01.KNP.mps
+Alps_msgLevel: 5
+Blis_heurStrategy: 0
+MibS_auxiliaryInfoFile: /home/sat214/MIBS/OldMibS/data/MCDM/NO_CORR/10_ITEMS_1000/K5010W01.KNP.txt
+MibS_usePreprocessor: 0
+MibS_useLowerObjHeuristic: 1
+MibS_useObjCutHeuristic: 1
+MibS_usePureIntegerCut: 1
+MibS_useValFuncCut: 0
+MibS_useNoGoodCut: 0
+MibS_useIncObjCut: 0
+MibS_bilevelProblemType: 1
+MibS_bilevelCutTypes: 1
+MibS_cutStrategy: 2
+MibS_objBoundStrategy: 0
+MibS_blisCutStrategy: -1
+MibS_warmStartLL: 0
+MibS_maxThreadsLL: 1
+MibS_useBendersCut: 0
+MibS_useBoundCut: 0
+MibS_whichCutsLL: 2
+MibS_doDualFixing: 0
+==  Welcome to the Abstract Library for Parallel Search (ALPS) 
+==  Copyright 2000-2015 Lehigh University and others 
+==  All Rights Reserved. 
+==  Distributed under the Eclipse Public License 1.0 
+==  Version: Trunk (unstable) 
+==  Build Date: Aug 11 2015
+==  Revision Number: 2003
+Alps0030I Data file: /home/sat214/MIBS/OldMibS/data/MCDM/NO_CORR/10_ITEMS_1000/K5010W01.KNP.mps
+LL Data File: /home/sat214/MIBS/OldMibS/data/MCDM/NO_CORR/10_ITEMS_1000/K5010W01.KNP.txt
+Number of LL Variables:   10
+
+Coin0001I At line 1 NAME          BLANK
+Coin0001I At line 2 ROWS
+Coin0001I At line 5 COLUMNS
+Coin0001I At line 16 RHS
+Coin0001I At line 18 BOUNDS
+Coin0001I At line 29 ENDATA
+Coin0002I Problem BLANK has 1 rows, 10 columns and 10 elements
+Problem = K5010W01.KNP
+Data file = /home/sat214/MIBS/OldMibS/data/MCDM/NO_CORR/10_ITEMS_1000/K5010W01.KNP.mps
+Log file = K5010W01.KNP.log
+
+==  Bcps Version: Trunk (unstable)
+==  Bcps Revision Number: 2003
+==  Blis Version: Trunk (unstable)
+==  Blis Revision Number: 2003
+
+Blis0043I Objective coefficients are multiples of 1
+Alps0250I Starting search ...
+
+Nodes Done   Upper Bound   Lower Bound      Gap   Time Nodes Left
+         0          3655             0    3655      0          1
+         1          2946             0    2946      0          2
+         3          2668             0    2668      0          4
+         6          2417             0    2417      0          7
+        13          2202             0    2202      1         14
+        13          1945             0    1945      1         14
+        19          1755             0    1755      1         16
+        86          1733             0    1733      2         19
+       100          1733             0    1733      3         15
+       180          1493             0    1493      4         11
+       184          1401             0    1401      5         13
+       200          1401             0    1401      5         15
+       300          1401             0    1401      7         13
+       300          1401             0    1401      7         13
+       400          1401             0    1401     10         11
+       500          1401             0    1401     14          9
+       600          1401             0    1401     17         13
+       700          1401             0    1401     19          3
+
+Alps0208I Search completed.
+Alps0260I Best solution found had quality 1401
+Alps0264I Number of nodes processed:                705
+Alps0267I Number of nodes branched:                 352
+Alps0268I Number of nodes pruned before processing: 0
+Alps0270I Number of nodes left:                     0
+Alps0272I Tree depth: 9
+Alps0274I Search CPU time: 19.76 seconds
+Alps0278I Search wall-clock time: 20.57 seconds
+Blis0040I Checking feasibility took 19.6376 seconds
+Blis0053I Called MIBS cut generator 864 times, generated 1024 cuts, CPU time 0.0480 seconds, current strategy 3
+Blis0058I Relative optimality gap is 0.00%
+============================================
+Optimal solution:
+Cost = 1401
+x[0] = 1
+x[1] = 1
+x[3] = 1
+x[4] = 1
+x[5] = 1
+x[6] = 1
+y[2] = 1
+y[7] = 1
+y[8] = 1
+y[9] = 1
+============================================
