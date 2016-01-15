@@ -23,7 +23,7 @@ install:
   - cd ..
   - cd Cbc-trunk && ./configure --prefix=/home/travis/tkralphs/build && make install
   - cd ..
-  - cd src && make COININSTDIR=/home/travis/tkralphs/build CXXFLAGS= USE_CPLEX=FALSE
+  - cd src && make COININSTDIR=/home/travis/tkralphs/build USE_CPLEX=FALSE
 
 os:
   - linux
