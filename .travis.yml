@@ -25,5 +25,7 @@ install:
   - cd ..
   - cd src && make COININSTDIR=/home/travis/tkralphs/build USE_CPLEX=FALSE
 
+script: cd /home/travis/tkralphs/MibS/src && ./mibs -param mibs.par 
+
 os:
   - linux
