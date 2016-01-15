@@ -1,0 +1,19 @@
+language: cpp
+
+compiler:
+  - gcc
+
+before_script:
+  - svn co https://projects.coin-or.org/svn/CHiPPS/Blis/trunk Blis-trunk
+  - svn co https://projects.coin-or.org/svn/SYMPHONY/branches/WS SYMPHONY-WS
+  - git clone git@github.com:tkralphs/MibS 
+  - mkdir build
+  - cd Blis-trunk && ./configure --prefix=/home/travis/tkralphs/build && make install
+  - cd ..
+  - cd SYMPHONY-WS && ./configure --prefix=/home/travis/tkralphs/build && make install
+  - cd ..
+
+script: cd MibS/src && make COININSTDIR=/home/travis/tkralphs/build
+
+os:
+  - linux
