@@ -1,6 +1,8 @@
 MibS (Mixed Integer Bilevel Solver) 0.5
 =======================================
 
+[![Build Status](https://travis-ci.org/tkralphs/MibS.svg?branch=library)](https://travis-ci.org/tkralphs/MibS)
+
 SUPPORTED PLATFORMS
 
 MiBS should work on OS X, Linux, and Windows. The project files for building
