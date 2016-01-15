@@ -6,6 +6,11 @@ branches:
 compiler:
   - gcc
 
+addons:
+  apt:
+    packages:
+      - gfortran
+
 before_script:
   - svn co https://projects.coin-or.org/svn/CHiPPS/Blis/trunk Blis-trunk
   - svn co https://projects.coin-or.org/svn/SYMPHONY/branches/WS SYMPHONY-WS
