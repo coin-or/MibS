@@ -17,7 +17,7 @@ before_script:
   - mkdir build
   - cd Blis-trunk && ./configure --prefix=/home/travis/tkralphs/build && make install
   - cd ..
-  - cd SYMPHONY-WS && ./configure --prefix=/home/travis/tkralphs/build && make install
+  - cd SYMPHONY-WS && ./configure --enable-sensitivity-analysis --prefix=/home/travis/tkralphs/build && make install
   - cd ..
 
 script: cd MibS/src && make COININSTDIR=/home/travis/tkralphs/build
