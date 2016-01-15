@@ -11,16 +11,16 @@ addons:
     packages:
       - gfortran
 
-before_script:
+before_install:
   - svn co https://projects.coin-or.org/svn/CHiPPS/Blis/trunk Blis-trunk
   - svn co https://projects.coin-or.org/svn/SYMPHONY/branches/WS SYMPHONY-WS
-  - mkdir build
+
+install:
   - cd Blis-trunk && ./configure --prefix=/home/travis/tkralphs/build && make install
   - cd ..
   - cd SYMPHONY-WS && ./configure --enable-sensitivity-analysis --prefix=/home/travis/tkralphs/build && make install
   - cd ..
-
-script: cd MibS/src && make COININSTDIR=/home/travis/tkralphs/build
+  - cd src && make COININSTDIR=/home/travis/tkralphs/build
 
 os:
   - linux
