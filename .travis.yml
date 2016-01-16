@@ -19,11 +19,16 @@ before_install:
 install:
   - cd Blis-trunk && ./configure --prefix=/home/travis/tkralphs/build && make install
   - cd ..
-  - cd SYMPHONY-WS && ./configure --enable-sensitivity-analysis --prefix=/home/travis/tkralphs/build && make install
+  - cd SYMPHONY-WS
+  - ./configure --enable-sensitivity-analysis --prefix=/home/travis/tkralphs/build > /dev/null
+  - make install > /dev/null
   - cd ..
-  - cd Cbc-trunk && ./configure --prefix=/home/travis/tkralphs/build && make install
+  - cd Cbc-trunk
+  - ./configure --prefix=/home/travis/tkralphs/build > /dev/null
+  - make install > /dev/null
   - cd ..
-  - cd src && make COININSTDIR=/home/travis/tkralphs/build USE_CPLEX=FALSE
+  - cd src
+  - make COININSTDIR=/home/travis/tkralphs/build USE_CPLEX=FALSE > /dev/null
 
 script: cd /home/travis/build/tkralphs/MibS/src && LD_LIBRARY_PATH=/home/travis/tkralphs/build/lib ./mibs -param mibs.par -Alps_instance ../data/interdiction/MCDM/NO_CORR/10_ITEMS_1000/K5010W03.KNP.mps -MibS_auxiliaryInfoFile ../data/interdiction/MCDM/NO_CORR/10_ITEMS_1000/K5010W03.KNP.txt
 
