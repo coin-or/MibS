@@ -25,7 +25,7 @@ install:
   - cd ..
   - cd src && make COININSTDIR=/home/travis/tkralphs/build USE_CPLEX=FALSE
 
-script: cd /home/travis/build/tkralphs/MibS/src && LD_LIBRARY_PATH=/home/travis/tkralphs/build/lib ./mibs -param mibs.par -Alps_instance ../data/MCDM/NO_CORR/10_ITEMS_1000/K5010W03.KNP.mps -MibS_auxiliaryInfoFile ../data/MCDM/NO_CORR/10_ITEMS_1000/K5010W03.KNP.txt
+script: cd /home/travis/build/tkralphs/MibS/src && LD_LIBRARY_PATH=/home/travis/tkralphs/build/lib ./mibs -param mibs.par -Alps_instance ../data/interdiction/MCDM/NO_CORR/10_ITEMS_1000/K5010W03.KNP.mps -MibS_auxiliaryInfoFile ../data/interdiction/MCDM/NO_CORR/10_ITEMS_1000/K5010W03.KNP.txt
 
 os:
   - linux
