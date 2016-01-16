@@ -17,7 +17,8 @@ before_install:
   - svn co https://projects.coin-or.org/svn/Cbc/trunk Cbc-trunk
 
 install:
-  - cd Blis-trunk && ./configure --prefix=/home/travis/tkralphs/build && make install
+  - cd Blis-trunk && ./configure --prefix=/home/travis/tkralphs/build  > /dev/null
+  - make install > /dev/null
   - cd ..
   - cd SYMPHONY-WS
   - ./configure --enable-sensitivity-analysis --prefix=/home/travis/tkralphs/build > /dev/null
