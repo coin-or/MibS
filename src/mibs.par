@@ -40,10 +40,10 @@ Alps_timeLimit 200
 #Blis_cutStrategy      3 
 #Blis_cutGenerationFrequency 1
 
-Blis_cutCliqueStrategy      2 
+#Blis_cutCliqueStrategy      2 
 #Blis_cutGomoryStrategy      3
-Blis_cutFlowCoverStrategy   2
-Blis_cutKnapsackStrategy    2
+#Blis_cutFlowCoverStrategy   2
+#Blis_cutKnapsackStrategy    2
 
 
 #Blis_cutMirStrategy         0
@@ -78,7 +78,7 @@ MibS_useWSHeuristic 0 		# 0: false, 1: true
 MibS_useGreedyHeuristic 0 	# 0: false, 1: true
 MibS_usePureIntegerCut 1	# 0: false, 1: true
 MibS_useValFuncCut 0		# 0: false, 1: true 
-MibS_useNoGoodCut 0		# 0: false, 1: true 
+MibS_useNoGoodCut 1		# 0: false, 1: true 
 MibS_useIncObjCut 0		# 0: false, 1: true 
 MibS_bilevelProblemType 1	# 0: general, 1: interdict
 MibS_bilevelCutTypes 1		# 0: general, 1: general/interdict, 2: #general/binary UL, 3: binary UL
