@@ -82,11 +82,13 @@ MibSBranchStrategyPseudo::createCandBranchObjects(int numPassesLeft, double ub)
     double *saveSolution = NULL;
 
     BlisModel *model = dynamic_cast<BlisModel *>(model_);
+    MibSModel *mibsmodel = dynamic_cast<MibSModel *>(model); 
     OsiSolverInterface *solver = model->solver();
     
     int numCols = model->getNumCols();
     int numObjects = model->numObjects();
     int aveIterations = model->getAveIterations();
+    int uN = mibsmodel->upperDim_; 
 
 
     //std::cout <<  "aveIterations = " <<  aveIterations << std::endl;
