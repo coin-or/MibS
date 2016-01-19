@@ -82,7 +82,8 @@ MibSCutGenerator::bilevelFeasCut1(BcpsConstraintPool &conPool)
   double upper(getCutUpperBound());
   //double upper(- getCutUpperBound());
   double cutlb(- solver->getInfinity());
-  double cutub(upper - 1.0);
+  //new part
+  double cutub(floor(upper) - 1.0);
   
   //double EPS(0.01);
   //double cutub(upper - EPS);
@@ -123,7 +124,8 @@ MibSCutGenerator::bilevelFeasCut1(BcpsConstraintPool &conPool)
 
     if((tempVals[i] > etol) || (tempVals[i] < - etol)){
       indexList.push_back(i);
-      valsList.push_back(tempVals[i]);
+      //new part
+      valsList.push_back(floor(tempVals[i]));
     }
   }
 
