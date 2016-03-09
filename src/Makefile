@@ -46,7 +46,7 @@ SRCDIR = .
 #  CPLEX directories                                                     #
 ##########################################################################
 
-USE_CPLEX = TRUE
+USE_CPLEX = TRUE	
 CPLEXDIR      = /usr/local/cplex/
 CPLEXINCDIR   = $(CPLEXDIR)/include
 CPLEXLIBDIR   = $(CPLEXDIR)/lib/x86-64_linux/static_pic
@@ -60,7 +60,7 @@ CPLNFLAGS  = -lcplex -lm -lpthread -lreadline -lncurses
 CXX = g++
 
 # C++ Compiler options
-CXXFLAGS = -g -pipe -pedantic-errors -Wparentheses -Wreturn-type -Wcast-qual -Wall -Wpointer-arith -Wwrite-strings -Wconversion -std=c++11
+CXXFLAGS = -g -pipe -pedantic-errors -Wparentheses -Wreturn-type -Wcast-qual -Wall -Wpointer-arith -Wwrite-strings -Wconversion 
 ifeq ($(USE_CPLEX),TRUE)
 CXXFLAGS += -DUSE_CPLEX -I$(CPLEXINCDIR)
 endif

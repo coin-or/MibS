@@ -102,6 +102,7 @@ MibSModel::initialize()
   lowerRowNum_ = 0;
   upperRowNum_ = 0;
   structRowNum_ = 0;
+  isInterdict_ = false;
   upperColInd_ = NULL;
   lowerColInd_ = NULL;
   upperRowInd_ = NULL;
@@ -274,6 +275,7 @@ MibSModel::readAuxiliaryData()
        m++;
      }
      else if(key == "IB"){
+	 isInterdict_ = true;
        //FIXME: ALLOW MORE THAN ONE ROW
 	data_stream >> dValue;
 	interdictBudget_ = dValue;
@@ -749,6 +751,7 @@ MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
    setBounds(); // stores the original column and row bounds
    //checkProblemType(); // checks if MibS can solve problem entered
    setProblemType(); //determine the type of MIBLP
+   instanceStructure(newMatrix);
 }
 
 //#############################################################################
@@ -2734,4 +2737,133 @@ MibSModel::decodeToSelf(AlpsEncoded& encoded)
 }
 
 //#############################################################################
+void                                                                                                                                                                             
+MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix)                                                                                                                   
+{
+    /** Determines the properties of instance **/
+    std::cout<<"======================================="<<std::endl;                                                                                                              
+    std::cout<<"             Problem Structure          "<<std::endl;                                                                                                             
+    std::cout<<"======================================="<<std::endl;                                                                                                              
+    std::cout<<"Number of UL Variables: "<<upperDim_<<std::endl;                                                                                                                  
+    std::cout<<"Number of LL Variables: "<<lowerDim_<<std::endl;                                                                                                                  
+    std::cout<<"Number of UL Rows: "<<upperRowNum_<<std::endl;                                                                                                                    
+    std::cout<<"Number of LL Rows: "<<lowerRowNum_<<std::endl;                                                                                                                   
+
+    int i,j;                                                                                                                                                                      
+    int numCols(numVars_);                                                                                                                                                        
+    int numCons(numCons_);                                                                                                                                                        
+    bool allInt(true);                                                                                                                                                            
+    bool allUpperBin(true);                                                                                                                                                       
+    bool allLowerBin(true);                                                                                                                                                       
+    int uCols(upperDim_);                                                                                                                                                         
+    int lCols(lowerDim_);                                                                                                                                                         
+    int uRows(upperRowNum_);                                                                                                                                                      
+    int lRows(lowerRowNum_);                                                                                                                                                      
+    int * uColIndices = getUpperColInd();         
+    int * lColIndices = getLowerColInd();                                                                                                                                         
+    int * lRowIndices = getLowerRowInd();                                                                                                                                         
+                                                                                                                                                                                  
+    //Checks general or interdiction                                                                                                                                              
+    if(isInterdict_){                                                                                                                                                             
+    std::cout<<"This instance is an interdiction bilevel problem."<<std::endl;                                                                                                 
+    }                                                                                                                                                                             
+                                                                                                                                                                                  
+    //Checks type of variables                                                                                                                                                    
+    for(i = 0; i < numCols; i++){
+	if(colType_[i] == 'C'){
+	    std::cout<<"All of the veariables should be integer."<<std::endl;                                                                                                     
+            assert(colType_[i] != 'C');
+	}                                                                                                                                                                         
+        else if (colType_[i] == 'I'){
+	    if(binarySearch(0, lCols - 1, i, lColIndices) < 0){
+		allUpperBin = false;
+		if(!allLowerBin){
+		    break;
+		}
+	    }
+	    else{
+		allLowerBin = false;if(!allUpperBin){
+		    break;
+		}
+	    }
+	}
+    }
+                                                                                                                                                                         
+    if(allUpperBin){                                                                                                                                                              
+    std::cout<<"All of UL varibles are binary."<<std::endl;                                                                                                                    
+    }                                                                                                                                                                             
+                                                                                                                                                                                  
+    if(allLowerBin){                                                                                                                                                              
+    std::cout<<"All of LL varibles are binary."<<std::endl;                                                                                                                    
+    }                                                                                                                                                                             
+                                                                                                                                                                                  
+    int nonZero (newMatrix->getNumElements());                                                                                                                                    
+    const double * matElements = newMatrix->getElements();                                                                                                                        
+    const int * matIndices = newMatrix->getIndices();                                                                                                                             
+    const int * matStarts = newMatrix->getVectorStarts();                                                                                                                         
+                                                                                                                                                                                  
+    //Checks integrality of coefficients                                                                                                                                          
+    bool isInteger(true);                                                                                                                                                         
+                                                                                                                                                                                  
+    for(i = 0; i < nonZero; i++){
+	if((fabs(matElements[i] - floor(matElements[i])) > etol_) && (fabs(matElements[i] - ceil(matElements[i])) > etol_)){
+	    isInteger = false;
+	    std::cout<<"All of the coefficients should be integer."<<std::endl;
+	    assert(isInteger == true);
+	}
+    }                                                                                                                                                                             
+                                                                                                                                                                                  
+    //Checks signs of coefficients                                                                                                                                                
+    bool positiveA1(true);                                                                                                                                                        
+    bool positiveA2(true);                                                                                                                                                        
+    bool positiveG1(true);                                                                                                                                                        
+    bool positiveG2(true);                                                                                                                                                        
+    int counterStart, counterEnd;                                                                                                                                                 
+    int rowIndex, posRow, posCol;                                                                                                                                                 
+                                                                                                                                                                                  
+    for(i = 0; i < numCols; i++){                                                                                                                                                 
+        counterStart = matStarts[i];                                                                                                                                              
+        counterEnd = matStarts[i+1];                                                                                                                                              
+        for(j = counterStart; j < counterEnd; j++){                                                                                                                               
+            if(matElements[j] < 0){                                                                                                                                               
+                rowIndex = matIndices[j];                                                                                                                                         
+                posRow = binarySearch(0, lRows - 1, rowIndex, lRowIndices);                                                                                                       
+                posCol = binarySearch(0, lCols - 1, i, lColIndices);                                                                                                              
+                if(posRow < 0){                                                                                                                                                   
+                    if(posCol < 0){                                                                                                                                               
+                        positiveA1 = false;                                                                                                                                       
+                    }                                                                                                                                                             
+                    else{                                                                                                                                                         
+                        positiveG1 = false;                                                                                                                                       
+                    }                                                                                                                                                             
+                }   
+                else{                                                                                                                                                             
+                    if(posCol < 0){                                                                                                                                               
+                        positiveA2 = false;                                                                                                                                       
+                    }                                                                                                                                                             
+                    else{                                                                                                                                                         
+                        positiveG2 = false;                                                                                                                                       
+                    }                                                                                                                                                             
+                }                                                                                                                                                                 
+            }                                                                                                                                                                     
+        }                                                                                                                                                                         
+    }                                                                                                                                                                             
+                                                                                                                                                                                  
+    if (positiveA1){                                                                                                                                                              
+    std::cout<<"Matrix A1 is positive."<<std::endl;                                                                                                                            
+    }                                                                                                                                                                             
+                                                                                                                                                                                  
+    if (positiveG1){                                                                                                                                                              
+    std::cout<<"Matrix G1 is positive."<<std::endl;                                                                                                                            
+    }                                                                                                                                                                             
+                                                                                                                                                                                  
+    if (positiveA2){                                                                                                                                                              
+    std::cout<<"Matrix A2 is positive."<<std::endl;                                                                                                                            
+    }                                                                                                                                                                             
+                                                                                                                                                                                  
+    if (positiveG2){                                                                                                                                                              
+    std::cout<<"Matrix G2 is positive."<<std::endl;             
+    }
+}
+
 
