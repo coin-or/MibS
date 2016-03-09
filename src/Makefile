@@ -46,7 +46,7 @@ SRCDIR = .
 #  CPLEX directories                                                     #
 ##########################################################################
 
-USE_CPLEX = TRUE	
+USE_CPLEX = TRUE
 CPLEXDIR      = /usr/local/cplex/
 CPLEXINCDIR   = $(CPLEXDIR)/include
 CPLEXLIBDIR   = $(CPLEXDIR)/lib/x86-64_linux/static_pic
@@ -60,13 +60,13 @@ CPLNFLAGS  = -lcplex -lm -lpthread -lreadline -lncurses
 CXX = g++
 
 # C++ Compiler options
-CXXFLAGS = -g -pipe -pedantic-errors -Wparentheses -Wreturn-type -Wcast-qual -Wall -Wpointer-arith -Wwrite-strings -Wconversion 
+CXXFLAGS = -g -pipe -pedantic-errors -Wparentheses -Wreturn-type -Wcast-qual -Wall -Wpointer-arith -Wwrite-strings -Wconversion
 ifeq ($(USE_CPLEX),TRUE)
 CXXFLAGS += -DUSE_CPLEX -I$(CPLEXINCDIR)
 endif
 
 # additional C++ Compiler options for linking
-CXXLINKFLAGS = 
+CXXLINKFLAGS =
 
 # Directory with COIN libraries
 COININSTDIR = /home/ted/COIN/trunk/build-polyps-debug
@@ -128,3 +128,4 @@ clean:
 
 .cpp.obj:
 	$(CXX) $(CXXFLAGS) $(INCL) -c -o $@ `if test -f '$<'; then $(CYGPATH_W) '$<'; else $(CYGPATH_W) '$(SRCDIR)/$<'; fi`
+Status API Training Shop Blog About Pricing
