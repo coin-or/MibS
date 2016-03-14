@@ -2891,7 +2891,153 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix)
     }                                                                                                                                                                  
     if(positiveG2){                                   
     std::cout<<"Matrix G2 is positive."<<std::endl;             
-    }	    
+    }
+
+    bool paramValue(false);
+    int paramValue1(0);
+
+    //Maybe I can use that to make the code more efficient.
+    /*int lenNotWork(4);
+
+    std::string *notWorkParam = new std::string[4];
+    int *notWorkVal = new int[4];
+    
+    notWorkParam[0] = "MibS_usePreprocessor";
+    notWorkVal[0] = 0;
+    notWorkParam[1] = "MibS_useWSHeuristic";
+    notWorkVal[1] = 0;
+    notWorkParam[2] = "MibS_useGreedyHeuristic";
+    notWorkVal[2] = 0;
+    notWorkParam[3] = "MibS_useValFuncCut";
+    notWorkVal[3] = 0;*/
+    
+    if(isInterdict_){
+ 
+	//Param: "MibS_usePreprocessor"
+	 paramValue = MibSPar_->entry(MibSParams::usePreprocessor);
+	 if(paramValue != false){
+	     for(i = 0; i < argnum_ - 1; i++){
+		 if(((arglist_[i] == "-param") || (arglist_[i] == "MibS_usePreprocessor"))){
+		    std::cout<<"Wrong value for MibS_usePreprocessor. The correct value is 0."<<std::endl;
+		    assert(paramValue == false);
+		    }
+		}
+	     MibSPar()->setEntry(MibSParams::usePreprocessor, false);
+	 }
+
+	 //Param: "MibS_useWSHeuristic"
+	 paramValue = MibSPar_->entry(MibSParams::useWSHeuristic);
+	 if(paramValue != false){
+	    for(i = 0; i < argnum_ - 1; i++){
+		if(((arglist_[i] == "-param") || (arglist_[i] == "MibS_useWSHeuristic"))){
+		    std::cout<<"Wrong value for MibS_useWSHeuristic. The correct value is 0."<<std::endl;
+		    assert(paramValue == false);
+		}
+	    }
+	    MibSPar()->setEntry(MibSParams::useWSHeuristic, false);
+	}
+
+        //Param: "MibS_useGreedyHeuristic"
+	paramValue = MibSPar_->entry(MibSParams::useGreedyHeuristic);
+	if(paramValue != false){
+	    for(i = 0; i < argnum_ - 1; i++){
+		if(((arglist_[i] == "-param") || (arglist_[i] == "MibS_useGreedyHeuristic"))){
+		    std::cout<<"Wrong value for MibS_useGreedyHeuristic. The correct value is 0."<<std::endl;
+		    assert(paramValue == false);
+		}
+	    }
+	    MibSPar()->setEntry(MibSParams::useGreedyHeuristic, false);
+	}
+
+        //Param: "MibS_useValFuncCut"
+	paramValue = MibSPar_->entry(MibSParams::useValFuncCut);
+	if(paramValue != 0){
+	    for(i = 0; i < argnum_ - 1; i++){
+		if(((arglist_[i] == "-param") || (arglist_[i] == "MibS_useValFuncCut"))){
+		    std::cout<<"Wrong value for MibS_useValFuncCut. The correct value is 0."<<std::endl;
+		    assert(paramValue == false);
+		}
+	    }
+	    MibSPar()->setEntry(MibSParams::useValFuncCut, false);
+	}
+
+	bool paramPureCut(MibSPar_->entry(MibSParams::usePureIntegerCut));
+
+	if(paramPureCut != true){
+
+            //Param: "MibS_useIncObjCut"
+	    paramValue = MibSPar_->entry(MibSParams::useIncObjCut);
+	    if(paramValue != false){
+		for(i = 0; i < argnum_ - 1; i++){
+		    if(((arglist_[i] == "-param") || (arglist_[i] == "MibS_useIncObjCut"))){
+			std::cout<<"Wrong value for MibS_useIncObjCut. The correct value is 0."<<std::endl;
+			assert(paramValue == false);
+		    }
+		}
+		MibSPar()->setEntry(MibSParams::useIncObjCut, false);
+	    }
+
+            //Param: "MibS_useBendersCut" 
+	    paramValue = MibSPar_->entry(MibSParams::useBendersCut);
+	    if(paramValue != false){
+		for(i = 0; i < argnum_ - 1; i++){
+		    if(((arglist_[i] == "-param") || (arglist_[i] == "MibS_useBendersCut"))){
+			std::cout<<"Wrong value for MibS_useBendersCut. The correct value is 0."<<std::endl;
+			assert(paramValue == false);
+		    }
+		}
+		MibSPar()->setEntry(MibSParams::useBendersCut, false);
+	    }
+	}
+
+	bool found(false);
+	
+	//Param: "MibS_useBendersCut"
+	paramValue = MibSPar_->entry(MibSParams::useBendersCut);
+	if((positiveA2) && (positiveG2)){
+	    if((paramValue != true) && (paramPureCut == true)){
+		for(i = 0; i < argnum_ - 1; i++){
+		    if(((arglist_[i] == "-param") || (arglist_[i] == "MibS_useBendersCut"))){
+			found = true;
+			break;
+		    }
+		}
+		if(!found){
+		    MibSPar()->setEntry(MibSParams::useBendersCut, true);
+		}
+	    }
+	}
+	    
+	found = false;
+        //Param: "MibS_warmStartLL"
+	/*paramValue = MibSPar_->entry(MibSParams::warmStartLL);
+	if(paramValue != true){
+	    for(i = 0; i < argnum_ - 1; i++){
+		if(((arglist_[i] == "-param") || (arglist_[i] == "MibS_warmStartLL"))){
+		    found = true;
+		    break;
+		}
+	    }
+	    if(!found){
+		MibSPar()->setEntry(MibSParams::warmStartLL, true);
+	    }
+	    }*/
+
+        //Param: "MibS_bilevelCutType"
+	paramValue1 = MibSPar_->entry(MibSParams::bilevelCutTypes);
+	if(paramValue1 != 1){
+	    for(i = 0; i < argnum_ - 1; i++){
+		if(((arglist_[i] == "-param") || (arglist_[i] == "MibS_bilevelCutTypes"))){
+		    found = true;
+		    break;
+		}
+	    }
+	    if(!found){ 
+                MibSPar()->setEntry(MibSParams::bilevelCutTypes, 1);
+            }
+	}
+    }
+	    
 }
 
 
