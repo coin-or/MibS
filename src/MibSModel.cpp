@@ -488,6 +488,27 @@ MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
 
    int problemType(MibSPar_->entry(MibSParams::bilevelProblemType));
 
+   int i(0);
+
+   if(isInterdict_){
+       if(problemType != 1){
+	   for(i = 0; i < argnum_ - 1; i++){
+	       if(((arglist_[i] == "-param") || (arglist_[i] == "MibS_bilevelProblemType"))){
+		   std::cout<<"Wrong value for MibSProblemType. The correct value is 1."<<std::endl;
+		   assert(problemType == 1);
+	       }
+	   }
+	   MibSPar()->setEntry(MibSParams::bilevelProblemType, 1);
+	   problemType = 1;
+       }
+   }
+   else{
+       if(problemType == 1){
+	   std::cout<<"Wrong value for MibSProblemType. The correct value is 0."<<std::endl;
+	   assert(problemType == 0);
+       }
+   }
+
    int j(0);
    int beg(0);
 
