@@ -62,7 +62,7 @@ MibSModel::MibSModel()
 //#############################################################################
 MibSModel::~MibSModel()
 {
-
+  if(arglist_) delete [] arglist_;
   if(upperColInd_) delete [] upperColInd_;
   if(lowerColInd_) delete [] lowerColInd_;
   if(upperRowInd_) delete [] upperRowInd_;
@@ -103,6 +103,8 @@ MibSModel::initialize()
   upperRowNum_ = 0;
   structRowNum_ = 0;
   isInterdict_ = false;
+  argnum_ = 0;
+  arglist_ = NULL;
   upperColInd_ = NULL;
   lowerColInd_ = NULL;
   upperRowInd_ = NULL;
@@ -138,7 +140,14 @@ MibSModel::initialize()
 void 
 MibSModel::readParameters(const int argnum, const char * const * arglist)
 {
-   //std::cout << "Reading parameters ..." << std::endl;
+
+    int i;
+    argnum_ = argnum;
+    arglist_ = new std::string[argnum];
+    for (i = 0; i < argnum; i++){
+	arglist_[i] = arglist[i];
+    }
+    
   AlpsPar_->readFromArglist(argnum, arglist);
   BlisPar_->readFromArglist(argnum, arglist);
   MibSPar_->readFromArglist(argnum, arglist);
@@ -489,7 +498,7 @@ MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
    int problemType(MibSPar_->entry(MibSParams::bilevelProblemType));
 
    int i(0);
-
+   
    if(isInterdict_){
        if(problemType != 1){
 	   for(i = 0; i < argnum_ - 1; i++){
@@ -508,7 +517,7 @@ MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
 	   assert(problemType == 0);
        }
    }
-
+		   
    int j(0);
    int beg(0);
 
@@ -2870,21 +2879,19 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix)
         }                                                                                                                                                                         
     }                                                                                                                                                                             
                                                                                                                                                                                   
-    if (positiveA1){                                                                                                                                                              
+    if(positiveA1){                                                                                                                                                              
     std::cout<<"Matrix A1 is positive."<<std::endl;                                                                                                                            
     }                                                                                                                                                                             
                                                                                                                                                                                   
-    if (positiveG1){                                                                                                                                                              
+    if(positiveG1){                                                                                                                                                              
     std::cout<<"Matrix G1 is positive."<<std::endl;                                                                                                                            
-    }                                                                                                                                                                             
-                                                                                                                                                                                  
-    if (positiveA2){                                                                                                                                                              
+    }                                                                                                                                                                      
+    if(positiveA2){                                                                                                                                                              
     std::cout<<"Matrix A2 is positive."<<std::endl;                                                                                                                            
-    }                                                                                                                                                                             
-                                                                                                                                                                                  
-    if (positiveG2){                                                                                                                                                              
+    }                                                                                                                                                                  
+    if(positiveG2){                                   
     std::cout<<"Matrix G2 is positive."<<std::endl;             
-    }
+    }	    
 }
 
 
