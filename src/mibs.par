@@ -27,7 +27,7 @@ Alps_timeLimit 200
 #Alps_masterInitNodeNum 8
 #Alps_hubInitNodeNum 16
 #Alps_unitWorkNodes 100         # or unit time
-#Alps_unitWorkTime 0.03
+#Alps_unitWorkTime 0.03 
 #Alps_needWorkThreshold 0.5
 #Alps_changeWorkThreshold 0.10
 #Alps_donorThreshold 0.10
@@ -36,11 +36,11 @@ Alps_timeLimit 200
 #Alps_hubReportPeriod 0.5
 
 
-#Blis_cutRampUp 1      # true(1) or false(0)
-#Blis_cutStrategy      3
+#Blis_cutRampUp 1      # true(1) or false(0) 
+#Blis_cutStrategy      3 
 #Blis_cutGenerationFrequency 1
 
-#Blis_cutCliqueStrategy      2
+#Blis_cutCliqueStrategy      2 
 #Blis_cutGomoryStrategy      3
 #Blis_cutFlowCoverStrategy   2
 #Blis_cutKnapsackStrategy    2
@@ -77,17 +77,17 @@ MibS_useObjCutHeuristic 0 	# 0: false, 1: true
 MibS_useWSHeuristic 0 		# 0: false, 1: true
 MibS_useGreedyHeuristic 0 	# 0: false, 1: true
 MibS_usePureIntegerCut 1	# 0: false, 1: true
-MibS_useValFuncCut 0   		# 0: false, 1: true
-MibS_useNoGoodCut 1		  # 0: false, 1: true
-MibS_useIncObjCut 0		    # 0: false, 1: true
-MibS_bilevelProblemType 1	    # 0: general, 1: interdict
-MibS_bilevelCutTypes 1		    # 0: general, 1: general/interdict, 2: #general/binary UL, 3: binary UL
-#MibS_whichActiveConMethod 1	    # 0: simple, 1: basis
-MibS_cutStrategy 2	   	    # 0: branch only, 1: cut only, 2: use cut #and branch
-MibS_objBoundStrategy 0 	    # 0: LL obj bound, 1: interdiction bound
-MibS_blisCutStrategy -1 	      # -2: root, -1: auto, 0: disable, any positive integer
-#MibS_blisBranchStrategy 0   	      # 0: max inf, 1: pseudocost, 2: relibility, 3: strong
-#MibS_upperFileFormat 0	 	      # 0: mps, 1: AMPL/GMPL (not working, yet)
+MibS_useValFuncCut 0		# 0: false, 1: true 
+MibS_useNoGoodCut 1		# 0: false, 1: true 
+MibS_useIncObjCut 0		# 0: false, 1: true 
+MibS_bilevelProblemType 1	# 0: general, 1: interdict
+MibS_bilevelCutTypes 1		# 0: general, 1: general/interdict, 2: #general/binary UL, 3: binary UL
+#MibS_whichActiveConMethod 1	# 0: simple, 1: basis 
+MibS_cutStrategy 2		# 0: branch only, 1: cut only, 2: use cut #and branch
+MibS_objBoundStrategy 0 	# 0: LL obj bound, 1: interdiction bound
+MibS_blisCutStrategy -1 		# -2: root, -1: auto, 0: disable, any positive integer
+#MibS_blisBranchStrategy 0   	# 0: max inf, 1: pseudocost, 2: relibility, 3: strong
+#MibS_upperFileFormat 0		# 0: mps, 1: AMPL/GMPL (not working, yet)
 MibS_warmStartLL 0
 MibS_maxThreadsLL 1
 MibS_useBendersCut 1

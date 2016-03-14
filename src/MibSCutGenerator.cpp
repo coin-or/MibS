@@ -2785,9 +2785,6 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
 
     bool useBoundCut = 
        localModel_->MibSPar_->entry(MibSParams::useBoundCut);
-
-    bool useNoGoodCut =
-	localModel_->MibSPar_->entry(MibSParams::useNoGoodCut);
     
     int useBendersCut = 
        localModel_->MibSPar_->entry(MibSParams::useBendersCut);
@@ -2798,10 +2795,6 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
        boundCuts(conPool);
     }
 
-    /*if (useNoGoodCut){
-	noGoodCut(conPool);
-    }*/
-    
     if(localModel_->solIsUpdated_)
       bS = localModel_->bS_;
     else
@@ -2824,7 +2817,7 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
       if (bS->isIntegral_){
 	 status = feasibilityCuts(conPool) ? true : false;
       }
-      return (status || (interdictionCuts(conPool) ? true : false));
+      return (status && (interdictionCuts(conPool) ? true : false));
     }
     else if(bS->isUpperIntegral_ && cutTypes == 2){
       //problem with binary UL variables and integer LL variables
@@ -2856,7 +2849,7 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
   }
 
   return numCuts ? true : false;
-  
+
 }
 
 //#############################################################################
