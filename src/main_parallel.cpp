@@ -174,7 +174,7 @@ int  main (int argc, char *argv[])
       fprintf (stderr, "Failed to create LP.\n");
       exit(0);
    }
-     
+
 #define EXACT
 
 #ifdef EXACT //EXACT Cover
@@ -358,7 +358,7 @@ int  main (int argc, char *argv[])
 			   structRowNum, structRowInd, 0, NULL);
 
    model.loadProblemData(*newMatrix, varLB, varUB, objCoef, conLB, 
-			 conUB, colType, mps->getInfinity());
+			 conUB, colType, -1, mps->getInfinity());
 
    model.MibSPar()->setEntry(MibSParams::bilevelProblemType, 1);
    //model.MibSPar()->setEntry(MibSParams::cutStrategy, 1);
