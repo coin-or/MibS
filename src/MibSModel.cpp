@@ -137,7 +137,7 @@ MibSModel::initialize()
 void 
 MibSModel::readParameters(const int argnum, const char * const * arglist)
 {
-  std::cout << "Reading parameters ..." << std::endl;
+   //std::cout << "Reading parameters ..." << std::endl;
   AlpsPar_->readFromArglist(argnum, arglist);
   BlisPar_->readFromArglist(argnum, arglist);
   MibSPar_->readFromArglist(argnum, arglist);
@@ -196,7 +196,7 @@ MibSModel::setBlisParameters()
   /* Set Blis Parameters to keep cutting until no cut is found */
   BlisPar()->setEntry(BlisParams::cutFactor, ALPS_DBL_MAX);
   BlisPar()->setEntry(BlisParams::cutPass, ALPS_INT_MAX);
-  BlisPar()->setEntry(BlisParams::tailOff, -1000.0);
+  BlisPar()->setEntry(BlisParams::tailOff, -10000);
   BlisPar()->setEntry(BlisParams::denseConFactor, ALPS_DBL_MAX);
 
   /* Set cut generation frequency to 1 */
@@ -1669,7 +1669,7 @@ MibSModel::userFeasibleSolution(const double * solution, bool &userFeasible)
       //std::cout << "This solution comes from MibSModel.cpp:1665" << std::endl;
       mibSol = new MibSSolution(getNumCols(),
 				lpSolution,
-				upperObj * solver()->getObjSense(),
+				upperObj,
 				this);
       
       storeSolution(BlisSolutionTypeHeuristic, mibSol);

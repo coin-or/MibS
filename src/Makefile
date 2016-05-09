@@ -43,6 +43,16 @@ ADDINCFLAGS = -I../include -I/usr/local/cplex/include/ilcplex
 SRCDIR = .
 
 ##########################################################################
+#  CPLEX directories                                                     #
+##########################################################################
+
+USE_CPLEX = TRUE
+CPLEXDIR      = /usr/local/cplex/
+CPLEXINCDIR   = $(CPLEXDIR)/include
+CPLEXLIBDIR   = $(CPLEXDIR)/lib/x86-64_linux/static_pic
+CPLNFLAGS  = -lcplex -lm -lpthread -lreadline -lncurses
+
+##########################################################################
 #  Compiler and options                                                  #
 ##########################################################################
 
@@ -50,7 +60,10 @@ SRCDIR = .
 CXX = g++
 
 # C++ Compiler options
-CXXFLAGS = -g -pipe -Wparentheses -Wreturn-type -Wcast-qual -Wall -Wpointer-arith -Wwrite-strings -Wconversion
+CXXFLAGS = -g -pipe -Wparentheses -Wreturn-type -Wcast-qual -Wall -Wpointer-arith -Wwrite-strings -Wconversion 
+ifeq ($(USE_CPLEX),TRUE)
+CXXFLAGS += -DUSE_CPLEX -I$(CPLEXINCDIR)
+endif
 
 # additional C++ Compiler options for linking
 CXXLINKFLAGS = 
@@ -66,10 +79,16 @@ COIN_HAS_PKGCONFIG = TRUE
 
 ifeq ($(COIN_HAS_PKGCONFIG),TRUE)
 LIBS = `PKG_CONFIG_PATH=$(COININSTDIR)/lib/pkgconfig:$(COININSTDIR)/share/pkgconfig: pkg-config --libs blis osi-cbc osi-sym`
+ifeq ($(USE_CPLEX),TRUE)
+LIBS += `PKG_CONFIG_PATH=$(COININSTDIR)/lib/pkgconfig:$(COININSTDIR)/share/pkgconfig: pkg-config --libs osi-cplex`
+endif
 else
 LIBS =  `cat $(COINDOCDIR)/Blis/blis_addlibs.txt` \
         `cat $(COINDOCDIR)/Cbc/cbc_addlibs.txt` \
         `cat $(COINDOCDIR)/SYMPHONY/sym_addlibs.txt`
+ifeq ($(USE_CPLEX),TRUE)
+LIBS += -L$(CPLEXLIBDIR) $(CPLNFLAGS)
+endif
 endif
 
 USE_CPLEX = TRUE

@@ -31,6 +31,9 @@ class MibSParams : public AlpsParameterSet {
      useNoGoodCut,
      useIncObjCut,
      useBendersCut,
+     useBoundCut,
+     boundCutOptimal,
+     boundCutRelaxUpper,
      useObjCutHeuristic,
      useLowerObjHeuristic,
      useWSHeuristic,
@@ -70,6 +73,7 @@ class MibSParams : public AlpsParameterSet {
   enum strParams{
       strDummy,
       auxiliaryInfoFile,
+      feasCheckSolver,
       endOfStrParams
   };
 

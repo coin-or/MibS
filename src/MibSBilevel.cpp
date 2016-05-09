@@ -16,6 +16,10 @@
 #include "OsiCbcSolverInterface.hpp"
 #include "symphony.h"
 #include "OsiSymSolverInterface.hpp"
+#ifdef USE_CPLEX
+#include "cplex.h"
+#include "OsiCpxSolverInterface.hpp"
+#endif
 
 #include "MibSBilevel.h"
 #include "MibSModel.h"
@@ -194,6 +198,10 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
   if(isUpperIntegral_)
      checkBilevelFeasiblity(mibs->isRoot_);
 
+  /* run a heuristic to find a better feasible solution */
+  heuristic_->findHeuristicSolutions();
+
+
 }
 
 //#############################################################################
@@ -216,7 +224,10 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
   int probType =
     model_->MibSPar_->entry(MibSParams::bilevelProblemType);
 
-  if (warmStartLL && solver_){
+  std::string feasCheckSolver =
+     model_->MibSPar_->entry(MibSParams::feasCheckSolver);
+
+  if (warmStartLL && (feasCheckSolver == "SYMPHONY") && solver_){
      solver_ = setUpModel(model_->getSolver(), false);
   }else{
      if (solver_){
@@ -233,14 +244,13 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
   //}
   //delete ws;
 
-  if(0)
+  if(1)
     lSolver->writeLp("lowerlevel");
 
-  if(0){
+  if (feasCheckSolver == "Cbc"){
     dynamic_cast<OsiCbcSolverInterface *> 
       (lSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
-  }
-  else{
+  }else if (feasCheckSolver == "SYMPHONY"){
      //dynamic_cast<OsiSymSolverInterface *> 
      // (lSolver)->setSymParam("prep_level", -1);
     
@@ -283,15 +293,25 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 	sym_set_int_param(env, "generate_cgl_flowcover_cuts", 
 			  DO_NOT_GENERATE);
      }
+  }else if (feasCheckSolver == "CPLEX"){
+#ifdef USE_CPLEX
+     lSolver->setHintParam(OsiDoReducePrint);
+     lSolver->messageHandler()->setLogLevel(0);
+     CPXENVptr cpxEnv = 
+	dynamic_cast<OsiCpxSolverInterface*>(lSolver)->getEnvironmentPtr();
+     assert(cpxEnv);
+     CPXsetintparam(cpxEnv, CPX_PARAM_SCRIND, CPX_OFF);
+     CPXsetintparam(cpxEnv, CPX_PARAM_THREADS, maxThreadsLL);
+#endif
   }
-  if (warmStartLL){
+  
+  if (warmStartLL && feasCheckSolver == "SYMPHONY"){
      lSolver->resolve();
+     setWarmStart(lSolver->getWarmStart());
   }else{
      lSolver->branchAndBound();
   }
 
-  setWarmStart(lSolver->getWarmStart());
-  
   const double * sol = model_->solver()->getColSolution();
   double objVal(lSolver->getObjValue() * model_->getLowerObjSense());
   
@@ -361,18 +381,12 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
      isBilevelFeasible_ = true;
      useBilevelBranching_ = false;
      
-  }
-  else{
+  }else if (lSolver->isProvenOptimal()){
      /** Current solution is not bilevel feasible, 
 	 but we may still have a solution **/
      
      //std::cout << "Solution is not bilevel feasible." << std::endl;
-    
-     int numCols = model_->solver()->getNumCols();
-     const double * upperObjCoeffs = model_->solver()->getObjCoefficients();
-     double upperObj(0);
-     double objSense = model_->solver()->getObjSense();
-     double * newSolution = new double[numCols];  
+
      const double * values = lSolver->getColSolution();
      int lN(model_->getLowerDim());
      int i(0);
@@ -385,8 +399,19 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 	   optLowerSolution_[i] = (double) values[i];
      }
      
+     int numCols = model_->solver()->getNumCols();
      int pos(0);
 
+#if 1
+     for(i = 0; i < numCols; i++){
+	if ((pos = model_->bS_->binarySearch(0, lN - 1, i, lowerColInd)) >= 0){
+	   optLowerSolutionOrd_[pos] = optLowerSolution_[pos];
+	}
+     }
+#else
+     double upperObj(0);
+     double * newSolution = new double[numCols];  
+     const double * upperObjCoeffs = model_->solver()->getObjCoefficients();
      for(i = 0; i < numCols; i++){
 	pos = model_->bS_->binarySearch(0, lN - 1, i, lowerColInd);
 	if(pos < 0){
@@ -399,19 +424,20 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 	}
 	upperObj += newSolution[i] * upperObjCoeffs[i];
      }
-	  
+
      if(model_->checkUpperFeasibility(newSolution)){
 	MibSSolution *mibsSol = new MibSSolution(numCols, newSolution,
-						 upperObj * objSense,
+						 upperObj,
 						 model_);
 	
 	model_->storeSolution(BlisSolutionTypeHeuristic, mibsSol);
      }
      delete [] newSolution;
-     
-     /* run a heuristic to find a better feasible solution */
-     heuristic_->findHeuristicSolutions();
+#endif	  
 
+     /* This is now called directly from createBilevel(), but leave */
+     /* it commented for now */
+     /* heuristic_->findHeuristicSolutions(); */
 
      isBilevelFeasible_ = false;
      if(cutStrategy != 1)
@@ -453,6 +479,9 @@ MibSBilevel::setUpModel(OsiSolverInterface * oSolver, bool newOsi,
 
   bool doDualFixing =
     model_->MibSPar_->entry(MibSParams::doDualFixing);
+
+  std::string feasCheckSolver =
+    model_->MibSPar_->entry(MibSParams::feasCheckSolver);
 
   OsiSolverInterface * nSolver;
 
@@ -499,14 +528,22 @@ MibSBilevel::setUpModel(OsiSolverInterface * oSolver, bool newOsi,
   }
   
   if (newOsi){
-     //nSolver = new OsiCbcSolverInterface();
-     nSolver = new OsiSymSolverInterface();
-     //OsiSolverInterface * oSolver = model_->getSolver();
-     
-     //const double * matElements = matrix->getElements();
-     //const int * matIndices = matrix->getIndices();
-     //const int * matStarts = matrix->getVectorStarts();
-     
+     if (feasCheckSolver == "Cbc"){
+	nSolver = new OsiCbcSolverInterface();
+     }else if (feasCheckSolver == "SYMPHONY"){
+	nSolver = new OsiSymSolverInterface();
+     }else if (feasCheckSolver == "CPLEX"){
+#ifdef USE_CPLEX
+	nSolver = new OsiCpxSolverInterface();
+#else
+	throw CoinError("CPLEX chosen as solver, but it has not been enabled",
+			"setUpModel", "MibsBilevel");
+#endif
+     }else{
+	throw CoinError("Unknown solver chosen",
+			"setUpModel", "MibsBilevel");
+     }
+	
      int * integerVars = new int[lCols];
      double * objCoeffs = new double[lCols];
      
@@ -600,7 +637,8 @@ MibSBilevel::setUpModel(OsiSolverInterface * oSolver, bool newOsi,
 #define SYM_VERSION_IS_WS strcmp(SYMPHONY_VERSION, "WS")  
 
 #if SYMPHONY_VERSION_IS_WS
-  if (probType == 1 && warmStartLL && !newOsi && doDualFixing){ //Interdiction
+  if (feasCheckSolver == "SYMPHONY" && probType == 1 && warmStartLL &&
+      !newOsi && doDualFixing){ //Interdiction
 
      /** Get upper bound from best known (feasible) lower level solution and try 
 	 to fix additional variables by sensitivity analysis **/
@@ -617,7 +655,8 @@ MibSBilevel::setUpModel(OsiSolverInterface * oSolver, bool newOsi,
 	blisSol = dynamic_cast<BlisSolution*>(si->first);
 	sol = blisSol->getValues();
 	for (i = 0; i < uCols; i++){
-	   if (lpSol[uColIndices[i]] > 1 - etol && sol[lColIndices[i]] > 1-etol){
+	   if (lpSol[uColIndices[i]] > 1 - etol &&
+	       sol[lColIndices[i]] > 1-etol){
 	      break;
 	   }
 	}
@@ -654,8 +693,9 @@ MibSBilevel::setUpModel(OsiSolverInterface * oSolver, bool newOsi,
 	   if (newUbVal[i] == 1){
 	      // Try fixing it to zero
 	      newUbVal[i] = 0; 
-	      sym_get_lb_for_new_rhs(env, 0, NULL, NULL, uCols, newLbInd, newLbVal,
-				     uCols, newUbInd, newUbVal, &newLb);
+	      sym_get_lb_for_new_rhs(env, 0, NULL, NULL, uCols, newLbInd,
+				     newLbVal, uCols, newUbInd, newUbVal,
+				     &newLb);
 	      if (objSense*newLb > Ub + etol){
 		 //Victory! This variable can be fixed to 1 permanently
 		 newLbVal[i] = 1;
@@ -666,8 +706,9 @@ MibSBilevel::setUpModel(OsiSolverInterface * oSolver, bool newOsi,
 	      if (newLbVal[i] == 0){
 		 // Try fixing it to one
 		 newLbVal[i] = 1;
-		 sym_get_lb_for_new_rhs(env, 0, NULL, NULL, uCols, newLbInd, newLbVal,
-					uCols, newUbInd, newUbVal, &newLb);
+		 sym_get_lb_for_new_rhs(env, 0, NULL, NULL, uCols, newLbInd,
+					newLbVal, uCols, newUbInd, newUbVal,
+					&newLb);
 		 if (objSense*newLb > Ub + etol){
 		    //Victory! This variable can be fixed to 0 permanently
 		    newUbVal[i] = 0;
