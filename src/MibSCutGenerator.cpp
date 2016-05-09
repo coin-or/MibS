@@ -454,6 +454,9 @@ MibSCutGenerator::boundCuts(BcpsConstraintPool &conPool)
       std::vector<int> indexList;
       std::vector<double> valsList;
       for(i = 0; i < lCols; i++){
+	 if (lObjCoeffs[i] == 0.0){
+	    continue;
+	 }
 	 index = lColIndices[i];
 	 indexList.push_back(index);
 	 valsList.push_back(-lObjSense *lObjCoeffs[i]);
