@@ -36,7 +36,7 @@ OBJS =  main_parallel.o \
 ADDLIBS =
 
 # CHANGEME: Additional flags for compilation (e.g., include flags)
-ADDINCFLAGS = -I../include -I/home/ted/cplex126/cplex/include/ilcplex 
+ADDINCFLAGS = -I../include -I/usr/local/cplex/include/ilcplex 
 
 # CHANGEME: Directory to the sources for the (example) problem definition
 # files
@@ -75,7 +75,7 @@ endif
 USE_CPLEX = TRUE
 
 ifeq ($(USE_CPLEX),TRUE)
-LIBS += -I/home/ted/cplex126/cplex/include/ilcplex -L/home/ted/cplex126/cplex/lib/x86-64_linux/static_pic/ -lcplex -lpthread -lm
+LIBS += -I/usr/local/cplex/include/ilcplex -L/usr/local/cplex/lib/x86-64_linux/static_pic/ -lcplex -lpthread -lm
 endif
 
 ###########################################################################
