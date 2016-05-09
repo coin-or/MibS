@@ -198,6 +198,10 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
   if(isUpperIntegral_)
      checkBilevelFeasiblity(mibs->isRoot_);
 
+  /* run a heuristic to find a better feasible solution */
+  heuristic_->findHeuristicSolutions();
+
+
 }
 
 //#############################################################################
@@ -430,10 +434,10 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
      }
      delete [] newSolution;
 #endif	  
-     
-     /* run a heuristic to find a better feasible solution */
-     heuristic_->findHeuristicSolutions();
 
+     /* This is now called directly from createBilevel(), but leave */
+     /* it commented for now */
+     /* heuristic_->findHeuristicSolutions(); */
 
      isBilevelFeasible_ = false;
      if(cutStrategy != 1)
