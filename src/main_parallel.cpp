@@ -37,6 +37,8 @@
 #include <cplex.h>
 //#include <cplexx.h>
 
+//#define EXACT
+#ifdef EXACT
 #include "CoinError.hpp"
 
 #include "OsiSolverInterface.hpp"
@@ -50,12 +52,34 @@
 #else
 #include "AlpsKnowledgeBrokerSerial.h"
 #endif
+#endif
 
 #define M 10E6;
 #define EPSILON 0.00000001
 #define MYNODELIM 10 // node limit for cover search
-#define MYTILIM 1800 // time limit for cover search
+#define MYTILIM 3600 // time limit for cover search
+#define MYTILIM_SUB 10 // time limit for subMIPs
 #define MODE_IBLP 1 // 1 build and solve IBLP - 2 read MIP load sol and solve
+
+static int CPXPUBLIC
+cutcallback (CPXCENVptr env,
+		 void       *cbdata,
+		 int        wherefrom,
+		 void       *cbhandle,
+		 int        *useraction_p)
+{
+   int status = 0;
+   int nodecount;
+   CPXCLPptr lp;
+   
+   status = CPXgetcallbackinfo (env, cbdata, wherefrom,
+                                CPX_CALLBACK_INFO_NODE_COUNT,
+                                &nodecount);
+   if (nodecount <= 1){
+      status = CPXgetcallbacklp (env, cbdata, wherefrom, &lp);
+      status =  CPXwriteprob (env, lp, "root.lp", "LP");
+   }
+}
 
 int  main (int argc, char *argv[])
 {
@@ -63,17 +87,21 @@ int  main (int argc, char *argv[])
    clock_t start, end;
    double cputime_iblp, cputime_MIP;
      
-   char         *inputfilename, *iblpname, *buffer, *instancefile, *probdir, *solfilename, *solfile;
+   char         *inputfilename, *iblpname, *resfilename;
+   char         *buffer, *instancefile, *probdir, *solfilename, *solfile;
    CPXENVptr     env = NULL;
    CPXLPptr      lp = NULL, dualp = NULL;
    int           status = 0;
    int           primal_numrows, primal_numcols, dual_numrows, dual_numcols;
+   int           numnz;
    //double *x;
    double incumbentval, objval;
    bool loadsol = false;
    int lpstat;
+   int GENERATE_INCUMBENT = 0;
      
    iblpname = new char[100];
+   resfilename = new char[100];
    buffer = new char[100];
    instancefile = new char[100];
    solfile = new char[100];
@@ -81,6 +109,11 @@ int  main (int argc, char *argv[])
    /* Check the command line arguments */
      
    switch (argc) {
+    case 2:
+      inputfilename = argv [1];
+      GENERATE_INCUMBENT = 1;
+      break;
+      
     case 3:
       inputfilename = argv [1];
       incumbentval = atof(argv [2]);
@@ -115,30 +148,32 @@ int  main (int argc, char *argv[])
      
    strcpy (buffer, inputfilename);
    buffer [strlen (buffer) - 4] = '\0';
-   strcat (buffer, "_iblp.mps");
+   strcat (buffer, "_iblp.lp");
    strcpy (iblpname, buffer);
      
    // results file
    std::ofstream resfile_MIP;
-   if (MODE_IBLP == 2)
+   if (MODE_IBLP == 2){
       resfile_MIP.open ("results_MIP.txt", std::ofstream::app);
-     
-   std::ofstream resfile;
-   if (MODE_IBLP == 1)
-      resfile.open ("results.txt", std::ofstream::app);
-     
-   if (resfile_MIP.is_open ()){ 
       resfile_MIP << "Problem" << '\t' << inputfilename << std::endl;
       resfile_MIP << "Time limit" << '\t' << MYTILIM << std::endl;
       resfile_MIP << std::endl;
    }
-     
-   if (resfile.is_open ()){ 
-      resfile << "Problem" << '\t' << iblpname << std::endl;
-      resfile << "Time limit" << '\t' << MYTILIM << std::endl;
-      resfile << std::endl;
-   }
+   
+#ifdef COUT_TO_FILE
+   std::ofstream resfile;
+   if (MODE_IBLP == 1){
+      // If we want to put results in a file
+      strcpy (buffer, inputfilename);
+      buffer [strlen (buffer) - 4] = '\0';
+      strcat (buffer, "_results.txt");
+      strcpy (resfilename, buffer);
 
+      resfile.open (resfilename, std::ofstream::app);
+      std::cout.rdbuf(resfile.rdbuf());
+   }
+#endif
+   
    /* Initialize the CPLEX environment */
      
    env = CPXopenCPLEX (&status);
@@ -151,9 +186,13 @@ int  main (int argc, char *argv[])
       exit(0);
    }
      
+   status = CPXsetusercutcallbackfunc (env, cutcallback, NULL);
+   //status = CPXsetintparam (env, CPXPARAM_Preprocessing_Linear, 0);
+   //status = CPXsetintparam (env, CPXPARAM_MIP_Strategy_CallbackReducedLP, CPX_OFF);
+
    /* Turn on output to the screen */
      
-   status = CPXsetintparam (env, CPX_PARAM_SCRIND, CPX_ON);
+   status = CPXsetintparam (env, CPX_PARAM_SCRIND, CPX_OFF);
    if ( status ) {
       fprintf (stderr,
 	       "Failure to turn on screen indicator, error %d.\n", status);
@@ -175,7 +214,44 @@ int  main (int argc, char *argv[])
       exit(0);
    }
 
-#define EXACT
+   /* Now read the file, and copy the data into the created lp */
+   //status = CPXsetintparam(env, CPX_PARAM_ADVIND ,  1); 
+   status = CPXreadcopyprob (env, lp, instancefile, NULL);
+   CPXLPptr clone = CPXcloneprob (env, lp, &status);
+   if ( status ) {
+      fprintf (stderr, "Failed to clone the problem.\n");
+      exit(0);
+   }
+
+   if (GENERATE_INCUMBENT == 1){
+      status = CPXsetintparam(env, CPX_PARAM_NODELIM, 1);
+      status = CPXmipopt(env, clone);
+      
+      lpstat = CPXgetstat(env, clone);
+      if (lpstat == CPXMIP_NODE_LIM_INFEAS){
+	 status = CPXsetintparam(env, CPX_PARAM_NODELIM, 10000000000);
+	 status = CPXsetintparam(env, CPX_PARAM_INTSOLLIM, 1);
+	 status = CPXmipopt(env, clone);
+	 lpstat = CPXgetstat(env, clone);
+	 status = CPXsetintparam(env, CPX_PARAM_INTSOLLIM, 1000000000000);
+      }
+
+      if(lpstat == CPXMIP_TIME_LIM_FEAS || lpstat == CPXMIP_SOL_LIM ||
+	 lpstat == CPXMIP_OPTIMAL || lpstat == CPXMIP_OPTIMAL_TOL ||
+	 lpstat == CPXMIP_NODE_LIM_FEAS){
+	 CPXgetobjval(env, clone, &incumbentval);
+	 incumbentval *= -1;
+      }else{
+	 exit(0);
+      }
+      status = CPXsetintparam(env, CPX_PARAM_NODELIM, 10000000000);
+   }
+
+   status = CPXreadcopyprob (env, lp, "root.lp", NULL);
+
+   status = CPXsetusercutcallbackfunc (env, NULL, NULL);
+   
+   std::cout << "Incumbent value: " << incumbentval << std::endl;
 
 #ifdef EXACT //EXACT Cover
 
@@ -242,7 +318,7 @@ int  main (int argc, char *argv[])
    CoinFillN(varUB + 2 * numCols, 1, 1.0); 
    
    /* Bound constraint row */
-   conLB[0] = incumbentval;
+   conLB[0] = -incumbentval;
    conUB[0] = mps->getInfinity();
 
    /* Lower Rows */
@@ -250,7 +326,8 @@ int  main (int argc, char *argv[])
    CoinDisjointCopyN(mps->getRowUpper(), numRows, conUB+1);
    
    /* Add VUB rows */
-   CoinFillN(conLB + (numTotalRows - numCols), numCols, - 1 * mps->getInfinity());
+   CoinFillN(conLB + (numTotalRows - numCols),
+	     numCols, - 1 * mps->getInfinity());
    CoinDisjointCopyN(mps->getColUpper(), numCols, 
 		     conUB + (numTotalRows - numCols));
       
@@ -358,8 +435,9 @@ int  main (int argc, char *argv[])
 			   structRowNum, structRowInd, 0, NULL);
 
    model.loadProblemData(*newMatrix, varLB, varUB, objCoef, conLB, 
-			 conUB, colType, -1, mps->getInfinity());
+			 conUB, colType, 1, mps->getInfinity());
 
+   model.AlpsPar()->setEntry(AlpsParams::timeLimit, MYTILIM);
    model.MibSPar()->setEntry(MibSParams::bilevelProblemType, 1);
    //model.MibSPar()->setEntry(MibSParams::cutStrategy, 1);
    model.MibSPar()->setEntry(MibSParams::bilevelCutTypes, 1);
@@ -392,17 +470,12 @@ int  main (int argc, char *argv[])
 
    delete mps;
 
+   primal_numcols = numCols;
+   primal_numrows = numRows;
+
 #else //INEXACT cover
 
    /** Use CPLEX to find a heuristic cover **/
-     
-   /* Now read the file, and copy the data into the created lp */
-   //status = CPXsetintparam(env, CPX_PARAM_ADVIND ,  1); 
-   status = CPXreadcopyprob (env, lp, instancefile, NULL);
-   if ( status ) {
-      fprintf (stderr, "Failed to read and copy the problem data.\n");
-      exit(0);
-   }
      
    status = CPXsetintparam (env, CPX_PARAM_LPMETHOD, CPX_ALG_PRIMAL);
    if ( status ) {
@@ -426,6 +499,7 @@ int  main (int argc, char *argv[])
       }
 	
       start = clock();
+      status = CPXsetintparam (env, CPX_PARAM_THREADS, 1);
       status = CPXmipopt (env, lp);
       end = clock();
       if ( status ) {
@@ -492,7 +566,8 @@ int  main (int argc, char *argv[])
      
    dual_numcols = CPXgetnumcols (env, dualp);
    dual_numrows = CPXgetnumrows (env, dualp);
-     
+   numnz        = CPXgetnumnz(env, dualp);
+
    /* stuff to get the variables in the cover */
    double *y;
    y = (double *) malloc ((primal_numcols)*sizeof(double));
@@ -504,7 +579,7 @@ int  main (int argc, char *argv[])
    // build IBLP by modifying the dual
      
    // translate the dual obj into the UB constraint
-   int rmatbeg = 0;
+   int rmatbeg_one = 0;
    char sense = 'L';
    double rhs = incumbentval;
    double *duaobj; // gather the original dual ojective
@@ -543,7 +618,8 @@ int  main (int argc, char *argv[])
       }
    }
      
-   status = CPXaddrows(env, dualp, 0, 1, objduanzcnt, &rhs, &sense, &rmatbeg, 
+   status = CPXaddrows(env, dualp, 0, 1, objduanzcnt, &rhs, &sense,
+		       &rmatbeg_one, 
 		       onerowmatind, onerowmatval, NULL,NULL);
      
    // reset obj coefficient of the dual vars
@@ -568,7 +644,7 @@ int  main (int argc, char *argv[])
      
    status = CPXchgobj(env, dualp, dual_numcols, dualindices, dualobjvalues);
      
-   // introduce y variables and big-M coefficients
+   //Allocate space for y variables
    double *yobj;
    yobj = (double *) malloc (primal_numcols*sizeof(double));
    if ( yobj == NULL ) {
@@ -577,6 +653,54 @@ int  main (int argc, char *argv[])
    }
    for (int j = 0; j < primal_numcols; j++) yobj[j] = 1.0;
      
+   // introduce indicator constraints
+
+   int *rmatbeg;
+   rmatbeg = (int *) malloc ((dual_numrows+1)*sizeof(int));
+   if ( rmatbeg == NULL ) {
+      fprintf (stderr, "No memory for rmatbeg.\n");
+      exit(0);
+   }
+     
+   int *rmatind;
+   rmatind = (int *) malloc (numnz*sizeof(int));
+   if ( rmatind == NULL ) {
+      fprintf (stderr, "No memory for rmatind.\n");
+      exit(0);
+   }
+     
+   double *rmatval;
+   rmatval = (double *) malloc (numnz*sizeof(double));
+   if ( rmatval == NULL ) {
+      fprintf (stderr, "No memory for rmatval.\n");
+      exit(0);
+   }
+
+   double *rhs_vals;
+   rhs_vals = (double *) malloc (dual_numrows*sizeof(double));
+   if ( rhs_vals == NULL ) {
+      fprintf (stderr, "No memory for rhs_vals.\n");
+      exit(0);
+   }
+
+   char *senses;
+   senses = (char *) malloc (dual_numrows*sizeof(char));
+   if ( senses == NULL ) {
+      fprintf (stderr, "No memory for senses.\n");
+      exit(0);
+   }
+
+   // Get the matrix in row order
+   int space;
+   CPXgetrows(env, dualp, &numnz, rmatbeg, rmatind, rmatval, numnz,
+	      &space, 0, dual_numrows-1);
+   
+   CPXgetrhs(env, dualp, rhs_vals, 0, dual_numrows-1);
+   
+   CPXgetsense(env, dualp, senses, 0, dual_numrows-1);
+   
+   // Introduce big-M coefficients
+
    int *cmatbeg;
    cmatbeg = (int *) malloc (primal_numcols*sizeof(int));
    if ( cmatbeg == NULL ) {
@@ -632,6 +756,22 @@ int  main (int argc, char *argv[])
    status = CPXaddcols(env, dualp, primal_numcols, primal_numcols, yobj, 
 		       cmatbeg, cmatind, cmatval, lb, ub, colname);
      
+   // Add the indicator constraints
+
+   char **indconstr_name;
+   indconstr_name = (char **) malloc (dual_numrows*sizeof(char*));
+   for (int i = 0; i < dual_numrows; i++){
+      indconstr_name[i] = (char *) malloc (dual_numrows*sizeof(char));
+      sprintf (indconstr_name[i], "ind%d", i+1);
+   }
+
+   rmatbeg[dual_numrows] = numnz;
+   for (int j = 0; j < dual_numrows; j++){
+      CPXaddindconstr(env, dualp, dual_numcols+j, 1, rmatbeg[j+1]-rmatbeg[j],
+		      rhs_vals[j], senses[j], rmatind+rmatbeg[j],
+		      rmatval+rmatbeg[j], indconstr_name[j]);
+   }
+   
    // convert the problem to a MILP
      
    int *indices;
@@ -660,14 +800,15 @@ int  main (int argc, char *argv[])
 
    status = CPXchgprobname (env, dualp, iblpname);
 
-   status =  CPXwriteprob (env, dualp, iblpname, "MPS");
+   status =  CPXwriteprob (env, dualp, iblpname, "LP");
 
    // set integer tolerance to 10^{-9}
-   status = CPXsetdblparam(env, CPXPARAM_MIP_Tolerances_Integrality,  1e-09); 
+   //status = CPXsetdblparam(env, CPXPARAM_MIP_Tolerances_Integrality,  1e-09); 
    //	  status = CPXsetintparam (env, CPX_PARAM_LPMETHOD, CPX_ALG_PRIMAL);
 
    // solve IBLP with TLIM
    start = clock();
+   status = CPXsetintparam (env, CPX_PARAM_THREADS, 1);
    status = CPXmipopt (env, dualp);
    end = clock();
    if ( status ) {
@@ -676,16 +817,16 @@ int  main (int argc, char *argv[])
    }
 
    cputime_iblp = ((double) (end - start)) / CLOCKS_PER_SEC;
-   resfile << "CPU time for iblp " << cputime_iblp << std::endl;
-   resfile << "Number of evaluated subproblems " << CPXgetnodecnt(env, dualp ) << std::endl;
+   std::cout << "CPU time for iblp " << cputime_iblp << std::endl;
+   std::cout << "Number of evaluated subproblems " << CPXgetnodecnt(env, dualp ) << std::endl;
 
    lpstat = CPXgetstat(env, dualp);
 
+   double coversize;
    //	  if(lpstat == CPXMIP_NODE_LIM_FEAS || lpstat == CPXMIP_OPTIMAL || lpstat == CPXMIP_OPTIMAL_TOL){
    if(lpstat == CPXMIP_TIME_LIM_FEAS || lpstat == CPXMIP_OPTIMAL || lpstat == CPXMIP_OPTIMAL_TOL){
 
       /* Retrieve last part of solution vector, that is, the variables in the cover */
-      double coversize;
       status = CPXgetobjval (env, dualp, &coversize);
       if ( status ) {
 	 fprintf (stderr, "Failed to obtain coversize value.\n");
@@ -698,23 +839,23 @@ int  main (int argc, char *argv[])
 	 exit(0);
       }
 
-      // wites the solution to resfile
-      resfile << "cover size: " << coversize << std::endl;
+      // wites the solution to std::cout
+      std::cout << "cover size: " << coversize << std::endl;
 
-      if (coversize == 0) resfile << "incumbent value is certitied OPTIMAL!" << std::endl;
-      else if(lpstat == CPXMIP_OPTIMAL || lpstat == CPXMIP_OPTIMAL_TOL) resfile << "cover is optimal" << std::endl;
-      else resfile << "cover is not proven to be optimal" << std::endl;
+      if (coversize == 0) std::cout << "incumbent value is certitied OPTIMAL!" << std::endl;
+      else if(lpstat == CPXMIP_OPTIMAL || lpstat == CPXMIP_OPTIMAL_TOL) std::cout << "cover is optimal" << std::endl;
+      else std::cout << "cover is not proven to be optimal" << std::endl;
 
-      resfile << "variables in the cover: " << std::endl;
+      std::cout << "variables in the cover: " << std::endl;
       for (int j = 0; j < primal_numcols; j++){
-	 if (y[j] > 1 - EPSILON)
-	    resfile << colname[j] << '\t';
+	 if (y[j] > 0.5)
+	    std::cout << colname[j] << '\t';
       }
-      resfile << std::endl;
+      std::cout << std::endl;
    }
    else{
-      resfile << "cover NOT found" << std::endl;
-      resfile << std::endl;
+      std::cout << "cover NOT found" << std::endl;
+      std::cout << std::endl;
    }
 
    free (yobj);
@@ -757,10 +898,12 @@ int  main (int argc, char *argv[])
    double valuezero = 0.0;
 
    indices2zero = new int [primal_numcols];
-	  
-   for (int j = 0; j < primal_numcols; j++){
-      if (y[j] > 1 - EPSILON){
 
+   double best_val = -incumbentval, cur_val;
+   for (int j = 0, count = 0; j < primal_numcols && count <= 100; j++){
+      if (y[j] > 0.5){
+	 count++;
+	 
 	 index2one = j;
 
 	 // create child with var index fixed to 1
@@ -799,7 +942,27 @@ int  main (int argc, char *argv[])
 
 	 // solve subproblem with TLIM
 	 start = clock();
+	 status = CPXsetdblparam(env, CPXPARAM_MIP_Tolerances_UpperCutoff,
+				 best_val - 10e-5);
+	 status = CPXsetdblparam(env, CPX_PARAM_TILIM, MYTILIM_SUB);
+	 status = CPXsetintparam (env, CPX_PARAM_THREADS, 1);
 	 status = CPXmipopt (env, lpsub);
+	 lpstat = CPXgetstat (env, lpsub);
+	 if (lpstat == CPXMIP_TIME_LIM_FEAS || lpstat == CPXMIP_OPTIMAL ||
+	     lpstat == CPXMIP_OPTIMAL_TOL){
+	    status = CPXgetobjval(env, lpsub, &cur_val);
+	    if (cur_val < best_val){
+	       best_val = cur_val;
+#if 0
+	       status = CPXsolwrite(env, lpsub, solname);
+	       if ( status ) {
+		  fprintf (stderr, "Failed to write subproblem solution.\n");
+		  exit(0);
+	       }
+#endif
+	    }
+	 }
+	 
 	 end = clock();
 	 if ( status ) {
 	    fprintf (stderr, "Failed to optimize subproblem.\n");
@@ -808,16 +971,15 @@ int  main (int argc, char *argv[])
 
 	 cputime_sub = ((double) (end - start)) / CLOCKS_PER_SEC;
 
-	 resfile << std::endl;
-	 resfile << "Stats for subproblem " << subprobname << std::endl;
-	 resfile << "CPU time " << cputime_sub << std::endl;
-	 resfile << "Number of evaluated subproblems " << CPXgetnodecnt(env, lpsub ) << std::endl;
-
-	 status = CPXsolwrite(env, lpsub, solname);
-	 if ( status ) {
-	    fprintf (stderr, "Failed to write subproblem solution.\n");
-	    exit(0);
+	 std::cout << std::endl;
+	 std::cout << "Stats for subproblem " << subprobname << std::endl;
+	 std::cout << "CPU time " << cputime_sub << std::endl;
+	 std::cout << "Status   " << lpstat << std::endl;
+	 if (lpstat == CPXMIP_TIME_LIM_FEAS || lpstat == CPXMIP_OPTIMAL ||
+	     lpstat == CPXMIP_OPTIMAL_TOL){
+	    std::cout << "Value  " << cur_val << std::endl;
 	 }
+	 std::cout << "Number of evaluated subproblems " << CPXgetnodecnt(env, lpsub ) << std::endl;
 
 	 // include current index in the fix2zero list
 	 indices2zero[numfixedzero] = index2one;
@@ -825,6 +987,9 @@ int  main (int argc, char *argv[])
 
       }
    }
+
+   std::cout << std::endl;
+   std::cout << "Best solution found: " << best_val << std::endl;
 
    //free (x);
    free (y);
