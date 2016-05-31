@@ -84,18 +84,11 @@ class MibSModel : public BlisModel {
   /** Number of structural constraints **/
   int structRowNum_;
 
-  int argnum_;
-
-  /** Determins type of problem(general or interdiction) **/
-  bool isInterdict_; 
-  
   /** the left (negative) slope of the lower-level value function **/
   double leftSlope_;
 
   /** the right (positive) slope of the lower-level value function **/
   double rightSlope_;
-
-  std::string * arglist_;
   
   /** Indices of UL variables **/
   int * upperColInd_;
@@ -391,14 +384,6 @@ class MibSModel : public BlisModel {
   /** The method that decodes the model from an encoded object. */
   virtual void decodeToSelf(AlpsEncoded&);
 
-  /** Determines the properties of instance. */
-  void instanceStructure(const CoinPackedMatrix *newMatrix); 
-
-  void readFromStream(std::istream& parstream);                                                                                                                                  
-                                                                                                                                                                     
-  void readFromFile(const char * paramfile);                                                                                                                                                                                                                                                                                                                       
-  void readFromArglist(const int argnum, const char * const * arglist);
-  
   AlpsTreeNode * createRoot();
 
   virtual bool setupSelf();
