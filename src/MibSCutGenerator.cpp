@@ -2817,7 +2817,7 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
       if (bS->isIntegral_){
 	 status = feasibilityCuts(conPool) ? true : false;
       }
-      return (status && (interdictionCuts(conPool) ? true : false));
+      return (status || (interdictionCuts(conPool) ? true : false));
     }
     else if(bS->isUpperIntegral_ && cutTypes == 2){
       //problem with binary UL variables and integer LL variables
