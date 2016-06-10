@@ -62,7 +62,7 @@ MibSModel::MibSModel()
 //#############################################################################
 MibSModel::~MibSModel()
 {
-  if(arglist_) delete [] arglist_;
+    
   if(upperColInd_) delete [] upperColInd_;
   if(lowerColInd_) delete [] lowerColInd_;
   if(upperRowInd_) delete [] upperRowInd_;
@@ -110,8 +110,6 @@ MibSModel::initialize()
   positiveA2_ = true;
   positiveG1_ = true;
   positiveG2_ = true;
-  argnum_ = 0;
-  arglist_ = NULL;
   upperColInd_ = NULL;
   lowerColInd_ = NULL;
   upperRowInd_ = NULL;
@@ -147,17 +145,10 @@ MibSModel::initialize()
 void 
 MibSModel::readParameters(const int argnum, const char * const * arglist)
 {
-
-    int i;
-    argnum_ = argnum;
-    arglist_ = new std::string[argnum];
-    for (i = 0; i < argnum; i++){
-	arglist_[i] = arglist[i];
-    }
-    
-  AlpsPar_->readFromArglist(argnum, arglist);
-  BlisPar_->readFromArglist(argnum, arglist);
-  MibSPar_->readFromArglist(argnum, arglist);
+     //std::cout << "Reading parameters ..." << std::endl;
+    AlpsPar_->readFromArglist(argnum, arglist);
+    BlisPar_->readFromArglist(argnum, arglist);
+    MibSPar_->readFromArglist(argnum, arglist);
 }
 
 //#############################################################################
@@ -506,25 +497,27 @@ MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
 
    int i(0);
    
-   if(isInterdict_){
-       if(problemType != 1){
-	   for(i = 0; i < argnum_ - 1; i++){
-	       if(((arglist_[i] == "-param") || (arglist_[i] == "MibS_bilevelProblemType"))){
-		   std::cout<<"Wrong value for MibSProblemType. The correct value is 1."<<std::endl;
-		   assert(problemType == 1);
-	       }
-	   }
+   if(isInterdict_ == true){
+       if(problemType == -1){
 	   MibSPar()->setEntry(MibSParams::bilevelProblemType, 1);
-	   problemType = 1;
+       }
+       else if(problemType == 0){
+	   std::cout << "Wrong1  value for MibSProblemType. Automatically modifying the value." << std::endl;
+	   MibSPar()->setEntry(MibSParams::bilevelProblemType, 1);
        }
    }
    else{
-       if(problemType == 1){
-	   std::cout<<"Wrong value for MibSProblemType. The correct value is 0."<<std::endl;
-	   assert(problemType == 0);
+       if(problemType == -1){
+	   MibSPar()->setEntry(MibSParams::bilevelProblemType, 0);
        }
+   else if(problemType == 1){
+   	   std::cout << "Wrong value for MibSProblemType. Automatically modifying the value." << std::endl;
+   	   MibSPar()->setEntry(MibSParams::bilevelProblemType, 0);
+     }
    }
-		   
+
+   problemType = MibSPar_->entry(MibSParams::bilevelProblemType);
+  
    int j(0);
    int beg(0);
 
@@ -1067,10 +1060,10 @@ MibSModel::setupSelf()
    // Preprocess model
    //------------------------------------------------------
 
-   bool usePreprocessor =
+   int usePreprocessor =
      MibSPar_->entry(MibSParams::usePreprocessor);
 
-   if(usePreprocessor){
+   if(usePreprocessor == 1){
      runPreprocessor();
    }
    //------------------------------------------------------
@@ -2798,38 +2791,38 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix)
     int * lRowIndices = getLowerRowInd();                                                                                                                                         
                                                                                                                                                                                   
     //Checks general or interdiction                                                                                                                                              
-    if(isInterdict_){                                                                                                                                                             
-    std::cout<<"This instance is an interdiction bilevel problem."<<std::endl;                                                                                                 
+    if(isInterdict_ == true){
+	std::cout << "This instance is an interdiction bilevel problem." << std::endl;
     }                                                                                                                                                                             
                                                                                                                                                                                   
     //Checks type of variables                                                                                                                                                    
     for(i = 0; i < numCols; i++){
 	if(colType_[i] == 'C'){
-	    std::cout<<"All of the veariables should be integer."<<std::endl;                                                                                                     
+	    std::cout << "All of the veariables should be integer." << std::endl;                                                                                                     
             assert(colType_[i] != 'C');
 	}                                                                                                                                                                         
         else if (colType_[i] == 'I'){
 	    if(binarySearch(0, lCols - 1, i, lColIndices) < 0){
 		allUpperBin_ = false;
-		if(!allLowerBin_){
+		if(allLowerBin_ == false){
 		    break;
 		}
 	    }
 	    else{
 		allLowerBin_ = false;
-		if(!allUpperBin_){
+		if(allUpperBin_ == false){
 		    break;
 		}
 	    }
 	}
     }
                                                                                                                                                                          
-    if(allUpperBin_){                                                                                                                                                             
-    std::cout<<"All of UL varibles are binary."<<std::endl;                                                                                                                    
+    if(allUpperBin_ == true){
+	std::cout << "All of UL varibles are binary." << std::endl;
     }                                                                                                                                                                             
                                                                                                                                                                                   
-    if(allLowerBin_){                                                                                                                                                             
-    std::cout<<"All of LL varibles are binary."<<std::endl;                                                                                                                    
+    if(allLowerBin_ == true){
+	std::cout << "All of LL varibles are binary." << std::endl; 
     }                                                                                                                                                                             
                                                                                                                                                                                   
     int nonZero (newMatrix->getNumElements());                                                                                                                                    
@@ -2837,9 +2830,10 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix)
     const int * matIndices = newMatrix->getIndices();                                                                                                                             
     const int * matStarts = newMatrix->getVectorStarts();                                                                                                                                                                                                                                                                                                           
     for(i = 0; i < nonZero; i++){
-	if((fabs(matElements[i] - floor(matElements[i])) > etol_) && (fabs(matElements[i] - ceil(matElements[i])) > etol_)){
+	if((fabs(matElements[i] - floor(matElements[i])) > etol_) &&
+	   (fabs(matElements[i] - ceil(matElements[i])) > etol_)){
 	    isInteger_ = false;
-	    std::cout<<"All of the coefficients should be integer."<<std::endl;
+	    std::cout << "All of the coefficients should be integer." << std::endl;
 	    assert(isInteger_ == true);
 	}
     }                                                                                                                                                                             
@@ -2875,142 +2869,96 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix)
         }                                                                                                                                                                         
     }                                                                                                                                                                             
                                                                                                                                                                                   
-    if(positiveA1_){                                                                                                                                                              
-    std::cout<<"Matrix A1 is positive."<<std::endl;                                                                                                                            
+    if(positiveA1_ == true){
+	std::cout << "Matrix A1 is positive." << std::endl;
     }                                                                                                                                                                             
                                                                                                                                                                                   
-    if(positiveG1_){                                                                                                                                                              
-    std::cout<<"Matrix G1 is positive."<<std::endl;                                                                                                                            
-    }                                                                                                                                                                      
-    if(positiveA2_){                                                                                                                                                              
-    std::cout<<"Matrix A2 is positive."<<std::endl;                                                                                                                            
-    }                                                                                                                                                                  
-    if(positiveG2_){                                   
-    std::cout<<"Matrix G2 is positive."<<std::endl;             
+    if(positiveG1_ == true){
+	std::cout << "Matrix G1 is positive." << std::endl;
+    }
+    
+    if(positiveA2_ == true){
+	std::cout << "Matrix A2 is positive." << std::endl;
+    }
+    
+    if(positiveG2_ == true){
+	std::cout << "Matrix G2 is positive." << std::endl;
     }
 
-    bool paramValue(false);
+    int paramValue(0);
     int paramValue1(0);
-
-    //Param: "MibS_usePreprocessor"
+    
+    //Param: "MibS_usePreprocessor" 
     paramValue = MibSPar_->entry(MibSParams::usePreprocessor);
-    if(paramValue){
-	for(i = 0; i < argnum_ - 1; i++){
-	    if(((arglist_[i] == "-param") || (arglist_[i] == "MibS_usePreprocessor"))){
-		std::cout<<"Wrong value for MibS_usePreprocessor. The correct value is 0."<<std::endl;
-		assert(paramValue == false);
-	    }
-	}
-	MibSPar()->setEntry(MibSParams::usePreprocessor, false);
+    
+    if(paramValue == -1)
+	MibSPar()->setEntry(MibSParams::usePreprocessor, 0);
+    else if(paramValue == 1){
+	std::cout << "The preprocessor is not currently functional. Automatically disabling your parameter choice." << std::endl;
+	MibSPar()->setEntry(MibSParams::usePreprocessor, 0);
+    }
+
+    //Param: "MibS_useLowerObjHeuristic"
+    paramValue = MibSPar_->entry(MibSParams::useLowerObjHeuristic);
+
+    if(paramValue == -1)
+	MibSPar()->setEntry(MibSParams::useLowerObjHeuristic, 0);
+    else if(paramValue == 1){
+	std::cout << "The lower-obj heuristic is not currently functional. Automatically disabling your parameter choice." << std::endl;
+	MibSPar()->setEntry(MibSParams::useLowerObjHeuristic, 0);
+    }
+
+    //Param: "MibS_useObjCutHeuristic"
+    paramValue = MibSPar_->entry(MibSParams::useObjCutHeuristic);
+
+    if(paramValue == -1)
+	MibSPar()->setEntry(MibSParams::useObjCutHeuristic, 0);
+    else if(paramValue == 1){
+	std::cout << "The obj-cut heuristic is not currently functional. Automatically disabling your parameter choice." << std::endl;
+	MibSPar()->setEntry(MibSParams::useObjCutHeuristic, 0);
     }
 
     //Param: "MibS_useWSHeuristic"
     paramValue = MibSPar_->entry(MibSParams::useWSHeuristic);
-    if(paramValue){
-	for(i = 0; i < argnum_ - 1; i++){
-	    if(((arglist_[i] == "-param") || (arglist_[i] == "MibS_useWSHeuristic"))){
-		std::cout<<"Wrong value for MibS_useWSHeuristic. The correct value is 0."<<std::endl;
-		assert(paramValue == false);
-	    }
-	}
-	MibSPar()->setEntry(MibSParams::useWSHeuristic, false);
+
+    if(paramValue == -1)
+	MibSPar()->setEntry(MibSParams::useWSHeuristic, 0);
+    else if(paramValue == 1){
+	std::cout << "The WS heuristic is not currently functional. Automatically disabling your parameter choice." << std::endl;
+	MibSPar()->setEntry(MibSParams::useWSHeuristic, 0);
     }
 
     //Param: "MibS_useGreedyHeuristic"
     paramValue = MibSPar_->entry(MibSParams::useGreedyHeuristic);
-    if(paramValue){
-	for(i = 0; i < argnum_ - 1; i++){
-	    if(((arglist_[i] == "-param") || (arglist_[i] == "MibS_useGreedyHeuristic"))){
-		std::cout<<"Wrong value for MibS_useGreedyHeuristic. The correct value is 0."<<std::endl;
-		assert(paramValue == false);
-	    }
-	}
-	MibSPar()->setEntry(MibSParams::useGreedyHeuristic, false);
-    }
 
-    bool paramPureCut(MibSPar_->entry(MibSParams::usePureIntegerCut));
+    if(paramValue == -1)
+	MibSPar()->setEntry(MibSParams::useGreedyHeuristic, 0);
+    else if(paramValue == 1){
+	std::cout << "The greedy heuristic is not currently functional. Automatically disabling your parameter choice." << std::endl;
+	MibSPar()->setEntry(MibSParams::useGreedyHeuristic, 0);
+    }
 
     //Param: "MibS_useNoGoodCut"
-    bool useNoGood(false);
-    
-    if((allUpperBin_) && (allLowerBin_)){
-	useNoGood = true;
-    }
-
     paramValue = MibSPar_->entry(MibSParams::useNoGoodCut);
 
-    if(paramValue){
-	if(!useNoGood){
-	    for(i = 0; i < argnum_ - 1; i++){
-		if(((arglist_[i] == "-param") || (arglist_[i] == "MibS_useNoGoodCut"))){
-		    std::cout<<"Wrong value for MibS_useNoGoodCut. The correct value is 0."<<std::endl;
-		    assert(paramValue == false);
-		}
-	    }
-	    MibSPar()->setEntry(MibSParams::useNoGoodCut, false);
-	}
-    }
-    else{
-	if(!paramPureCut){
-	    for(i = 0; i < argnum_ - 1; i++){
-		if(((arglist_[i] == "-param") || (arglist_[i] == "MibS_useNoGoodCut"))){
-		    std::cout<<"Wrong value for MibS_useNoGoodCut. The correct value is 1."<<std::endl;
-		    assert(paramValue == true);
-		}
-	    }
-	    MibSPar()->setEntry(MibSParams::useNoGoodCut, true);
-	}
-    }
-    
-    //Param: "MibS_useBendersCut"
-    bool useBenders(false);
-    bool found(false);
-       
-    if((allUpperBin_) && (allLowerBin_) && (positiveG2_)){
-	useBenders = true;
-    }
-    
-    paramValue = MibSPar_->entry(MibSParams::useBendersCut);
-    if(paramValue){
-	if ((!useBenders) || (!paramPureCut)){
-	    for(i = 0; i < argnum_ - 1; i++){
-		if(((arglist_[i] == "-param") || (arglist_[i] == "MibS_useBendersCut"))){
-		    std::cout<<"Wrong value for MibS_useBendersCut. The correct value is 0."<<std::endl;
-		    assert(paramValue == false);
-		}
-	    }
-	    MibSPar()->setEntry(MibSParams::useBendersCut, false);
-	}
-    }
-    else {
-	if((paramPureCut) && (useBenders)){
-	    for(i = 0; i < argnum_ - 1; i++){
-		if(((arglist_[i] == "-param") || (arglist_[i] == "MibS_useBendersCut"))){
-		    found = true;
-		    break;
-		}
-	    }
-	    if(!found){
-		MibSPar()->setEntry(MibSParams::useBendersCut, true);
-	    }
-	}
+    if(paramValue == -1)
+	MibSPar()->setEntry(MibSParams::useNoGoodCut, 0);
+    else if((paramValue == 1) && (allUpperBin_ == false)){
+	    std::cout << "The no-good cut does not work for this problem." << std::endl;
+	    assert(paramValue == 0);
     }
 
-    found = false;
-    
-    //Param: "MibS_bilevelCutType"
-    paramValue1 = MibSPar_->entry(MibSParams::bilevelCutTypes);
-    if(paramValue1 != 1){
-	for(i = 0; i < argnum_ - 1; i++){
-	    if(((arglist_[i] == "-param") || (arglist_[i] == "MibS_bilevelCutTypes"))){
-		found = true;
-		break;
-	    }
+    //Param: "MibS_useBendersCut"
+    paramValue = MibSPar_->entry(MibSParams::useBendersCut);
+
+    if(paramValue == -1)
+	MibSPar()->setEntry(MibSParams::useBendersCut, 0);
+    else if(paramValue == 1){
+	if((allUpperBin_ == false) || (allLowerBin_ == false) || (positiveG2_ == false)){ 
+	std::cout << "The benders cut does not work for this problem." << std::endl;
+	assert(paramValue == 0);
 	}
-	if(!found){
-	    MibSPar()->setEntry(MibSParams::bilevelCutTypes, 1);
-            }
-	}
+    }
 }
 
 

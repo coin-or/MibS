@@ -84,8 +84,6 @@ class MibSModel : public BlisModel {
   /** Number of structural constraints **/
   int structRowNum_;
 
-  int argnum_;
-
   /** Determines type of problem(general or interdiction) **/
   bool isInterdict_; 
 
@@ -115,8 +113,6 @@ class MibSModel : public BlisModel {
 
   /** the right (positive) slope of the lower-level value function **/
   double rightSlope_;
-
-  std::string * arglist_;
   
   /** Indices of UL variables **/
   int * upperColInd_;

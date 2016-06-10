@@ -71,14 +71,14 @@ Blis_heurRound     0   # -2: root, -1: auto, 0: disable, any positive integer
 
 #Blis_checkMemory 1
 
-MibS_usePreprocessor 0		# 0: false, 1: true
-MibS_useLowerObjHeuristic 0	# 0: false, 1: true
-MibS_useObjCutHeuristic 0 	# 0: false, 1: true
-MibS_useWSHeuristic 0 		# 0: false, 1: true
-MibS_useGreedyHeuristic 0 	# 0: false, 1: true
+MibS_usePreprocessor 0		# -1: auto, 0: false, 1: true
+MibS_useLowerObjHeuristic 0	# -1: auto, 0: false, 1: true
+MibS_useObjCutHeuristic 0 	# -1: auto, 0: false, 1: true
+MibS_useWSHeuristic 0 		# -1: auto, 0: false, 1: true
+MibS_useGreedyHeuristic 0 	# -1: auto, 0: false, 1: true
 MibS_usePureIntegerCut 1	# 0: false, 1: true
 MibS_useValFuncCut 0		# 0: false, 1: true 
-MibS_useNoGoodCut 0		# 0: false, 1: true 
+MibS_useNoGoodCut 0		# -1: auto, 0: false, 1: true 
 MibS_useIncObjCut 0		# 0: false, 1: true 
 MibS_bilevelProblemType 1	# 0: general, 1: interdict
 MibS_bilevelCutTypes 1		# 0: general, 1: general/interdict, 2: #general/binary UL, 3: binary UL
@@ -90,7 +90,7 @@ MibS_blisCutStrategy -1 		# -2: root, -1: auto, 0: disable, any positive integer
 #MibS_upperFileFormat 0		# 0: mps, 1: AMPL/GMPL (not working, yet)
 MibS_warmStartLL 0
 MibS_maxThreadsLL 1
-MibS_useBendersCut 0
+MibS_useBendersCut 0            # -1: auto, 0: false, 1: true
 MibS_useBoundCut 1
 MibS_boundCutOptimal 1
 MibS_boundCutRelaxUpper 0    # This option doesn't work for now
