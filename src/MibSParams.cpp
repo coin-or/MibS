@@ -180,7 +180,7 @@ MibSParams::setDefaultEntries() {
 
    setEntry(maxNumActiveCons, BIGCONSTANT);
 
-   setEntry(bilevelProblemType, AUTO);
+   setEntry(bilevelProblemType, PARAM_NOTSET);
 
    setEntry(bilevelCutTypes, GENERALONLY);
 
@@ -198,19 +198,19 @@ MibSParams::setDefaultEntries() {
 
    setEntry(whichCutsLL, 2);
 
-   setEntry(usePreprocessor, AUTO);
+   setEntry(usePreprocessor, PARAM_NOTSET);
 
-   setEntry(useLowerObjHeuristic, AUTO);
+   setEntry(useLowerObjHeuristic, PARAM_NOTSET);
 
-   setEntry(useObjCutHeuristic, AUTO);
+   setEntry(useObjCutHeuristic, PARAM_NOTSET);
 
-   setEntry(useWSHeuristic, AUTO);
+   setEntry(useWSHeuristic, PARAM_NOTSET);
 
-   setEntry(useGreedyHeuristic, AUTO);
+   setEntry(useGreedyHeuristic, PARAM_NOTSET);
 
-   setEntry(useNoGoodCut, AUTO);
+   setEntry(useNoGoodCut, PARAM_NOTSET);
 
-   setEntry(useBendersCut, AUTO);
+   setEntry(useBendersCut, PARAM_NOTSET);
 
    //-------------------------------------------------------------
    // Double Parameters

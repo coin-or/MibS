@@ -43,6 +43,7 @@
 #include "MibSCutGenerator.h"
 #include "MibSBilevel.h"
 #include "MibSTreeNode.h"
+#include "MibSConstants.h"
 
 #include "MibSBranchStrategyMaxInf.h"
 #include "MibSBranchStrategyPseudo.h"
@@ -498,21 +499,21 @@ MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
    int i(0);
    
    if(isInterdict_ == true){
-       if(problemType == -1){
-	   MibSPar()->setEntry(MibSParams::bilevelProblemType, 1);
+       if(problemType == PARAM_NOTSET){
+	   MibSPar()->setEntry(MibSParams::bilevelProblemType, INTERDICT);
        }
-       else if(problemType == 0){
-	   std::cout << "Wrong1  value for MibSProblemType. Automatically modifying the value." << std::endl;
-	   MibSPar()->setEntry(MibSParams::bilevelProblemType, 1);
+       else if(problemType == GENERAL){
+	   std::cout << "Wrong value for MibSProblemType. Automatically modifying its value." << std::endl;
+	   MibSPar()->setEntry(MibSParams::bilevelProblemType, INTERDICT);
        }
    }
    else{
-       if(problemType == -1){
-	   MibSPar()->setEntry(MibSParams::bilevelProblemType, 0);
+       if(problemType == PARAM_NOTSET){
+	   MibSPar()->setEntry(MibSParams::bilevelProblemType, GENERAL);
        }
-   else if(problemType == 1){
-   	   std::cout << "Wrong value for MibSProblemType. Automatically modifying the value." << std::endl;
-   	   MibSPar()->setEntry(MibSParams::bilevelProblemType, 0);
+   else if(problemType == INTERDICT){
+   	   std::cout << "Wrong value for MibSProblemType. Automatically modifying its value." << std::endl;
+   	   MibSPar()->setEntry(MibSParams::bilevelProblemType, GENERAL);
      }
    }
 
@@ -1063,7 +1064,7 @@ MibSModel::setupSelf()
    int usePreprocessor =
      MibSPar_->entry(MibSParams::usePreprocessor);
 
-   if(usePreprocessor == 1){
+   if(usePreprocessor == PARAM_ON){
      runPreprocessor();
    }
    //------------------------------------------------------
@@ -2891,72 +2892,72 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix)
     //Param: "MibS_usePreprocessor" 
     paramValue = MibSPar_->entry(MibSParams::usePreprocessor);
     
-    if(paramValue == -1)
-	MibSPar()->setEntry(MibSParams::usePreprocessor, 0);
-    else if(paramValue == 1){
+    if(paramValue == PARAM_NOTSET)
+	MibSPar()->setEntry(MibSParams::usePreprocessor, PARAM_OFF);
+    else if(paramValue == PARAM_ON){
 	std::cout << "The preprocessor is not currently functional. Automatically disabling your parameter choice." << std::endl;
-	MibSPar()->setEntry(MibSParams::usePreprocessor, 0);
+	MibSPar()->setEntry(MibSParams::usePreprocessor, PARAM_OFF);
     }
 
     //Param: "MibS_useLowerObjHeuristic"
     paramValue = MibSPar_->entry(MibSParams::useLowerObjHeuristic);
 
-    if(paramValue == -1)
-	MibSPar()->setEntry(MibSParams::useLowerObjHeuristic, 0);
-    else if(paramValue == 1){
+    if(paramValue == PARAM_NOTSET)
+	MibSPar()->setEntry(MibSParams::useLowerObjHeuristic, PARAM_OFF);
+    else if(paramValue == PARAM_ON){
 	std::cout << "The lower-obj heuristic is not currently functional. Automatically disabling your parameter choice." << std::endl;
-	MibSPar()->setEntry(MibSParams::useLowerObjHeuristic, 0);
+	MibSPar()->setEntry(MibSParams::useLowerObjHeuristic, PARAM_OFF);
     }
 
     //Param: "MibS_useObjCutHeuristic"
     paramValue = MibSPar_->entry(MibSParams::useObjCutHeuristic);
 
-    if(paramValue == -1)
-	MibSPar()->setEntry(MibSParams::useObjCutHeuristic, 0);
-    else if(paramValue == 1){
+    if(paramValue == PARAM_NOTSET)
+	MibSPar()->setEntry(MibSParams::useObjCutHeuristic, PARAM_OFF);
+    else if(paramValue == PARAM_ON){
 	std::cout << "The obj-cut heuristic is not currently functional. Automatically disabling your parameter choice." << std::endl;
-	MibSPar()->setEntry(MibSParams::useObjCutHeuristic, 0);
+	MibSPar()->setEntry(MibSParams::useObjCutHeuristic, PARAM_OFF);
     }
 
     //Param: "MibS_useWSHeuristic"
     paramValue = MibSPar_->entry(MibSParams::useWSHeuristic);
 
-    if(paramValue == -1)
-	MibSPar()->setEntry(MibSParams::useWSHeuristic, 0);
+    if(paramValue == PARAM_NOTSET)
+	MibSPar()->setEntry(MibSParams::useWSHeuristic, PARAM_OFF);
     else if(paramValue == 1){
 	std::cout << "The WS heuristic is not currently functional. Automatically disabling your parameter choice." << std::endl;
-	MibSPar()->setEntry(MibSParams::useWSHeuristic, 0);
+	MibSPar()->setEntry(MibSParams::useWSHeuristic, PARAM_OFF);
     }
 
     //Param: "MibS_useGreedyHeuristic"
     paramValue = MibSPar_->entry(MibSParams::useGreedyHeuristic);
 
-    if(paramValue == -1)
-	MibSPar()->setEntry(MibSParams::useGreedyHeuristic, 0);
-    else if(paramValue == 1){
+    if(paramValue == PARAM_NOTSET)
+	MibSPar()->setEntry(MibSParams::useGreedyHeuristic, PARAM_OFF);
+    else if(paramValue == PARAM_ON){
 	std::cout << "The greedy heuristic is not currently functional. Automatically disabling your parameter choice." << std::endl;
-	MibSPar()->setEntry(MibSParams::useGreedyHeuristic, 0);
+	MibSPar()->setEntry(MibSParams::useGreedyHeuristic, PARAM_OFF);
     }
 
     //Param: "MibS_useNoGoodCut"
     paramValue = MibSPar_->entry(MibSParams::useNoGoodCut);
 
-    if(paramValue == -1)
-	MibSPar()->setEntry(MibSParams::useNoGoodCut, 0);
-    else if((paramValue == 1) && (allUpperBin_ == false)){
+    if(paramValue == PARAM_NOTSET)
+	MibSPar()->setEntry(MibSParams::useNoGoodCut, PARAM_OFF);
+    else if((paramValue == PARAM_ON) && (allUpperBin_ == false)){
 	    std::cout << "The no-good cut does not work for this problem." << std::endl;
-	    assert(paramValue == 0);
+	    assert(paramValue == PARAM_OFF);
     }
 
     //Param: "MibS_useBendersCut"
     paramValue = MibSPar_->entry(MibSParams::useBendersCut);
 
-    if(paramValue == -1)
-	MibSPar()->setEntry(MibSParams::useBendersCut, 0);
-    else if(paramValue == 1){
+    if(paramValue == PARAM_NOTSET)
+	MibSPar()->setEntry(MibSParams::useBendersCut, PARAM_OFF);
+    else if(paramValue == PARAM_ON){
 	if((allUpperBin_ == false) || (allLowerBin_ == false) || (positiveG2_ == false)){ 
 	std::cout << "The benders cut does not work for this problem." << std::endl;
-	assert(paramValue == 0);
+	assert(paramValue == PARAM_OFF);
 	}
     }
 }

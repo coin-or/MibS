@@ -26,6 +26,7 @@
 #include "MibSParams.h"
 #include "MibSTreeNode.h"
 #include "MibSSolution.h"
+#include "MibSConstants.h"
 
 #include "BlisConGenerator.h"
 #include "BlisConstraint.h"
@@ -428,7 +429,7 @@ MibSCutGenerator::boundCuts(BcpsConstraintPool &conPool)
 #endif
       
       NewboundModel.MibSPar()->setEntry(MibSParams::bilevelCutTypes, 1);
-      NewboundModel.MibSPar()->setEntry(MibSParams::useBendersCut, 1);
+      NewboundModel.MibSPar()->setEntry(MibSParams::useBendersCut, PARAM_ON);
       
       NewboundModel.MibSPar()->setEntry(MibSParams::useLowerObjHeuristic, false);
       NewboundModel.MibSPar()->setEntry(MibSParams::useObjCutHeuristic, false);
@@ -2817,7 +2818,7 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
       if (bS->isIntegral_){
 	 status = feasibilityCuts(conPool) ? true : false;
       }
-      return (status && (interdictionCuts(conPool) ? true : false));
+      return (status || (interdictionCuts(conPool) ? true : false));
     }
     else if(bS->isUpperIntegral_ && cutTypes == 2){
       //problem with binary UL variables and integer LL variables
