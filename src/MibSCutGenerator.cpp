@@ -26,6 +26,7 @@
 #include "MibSParams.h"
 #include "MibSTreeNode.h"
 #include "MibSSolution.h"
+#include "MibSConstants.h"
 
 #include "BlisConGenerator.h"
 #include "BlisConstraint.h"
@@ -428,7 +429,7 @@ MibSCutGenerator::boundCuts(BcpsConstraintPool &conPool)
 #endif
       
       NewboundModel.MibSPar()->setEntry(MibSParams::bilevelCutTypes, 1);
-      NewboundModel.MibSPar()->setEntry(MibSParams::useBendersCut, true);
+      NewboundModel.MibSPar()->setEntry(MibSParams::useBendersCut, PARAM_ON);
       
       NewboundModel.MibSPar()->setEntry(MibSParams::useLowerObjHeuristic, false);
       NewboundModel.MibSPar()->setEntry(MibSParams::useObjCutHeuristic, false);
@@ -2248,7 +2249,7 @@ MibSCutGenerator::binaryCuts(BcpsConstraintPool &conPool)
   //FIXME: NEED TO CHECK FOR ROW TYPES FOR CGLP.  
   //COMING FROM KNAP SOLVER THEY ARE RANGED.
 
-  bool useNoGoodCut 
+  int useNoGoodCut 
     = localModel_->MibSPar_->entry(MibSParams::useNoGoodCut);
 
    bool useIncObjCut 
