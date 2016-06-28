@@ -198,6 +198,10 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
   if(isUpperIntegral_)
      checkBilevelFeasiblity(mibs->isRoot_);
 
+  /* run a heuristic to find a better feasible solution */
+  //  heuristic_->findHeuristicSolutions();
+
+
 }
 
 //#############################################################################
@@ -352,7 +356,7 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
     std::cout << "lowerObj: " << lowerObj << std::endl;
   }
 
-  if(fabs(objVal - lowerObj) < etol){
+  if(fabs(objVal - lowerObj) < etol && isIntegral_){
      /** Current solution is bilevel feasible **/
      
      const double * values = lSolver->getColSolution();
@@ -398,7 +402,7 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
      int numCols = model_->solver()->getNumCols();
      int pos(0);
 
-#if 1
+#if 0
      for(i = 0; i < numCols; i++){
 	if ((pos = model_->bS_->binarySearch(0, lN - 1, i, lowerColInd)) >= 0){
 	   optLowerSolutionOrd_[pos] = optLowerSolution_[pos];
@@ -430,10 +434,10 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
      }
      delete [] newSolution;
 #endif	  
-     
-     /* run a heuristic to find a better feasible solution */
-     heuristic_->findHeuristicSolutions();
 
+     /* This is now called directly from createBilevel(), but leave */
+     /* it commented for now */
+     heuristic_->findHeuristicSolutions();
 
      isBilevelFeasible_ = false;
      if(cutStrategy != 1)
