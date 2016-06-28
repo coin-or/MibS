@@ -636,8 +636,8 @@ MibSBilevel::setUpModel(OsiSolverInterface * oSolver, bool newOsi,
   if (feasCheckSolver == "SYMPHONY" && probType == 1 && warmStartLL &&
       !newOsi && doDualFixing){ //Interdiction
 
-     /** Get upper bound from best known (feasible) lower level solution and try 
-	 to fix additional variables by sensitivity analysis **/
+     /** Get upper bound from best known (feasible) lower level solution and 
+	 try to fix additional variables by sensitivity analysis **/
 
      std::vector<std::pair<AlpsKnowledge*, double> > solutionPool;
      model_->getKnowledgeBroker()->
