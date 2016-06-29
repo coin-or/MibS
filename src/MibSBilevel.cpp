@@ -50,6 +50,10 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
   //double etol(model_->etol_); 
   
   assert(N == model_->solver()->getNumCols());
+
+  model_->setNumRows(model_->solver()->getNumRows());
+  model_->setUpperRowNum(model_->solver()->getNumRows() - model_->getLowerRowNum());
+  model_->setUpperRowData();
   
   int *indices = sol->getIndices();
   double *values = sol->getElements();

@@ -831,24 +831,27 @@ MibSModel::setUpperRowData()
    //FIXME: MAKE THIS MORE SIMPLE
 
    int lowerRowNum(lowerRowNum_);
-   if (!upperRowNum_){
-      upperRowNum_ = numCons_ - lowerRowNum_;
-      int * lowerRowInd = getLowerRowInd();
-   
-      if(!getUpperRowInd())
-	 upperRowInd_ = new int[upperRowNum_];
+   upperRowNum_ = numCons_ - lowerRowNum_;
+   int * lowerRowInd = getLowerRowInd();
 
-      int i(0), cnt(0);
-      
-      for(i = 0; i < lowerRowNum_ + upperRowNum_; i++){
-	 if(!findIndex(i, lowerRowNum, lowerRowInd)){
-	    upperRowInd_[cnt] = i;
-	    cnt++;
-	 }
-      }
-      assert(cnt == upperRowNum_);
+   if(!upperRowInd_){
+       delete[] upperRowInd_;
    }
 
+   if(upperRowNum_ > 0){
+       upperRowInd_ = new int[upperRowNum_];
+   }
+
+   int i(0), cnt(0);
+
+   for(i = 0; i < lowerRowNum_ + upperRowNum_; i++){
+       if(!findIndex(i, lowerRowNum, lowerRowInd)){
+	   upperRowInd_[cnt] = i;
+	   cnt++;
+       }
+   }
+   assert(cnt == upperRowNum_);
+   
    numOrigCons_ = lowerRowNum_ + upperRowNum_;
 }
 
@@ -1726,8 +1729,8 @@ MibSModel::checkUpperFeasibility(double * solution)
   bool feasible(true);
   int * uRowIndices = getUpperRowInd();
   int uRows(getUpperRowNum());
-  const double * origRowLb = getOrigRowLb();
-  const double * origRowUb = getOrigRowUb();
+  const double * RowLb = getSolver()->getRowLower();
+  const double * RowUb = getSolver()->getRowUpper();
   const CoinPackedMatrix * matrix = getSolver()->getMatrixByRow();
   const double * matElements = matrix->getElements();
   const int * matIndices = matrix->getIndices();
@@ -1745,7 +1748,7 @@ MibSModel::checkUpperFeasibility(double * solution)
       index2 = matIndices[j];
       lhs += matElements[j] * solution[index2];
     }
-    if((origRowLb[index1] > lhs) || (lhs > origRowUb[index1]))
+    if((RowLb[index1] > lhs) || (lhs > RowUb[index1]))
       feasible = false;
     lhs = 0.0;
   }
