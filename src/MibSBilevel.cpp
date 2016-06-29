@@ -518,8 +518,9 @@ MibSBilevel::setUpModel(OsiSolverInterface * oSolver, bool newOsi,
   /** Set the row bounds **/
   
   for(i = 0; i < lRows; i++){
-     rowLb[i] = origRowLb[lRowIndices[i]];
-     rowUb[i] = origRowUb[lRowIndices[i]];
+      index1 = lRowIndices[i];
+      rowLb[i] = oSolver->getRowLower()[index1];
+      rowUb[i] = oSolver->getRowUpper()[index1];
   }
      
   for(i = 0; i < lCols; i++){
