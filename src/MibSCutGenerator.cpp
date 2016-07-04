@@ -304,6 +304,12 @@ MibSCutGenerator::boundCuts(BcpsConstraintPool &conPool)
       }else{
 	 colType = localModel_->colType_;
       }
+
+      boundModel->loadProblemData(matrix,
+				  oSolver->getColLower(), oSolver->getColUpper(),
+				  nObjCoeffs,
+				  oSolver->getRowLower(), oSolver->getRowUpper(),
+				  colType, 1.0, oSolver->getInfinity());
       
       boundModel->loadAuxiliaryData(localModel_->getLowerDim(),
 				    localModel_->getLowerRowNum(),
@@ -318,12 +324,6 @@ MibSCutGenerator::boundCuts(BcpsConstraintPool &conPool)
 				    localModel_->structRowNum_,
 				    localModel_->structRowInd_,
 				    0, NULL);
-      
-      boundModel->loadProblemData(matrix,
-				  oSolver->getColLower(), oSolver->getColUpper(),
-				  nObjCoeffs,
-				  oSolver->getRowLower(), oSolver->getRowUpper(),
-				  colType, 1.0, oSolver->getInfinity());
       
       delete[] indDel;
       
@@ -2799,10 +2799,6 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
 
     CoinPackedVector *sol = localModel_->getSolution();
 
-    if (useBoundCut){
-       boundCuts(conPool);
-    }
-
     if(localModel_->solIsUpdated_)
       bS = localModel_->bS_;
     else
@@ -2815,6 +2811,9 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
       delete sol;
       if (bS->isIntegral_){
 	 numCuts += feasibilityCuts(conPool) ? true : false;
+         if (useBoundCut){
+	     boundCuts(conPool);
+	 }
       }
       return (numCuts ? true : false);
     }
