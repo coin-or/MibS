@@ -35,14 +35,8 @@ MibSParams::createKeywordList() {
    keys_.push_back(make_pair(std::string("MibS_useValFuncCut"),
 			     AlpsParameter(AlpsBoolPar, useValFuncCut)));
    
-   keys_.push_back(make_pair(std::string("MibS_useNoGoodCut"),
-			     AlpsParameter(AlpsBoolPar, useNoGoodCut)));
-   
    keys_.push_back(make_pair(std::string("MibS_useIncObjCut"),
 			     AlpsParameter(AlpsBoolPar, useIncObjCut)));
-   
-   keys_.push_back(make_pair(std::string("MibS_useBendersCut"),
-			     AlpsParameter(AlpsBoolPar, useBendersCut)));
    
    keys_.push_back(make_pair(std::string("MibS_useBoundCut"),
 			     AlpsParameter(AlpsBoolPar, useBoundCut)));
@@ -52,21 +46,6 @@ MibSParams::createKeywordList() {
    
    keys_.push_back(make_pair(std::string("MibS_boundCutRelaxUpper"),
 			     AlpsParameter(AlpsBoolPar, boundCutRelaxUpper)));
-   
-   keys_.push_back(make_pair(std::string("MibS_useObjCutHeuristic"),
-			     AlpsParameter(AlpsBoolPar, useObjCutHeuristic)));
-
-   keys_.push_back(make_pair(std::string("MibS_useLowerObjHeuristic"),
-			     AlpsParameter(AlpsBoolPar, useLowerObjHeuristic)));
-
-   keys_.push_back(make_pair(std::string("MibS_useWSHeuristic"),
-			     AlpsParameter(AlpsBoolPar, useWSHeuristic)));
-
-   keys_.push_back(make_pair(std::string("MibS_useGreedyHeuristic"),
-			     AlpsParameter(AlpsBoolPar, useGreedyHeuristic)));
-
-   keys_.push_back(make_pair(std::string("MibS_usePreprocessor"),
-			     AlpsParameter(AlpsBoolPar, usePreprocessor)));
 
    keys_.push_back(make_pair(std::string("MibS_useIpBound"),
 			     AlpsParameter(AlpsBoolPar, useIpBound)));
@@ -126,6 +105,30 @@ MibSParams::createKeywordList() {
    keys_.push_back(make_pair(std::string("MibS_whichCutsLL"),
 			     AlpsParameter(AlpsIntPar, whichCutsLL)));
 
+   keys_.push_back(make_pair(std::string("MibS_usePreprocessor"),
+			     AlpsParameter(AlpsIntPar, usePreprocessor)));
+
+   keys_.push_back(make_pair(std::string("MibS_usePreprocessor"),
+			     AlpsParameter(AlpsIntPar, usePreprocessor)));
+   
+   keys_.push_back(make_pair(std::string("MibS_useLowerObjHeuristic"),
+			     AlpsParameter(AlpsIntPar, useLowerObjHeuristic)));
+
+   keys_.push_back(make_pair(std::string("MibS_useObjCutHeuristic"),
+			     AlpsParameter(AlpsIntPar, useObjCutHeuristic)));
+
+   keys_.push_back(make_pair(std::string("MibS_useWSHeuristic"),
+			     AlpsParameter(AlpsIntPar, useWSHeuristic)));
+
+   keys_.push_back(make_pair(std::string("MibS_useGreedyHeuristic"),
+			     AlpsParameter(AlpsIntPar, useGreedyHeuristic)));
+
+   keys_.push_back(make_pair(std::string("MibS_useNoGoodCut"),
+			     AlpsParameter(AlpsIntPar, useNoGoodCut)));
+
+   keys_.push_back(make_pair(std::string("MibS_useBendersCut"),
+			     AlpsParameter(AlpsIntPar, useBendersCut)));
+
    //--------------------------------------------------------
    // String Parameters.
    //--------------------------------------------------------
@@ -151,27 +154,13 @@ MibSParams::setDefaultEntries() {
 
    setEntry(useValFuncCut, false);
    
-   setEntry(useNoGoodCut, false);
-   
    setEntry(useIncObjCut, true);
-   
-   setEntry(useBendersCut, false);
    
    setEntry(useBoundCut, false);
    
    setEntry(boundCutOptimal, false);
    
    setEntry(boundCutRelaxUpper, true);
-   
-   setEntry(useObjCutHeuristic, true);
-
-   setEntry(useLowerObjHeuristic, true);
-
-   setEntry(useWSHeuristic, false);
-
-   setEntry(useGreedyHeuristic, false);
-
-   setEntry(usePreprocessor, false);
 
    setEntry(useIpBound, false);
 
@@ -191,7 +180,7 @@ MibSParams::setDefaultEntries() {
 
    setEntry(maxNumActiveCons, BIGCONSTANT);
 
-   setEntry(bilevelProblemType, GENERAL);
+   setEntry(bilevelProblemType, PARAM_NOTSET);
 
    setEntry(bilevelCutTypes, GENERALONLY);
 
@@ -208,6 +197,20 @@ MibSParams::setDefaultEntries() {
    setEntry(maxThreadsLL, 1);
 
    setEntry(whichCutsLL, 2);
+
+   setEntry(usePreprocessor, PARAM_NOTSET);
+
+   setEntry(useLowerObjHeuristic, PARAM_NOTSET);
+
+   setEntry(useObjCutHeuristic, PARAM_NOTSET);
+
+   setEntry(useWSHeuristic, PARAM_NOTSET);
+
+   setEntry(useGreedyHeuristic, PARAM_NOTSET);
+
+   setEntry(useNoGoodCut, PARAM_NOTSET);
+
+   setEntry(useBendersCut, PARAM_NOTSET);
 
    //-------------------------------------------------------------
    // Double Parameters

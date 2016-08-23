@@ -60,7 +60,7 @@ CPLNFLAGS  = -lcplex -lm -lpthread -lreadline -lncurses
 CXX = g++
 
 # C++ Compiler options
-CXXFLAGS = -g -pipe -pedantic-errors -Wparentheses -Wreturn-type -Wcast-qual -Wall -Wpointer-arith -Wwrite-strings -Wconversion -std=c++11
+CXXFLAGS = -g -pipe -pedantic-errors -Wparentheses -Wreturn-type -Wcast-qual -Wall -Wpointer-arith -Wwrite-strings -Wconversion 
 ifeq ($(USE_CPLEX),TRUE)
 CXXFLAGS += -DUSE_CPLEX -I$(CPLEXINCDIR)
 endif

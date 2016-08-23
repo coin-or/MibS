@@ -28,17 +28,10 @@ class MibSParams : public AlpsParameterSet {
   enum boolParams{
      usePureIntegerCut,
      useValFuncCut,
-     useNoGoodCut,
      useIncObjCut,
-     useBendersCut,
      useBoundCut,
      boundCutOptimal,
      boundCutRelaxUpper,
-     useObjCutHeuristic,
-     useLowerObjHeuristic,
-     useWSHeuristic,
-     useGreedyHeuristic,
-     usePreprocessor,
      useIpBound,
      isBilevelBranchProb,
      warmStartLL,
@@ -60,6 +53,13 @@ class MibSParams : public AlpsParameterSet {
      upperFileFormat,
      maxThreadsLL,
      whichCutsLL,
+     usePreprocessor,
+     useLowerObjHeuristic,
+     useObjCutHeuristic,
+     useWSHeuristic,
+     useGreedyHeuristic,
+     useNoGoodCut,
+     useBendersCut,
      endOfIntParams
   };
 
