@@ -47,6 +47,7 @@ class MibSBilevel {
    double *lowerSolutionOrd_;
    double *optLowerSolution_;
    double *optLowerSolutionOrd_;
+   double *lSolution_;
    
    MibSModel *model_;
    MibSHeuristic *heuristic_;

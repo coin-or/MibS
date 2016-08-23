@@ -60,6 +60,7 @@ class MibSParams : public AlpsParameterSet {
      useGreedyHeuristic,
      useNoGoodCut,
      useBendersCut,
+     useIntersectionCut,
      endOfIntParams
   };
 
