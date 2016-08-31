@@ -71,15 +71,17 @@ class MibSCutGenerator : public BlisConGenerator {
    int bendersZeroSumCuts(BcpsConstraintPool &conPool);
 
    /** Add intersection cuts for discrete problems **/
-   int intersectionCuts(BcpsConstraintPool &conPool, double *lowerSolution);
+   int intersectionCuts(BcpsConstraintPool &conPool, double *optLOowerSolution);
 
-   void getAlpha(double** extRay, double* lowerSolution, int numStruct,
-		 int numNonBasic, const double* lpSol,
-		 std::vector<double> &alphaVec);
+   /** Helper function for intersection cut*/
+   void getAlphaIntersectionCut(double** extRay, double* lowerSolution,
+				int numStruct, int numNonBasic,
+				const double* lpSol, std::vector<double> &alphaVec);
 
-   double solveModel(const CoinPackedMatrix* matrix, double** extRay,
-		     double* rowLb,double* rowUb, int lRows,
-		     int numRows, int numNonBasic, int cnt);
+   /** Helper function for intersection cut*/
+   double solveModelIntersectionCut(const CoinPackedMatrix* matrix,
+				    double** extRay, double* rowLb,double* rowUb,
+				    int lRows, int numRows, int numNonBasic, int cnt);
 		     
    /** Add bound cuts for general problems **/
    int boundCuts(BcpsConstraintPool &conPool);

@@ -341,7 +341,7 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
   double lowerObj = getLowerObj(sol, model_->getLowerObjSense());
 
   if(isIntegral_){
-      assert(model_->getLowerObjSense() * objVal <= model_->getLowerObjSense() * lowerObj);
+      assert((objVal - lowerObj) <= etol);
   }
 
   int lN(model_->lowerDim_); // lower-level dimension
@@ -354,7 +354,7 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
   if(!optLowerSolutionOrd_)
     optLowerSolutionOrd_ = new double[lN];
 
-  lSolution_ = NULL;
+  /*lSolution_ = NULL;
   if(!lSolution_)
       lSolution_ = new double[lN];
 
@@ -365,7 +365,7 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
       for(i = 0; i < lN; i++){
 	  lSolution_[i] = lSolver->getColSolution()[i];
       }
-  }
+      }*/
   
   CoinZeroN(optLowerSolution_, lN);
   CoinZeroN(optLowerSolutionOrd_, lN);
@@ -478,7 +478,7 @@ MibSBilevel::gutsOfDestructor()
 
   if(upperSolution_) delete [] upperSolution_;
   if(lowerSolution_) delete [] lowerSolution_;
-  if(lSolution_) delete [] lSolution_;
+  //if(lSolution_) delete [] lSolution_;
   if(optLowerSolution_) delete [] optLowerSolution_;
   if(optLowerSolutionOrd_) delete [] optLowerSolutionOrd_;
   if(upperSolutionOrd_) delete [] upperSolutionOrd_;
