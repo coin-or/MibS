@@ -190,9 +190,9 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
     if(pos < 0){
       pos = binarySearch(0, uN - 1, index, upperColInd);
       upperSolutionOrd_[pos] = values[i];
-    }
-    else
+    }else{
       lowerSolutionOrd_[pos] = values[i];
+    }
   }
 
   if(isUpperIntegral_)
