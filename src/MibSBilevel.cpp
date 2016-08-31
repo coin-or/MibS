@@ -230,7 +230,7 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 
   std::string feasCheckSolver =
      model_->MibSPar_->entry(MibSParams::feasCheckSolver);
-
+  
   if (warmStartLL && (feasCheckSolver == "SYMPHONY") && solver_){
      solver_ = setUpModel(model_->getSolver(), false);
   }else{
@@ -338,10 +338,16 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
   }
 
   double etol(model_->etol_);
-  double lowerObj = getLowerObj(sol, model_->getLowerObjSense());  
+  double lowerObj = getLowerObj(sol, model_->getLowerObjSense());
+
+  if(isIntegral_){
+      assert((objVal - lowerObj) <= etol);
+  }
 
   int lN(model_->lowerDim_); // lower-level dimension
   int uN(model_->upperDim_); // lower-level dimension
+  int i(0);
+  
   if(!optLowerSolution_)
     optLowerSolution_ = new double[lN];
 
@@ -365,7 +371,7 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
      
      const double * values = lSolver->getColSolution();
      int lN(model_->getLowerDim());
-     int i(0);
+     //int i(0);
      
      // May want to take out this update and keep current - both optimal
      // changed this 7/1 to allow for continuous vars
@@ -393,7 +399,7 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 
      const double * values = lSolver->getColSolution();
      int lN(model_->getLowerDim());
-     int i(0);
+     //int i(0);
 
      //added this 7/1 to store y* for val func cut
      for(i = 0; i < lN; i++){
