@@ -1,7 +1,7 @@
 language: cpp
 env:
   global:
-      - secure: "KXrNrSs66/J5fb8pRYTUhIjEiXizlZ7p0xVROPla+GWfwyLJIAiswbwYOBpR1kSTn51E+j6j14UWL36GC31TK5WXRJoWoyVXi1RH+zZfvESAwqI6OmhzTWQd84fyXJ+vx5Yg0qEhPGH0HFGaNrpAvsBtr8lmsoLgocEaMikqxQ8="
+      - secure: "bVH9TMBnRFCC69xDqM6BW79rAoM73cA5M60E23nJWXV6rhPyvKvveobWKwInIv39h5zktpsYD/gjD34tS3zXDIIKQY+aCexSras70sKSMojZMbxkO8YgIRL85cd6hxwymoVP5Sf/Gxfx2IDWft0fZge+zNuPFxMl1LAkzS3EIdX+M2UNOh6sHbz2VfVE/QlUPA4cjFNCI0MoZj0ovoY9Pyl9xr+B7pc6sXheCXTGxbEyTH1PUXRsVciAT6wi0fk27fsD80rlbOOCifFTs+JPYmhFXEjajG26WpPXgtHhEoNpy5YUZ9pqqbiWgPFSETR7VEXkOGOYqH63x3Qf2zU9dPtvIiMy1kDf0V/YiGfoyTrE4aH+wd+EJKIsDDiFQZBhrDi/b6BSRAIFZZR2+IAb5GygiMAS598CLXl1B/7mR6+9y0aDzKoV7yUcj6xlYEZmzIcb7DJSHY4PZ/3v6pISWOcJNBN40L0ZINXtsbUusNoSuFCNcN1Yklh6Ges3gWEtTstD4Th3H4dpKdLGjHuKodcdROkWBaS1f1OFKr8CRhR6Nn2Ew6/ifBNb5bRuCcjGuv0yKzFdtcahGsRjwHaqOSdPMzf9JVdCjvSGCXlXbzkm1wp+hVdqv50nFGED5XZNEWuX4KiTpkKHMEkmfgbSEo6SdL1APH9daWYgrTCLyhQ="
 
 matrix:
   include:
@@ -34,7 +34,7 @@ before_script:
 script:
   - bash BuildTools/get.dependencies.sh build --quiet
   - cd /home/travis/build/tkralphs/MibS/build/bin && \
-    LD_LIBRARY_PATH=/home/travis/tkralphs/MibS/build/lib ./mibs \ 
+    LD_LIBRARY_PATH=/home/travis/build/tkralphs/MibS/build/lib ./mibs \ 
     -Alps_instance ../../data/interdiction/MCDM/NO_CORR/10_ITEMS_1000/K5010W03.KNP.mps \
     -MibS_auxiliaryInfoFile ../../data/interdiction/MCDM/NO_CORR/10_ITEMS_1000/K5010W03.KNP.txt
 
