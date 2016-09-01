@@ -17,6 +17,12 @@
 
 #define BIGCONSTANT 10000
 
+/*---------  status of variables  --------------------------------*/
+#define VAR_BASIC 1
+#define VAR_FREE  2
+#define VAR_AT_LB 3
+#define VAR_AT_UB 4
+
 #define PARAM_NOTSET  -1
 #define PARAM_OFF      0
 #define PARAM_ON       1

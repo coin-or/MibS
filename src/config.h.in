@@ -21,9 +21,6 @@
 /* Define to the debug verbosity level (0 is no output) */
 #undef COIN_MIBS_VERBOSITY
 
-/* MibS git version */
-#undef GIT_VERSION
-
 /* Define to 1 if you have the <dlfcn.h> header file. */
 #undef HAVE_DLFCN_H
 
@@ -53,6 +50,9 @@
 
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H
+
+/* MibS git version */
+#undef MIBS_GIT_VERSION
 
 /* SVN revision number of project */
 #undef MIBS_SVN_REV
