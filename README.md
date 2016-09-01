@@ -2,6 +2,8 @@
 
 [![Build Status](https://travis-ci.org/tkralphs/MibS.svg?branch=library)](https://travis-ci.org/tkralphs/MibS)
 
+[ ![Download](https://api.bintray.com/packages/coin-or/download/MibS/images/download.svg) ](https://bintray.com/coin-or/download/MibS/_latestVersion)
+
 MibS is a solver for mixed integer bilevel optimization problems. For an
 introduction to bilevel optimization, see [this slide
 deck](http://coral.ie.lehigh.edu/~ted/files/talks/BILEVEL-IWOBIP16.pdf). A
@@ -22,7 +24,11 @@ have these installed, you can build and link MibS against the installed
 version. Otherwise, by following the instruction below, you'll be able to
 download, build, and install all dependencies.
 
-## BUILDING and INSTALLING
+## DOWNLOADING
+
+Binary packages are available for some platforms from [Bintray](https://bintray.com/coin-or/download/MibS).
+
+## BUILDING AND INSTALLING
 
 ### Building on Linux
 
