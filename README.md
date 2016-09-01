@@ -8,12 +8,12 @@ deck](http://coral.ie.lehigh.edu/~ted/files/talks/BILEVEL-IWOBIP16.pdf). A
 somewhat outdated but still useful introduction to MibS is
 [here](http://coral.ie.lehigh.edu/~ted/files/talks/BILEVEL-INFORMS11.pdf).
 
-# SUPPORTED PLATFORMS
+## SUPPORTED PLATFORMS
 
 MiBS should work on all major patforms (OS X, Linux, and Windows), though the
 software is in active development and most recent testing has been on Linux.
 
-# DEPENDENCIES
+## DEPENDENCIES
 
 MibS depends on the [CHiPPS](https://projects.coin-or.org/CHiPPS),
 [Cbc](https://projects.coin-or.org/Cbc), and [SYMPHONY]
@@ -22,9 +22,9 @@ have these installed, you can build and link MibS against the installed
 version. Otherwise, by following the instruction below, you'll be able to
 download, build, and install all dependencies.
 
-# BUILDING and INSTALLING
+## BUILDING and INSTALLING
 
-## Building on Linux
+### Building on Linux
 
 Most Linux distributions come with all the required tools installed.
 To obtain the source code, open a terminal and do
@@ -61,7 +61,7 @@ After installation, you will also need to add `/your/install/dir/bin` to your
 `PATH` variable in your `.bashrc` and also add `/your/install/dir/lib`
 to your `LD_LIBRARY_PATH` if you want to link to COIN libraries. 
 
-## Building on Windows (MSys2/CYGWIN and MinGW/MSVC)
+### Building on Windows (MSys2/CYGWIN and MinGW/MSVC)
 
 By far, the easiest way to build on Windows is with the GNU autotools and the
 MinGW compilers.  
@@ -131,7 +131,7 @@ with
 BuildTools/get.dependencies build --quiet --enable-msvc 
 ```
 
-## Building on OS X
+### Building on OS X
 
 OS X is a Unix-based OS and ships with many of the basic components needed to
 build COIN-OR, but it's missing some things. For examples, the latest versions
@@ -190,7 +190,7 @@ After installation, you will also need to add `/your/install/dir/bin` to your
 `PATH` variable in your `.bashrc` and also add `/your/install/dir/lib`
 to your `DYLD_LIBRARY_PATH` if you want to link to COIN libraries. 
 
-USING
+## USING
 
 To solve a bilevel program, you must provide both an MPS file and an auxiliary
 information file that specifies which variables and constraints are associated
