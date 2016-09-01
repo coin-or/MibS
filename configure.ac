@@ -84,12 +84,17 @@ AC_COIN_INIT_AUTO_TOOLS
 #                              COIN components                              #
 #############################################################################
 
-AC_COIN_CHECK_PACKAGE(CoinDepend, [alps bcps blis coinutils osi cgl clp cbc osi-cbc osi-clp], [MibSLib])
+AC_COIN_CHECK_PACKAGE(CoinDepend, [alps bcps blis coinutils osi cgl clp osi-clp], [MibSLib])
 if test $coin_has_coindepend != yes ; then
   AC_MSG_ERROR([Required packages not available.])
 fi
 
 AC_COIN_CHECK_PACKAGE(SYMPHONY, [symphony osi-sym], [MibSLib])
+if test $coin_has_symphony != yes ; then
+  AC_MSG_ERROR([Required package SYMPHONY not available.])
+fi
+
+AC_COIN_CHECK_PACKAGE(Cbc, [cbc osi-cbc], [MibSLib])
 
 #############################################################################
 #                              check MPI libraries                          #

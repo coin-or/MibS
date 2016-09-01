@@ -1,5 +1,8 @@
 /* src/config.h.in.  Generated from configure.ac by autoheader.  */
 
+/* Define to 1 if the Cbc package is available */
+#undef COIN_HAS_CBC
+
 /* Define to 1 if the CoinDepend package is available */
 #undef COIN_HAS_COINDEPEND
 
