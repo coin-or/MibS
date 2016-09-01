@@ -1,4 +1,7 @@
 language: cpp
+env:
+  global:
+      - secure: "KXrNrSs66/J5fb8pRYTUhIjEiXizlZ7p0xVROPla+GWfwyLJIAiswbwYOBpR1kSTn51E+j6j14UWL36GC31TK5WXRJoWoyVXi1RH+zZfvESAwqI6OmhzTWQd84fyXJ+vx5Yg0qEhPGH0HFGaNrpAvsBtr8lmsoLgocEaMikqxQ8="
 
 matrix:
   include:
@@ -34,4 +37,11 @@ script:
     LD_LIBRARY_PATH=/home/travis/tkralphs/MibS/build/lib ./mibs \ 
     -Alps_instance ../../data/interdiction/MCDM/NO_CORR/10_ITEMS_1000/K5010W03.KNP.mps \
     -MibS_auxiliaryInfoFile ../../data/interdiction/MCDM/NO_CORR/10_ITEMS_1000/K5010W03.KNP.txt
-  
+
+after_script:
+  - if [ $TRAVIS_BRANCH = "library" ]; then export VERSION=trunk; else export VERSION=`echo $TRAVIS_BRANCH | cut -d "/" -f 2`; fi
+  - export PROJECT=`echo $TRAVIS_REPO_SLUG | cut -d "/" -f 2`
+  - export TGZ_FILE=$PROJECT-$VERSION-$PLATFORM.tgz
+  - echo $TGZ_FILE
+  - tar -czvf $TGZ_FILE build/lib/* build/bin/* build/include/* build/share/* build/README.md build/INSTALL build/LICENSE build/SYMPHONY/AUTHORS
+  - curl -T $TGZ_FILE -utkralphs:$BINTRAY_API -H "X-Bintray-Publish:1" -H "X-Bintray-Override:1" https://api.bintray.com/content/coin-or/download/$PROJECT/$VERSION/$TGZ_FILE
