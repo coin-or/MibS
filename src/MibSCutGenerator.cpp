@@ -13,6 +13,19 @@
 /*===========================================================================*/
 
 #include "OsiCbcSolverInterface.hpp"
+
+#include "MibSCutGenerator.hpp"
+#include "MibSParams.hpp"
+#include "MibSTreeNode.hpp"
+#include "MibSSolution.hpp"
+#include "MibSConstants.hpp"
+#include "MibSConfig.hpp"
+
+#include "BlisConGenerator.h"
+#include "BlisConstraint.h"
+#include "BlisHelp.h"
+#include "BlisVariable.h"
+
 #ifdef COIN_HAS_SYMPHONY
 #include "OsiSymSolverInterface.hpp"
 #include "symphony.h"
@@ -23,17 +36,6 @@
 #else
 #include "AlpsKnowledgeBrokerSerial.h"
 #endif
-
-#include "MibSCutGenerator.hpp"
-#include "MibSParams.hpp"
-#include "MibSTreeNode.hpp"
-#include "MibSSolution.hpp"
-#include "MibSConstants.hpp"
-
-#include "BlisConGenerator.h"
-#include "BlisConstraint.h"
-#include "BlisHelp.h"
-#include "BlisVariable.h"
 
 //#############################################################################
 MibSCutGenerator::MibSCutGenerator(MibSModel *mibs)

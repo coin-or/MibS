@@ -15,9 +15,6 @@
 #include <map>
 #include <time.h>
 #include "OsiCbcSolverInterface.hpp"
-#ifdef COIN_HAS_SYMPHONY
-#include "OsiSymSolverInterface.hpp"
-#endif
 #include "OsiSolverInterface.hpp"
 
 #include "MibSHeuristic.hpp"
@@ -25,6 +22,11 @@
 #include "MibSParams.hpp"
 #include "MibSSolution.hpp"
 #include "MibSSolTypes.hpp"
+#include "MibSConfig.hpp"
+
+#ifdef COIN_HAS_SYMPHONY
+#include "OsiSymSolverInterface.hpp"
+#endif
 
 //#############################################################################
 MibSHeuristic::MibSHeuristic(MibSModel * model)

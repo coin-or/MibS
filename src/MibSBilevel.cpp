@@ -14,6 +14,14 @@
 
 #include "CoinPackedVector.hpp"
 #include "OsiCbcSolverInterface.hpp"
+
+#include "MibSBilevel.hpp"
+#include "MibSModel.hpp"
+#include "MibSTreeNode.hpp"
+#include "MibSSolution.hpp"
+#include "MibSHeuristic.hpp"
+#include "MibSConfig.hpp"
+
 #ifdef COIN_HAS_SYMPHONY
 #include "symphony.h"
 #include "SymConfig.h"
@@ -23,12 +31,6 @@
 #include "cplex.h"
 #include "OsiCpxSolverInterface.hpp"
 #endif
-
-#include "MibSBilevel.hpp"
-#include "MibSModel.hpp"
-#include "MibSTreeNode.hpp"
-#include "MibSSolution.hpp"
-#include "MibSHeuristic.hpp"
 
 //#############################################################################
 void 
