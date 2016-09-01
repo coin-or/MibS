@@ -12,9 +12,9 @@
 /* accompanying file for terms.                                              */
 /*===========================================================================*/
 
-#include "MibSBranchStrategyMaxInf.h"
-#include "MibSModel.h"
-#include "MibSObjectInt.h"
+#include "MibSBranchStrategyMaxInf.hpp"
+#include "MibSModel.hpp"
+#include "MibSObjectInt.hpp"
 
 //#include "BlisObjectInt.h"
 #include "BlisModel.h"
@@ -44,7 +44,7 @@ MibSBranchStrategyMaxInf::~MibSBranchStrategyMaxInf()
 
 /** Create a set of candidate branching objects. */
 int 
-MibSBranchStrategyMaxInf::createCandBranchObjects(int numPassesLeft)
+MibSBranchStrategyMaxInf::createCandBranchObjects(int numPassesLeft, double ub)
 {
 
     int numInfs = 0;

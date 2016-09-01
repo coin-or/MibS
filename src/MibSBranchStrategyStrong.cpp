@@ -12,8 +12,8 @@
 /* accompanying file for terms.                                              */
 /*===========================================================================*/
 
-#include "MibSBranchStrategyStrong.h"
-#include "MibSModel.h"
+#include "MibSBranchStrategyStrong.hpp"
+#include "MibSModel.hpp"
 
 #include "BlisObjectInt.h"
 #include "BlisModel.h"
@@ -45,7 +45,7 @@ MibSBranchStrategyStrong::~MibSBranchStrategyStrong()
 
 /** Create a set of candidate branching objects. */
 int 
-MibSBranchStrategyStrong::createCandBranchObjects(int numPassesLeft)
+MibSBranchStrategyStrong::createCandBranchObjects(int numPassesLeft, double ub)
 {
     int bStatus = 0;
     int i, j, pass;

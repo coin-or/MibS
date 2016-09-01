@@ -12,8 +12,8 @@
 /* accompanying file for terms.                                              */
 /*===========================================================================*/
 
-#include "MibSBranchStrategyPseudo.h"
-#include "MibSModel.h"
+#include "MibSBranchStrategyPseudo.hpp"
+#include "MibSModel.hpp"
 
 #include "BlisObjectInt.h"
 #include "BlisModel.h"
@@ -53,7 +53,7 @@ MibSBranchStrategyPseudo::~MibSBranchStrategyPseudo()
 
 /** Create a set of candidate branching objects. */
 int 
-MibSBranchStrategyPseudo::createCandBranchObjects(int numPassesLeft)
+MibSBranchStrategyPseudo::createCandBranchObjects(int numPassesLeft, double ub)
 {
 
    //FIXEME::ADD IN BILEVEL BRANCHING

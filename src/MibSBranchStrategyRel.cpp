@@ -12,8 +12,8 @@
 /* accompanying file for terms.                                              */
 /*===========================================================================*/
 
-#include "MibSBranchStrategyRel.h"
-#include "MibSModel.h"
+#include "MibSBranchStrategyRel.hpp"
+#include "MibSModel.hpp"
 
 #include "BlisObjectInt.h"
 #include "BlisModel.h"
@@ -53,7 +53,7 @@ MibSBranchStrategyRel::~MibSBranchStrategyRel()
 
 /** Create a set of candidate branching objects. */
 int 
-MibSBranchStrategyRel::createCandBranchObjects(int numPassesLeft)
+MibSBranchStrategyRel::createCandBranchObjects(int numPassesLeft, double ub)
 {
 
    //FIXME::ADD IN BILEVEL BRANCHING
