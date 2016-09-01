@@ -19,9 +19,9 @@
 AC_PREREQ(2.59)
 
 m4_define([gitversion], m4_esyscmd([sh -c "git describe --always | cut -d '=' -f 2 | head --bytes -1"]))
-AC_INIT([MibS],[gitversion],[https://github.com/aykutbulut/DisCO/issues/new])
+AC_INIT([MibS],[trunk],[https://github.com/tkralphs/MibS/issues/new])
 
-AC_DEFINE([GIT_VERSION], [gitversion], [MibS git version])
+AC_DEFINE([MIBS_GIT_VERSION], [gitversion], [MibS git version])
 
 AC_COPYRIGHT([
 #===========================================================================#
