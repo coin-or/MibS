@@ -1,38 +1,37 @@
 language: cpp
 
-branches:
-  - library
+matrix:
+  include:
+    - os: osx
+      osx_image: osx10.11
+      env: OSX=10.11
+      compiler: clang
+    - os: osx
+      osx_image: xcode7
+      env: OSX=10.10
+      compiler: clang
+    - os: osx
+      osx_image: beta-xcode6.2
+      env: OSX=10.9
+      compiler: clang
+    - os: linux
+      addons:
+        apt:
+          packages:
+          - gfortran
+  allow_failures:
+    - os: osx
 
-compiler:
-  - gcc
+before_script:
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]] && [[ "$OSX" == "10.10" ]]; then brew update; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]] && [[ "$OSX" == "10.10" ]]; then brew install gcc; fi
+  - git clone https://github.com/coin-or-tools/BuildTools
+  - bash BuildTools/get.dependencies.sh fetch > /dev/null
 
-addons:
-  apt:
-    packages:
-      - gfortran
-
-before_install:
-  - svn co https://projects.coin-or.org/svn/CHiPPS/Blis/trunk Blis-trunk
-  - svn co https://projects.coin-or.org/svn/SYMPHONY/branches/WS SYMPHONY-WS
-  - svn co https://projects.coin-or.org/svn/Cbc/trunk Cbc-trunk
-
-install:
-  - cd Blis-trunk
-  - ./configure --prefix=/home/travis/tkralphs/build  > /dev/null
-  - make install > /dev/null
-  - cd ..
-  - cd SYMPHONY-WS
-  - ./configure --enable-sensitivity-analysis --prefix=/home/travis/tkralphs/build > /dev/null
-  - make install > /dev/null
-  - cd ..
-  - cd Cbc-trunk
-  - ./configure --prefix=/home/travis/tkralphs/build > /dev/null
-  - make install > /dev/null
-  - cd ..
-  - cd src
-  - make COININSTDIR=/home/travis/tkralphs/build USE_CPLEX=FALSE > /dev/null
-
-script: cd /home/travis/build/tkralphs/MibS/src && LD_LIBRARY_PATH=/home/travis/tkralphs/build/lib ./mibs -param mibs.par -Alps_instance ../data/interdiction/MCDM/NO_CORR/10_ITEMS_1000/K5010W03.KNP.mps -MibS_auxiliaryInfoFile ../data/interdiction/MCDM/NO_CORR/10_ITEMS_1000/K5010W03.KNP.txt
-
-os:
-  - linux
+script:
+  - bash BuildTools/get.dependencies.sh build --quiet
+  - cd /home/travis/build/tkralphs/MibS/build/bin && \
+    LD_LIBRARY_PATH=/home/travis/tkralphs/MibS/build/lib ./mibs \ 
+    -Alps_instance ../../data/interdiction/MCDM/NO_CORR/10_ITEMS_1000/K5010W03.KNP.mps \
+    -MibS_auxiliaryInfoFile ../../data/interdiction/MCDM/NO_CORR/10_ITEMS_1000/K5010W03.KNP.txt
+  
