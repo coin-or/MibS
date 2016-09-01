@@ -12,9 +12,9 @@
 /* accompanying file for terms.                                              */
 /*===========================================================================*/
 
-#include "MibSBranchStrategyMaxInf.h"
-#include "MibSModel.h"
-#include "MibSObjectInt.h"
+#include "MibSBranchStrategyMaxInf.hpp"
+#include "MibSModel.hpp"
+#include "MibSObjectInt.hpp"
 
 //#include "BlisObjectInt.h"
 #include "BlisModel.h"

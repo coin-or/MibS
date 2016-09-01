@@ -12,21 +12,19 @@
 /* accompanying file for terms.                                              */
 /*===========================================================================*/
 
-#include "MibSBranchObjectInt.hpp"
+#ifndef __CONFIG_MIBS_H__
+#define __CONFIG_MIBS_H__
 
-//#############################################################################
-/*
-MibSBranchObjectInt::MibSBranchObjectInt()
-   : 
-{
+/* Version number of project */
+#undef MIBS_VERSION
 
+/* Major Version number of project */
+#undef MIBS_VERSION_MAJOR
 
-}
-*/
+/* Minor Version number of project */
+#undef MIBS_VERSION_MINOR
 
-//#############################################################################
-MibSBranchObjectInt::~MibSBranchObjectInt()
-{
+/* Release Version number of project */
+#undef MIBS_VERSION_RELEASE
 
-}
-
+#endif

@@ -12,21 +12,22 @@
 /* accompanying file for terms.                                              */
 /*===========================================================================*/
 
-#include "MibSBranchObjectInt.hpp"
+/* include the COIN-wide system specific configure header */
+#include "configall_system.h"
 
-//#############################################################################
-/*
-MibSBranchObjectInt::MibSBranchObjectInt()
-   : 
-{
+/* include the public project specific macros */
+#include "config_mibs_default.h"
 
+/***************************************************************************/
+/*             HERE DEFINE THE PROJECT SPECIFIC MACROS                     */
+/*    These are only in effect in a setting that doesn't use configure     */
+/***************************************************************************/
 
-}
-*/
+/* Define to 1 if the CoinUtils package is used */
+#define COIN_HAS_COINDEPEND 1
 
-//#############################################################################
-MibSBranchObjectInt::~MibSBranchObjectInt()
-{
+/* Define to 1 if the SYMPHONY package is used */
+#define COIN_HAS_SYMPHONY 1
 
-}
-
+/* Define to 1 if the SYMPHONY package is used */
+#define COIN_HAS_CPLEX 1

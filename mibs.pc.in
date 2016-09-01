@@ -1,0 +1,12 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@/coin
+
+Name: MibS
+Description: Mixed Integer Bilevel Solver
+URL: https://github.com/tkralphs/MibS
+Version: @PACKAGE_VERSION@
+Libs: -L${libdir} -lMibs @MIBSLIB_PCLIBS@
+Cflags: -I${includedir}
+Requires: @MIBSLIB_PCREQUIRES@

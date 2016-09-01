@@ -13,8 +13,10 @@
 /*===========================================================================*/
 
 #include "OsiCbcSolverInterface.hpp"
+#ifdef COIN_HAS_SYMPHONY
 #include "OsiSymSolverInterface.hpp"
 #include "symphony.h"
+#endif
 
 #if  COIN_HAS_MPI
 #include "AlpsKnowledgeBrokerMPI.h"
@@ -22,11 +24,11 @@
 #include "AlpsKnowledgeBrokerSerial.h"
 #endif
 
-#include "MibSCutGenerator.h"
-#include "MibSParams.h"
-#include "MibSTreeNode.h"
-#include "MibSSolution.h"
-#include "MibSConstants.h"
+#include "MibSCutGenerator.hpp"
+#include "MibSParams.hpp"
+#include "MibSTreeNode.hpp"
+#include "MibSSolution.hpp"
+#include "MibSConstants.hpp"
 
 #include "BlisConGenerator.h"
 #include "BlisConstraint.h"
@@ -911,20 +913,19 @@ MibSCutGenerator::findDeepestLandPCut_ValFunc()
   if(0)
     cglpSolver->writeLp("cglp");
 
-  if(0){
-    dynamic_cast<OsiClpSolverInterface *> 
-      (cglpSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
-  }
-  else{
-    dynamic_cast<OsiSymSolverInterface *> 
-      (cglpSolver)->setSymParam("prep_level", -1);
-    
-    dynamic_cast<OsiSymSolverInterface *> 
-      (cglpSolver)->setSymParam("verbosity", -2);
-
-    dynamic_cast<OsiSymSolverInterface *> 
-      (cglpSolver)->setSymParam("max_active_nodes", 1);
-  }
+#ifndef COIN_HAS_SYMPHONY
+  dynamic_cast<OsiClpSolverInterface *> 
+     (cglpSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
+#else
+  dynamic_cast<OsiSymSolverInterface *> 
+     (cglpSolver)->setSymParam("prep_level", -1);
+  
+  dynamic_cast<OsiSymSolverInterface *> 
+     (cglpSolver)->setSymParam("verbosity", -2);
+  
+  dynamic_cast<OsiSymSolverInterface *> 
+     (cglpSolver)->setSymParam("max_active_nodes", 1);
+#endif
   cglpSolver->initialSolve();
   
   if(cglpSolver->isProvenOptimal()){
@@ -1379,20 +1380,19 @@ MibSCutGenerator::findDeepestLandPCut_IncObj(double * upperSol,
     cglpSolver->writeLp("cglp");
   //cglpSolver->writeMps("cglp");
 
-  if(0){
-    dynamic_cast<OsiClpSolverInterface *> 
-      (cglpSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
-  }    
-  else{
-    dynamic_cast<OsiSymSolverInterface *> 
-      (cglpSolver)->setSymParam("prep_level", -1);
-    
-    dynamic_cast<OsiSymSolverInterface *> 
-      (cglpSolver)->setSymParam("verbosity", -2);
-
-    dynamic_cast<OsiSymSolverInterface *> 
-      (cglpSolver)->setSymParam("max_active_nodes", 1);
-  }
+#ifndef COIN_HAS_SYMPHONY
+  dynamic_cast<OsiClpSolverInterface *> 
+     (cglpSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
+#else
+  dynamic_cast<OsiSymSolverInterface *> 
+     (cglpSolver)->setSymParam("prep_level", -1);
+  
+  dynamic_cast<OsiSymSolverInterface *> 
+     (cglpSolver)->setSymParam("verbosity", -2);
+  
+  dynamic_cast<OsiSymSolverInterface *> 
+     (cglpSolver)->setSymParam("max_active_nodes", 1);
+#endif
 
   cglpSolver->initialSolve();
 
@@ -1874,20 +1874,19 @@ MibSCutGenerator::findDeepestLandPCut1()
     cglpSolver->writeLp("cglp");
   //cglpSolver->writeMps("cglp");
 
-  if(0){
-    dynamic_cast<OsiClpSolverInterface *> 
-      (cglpSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
-  }
-  else{
-    dynamic_cast<OsiSymSolverInterface *> 
-      (cglpSolver)->setSymParam("prep_level", -1);
-    
-    dynamic_cast<OsiSymSolverInterface *> 
-      (cglpSolver)->setSymParam("verbosity", -2);
-
-    dynamic_cast<OsiSymSolverInterface *> 
-      (cglpSolver)->setSymParam("max_active_nodes", 1);
-  }
+#ifndef COIN_HAS_SYMPHONY
+  dynamic_cast<OsiClpSolverInterface *> 
+     (cglpSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
+#else
+  dynamic_cast<OsiSymSolverInterface *> 
+     (cglpSolver)->setSymParam("prep_level", -1);
+  
+  dynamic_cast<OsiSymSolverInterface *> 
+     (cglpSolver)->setSymParam("verbosity", -2);
+  
+  dynamic_cast<OsiSymSolverInterface *> 
+     (cglpSolver)->setSymParam("max_active_nodes", 1);
+#endif
 
   cglpSolver->initialSolve();
   
@@ -2051,20 +2050,19 @@ MibSCutGenerator::weakIncObjCutCurrent(BcpsConstraintPool &conPool)
   CoinZeroN(tmpsol, lN + uN);
   OsiSolverInterface * lSolver = bS->setUpModel(solver, true, tmpsol);
 
-  if(0){
-    dynamic_cast<OsiCbcSolverInterface *> 
-      (lSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
-  }    
-  else{
-    dynamic_cast<OsiSymSolverInterface *> 
-      (lSolver)->setSymParam("prep_level", -1);
-    
-    dynamic_cast<OsiSymSolverInterface *> 
-      (lSolver)->setSymParam("verbosity", -2);
-
-    dynamic_cast<OsiSymSolverInterface *> 
-      (lSolver)->setSymParam("max_active_nodes", 1);
-  }
+#ifndef COIN_HAS_SYMPHONY
+  dynamic_cast<OsiCbcSolverInterface *> 
+     (lSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
+#else
+  dynamic_cast<OsiSymSolverInterface *> 
+     (lSolver)->setSymParam("prep_level", -1);
+  
+  dynamic_cast<OsiSymSolverInterface *> 
+     (lSolver)->setSymParam("verbosity", -2);
+  
+  dynamic_cast<OsiSymSolverInterface *> 
+     (lSolver)->setSymParam("max_active_nodes", 1);
+#endif
 
   if(0)
     lSolver->writeLp("boundfinder");
@@ -2150,20 +2148,21 @@ MibSCutGenerator::weakIncObjCutMaximal(BcpsConstraintPool &conPool)
   CoinZeroN(tmpsol, lN + uN);
   OsiSolverInterface * lSolver = bS->setUpModel(solver, tmpsol);
   delete [] tmpsol;
-  if(0){
-    dynamic_cast<OsiCbcSolverInterface *> 
-      (lSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
-  }
-  else{
-    dynamic_cast<OsiSymSolverInterface *> 
-      (lSolver)->setSymParam("prep_level", -1);
-    
-    dynamic_cast<OsiSymSolverInterface *> 
-      (lSolver)->setSymParam("verbosity", -2);
 
-    dynamic_cast<OsiSymSolverInterface *> 
-      (lSolver)->setSymParam("max_active_nodes", 1);
-  }
+#ifndef COIN_HAS_SYMPHONY
+  dynamic_cast<OsiCbcSolverInterface *> 
+     (lSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
+#else
+  dynamic_cast<OsiSymSolverInterface *> 
+     (lSolver)->setSymParam("prep_level", -1);
+  
+  dynamic_cast<OsiSymSolverInterface *> 
+     (lSolver)->setSymParam("verbosity", -2);
+  
+  dynamic_cast<OsiSymSolverInterface *> 
+     (lSolver)->setSymParam("max_active_nodes", 1);
+#endif
+  
   //lSolver->setObjSense(lSolver->getObjSense());
   lSolver->branchAndBound();
   maxLowerObj = lSolver->getObjValue();
@@ -2189,20 +2188,19 @@ MibSCutGenerator::weakIncObjCutMaximal(BcpsConstraintPool &conPool)
   
     OsiSolverInterface * lSolver = bS->setUpModel(solver, sol);  
 
-    if(0){
-      dynamic_cast<OsiCbcSolverInterface *> 
-	(lSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
-    }
-    else{
-      dynamic_cast<OsiSymSolverInterface *> 
-	 (lSolver)->setSymParam("prep_level", -1);
-      
-      dynamic_cast<OsiSymSolverInterface *> 
-	 (lSolver)->setSymParam("verbosity", -2);
-
-      dynamic_cast<OsiSymSolverInterface *> 
-	 (lSolver)->setSymParam("max_active_nodes", 1);
-    }
+#ifndef COIN_HAS_SYMPHONY
+    dynamic_cast<OsiCbcSolverInterface *> 
+       (lSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
+#else
+    dynamic_cast<OsiSymSolverInterface *> 
+       (lSolver)->setSymParam("prep_level", -1);
+    
+    dynamic_cast<OsiSymSolverInterface *> 
+       (lSolver)->setSymParam("verbosity", -2);
+    
+    dynamic_cast<OsiSymSolverInterface *> 
+       (lSolver)->setSymParam("max_active_nodes", 1);
+#endif
 
     lSolver->branchAndBound();
 
@@ -2348,20 +2346,20 @@ MibSCutGenerator::incObjCutMaximal(BcpsConstraintPool &conPool)
   
     OsiSolverInterface * lSolver = bS->setUpModel(solver, maximalupper);  
 
-    if(0){
-      dynamic_cast<OsiCbcSolverInterface *> 
-	(lSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
-    }
-    else{
-      dynamic_cast<OsiSymSolverInterface *> 
-	 (lSolver)->setSymParam("prep_level", -1);
-      
-      dynamic_cast<OsiSymSolverInterface *> 
-	 (lSolver)->setSymParam("verbosity", -2);
+#ifndef COIN_HAS_SYMPHONY
+    dynamic_cast<OsiCbcSolverInterface *> 
+       (lSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
+#else
+    dynamic_cast<OsiSymSolverInterface *> 
+       (lSolver)->setSymParam("prep_level", -1);
+    
+    dynamic_cast<OsiSymSolverInterface *> 
+       (lSolver)->setSymParam("verbosity", -2);
+    
+    dynamic_cast<OsiSymSolverInterface *> 
+       (lSolver)->setSymParam("max_active_nodes", 1);
+#endif
 
-      dynamic_cast<OsiSymSolverInterface *> 
-	 (lSolver)->setSymParam("max_active_nodes", 1);
-    }
     lSolver->branchAndBound();
 
     int lCols = localModel_->getLowerDim();
@@ -2448,20 +2446,20 @@ MibSCutGenerator::findMaximalUpperSol(OsiSolverInterface * si)
   maxSolver->setObjective(objectives);
   maxSolver->setObjSense(-1); //maximization
 
-  if(0){
-    dynamic_cast<OsiCbcSolverInterface *> 
-      (maxSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
-  }
-  else{
-    dynamic_cast<OsiSymSolverInterface *> 
-      (maxSolver)->setSymParam("prep_level", -1);
+#ifndef COIN_HAS_SYMPHONY
+  dynamic_cast<OsiCbcSolverInterface *> 
+     (maxSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
+#else
+  dynamic_cast<OsiSymSolverInterface *> 
+     (maxSolver)->setSymParam("prep_level", -1);
+  
+  dynamic_cast<OsiSymSolverInterface *> 
+     (maxSolver)->setSymParam("verbosity", -2);
+  
+  dynamic_cast<OsiSymSolverInterface *> 
+     (maxSolver)->setSymParam("max_active_nodes", 1);
+#endif
     
-    dynamic_cast<OsiSymSolverInterface *> 
-      (maxSolver)->setSymParam("verbosity", -2);
-
-    dynamic_cast<OsiSymSolverInterface *> 
-      (maxSolver)->setSymParam("max_active_nodes", 1);
-  }
   maxSolver->branchAndBound();
   //maxSolver->initialSolve();
 

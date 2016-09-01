@@ -19,8 +19,8 @@
 
 #include "BlisModel.h"
 #include "BlisSolution.h"
-#include "MibSBilevel.h"
-#include "MibSParams.h"
+#include "MibSBilevel.hpp"
+#include "MibSParams.hpp"
 
 class MibSBilevel;
 class MibSCutGenerator;
