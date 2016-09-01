@@ -50,6 +50,10 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
   //double etol(model_->etol_); 
   
   assert(N == model_->solver()->getNumCols());
+
+  model_->setNumRows(model_->solver()->getNumRows());
+  model_->setUpperRowNum(model_->solver()->getNumRows() - model_->getLowerRowNum());
+  model_->setUpperRowData();
   
   int *indices = sol->getIndices();
   double *values = sol->getElements();
@@ -518,8 +522,9 @@ MibSBilevel::setUpModel(OsiSolverInterface * oSolver, bool newOsi,
   /** Set the row bounds **/
   
   for(i = 0; i < lRows; i++){
-     rowLb[i] = origRowLb[lRowIndices[i]];
-     rowUb[i] = origRowUb[lRowIndices[i]];
+      index1 = lRowIndices[i];
+      rowLb[i] = oSolver->getRowLower()[index1];
+      rowUb[i] = oSolver->getRowUpper()[index1];
   }
      
   for(i = 0; i < lCols; i++){
@@ -640,8 +645,8 @@ MibSBilevel::setUpModel(OsiSolverInterface * oSolver, bool newOsi,
   if (feasCheckSolver == "SYMPHONY" && probType == 1 && warmStartLL &&
       !newOsi && doDualFixing){ //Interdiction
 
-     /** Get upper bound from best known (feasible) lower level solution and try 
-	 to fix additional variables by sensitivity analysis **/
+     /** Get upper bound from best known (feasible) lower level solution and 
+	 try to fix additional variables by sensitivity analysis **/
 
      std::vector<std::pair<AlpsKnowledge*, double> > solutionPool;
      model_->getKnowledgeBroker()->

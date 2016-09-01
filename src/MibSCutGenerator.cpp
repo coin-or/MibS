@@ -26,6 +26,7 @@
 #include "MibSParams.h"
 #include "MibSTreeNode.h"
 #include "MibSSolution.h"
+#include "MibSConstants.h"
 
 #include "BlisConGenerator.h"
 #include "BlisConstraint.h"
@@ -303,6 +304,12 @@ MibSCutGenerator::boundCuts(BcpsConstraintPool &conPool)
       }else{
 	 colType = localModel_->colType_;
       }
+
+      boundModel->loadProblemData(matrix,
+				  oSolver->getColLower(), oSolver->getColUpper(),
+				  nObjCoeffs,
+				  oSolver->getRowLower(), oSolver->getRowUpper(),
+				  colType, 1.0, oSolver->getInfinity());
       
       boundModel->loadAuxiliaryData(localModel_->getLowerDim(),
 				    localModel_->getLowerRowNum(),
@@ -317,12 +324,6 @@ MibSCutGenerator::boundCuts(BcpsConstraintPool &conPool)
 				    localModel_->structRowNum_,
 				    localModel_->structRowInd_,
 				    0, NULL);
-      
-      boundModel->loadProblemData(matrix,
-				  oSolver->getColLower(), oSolver->getColUpper(),
-				  nObjCoeffs,
-				  oSolver->getRowLower(), oSolver->getRowUpper(),
-				  colType, 1.0, oSolver->getInfinity());
       
       delete[] indDel;
       
@@ -428,7 +429,7 @@ MibSCutGenerator::boundCuts(BcpsConstraintPool &conPool)
 #endif
       
       NewboundModel.MibSPar()->setEntry(MibSParams::bilevelCutTypes, 1);
-      NewboundModel.MibSPar()->setEntry(MibSParams::useBendersCut, true);
+      NewboundModel.MibSPar()->setEntry(MibSParams::useBendersCut, PARAM_ON);
       
       NewboundModel.MibSPar()->setEntry(MibSParams::useLowerObjHeuristic, false);
       NewboundModel.MibSPar()->setEntry(MibSParams::useObjCutHeuristic, false);
@@ -2248,7 +2249,7 @@ MibSCutGenerator::binaryCuts(BcpsConstraintPool &conPool)
   //FIXME: NEED TO CHECK FOR ROW TYPES FOR CGLP.  
   //COMING FROM KNAP SOLVER THEY ARE RANGED.
 
-  bool useNoGoodCut 
+  int useNoGoodCut 
     = localModel_->MibSPar_->entry(MibSParams::useNoGoodCut);
 
    bool useIncObjCut 
@@ -2798,10 +2799,6 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
 
     CoinPackedVector *sol = localModel_->getSolution();
 
-    if (useBoundCut){
-       boundCuts(conPool);
-    }
-
     if(localModel_->solIsUpdated_)
       bS = localModel_->bS_;
     else
@@ -2814,6 +2811,9 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
       delete sol;
       if (bS->isIntegral_){
 	 numCuts += feasibilityCuts(conPool) ? true : false;
+         if (useBoundCut){
+	     boundCuts(conPool);
+	 }
       }
       return (numCuts ? true : false);
     }

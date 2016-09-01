@@ -84,6 +84,30 @@ class MibSModel : public BlisModel {
   /** Number of structural constraints **/
   int structRowNum_;
 
+  /** Determines type of problem(general or interdiction) **/
+  bool isInterdict_; 
+
+  /** Determines if all coefficients are integer or not **/
+  bool isInteger_;
+
+  /** Determines if all variables of upper-level problem are binary or not **/
+  bool allUpperBin_;
+
+  /** Determines if all variables of upper-level problem are binary or not **/
+  bool allLowerBin_;
+
+  /** Determines if matrix A1 is positive or not **/
+  bool positiveA1_;
+  
+  /** Determines if matrix A2 is positive or not **/
+  bool positiveA2_;
+
+  /** Determines if matrix G1 is positive or not **/
+  bool positiveG1_;
+
+  /** Determines if matrix G2 is positive or not **/
+  bool positiveG2_;
+  
   /** the left (negative) slope of the lower-level value function **/
   double leftSlope_;
 
@@ -384,6 +408,9 @@ class MibSModel : public BlisModel {
   /** The method that decodes the model from an encoded object. */
   virtual void decodeToSelf(AlpsEncoded&);
 
+  /** Determines the properties of instance. */
+  void instanceStructure(const CoinPackedMatrix *newMatrix); 
+                                                                                                                                                               
   AlpsTreeNode * createRoot();
 
   virtual bool setupSelf();
