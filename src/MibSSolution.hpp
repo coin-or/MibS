@@ -17,7 +17,7 @@
 
 #include "BlisSolution.h"
 
-#include "MibSModel.h"
+#include "MibSModel.hpp"
 
 //#############################################################################
 

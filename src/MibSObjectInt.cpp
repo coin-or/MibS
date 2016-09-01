@@ -12,9 +12,9 @@
 /* accompanying file for terms.                                              */
 /*===========================================================================*/
 
-#include "MibSObjectInt.h"
-#include "MibSModel.h"
-#include "MibSBranchObjectInt.h"
+#include "MibSObjectInt.hpp"
+#include "MibSModel.hpp"
+#include "MibSBranchObjectInt.hpp"
 
 
 //#############################################################################

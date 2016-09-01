@@ -18,8 +18,8 @@
 #include "OsiSolverInterface.hpp"
 #include "CoinWarmStart.hpp"
 
-#include "MibSModel.h"
-#include "MibSHeuristic.h"
+#include "MibSModel.hpp"
+#include "MibSHeuristic.hpp"
 
 class MibSModel;
 class MibSCutGenerator;

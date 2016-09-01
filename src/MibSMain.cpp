@@ -19,7 +19,7 @@
 #include "OsiSolverInterface.hpp"
 #include "OsiClpSolverInterface.hpp"
 
-#include "MibSModel.h"
+#include "MibSModel.hpp"
 
 #if  COIN_HAS_MPI
 #include "AlpsKnowledgeBrokerMPI.h"

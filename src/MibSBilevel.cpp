@@ -14,18 +14,21 @@
 
 #include "CoinPackedVector.hpp"
 #include "OsiCbcSolverInterface.hpp"
+#ifdef COIN_HAS_SYMPHONY
 #include "symphony.h"
+#include "SymConfig.h"
 #include "OsiSymSolverInterface.hpp"
-#ifdef USE_CPLEX
+#endif
+#ifdef COIN_HAS_CPLEX
 #include "cplex.h"
 #include "OsiCpxSolverInterface.hpp"
 #endif
 
-#include "MibSBilevel.h"
-#include "MibSModel.h"
-#include "MibSTreeNode.h"
-#include "MibSSolution.h"
-#include "MibSHeuristic.h"
+#include "MibSBilevel.hpp"
+#include "MibSModel.hpp"
+#include "MibSTreeNode.hpp"
+#include "MibSSolution.hpp"
+#include "MibSHeuristic.hpp"
 
 //#############################################################################
 void 
@@ -251,6 +254,7 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
     dynamic_cast<OsiCbcSolverInterface *> 
       (lSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
   }else if (feasCheckSolver == "SYMPHONY"){
+#if COIN_HAS_SYMPHONY
      //dynamic_cast<OsiSymSolverInterface *> 
      // (lSolver)->setSymParam("prep_level", -1);
     
@@ -293,8 +297,9 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 	sym_set_int_param(env, "generate_cgl_flowcover_cuts", 
 			  DO_NOT_GENERATE);
      }
+#endif
   }else if (feasCheckSolver == "CPLEX"){
-#ifdef USE_CPLEX
+#ifdef COIN_HAS_CPLEX
      lSolver->setHintParam(OsiDoReducePrint);
      lSolver->messageHandler()->setLogLevel(0);
      CPXENVptr cpxEnv = 
@@ -531,9 +536,14 @@ MibSBilevel::setUpModel(OsiSolverInterface * oSolver, bool newOsi,
      if (feasCheckSolver == "Cbc"){
 	nSolver = new OsiCbcSolverInterface();
      }else if (feasCheckSolver == "SYMPHONY"){
+#ifdef COIN_HAS_SYMPHONY
 	nSolver = new OsiSymSolverInterface();
+#else
+	throw CoinError("SYMPHONY chosen as solver, but it has not been enabled",
+			"setUpModel", "MibsBilevel");
+#endif
      }else if (feasCheckSolver == "CPLEX"){
-#ifdef USE_CPLEX
+#ifdef COIN_HAS_CPLEX
 	nSolver = new OsiCpxSolverInterface();
 #else
 	throw CoinError("CPLEX chosen as solver, but it has not been enabled",
@@ -618,6 +628,7 @@ MibSBilevel::setUpModel(OsiSolverInterface * oSolver, bool newOsi,
 	   (nSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
      }
      else{
+#ifdef COIN_HAS_SYMPHONY
 	dynamic_cast<OsiSymSolverInterface *> 
 	   (nSolver)->setSymParam("prep_level", -1);
 	
@@ -626,6 +637,7 @@ MibSBilevel::setUpModel(OsiSolverInterface * oSolver, bool newOsi,
 	
 	dynamic_cast<OsiSymSolverInterface *> 
 	   (nSolver)->setSymParam("max_active_nodes", 1);
+#endif
      }
 #endif
      delete [] integerVars;
@@ -633,7 +645,7 @@ MibSBilevel::setUpModel(OsiSolverInterface * oSolver, bool newOsi,
   }else{
      nSolver = solver_;
   }
-
+  
 #define SYM_VERSION_IS_WS strcmp(SYMPHONY_VERSION, "WS")  
 
 #if SYMPHONY_VERSION_IS_WS

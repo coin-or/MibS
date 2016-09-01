@@ -14,7 +14,7 @@
 
 #include <cmath>
 
-#include "MibSSolution.h"
+#include "MibSSolution.hpp"
 
 //#############################################################################
 MibSSolution::MibSSolution()

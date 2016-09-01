@@ -38,20 +38,20 @@
 
 #include "OsiCbcSolverInterface.hpp"
 
-#include "MibSModel.h"
-#include "MibSSolution.h"
-#include "MibSCutGenerator.h"
-#include "MibSBilevel.h"
-#include "MibSTreeNode.h"
+#include "MibSModel.hpp"
+#include "MibSSolution.hpp"
+#include "MibSCutGenerator.hpp"
+#include "MibSBilevel.hpp"
+#include "MibSTreeNode.hpp"
 
-#include "MibSBranchStrategyMaxInf.h"
-#include "MibSBranchStrategyPseudo.h"
+#include "MibSBranchStrategyMaxInf.hpp"
+#include "MibSBranchStrategyPseudo.hpp"
 
 //FIXME::RELIABILITY BRANCHING DOESNT WORK
 //NECESSARY DATA MEMBERS ARE DESIGNATED AS PRIVATE
 //IN PARENT CLASS.  DIDNT WANT TO ALTER BLIS CODE
 //#include "MibSBranchStrategyRel.h"
-#include "MibSBranchStrategyStrong.h"
+#include "MibSBranchStrategyStrong.hpp"
 
 //#############################################################################
 MibSModel::MibSModel()

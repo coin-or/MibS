@@ -15,7 +15,7 @@
 #ifndef MibsCutGenerator_h_
 #define MibsCutGenerator_h_
 
-#include "MibSModel.h"
+#include "MibSModel.hpp"
 
 //#############################################################################
 

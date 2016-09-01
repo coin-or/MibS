@@ -12,9 +12,9 @@
 /* accompanying file for terms.                                              */
 /*===========================================================================*/
 
-#include "MibSParams.h"
-#include "MibSConstants.h"
-#include "MibSModel.h"
+#include "MibSParams.hpp"
+#include "MibSConstants.hpp"
+#include "MibSModel.hpp"
 
 using std::make_pair;
 
