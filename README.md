@@ -36,11 +36,11 @@ Most Linux distributions come with all the required tools installed.
 To obtain the source code, open a terminal and do
 
 ```
-git clone --branch=library https://www.github.com/tkralphs/MibS
+git clone https://www.github.com/tkralphs/MibS
 ```
 
 To build from source, there is a script that fetches dependent projects
-and builds automatically. To get the script amd perform the build, do
+and builds automatically. To get the script and perform the build, do
 
 ```
 cd MibS
