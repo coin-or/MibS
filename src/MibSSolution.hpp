@@ -12,57 +12,32 @@
 /* accompanying file for terms.                                              */
 /*===========================================================================*/
 
-#include <iostream>
+#ifndef MibSSolution_h_
+#define MibSSolution_h_
 
-#include "CoinError.hpp"
-
-#include "OsiSolverInterface.hpp"
-#include "OsiClpSolverInterface.hpp"
+#include "BlisSolution.h"
 
 #include "MibSModel.hpp"
 
-#if  COIN_HAS_MPI
-#include "AlpsKnowledgeBrokerMPI.h"
-#else
-#include "AlpsKnowledgeBrokerSerial.h"
-#endif
-
-//#############################################################################
 //#############################################################################
 
-int main(int argc, char* argv[])
-{
+class MibSSolution : public BlisSolution {
 
-    try{
-       
-      /** Set up lp solver **/
-      OsiClpSolverInterface lpSolver;
-      lpSolver.getModelPtr()->setDualBound(1.0e10);
-      lpSolver.messageHandler()->setLogLevel(0);
-      
-      /** Create MibS model **/
-      MibSModel model;
-      model.setSolver(&lpSolver);
+ private:
+   
+   MibSModel * localModel_;
 
+ public:
+   
+   MibSSolution();
+   MibSSolution(int s,
+		const double *values,
+		double objVal,
+		MibSModel *mibs=0);
+   ~MibSSolution();
 
-#ifdef  COIN_HAS_MPI
-        AlpsKnowledgeBrokerMPI broker(argc, argv, model);
-#else
-        AlpsKnowledgeBrokerSerial broker(argc, argv, model);
+   void print(std::ostream& os) const;
+	      
+};
+
 #endif
-
-	broker.search(&model);
-	broker.printBestSolution();
-
-    }
-    catch(CoinError& er) {
-	std::cerr << "ERROR:" << er.message() << std::endl
-		  << " from function " << er.methodName() << std::endl
-		  << " from class " << er.className() << std::endl;
-    }
-    catch(...) {
-	std::cerr << "Something went wrong!" << std::endl;
-    }
-
-    return 0;
-}

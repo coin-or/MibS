@@ -12,8 +12,8 @@
 /* accompanying file for terms.                                              */
 /*===========================================================================*/
 
-#include "MibSBranchStrategyStrong.h"
-#include "MibSModel.h"
+#include "MibSBranchStrategyStrong.hpp"
+#include "MibSModel.hpp"
 
 #include "BlisObjectInt.h"
 #include "BlisModel.h"

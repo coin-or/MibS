@@ -15,8 +15,8 @@
 #ifndef MibSHeuristic_h_
 #define MibSHeuristic_h_
 
-#include "MibSModel.h"
-#include "MibSSolTypes.h"
+#include "MibSModel.hpp"
+#include "MibSSolTypes.hpp"
 
 #include <map>
 

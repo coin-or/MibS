@@ -1,0 +1,47 @@
+language: cpp
+env:
+  global:
+      - secure: "bVH9TMBnRFCC69xDqM6BW79rAoM73cA5M60E23nJWXV6rhPyvKvveobWKwInIv39h5zktpsYD/gjD34tS3zXDIIKQY+aCexSras70sKSMojZMbxkO8YgIRL85cd6hxwymoVP5Sf/Gxfx2IDWft0fZge+zNuPFxMl1LAkzS3EIdX+M2UNOh6sHbz2VfVE/QlUPA4cjFNCI0MoZj0ovoY9Pyl9xr+B7pc6sXheCXTGxbEyTH1PUXRsVciAT6wi0fk27fsD80rlbOOCifFTs+JPYmhFXEjajG26WpPXgtHhEoNpy5YUZ9pqqbiWgPFSETR7VEXkOGOYqH63x3Qf2zU9dPtvIiMy1kDf0V/YiGfoyTrE4aH+wd+EJKIsDDiFQZBhrDi/b6BSRAIFZZR2+IAb5GygiMAS598CLXl1B/7mR6+9y0aDzKoV7yUcj6xlYEZmzIcb7DJSHY4PZ/3v6pISWOcJNBN40L0ZINXtsbUusNoSuFCNcN1Yklh6Ges3gWEtTstD4Th3H4dpKdLGjHuKodcdROkWBaS1f1OFKr8CRhR6Nn2Ew6/ifBNb5bRuCcjGuv0yKzFdtcahGsRjwHaqOSdPMzf9JVdCjvSGCXlXbzkm1wp+hVdqv50nFGED5XZNEWuX4KiTpkKHMEkmfgbSEo6SdL1APH9daWYgrTCLyhQ="
+
+matrix:
+  include:
+    - os: osx
+      osx_image: osx10.11
+      env: OSX=10.11
+      compiler: clang
+    - os: osx
+      osx_image: xcode7
+      env: OSX=10.10
+      compiler: clang
+    - os: osx
+      osx_image: beta-xcode6.2
+      env: OSX=10.9
+      compiler: clang
+    - os: linux
+      addons:
+        apt:
+          packages:
+          - gfortran
+  allow_failures:
+    - os: osx
+
+before_script:
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then  export PLATFORM=osx$OSX-x86_64-clang`clang -dumpversion`; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]] && [[ "$OSX" == "10.10" ]]; then brew update; brew install gcc; export PLATFORM=osx10.10-x86_64-clang`clang -dumpversion`; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then export PLATFORM=linux-x86_64-gcc`gcc -dumpversion`; fi
+  - git clone https://github.com/coin-or-tools/BuildTools
+  - bash BuildTools/get.dependencies.sh fetch > /dev/null
+
+script:
+  - bash BuildTools/get.dependencies.sh build --quiet
+  - cd /home/travis/build/tkralphs/MibS/build/bin && ./mibs \ 
+    -Alps_instance ../../data/interdiction/MCDM/NO_CORR/10_ITEMS_1000/K5010W03.KNP.mps \
+    -MibS_auxiliaryInfoFile ../../data/interdiction/MCDM/NO_CORR/10_ITEMS_1000/K5010W03.KNP.txt
+
+after_script:
+  - if [ $TRAVIS_BRANCH = "master" ]; then export VERSION=trunk; else export VERSION=`echo $TRAVIS_BRANCH | cut -d "/" -f 2`; fi
+  - export PROJECT=`echo $TRAVIS_REPO_SLUG | cut -d "/" -f 2`
+  - export TGZ_FILE=$PROJECT-$VERSION-$PLATFORM.tgz
+  - echo $TGZ_FILE
+  - tar -czvf $TGZ_FILE build/lib/* build/bin/* build/include/* build/share/* build/README.md build/INSTALL build/LICENSE build/SYMPHONY/AUTHORS
+  - curl -T $TGZ_FILE -utkralphs:$BINTRAY_API -H "X-Bintray-Publish:1" -H "X-Bintray-Override:1" https://api.bintray.com/content/coin-or/download/$PROJECT/$VERSION/$TGZ_FILE

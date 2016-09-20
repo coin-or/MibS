@@ -15,14 +15,18 @@
 #include <map>
 #include <time.h>
 #include "OsiCbcSolverInterface.hpp"
-#include "OsiSymSolverInterface.hpp"
 #include "OsiSolverInterface.hpp"
 
-#include "MibSHeuristic.h"
-#include "MibSModel.h"
-#include "MibSParams.h"
-#include "MibSSolution.h"
-#include "MibSSolTypes.h"
+#include "MibSHeuristic.hpp"
+#include "MibSModel.hpp"
+#include "MibSParams.hpp"
+#include "MibSSolution.hpp"
+#include "MibSSolTypes.hpp"
+#include "MibSConfig.hpp"
+
+#ifdef COIN_HAS_SYMPHONY
+#include "OsiSymSolverInterface.hpp"
+#endif
 
 //#############################################################################
 MibSHeuristic::MibSHeuristic(MibSModel * model)
@@ -99,9 +103,12 @@ MibSHeuristic::lowerObjHeuristic()
   MibSModel * model = MibSModel_;
 
   OsiSolverInterface * oSolver = model->getSolver();
-  //OsiSolverInterface * hSolver = new OsiCbcSolverInterface();
+#ifndef COIN_HAS_SYMPHONY
+  OsiSolverInterface * hSolver = new OsiCbcSolverInterface();
+#else
   OsiSolverInterface* hSolver = new OsiSymSolverInterface();
-
+#endif
+  
   double objSense(model->getLowerObjSense());  
   int lCols(model->getLowerDim());
   int uCols(model->getUpperDim());
@@ -160,20 +167,19 @@ MibSHeuristic::lowerObjHeuristic()
   if(0)
      hSolver->writeLp("lobjheurstic");
 
-  if(0){
-    dynamic_cast<OsiCbcSolverInterface *> 
-      (hSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
-  }    
-  else{
-    dynamic_cast<OsiSymSolverInterface *> 
-      (hSolver)->setSymParam("prep_level", -1);
-    
-    dynamic_cast<OsiSymSolverInterface *> 
-      (hSolver)->setSymParam("verbosity", -2);
-
-    dynamic_cast<OsiSymSolverInterface *> 
-      (hSolver)->setSymParam("max_active_nodes", 1);
-  }
+#ifndef COIN_HAS_SYMPHONY
+  dynamic_cast<OsiCbcSolverInterface *> 
+     (hSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
+#else
+  dynamic_cast<OsiSymSolverInterface *> 
+     (hSolver)->setSymParam("prep_level", -1);
+  
+  dynamic_cast<OsiSymSolverInterface *> 
+     (hSolver)->setSymParam("verbosity", -2);
+  
+  dynamic_cast<OsiSymSolverInterface *> 
+     (hSolver)->setSymParam("max_active_nodes", 1);
+#endif
 
   hSolver->branchAndBound();
 
@@ -191,20 +197,19 @@ MibSHeuristic::lowerObjHeuristic()
        lSolver->writeLp("tmp");
     }
 
-    if(0){
-       dynamic_cast<OsiCbcSolverInterface *> 
-	  (lSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
-    }    
-    else{
-       dynamic_cast<OsiSymSolverInterface *> 
-	  (lSolver)->setSymParam("prep_level", -1);
-       
-       dynamic_cast<OsiSymSolverInterface *> 
-	  (lSolver)->setSymParam("verbosity", -2);
-       
-       dynamic_cast<OsiSymSolverInterface *> 
-	  (lSolver)->setSymParam("max_active_nodes", 1);
-    }
+#ifndef COIN_HAS_SYMPHONY
+    dynamic_cast<OsiCbcSolverInterface *> 
+       (lSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
+#else
+    dynamic_cast<OsiSymSolverInterface *> 
+       (lSolver)->setSymParam("prep_level", -1);
+    
+    dynamic_cast<OsiSymSolverInterface *> 
+       (lSolver)->setSymParam("verbosity", -2);
+    
+    dynamic_cast<OsiSymSolverInterface *> 
+       (lSolver)->setSymParam("max_active_nodes", 1);
+#endif
 
     lSolver->branchAndBound();
 
@@ -307,9 +312,12 @@ MibSHeuristic::objCutHeuristic()
 
   //OsiSolverInterface * oSolver = model->origLpSolver_;
   OsiSolverInterface * oSolver = model->getSolver();
-  //OsiSolverInterface * hSolver = new OsiCbcSolverInterface();
+#ifndef COIN_HAS_SYMPHONY
+  OsiSolverInterface * hSolver = new OsiCbcSolverInterface();
+#else
   OsiSolverInterface * hSolver = new OsiSymSolverInterface();
-
+#endif
+  
   double objSense(model->getLowerObjSense());  
   int lCols(model->getLowerDim());
   int uCols(model->getUpperDim());
@@ -348,11 +356,10 @@ MibSHeuristic::objCutHeuristic()
   hSolver->addRow(objCon, rhs, hSolver->getInfinity());
 
   /* optimize w.r.t. to the UL objective with the new row */
-  if(0){
-    dynamic_cast<OsiCbcSolverInterface *> 
-      (hSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
-  }
-  else{
+#ifndef COIN_HAS_SYMPHONY
+  dynamic_cast<OsiCbcSolverInterface *> 
+     (hSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
+#else
     dynamic_cast<OsiSymSolverInterface *> 
       (hSolver)->setSymParam("prep_level", -1);
     
@@ -361,7 +368,7 @@ MibSHeuristic::objCutHeuristic()
 
     dynamic_cast<OsiSymSolverInterface *> 
       (hSolver)->setSymParam("max_active_nodes", 1);
-  }
+#endif
 
   hSolver->branchAndBound();
 
@@ -374,20 +381,19 @@ MibSHeuristic::objCutHeuristic()
 
     OsiSolverInterface * lSolver = model->bS_->setUpModel(hSolver, true);
 
-    if(0){
-       dynamic_cast<OsiCbcSolverInterface *> 
+#ifndef COIN_HAS_SYMPHONY
+    dynamic_cast<OsiCbcSolverInterface *> 
 	  (lSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
-    }    
-    else{
-       dynamic_cast<OsiSymSolverInterface *> 
-	  (lSolver)->setSymParam("prep_level", -1);
-       
-       dynamic_cast<OsiSymSolverInterface *> 
-	  (lSolver)->setSymParam("verbosity", -2);
-       
-       dynamic_cast<OsiSymSolverInterface *> 
-	  (lSolver)->setSymParam("max_active_nodes", 1);
-    }
+#else
+    dynamic_cast<OsiSymSolverInterface *> 
+       (lSolver)->setSymParam("prep_level", -1);
+    
+    dynamic_cast<OsiSymSolverInterface *> 
+       (lSolver)->setSymParam("verbosity", -2);
+    
+    dynamic_cast<OsiSymSolverInterface *> 
+       (lSolver)->setSymParam("max_active_nodes", 1);
+#endif
 
     lSolver->branchAndBound();
 
@@ -928,20 +934,19 @@ MibSHeuristic::checkLowerFeasibility(OsiSolverInterface * si,
   MibSModel * model = MibSModel_;
   OsiSolverInterface * lSolver = model->bS_->setUpModel(si, true, solution);
 
-  if(0){
-     dynamic_cast<OsiCbcSolverInterface *> 
-	(lSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
-  }    
-  else{
-     dynamic_cast<OsiSymSolverInterface *> 
-	(lSolver)->setSymParam("prep_level", -1);
-     
-     dynamic_cast<OsiSymSolverInterface *> 
-	(lSolver)->setSymParam("verbosity", -2);
-     
-     dynamic_cast<OsiSymSolverInterface *> 
-	(lSolver)->setSymParam("max_active_nodes", 1);
-  }
+#ifndef COIN_HAS_SYMPHONY
+  dynamic_cast<OsiCbcSolverInterface *> 
+     (lSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
+#else
+  dynamic_cast<OsiSymSolverInterface *> 
+     (lSolver)->setSymParam("prep_level", -1);
+  
+  dynamic_cast<OsiSymSolverInterface *> 
+     (lSolver)->setSymParam("verbosity", -2);
+  
+  dynamic_cast<OsiSymSolverInterface *> 
+     (lSolver)->setSymParam("max_active_nodes", 1);
+#endif
 
   lSolver->branchAndBound();
 
@@ -985,11 +990,10 @@ MibSHeuristic::getBilevelSolution(const double * sol, double origLower)
      }
   }
   
-  if(0){
+#ifndef COIN_HAS_SYMPHONY
      dynamic_cast<OsiCbcSolverInterface *> 
 	(lSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
-  }    
-  else{
+#else
      dynamic_cast<OsiSymSolverInterface *> 
 	(lSolver)->setSymParam("prep_level", -1);
      
@@ -998,7 +1002,7 @@ MibSHeuristic::getBilevelSolution(const double * sol, double origLower)
      
      dynamic_cast<OsiSymSolverInterface *> 
 	(lSolver)->setSymParam("max_active_nodes", 1);
-  }
+#endif
 
   lSolver->branchAndBound();
 
@@ -1111,20 +1115,19 @@ MibSHeuristic::getBilevelSolution1(const double * sol)
   
   lSolver->setObjective(nObjCoeffs);
 
-  if(0){
-    dynamic_cast<OsiCbcSolverInterface *> 
-      (lSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
-  }
-  else{
-     dynamic_cast<OsiSymSolverInterface *> 
-	(lSolver)->setSymParam("prep_level", -1);
-     
-     dynamic_cast<OsiSymSolverInterface *> 
-	(lSolver)->setSymParam("verbosity", -2);
-     
-     dynamic_cast<OsiSymSolverInterface *> 
-	(lSolver)->setSymParam("max_active_nodes", 1);
-  }
+#ifndef COIN_HAS_SYMPHONY
+  dynamic_cast<OsiCbcSolverInterface *> 
+     (lSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
+#else
+  dynamic_cast<OsiSymSolverInterface *> 
+     (lSolver)->setSymParam("prep_level", -1);
+  
+  dynamic_cast<OsiSymSolverInterface *> 
+     (lSolver)->setSymParam("verbosity", -2);
+  
+  dynamic_cast<OsiSymSolverInterface *> 
+     (lSolver)->setSymParam("max_active_nodes", 1);
+#endif
 
   lSolver->branchAndBound();
 
@@ -1162,11 +1165,14 @@ MibSHeuristic::solveSubproblem(double beta)
 
   MibSModel * model = MibSModel_;
   OsiSolverInterface * oSolver = model->getSolver();
-  //OsiSolverInterface * sSolver = new OsiCbcSolverInterface();  
+#ifndef COIN_HAS_SYMPHONY
+  OsiSolverInterface * sSolver = new OsiCbcSolverInterface();
+#else
   OsiSolverInterface* sSolver = new OsiSymSolverInterface();
   //sSolver = oSolver->clone();
   //OsiSolverInterface * sSolver = tmpSolver;
   //OsiSolverInterface * tmpSolver = new OsiSolverInterface(oSolver);
+#endif
   
   double uObjSense(oSolver->getObjSense());
   double lObjSense(model->getLowerObjSense());  
@@ -1247,20 +1253,19 @@ MibSHeuristic::solveSubproblem(double beta)
     }
   }
 
-  if(0){
-    dynamic_cast<OsiCbcSolverInterface *> 
-      (sSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
-  }
-  else{
-    dynamic_cast<OsiSymSolverInterface *> 
-      (sSolver)->setSymParam("prep_level", -1);
-    
-    dynamic_cast<OsiSymSolverInterface *> 
-      (sSolver)->setSymParam("verbosity", -2);
-
-    dynamic_cast<OsiSymSolverInterface *> 
-      (sSolver)->setSymParam("max_active_nodes", 1);
-  }
+#ifndef COIN_HAS_SYMPHONY
+  dynamic_cast<OsiCbcSolverInterface *> 
+     (sSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
+#else
+  dynamic_cast<OsiSymSolverInterface *> 
+     (sSolver)->setSymParam("prep_level", -1);
+  
+  dynamic_cast<OsiSymSolverInterface *> 
+     (sSolver)->setSymParam("verbosity", -2);
+  
+  dynamic_cast<OsiSymSolverInterface *> 
+     (sSolver)->setSymParam("max_active_nodes", 1);
+#endif
 
   //dynamic_cast<OsiSymSolverInterface *> (sSolver)->branchAndBound();
 
@@ -1295,17 +1300,21 @@ MibSHeuristic::solveSubproblem(double beta)
 	reoptimize wrt to lower-level objective
       */
       
-      //OsiSolverInterface * nSolver = new OsiCbcSolverInterface();
-      OsiSolverInterface * nSolver = new OsiSymSolverInterface();
-      nSolver->loadProblem(*oSolver->getMatrixByCol(),
-			   oSolver->getColLower(), oSolver->getColUpper(),
-			   oSolver->getObjCoefficients(),
-			   oSolver->getRowLower(), oSolver->getRowUpper());
-      for(j = 0; j < tCols; j++){
-	if(oSolver->isInteger(j))
-	  nSolver->setInteger(j);
-      }
-      
+#ifndef COIN_HAS_SYMPHONY
+       OsiSolverInterface * nSolver = new OsiCbcSolverInterface();
+#else
+       OsiSolverInterface * nSolver = new OsiSymSolverInterface();
+#endif
+
+       nSolver->loadProblem(*oSolver->getMatrixByCol(),
+			    oSolver->getColLower(), oSolver->getColUpper(),
+			    oSolver->getObjCoefficients(),
+			    oSolver->getRowLower(), oSolver->getRowUpper());
+       for(j = 0; j < tCols; j++){
+	  if(oSolver->isInteger(j))
+	     nSolver->setInteger(j);
+       }
+       
 
       CoinZeroN(nObjCoeffs, tCols);
       
@@ -1324,20 +1333,20 @@ MibSHeuristic::solveSubproblem(double beta)
       
       nSolver->addRow(objCon, upperObjVal, upperObjVal);
       nSolver->writeLp("beta1");
-      if(0){
-	dynamic_cast<OsiCbcSolverInterface *> 
-	  (nSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
-      }
-      else{
-	 dynamic_cast<OsiSymSolverInterface *> 
-	    (nSolver)->setSymParam("prep_level", -1);
 
-	 dynamic_cast<OsiSymSolverInterface *> 
-	    (nSolver)->setSymParam("verbosity", -2);
-
-	 dynamic_cast<OsiSymSolverInterface *> 
-	    (nSolver)->setSymParam("max_active_nodes", 1);
-      }
+#ifndef COIN_HAS_SYMPHONY
+      dynamic_cast<OsiCbcSolverInterface *> 
+	 (nSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
+#else
+      dynamic_cast<OsiSymSolverInterface *> 
+	 (nSolver)->setSymParam("prep_level", -1);
+      
+      dynamic_cast<OsiSymSolverInterface *> 
+	 (nSolver)->setSymParam("verbosity", -2);
+      
+      dynamic_cast<OsiSymSolverInterface *> 
+	 (nSolver)->setSymParam("max_active_nodes", 1);
+#endif
 
       nSolver->branchAndBound();
      
@@ -1367,8 +1376,12 @@ MibSHeuristic::solveSubproblem(double beta)
 	reoptimize wrt to upper-level objective
       */
       
-      //OsiSolverInterface * nSolver = new OsiCbcSolverInterface();
+#ifndef COIN_HAS_SYMPHONY
+      OsiSolverInterface * nSolver = new OsiCbcSolverInterface();
+#else
       OsiSolverInterface * nSolver = new OsiSymSolverInterface();
+#endif
+
       nSolver->loadProblem(*oSolver->getMatrixByCol(),
 			   oSolver->getColLower(), oSolver->getColUpper(),
 			   oSolver->getObjCoefficients(),
@@ -1394,20 +1407,19 @@ MibSHeuristic::solveSubproblem(double beta)
       
       nSolver->addRow(objCon, lowerObjVal, lowerObjVal);
       
-      if(0){
-	dynamic_cast<OsiCbcSolverInterface *> 
-	  (nSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
-      }
-      else{
-	 dynamic_cast<OsiSymSolverInterface *> 
-	    (nSolver)->setSymParam("prep_level", -1);
-
-	 dynamic_cast<OsiSymSolverInterface *> 
-	    (nSolver)->setSymParam("verbosity", -2);
-
-	 dynamic_cast<OsiSymSolverInterface *> 
-	    (nSolver)->setSymParam("max_active_nodes", 1);
-      }
+#ifndef COIN_HAS_SYMPHONY
+      dynamic_cast<OsiCbcSolverInterface *> 
+	 (nSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
+#else
+      dynamic_cast<OsiSymSolverInterface *> 
+	 (nSolver)->setSymParam("prep_level", -1);
+      
+      dynamic_cast<OsiSymSolverInterface *> 
+	 (nSolver)->setSymParam("verbosity", -2);
+      
+      dynamic_cast<OsiSymSolverInterface *> 
+	 (nSolver)->setSymParam("max_active_nodes", 1);
+#endif
 
       if(0)      
 	nSolver->writeLp("nSolver");

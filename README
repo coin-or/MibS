@@ -1,10 +1,10 @@
 # MibS (Mixed Integer Bilevel Solver) 0.5
 
-[![Build Status](https://travis-ci.org/tkralphs/MibS.svg?branch=master)](https://travis-ci.org/tkralphs/MibS)
+[![Build Status](https://travis-ci.org/tkralphs/MibS.svg?branch=library)](https://travis-ci.org/tkralphs/MibS)
 
 [ ![Download](https://api.bintray.com/packages/coin-or/download/MibS/images/download.svg) ](https://bintray.com/coin-or/download/MibS/_latestVersion)
 
-MibS is a solver for mixed integelibrr bilevel optimization problems. For an
+MibS is a solver for mixed integer bilevel optimization problems. For an
 introduction to bilevel optimization, see [this slide
 deck](http://coral.ie.lehigh.edu/~ted/files/talks/BILEVEL-IWOBIP16.pdf). A
 somewhat outdated but still useful introduction to MibS is
@@ -36,11 +36,11 @@ Most Linux distributions come with all the required tools installed.
 To obtain the source code, open a terminal and do
 
 ```
-git clone https://www.github.com/tkralphs/MibS
+git clone --branch=library https://www.github.com/tkralphs/MibS
 ```
 
 To build from source, there is a script that fetches dependent projects
-and builds automatically. To get the script and perform the build, do
+and builds automatically. To get the script amd perform the build, do
 
 ```
 cd MibS
@@ -90,7 +90,7 @@ MinGW compilers.
  5. Obtain the source code with 
 
    ```
-   git clone https://www.github.com/tkralphs/MibS
+   git clone --branch=library https://www.github.com/tkralphs/MibS
    ```
 
  6. To build from source, there is a script that fetches dependent projects
@@ -152,7 +152,7 @@ brew install gcc wget svn git
 ```
 
 ```
-git clone https://www.github.com/tkralphs/MibS
+git clone --branch=library https://www.github.com/tkralphs/MibS
 ```
 
 To build from source, there is a script that fetches dependent projects
@@ -200,14 +200,14 @@ to your `DYLD_LIBRARY_PATH` if you want to link to COIN libraries.
 
 To solve a bilevel program, you must provide both an MPS file and an auxiliary
 information file that specifies which variables and constraints are associated
-with the each level. Then call `mibs` like this:
+with the each level. Then call mibs like this:
 ```
-<build_or_install_dir>/bin/mibs -Alps_instance file.mps -MibS_auxiliaryInfoFile aux_file.txt
+mibs -Alps_instance file.mps -MibS_auxiliaryInfoFile aux_file.txt
 ```
 It is also possible to specify additional settings in a parameter file with,
 e.g., 
 ```
-<build_or_install_dir>/bin/mibs -param <build_or_install_dir>/src/mibs.par
+mibs -param mibs.par
 ```
 MibS has many parameters. See the example parameter file `mibs.par` and
 the header file `MibParam.h` for explanations.

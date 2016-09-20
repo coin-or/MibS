@@ -12,32 +12,20 @@
 /* accompanying file for terms.                                              */
 /*===========================================================================*/
 
-#ifndef MibSSolution_h_
-#define MibSSolution_h_
+/***************************************************************************/
+/*           HERE DEFINE THE PROJECT SPECIFIC PUBLIC MACROS                */
+/*    These are only in effect in a setting that doesn't use configure     */
+/***************************************************************************/
 
-#include "BlisSolution.h"
+/* Version number of project */
+#define MIBS_VERSION "trunk"
 
-#include "MibSModel.h"
+/* Major Version number of project */
+#define MIBS_VERSION_MAJOR   9999
 
-//#############################################################################
+/* Minor Version number of project */
+#define MIBS_VERSION_MINOR   9999
 
-class MibSSolution : public BlisSolution {
+/* Release Version number of project */
+#define MIBS_VERSION_RELEASE 9999
 
- private:
-   
-   MibSModel * localModel_;
-
- public:
-   
-   MibSSolution();
-   MibSSolution(int s,
-		const double *values,
-		double objVal,
-		MibSModel *mibs=0);
-   ~MibSSolution();
-
-   void print(std::ostream& os) const;
-	      
-};
-
-#endif

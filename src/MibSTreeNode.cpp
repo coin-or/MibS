@@ -12,8 +12,8 @@
 /* accompanying file for terms.                                              */
 /*===========================================================================*/
 
-#include "MibSModel.h"
-#include "MibSTreeNode.h"
+#include "MibSModel.hpp"
+#include "MibSTreeNode.hpp"
 #include "BlisObjectInt.h"
 #include "BlisConstraint.h"
 
