@@ -325,6 +325,8 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 
   const double * sol = model_->solver()->getColSolution();
   double objVal(lSolver->getObjValue() * model_->getLowerObjSense());
+
+  objVal_ = objVal;
   
   MibSTreeNode * node = static_cast<MibSTreeNode *>(model_->activeNode_);
   MibSTreeNode * parent = 

@@ -129,6 +129,9 @@ class MibSModel : public BlisModel {
   /** Indices of structural (non-vub) rows **/
   int * structRowInd_;
 
+  /** Indices of first-stage variables in second-stage constraints **/
+  int * fixedInd_;
+
   /** LL objective coefficients **/
   double * lowerObjCoeffs_;
 
@@ -314,6 +317,9 @@ class MibSModel : public BlisModel {
   /** Get pointer to the LL row index array **/
   int * getLowerRowInd() {return lowerRowInd_;}
 
+  /** Get pointer to the UL columns in LL problem array **/
+  int * getFixedInd() {return fixedInd_;}
+
   /** Get pointer to the array of original column lower bounds **/
   double * getOrigColLb() const {return origColLb_;}
 
@@ -407,6 +413,9 @@ class MibSModel : public BlisModel {
   
   /** The method that decodes the model from an encoded object. */
   virtual void decodeToSelf(AlpsEncoded&);
+
+  /** Determine the list of first-stage variables participate in second-stage constraints */
+  void setRequiredFixedList(const CoinPackedMatrix *newMatrix);
 
   /** Determines the properties of instance. */
   void instanceStructure(const CoinPackedMatrix *newMatrix); 

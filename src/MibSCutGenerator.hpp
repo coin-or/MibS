@@ -70,18 +70,35 @@ class MibSCutGenerator : public BlisConGenerator {
    /** Add Benders-type cuts for zero sum problems **/
    int bendersZeroSumCuts(BcpsConstraintPool &conPool);
 
-   /** Add intersection cuts for discrete problems **/
-   int intersectionCuts(BcpsConstraintPool &conPool, double *optLowerSolution);
+    /** Add intersection cuts for general problems (Type 1: discrete, Types 2,3: general) **/
+    int intersectionCuts(BcpsConstraintPool &conPool, double *optLowerSolution,
+			 double optLowerObj);
 
-   /** Helper function for intersection cut*/
-   void getAlphaIntersectionCut(double** extRay, double* lowerSolution,
-				int numStruct, int numNonBasic,
-				const double* lpSol, std::vector<double> &alphaVec);
+    /** Helper function for intersection cut Type 1*/
+    void getAlphaIntersectionCutType1(double** extRay, double* lowerSolution,
+				      int numStruct, int numNonBasic,
+				      const double* lpSol, std::vector<double> &alphaVec);
 
-   /** Helper function for intersection cut*/
-   double solveModelIntersectionCut(const CoinPackedMatrix* matrix,
-				    double** extRay, double* rowLb,double* rowUb,
-				    int lRows, int numRows, int numNonBasic, int cnt);
+    /** Helper function for intersection cut Type 1*/
+    double solveModelIntersectionCutType1(const CoinPackedMatrix* matrix,
+					  double** extRay, double* rowLb,double* rowUb,
+					  int lRows, int numRows, int numNonBasic, int cnt);
+
+    /** Helper function for intersection cut Type 2*/
+    void storeBestSolIntersectionCutType2(const double* lpSol, double optLowerObj);
+
+    /** Helper function for intersection cut Type 2*/
+    void getAlphaIntersectionCutType2(double** extRay,
+				      int numStruct, int numNonBasic,
+				      std::vector<double> &alphaVec);
+
+    /** Helper function for intersection cut Type 3*/
+    void storeBestSolIntersectionCutType3(const double* lpSol,
+					  double optLowerObj);
+
+    /** Helper function for intersection cut Type 3*/
+    void getAlphaIntersectionCutType3(double** extRay, int numNonBasic,
+				      std::vector<double> &alphaVec);
 		     
    /** Add bound cuts for general problems **/
    int boundCuts(BcpsConstraintPool &conPool);

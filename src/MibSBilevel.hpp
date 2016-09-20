@@ -41,6 +41,9 @@ class MibSBilevel {
    bool isUpperIntegral_;
    bool useBilevelBranching_;
 
+   /** Optimal value of LL objective **/
+   double objVal_;
+    
    double *upperSolution_;
    double *lowerSolution_;
    double *upperSolutionOrd_;
@@ -57,7 +60,8 @@ class MibSBilevel {
  public:
    
    MibSBilevel() : isIntegral_(false), isBilevelFeasible_(false),
-      isUpperIntegral_(false), useBilevelBranching_(false){
+		   isUpperIntegral_(false), useBilevelBranching_(false),
+		   objVal_(0.0){
       upperSolution_ = 0;
       lowerSolution_ = 0;
       upperSolutionOrd_ = 0;

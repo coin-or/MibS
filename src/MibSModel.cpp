@@ -69,6 +69,7 @@ MibSModel::~MibSModel()
   if(upperRowInd_) delete [] upperRowInd_;
   if(lowerRowInd_) delete [] lowerRowInd_;
   if(structRowInd_) delete [] structRowInd_;
+  if(fixedInd_) delete [] fixedInd_;
   if(interdictCost_) delete [] interdictCost_;
   if(origColLb_) delete [] origColLb_;
   if(origColUb_) delete [] origColUb_;
@@ -116,6 +117,7 @@ MibSModel::initialize()
   upperRowInd_ = NULL;
   lowerRowInd_ = NULL;
   structRowInd_ = NULL;
+  fixedInd_ = NULL;
   origColLb_ = NULL;
   origColUb_ = NULL;
   origRowLb_ = NULL;
@@ -782,6 +784,8 @@ MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
    setBounds(); // stores the original column and row bounds
    //checkProblemType(); // checks if MibS can solve problem entered
    setProblemType(); //determine the type of MIBLP
+   //determine the list of first-stage variables participate in second-stage constraints
+   setRequiredFixedList(newMatrix);
    instanceStructure(newMatrix);
 }
 
@@ -2771,6 +2775,44 @@ MibSModel::decodeToSelf(AlpsEncoded& encoded)
 }
 
 //#############################################################################
+void
+MibSModel::setRequiredFixedList(const CoinPackedMatrix *newMatrix)
+{
+    int uCols(upperDim_);
+    int lRows(lowerRowNum_);
+    int * upperColInd = getUpperColInd();
+    int * lowerRowInd = getLowerRowInd();
+
+    const double * matElements = newMatrix->getElements();
+    const int * matIndices = newMatrix->getIndices();
+    const int * matStarts = newMatrix->getVectorStarts();
+
+    int index1, rowIndex, posRow, start, end;
+    int i, j;
+
+    if(!fixedInd_){
+	fixedInd_ = new int[numVars_]();
+    }
+
+    for(i = 0; i < numVars_; i++){
+	fixedInd_[i] = 0;
+	if(binarySearch(0, uCols - 1, i, upperColInd) >= 0){
+	    start = matStarts[i];
+	    end = start + newMatrix->getVectorSize(i);
+	    for(j = start; j < end; j++){
+		rowIndex = matIndices[j];
+		posRow = binarySearch(0, lRows - 1, rowIndex, lowerRowInd);
+		if(posRow >= 0){
+		    fixedInd_[i] = 1;
+		    break;
+		}
+	    }
+	}
+    }
+
+}
+
+//#############################################################################
 void                                                                                                                                                                             
 MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix)                                                                                                                   
 {
@@ -2803,7 +2845,7 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix)
     for(i = 0; i < numCols; i++){
 	if(colType_[i] == 'C'){
 	    std::cout << "All of the veariables should be integer." << std::endl;                                                                                                     
-            assert(colType_[i] != 'C');
+            //assert(colType_[i] != 'C');
 	}                                                                                                                                                                         
         else if (colType_[i] == 'I'){
 	    if(binarySearch(0, lCols - 1, i, lColIndices) < 0){
@@ -2838,7 +2880,7 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix)
 	   (fabs(matElements[i] - ceil(matElements[i])) > etol_)){
 	    isInteger_ = false;
 	    std::cout << "All of the coefficients should be integer." << std::endl;
-	    assert(isInteger_ == true);
+	    //assert(isInteger_ == true);
 	}
     }                                                                                                                                                                             
                                                                                                                                                                                   
