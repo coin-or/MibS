@@ -132,6 +132,9 @@ MibSParams::createKeywordList() {
    keys_.push_back(make_pair(std::string("MibS_useIntersectionCut"),
                              AlpsParameter(AlpsIntPar, useIntersectionCut)));
 
+   keys_.push_back(make_pair(std::string("MibS_intersectionCutType"),
+			     AlpsParameter(AlpsIntPar, intersectionCutType)));
+
    //--------------------------------------------------------
    // String Parameters.
    //--------------------------------------------------------
@@ -216,6 +219,8 @@ MibSParams::setDefaultEntries() {
    setEntry(useBendersCut, PARAM_NOTSET);
 
    setEntry(useIntersectionCut, PARAM_NOTSET);
+
+   setEntry(intersectionCutType, PARAM_NOTSET);
 
    //-------------------------------------------------------------
    // Double Parameters

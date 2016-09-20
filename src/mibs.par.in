@@ -92,6 +92,7 @@ MibS_warmStartLL 0
 MibS_maxThreadsLL 1
 MibS_useBendersCut 0            # 0: false, 1: true
 MibS_useIntersectionCut 1       # 0: false, 1: true
+MibS_intersectionCutType 1
 MibS_useBoundCut 1
 MibS_boundCutOptimal 1
 MibS_boundCutRelaxUpper 0    # This option doesn't work for now
