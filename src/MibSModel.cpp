@@ -105,7 +105,9 @@ MibSModel::initialize()
   upperRowNum_ = 0;
   structRowNum_ = 0;
   isInterdict_ = false;
-  isInteger_ = true;
+  isPureInteger_ = true;
+  isUpperCoeffInt_ = true;
+  isLowerCoeffInt_ = true;
   allUpperBin_ = true;
   allLowerBin_ = true;
   positiveA1_ = true;
@@ -476,9 +478,11 @@ MibSModel::readProblemData()
    const double *mpsObj =  mps->getObjCoefficients();
 
    memcpy(objCoef, mpsObj, sizeof(double) * numCols);
+
+   const char* rowSense = mps->getRowSense();
    
    loadProblemData(matrix, varLB, varUB, objCoef, conLB, conUB, colType, 
-		   objSense, mps->getInfinity());
+		   objSense, mps->getInfinity(), rowSense);
 
    delete mps;
 }
@@ -487,10 +491,9 @@ MibSModel::readProblemData()
 void
 MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
 			   const double* colLB, const double* colUB,   
-			   const double* obj,
-			   const double* rowLB, const double* rowUB,
-			   const char *types, double objSense,
-			   double infinity)
+			   const double* obj, const double* rowLB,
+			   const double* rowUB, const char *types,
+			   double objSense, double infinity, const char *rowSense)
 {
    //FIXME: THIS ISN'T TRUE IF WE LOAD AN INTERDICTION PROBLEM 
    //AS A "GENERAL" PROBLEM.  FOR NOW, IT'S OK SINCE WE ONLY
@@ -786,7 +789,7 @@ MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
    setProblemType(); //determine the type of MIBLP
    //determine the list of first-stage variables participate in second-stage constraints
    setRequiredFixedList(newMatrix);
-   instanceStructure(newMatrix);
+   instanceStructure(newMatrix, rowLB, rowUB, rowSense);
 }
 
 //#############################################################################
@@ -2814,8 +2817,10 @@ MibSModel::setRequiredFixedList(const CoinPackedMatrix *newMatrix)
 
 //#############################################################################
 void                                                                                                                                                                             
-MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix)                                                                                                                   
+MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix, const double* rowLB,
+			     const double* rowUB, const char *rowSense)
 {
+    
     /** Determines the properties of instance **/
     std::cout<<"======================================="<<std::endl;                                                                                                              
     std::cout<<"             Problem Structure          "<<std::endl;                                                                                                             
@@ -2827,41 +2832,49 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix)
 
     int i,j;                                                                                                                                                                      
     int numCols(numVars_);                                                                                                                                                        
-    int numCons(numCons_);                                                                                                                                                        
+    int numRows(numCons_);                                                                                                                                                        
     int uCols(upperDim_);                                                                                                                                                         
     int lCols(lowerDim_);                                                                                                                                                         
     int uRows(upperRowNum_);                                                                                                                                                      
     int lRows(lowerRowNum_);                                                                                                                                                      
     int * uColIndices = getUpperColInd();         
-    int * lColIndices = getLowerColInd();                                                                                                                                         
-    int * lRowIndices = getLowerRowInd();                                                                                                                                         
-                                                                                                                                                                                  
+    int * lColIndices = getLowerColInd();
+    int * lRowIndices = getLowerRowInd();
+    
     //Checks general or interdiction                                                                                                                                              
     if(isInterdict_ == true){
-	std::cout << "This instance is an interdiction bilevel problem." << std::endl;
+	std::cout << "This instance is an interdiction bilevel optimization problem." << std::endl;
     }                                                                                                                                                                             
                                                                                                                                                                                   
     //Checks type of variables                                                                                                                                                    
     for(i = 0; i < numCols; i++){
 	if(colType_[i] == 'C'){
-	    std::cout << "All of the veariables should be integer." << std::endl;                                                                                                     
-            //assert(colType_[i] != 'C');
-	}                                                                                                                                                                         
-        else if (colType_[i] == 'I'){
+	    isPureInteger_ = false;
+	    break;
+	}
+    }
+
+    for(i = 0; i < numCols; i++){
+	if (colType_[i] != 'B'){
 	    if(binarySearch(0, lCols - 1, i, lColIndices) < 0){
 		allUpperBin_ = false;
-		if(allLowerBin_ == false){
-		    break;
-		}
 	    }
 	    else{
 		allLowerBin_ = false;
-		if(allUpperBin_ == false){
+	    }
+	    if((allUpperBin_ == false) && (allLowerBin_ == false)){
 		    break;
 		}
-	    }
 	}
     }
+
+    if(isPureInteger_ == true){
+	std::cout << "This instance is a pure integer bilevel optimization problem" << std::endl;
+    }
+    else{
+	std::cout << "This instance is a mixed_integer bilevel optimization problem" << std::endl;
+    }
+	
                                                                                                                                                                          
     if(allUpperBin_ == true){
 	std::cout << "All of UL varibles are binary." << std::endl;
@@ -2874,32 +2887,34 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix)
     int nonZero (newMatrix->getNumElements());                                                                                                                                    
     const double * matElements = newMatrix->getElements();                                                                                                                        
     const int * matIndices = newMatrix->getIndices();                                                                                                                             
-    const int * matStarts = newMatrix->getVectorStarts();                                                                                                                                                                                                                                                                                                           
-    for(i = 0; i < nonZero; i++){
-	if((fabs(matElements[i] - floor(matElements[i])) > etol_) &&
-	   (fabs(matElements[i] - ceil(matElements[i])) > etol_)){
-	    isInteger_ = false;
-	    std::cout << "All of the coefficients should be integer." << std::endl;
-	    //assert(isInteger_ == true);
-	}
-    }                                                                                                                                                                             
-                                                                                                                                                                                  
+    const int * matStarts = newMatrix->getVectorStarts();
+    
     int counterStart, counterEnd;                                                                                                                                                 
-    int rowIndex, posRow, posCol;                                                                                                                                                 
+    int rowIndex, posRow, posCol;
+    double rhs(0.0);
                                                                                                                                                                                   
     for(i = 0; i < numCols; i++){                                                                                                                                                 
         counterStart = matStarts[i];                                                                                                                                              
         counterEnd = matStarts[i+1];                                                                                                                                              
-        for(j = counterStart; j < counterEnd; j++){                                                                                                                               
-            if(matElements[j] < 0){                                                                                                                                               
-                rowIndex = matIndices[j];                                                                                                                                         
-                posRow = binarySearch(0, lRows - 1, rowIndex, lRowIndices);                                                                                                       
-                posCol = binarySearch(0, lCols - 1, i, lColIndices);                                                                                                              
-                if(posRow < 0){                                                                                                                                                   
-                    if(posCol < 0){                                                                                                                                               
-                        positiveA1_ = false;                                                                                                                                      
-                    }                                                                                                                                                             
-                    else{                                                                                                                                                         
+        for(j = counterStart; j < counterEnd; j++){                                                                  
+	    rowIndex = matIndices[j];                                                                                                                                         
+	    posRow = binarySearch(0, lRows - 1, rowIndex, lRowIndices);                                                                                                       
+	    posCol = binarySearch(0, lCols - 1, i, lColIndices);
+	    if((fabs(matElements[j] - floor(matElements[j])) > etol_) &&
+	       (fabs(matElements[j] - ceil(matElements[j])) > etol_)){
+		if(posRow < 0){
+		    isUpperCoeffInt_ = false;
+		}
+		else{
+		    isLowerCoeffInt_ = false;
+		}
+	    }
+	    if(matElements[j] < 0){
+		if(posRow < 0){
+		    if(posCol < 0){                                                                                                                                               
+			positiveA1_ = false;                                                                                                                                      
+		    }                                                                                                                                                             
+		    else{                                                                                                                                                         
                         positiveG1_ = false;                                                                                                                                      
                     }                                                                                                                                                             
                 }   
@@ -2909,11 +2924,44 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix)
                     }                                                                                                                                                             
                     else{                                                                                                                                                         
                         positiveG2_ = false;                                                                                                                                      
-                    }                                                                                                                                                             
-                }                                                                                                                                                                 
-            }                                                                                                                                                                     
-        }                                                                                                                                                                         
-    }                                                                                                                                                                             
+                    }
+		}
+	    }
+	}
+    }
+
+    if((isUpperCoeffInt_ == true) || (isLowerCoeffInt_ == true)){
+	for(i = 0; i < numRows; i++){
+	    switch(rowSense[i]){
+		case 'L':
+		    rhs = rowUB[i];
+		    break;
+		case 'G':
+		    rhs = rowLB[i];
+		    break;
+		case 'E':
+		    std::cout
+			<< "MibS cannot currently handle equality constraints." << std::endl;
+		    abort();
+		    break;
+		case 'R':
+		    std::cout
+			<< "MibS cannot currently handle range constraints." << std::endl;
+		    abort();
+		    break;
+		}
+	    if((fabs(rhs - floor(rhs)) > etol_) &&
+	       (fabs(rhs - ceil(rhs)) > etol_)){
+		posRow = binarySearch(0, lRows - 1, rowIndex, lRowIndices);
+		if(posRow < 0){
+		    isUpperCoeffInt_ = false;
+		}
+		else{
+		    isLowerCoeffInt_ = false;
+		}
+	    }
+	}
+    }	    
                                                                                                                                                                                   
     if(positiveA1_ == true){
 	std::cout << "Matrix A1 is positive." << std::endl;
@@ -2931,8 +2979,16 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix)
 	std::cout << "Matrix G2 is positive." << std::endl;
     }
 
-    int paramValue(0);
-    int paramValue1(0);
+    int paramValue(0), cutType(0);
+    bool isHypercubeOn(false);
+
+    //Check if hypercube IC is on or off
+    paramValue = MibSPar_->entry(MibSParams::useIntersectionCut);
+    cutType =  MibSPar_->entry(MibSParams::intersectionCutType);
+
+    if((paramValue == PARAM_ON) && (cutType == 2)){
+	isHypercubeOn = true;
+    }
     
     //Param: "MibS_usePreprocessor" 
     paramValue = MibSPar_->entry(MibSParams::usePreprocessor);
@@ -2942,16 +2998,6 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix)
     else if(paramValue == PARAM_ON){
 	std::cout << "The preprocessor is not currently functional. Automatically disabling your parameter choice." << std::endl;
 	MibSPar()->setEntry(MibSParams::usePreprocessor, PARAM_OFF);
-    }
-
-    //Param: "MibS_useLowerObjHeuristic"
-    paramValue = MibSPar_->entry(MibSParams::useLowerObjHeuristic);
-
-    if(paramValue == PARAM_NOTSET)
-	MibSPar()->setEntry(MibSParams::useLowerObjHeuristic, PARAM_OFF);
-    else if(paramValue == PARAM_ON){
-	std::cout << "The lower-obj heuristic is not currently functional. Automatically disabling your parameter choice." << std::endl;
-	MibSPar()->setEntry(MibSParams::useLowerObjHeuristic, PARAM_OFF);
     }
 
     //Param: "MibS_useObjCutHeuristic"
@@ -2984,14 +3030,27 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix)
 	MibSPar()->setEntry(MibSParams::useGreedyHeuristic, PARAM_OFF);
     }
 
+    //Param: "MibS_usePureIntegerCut"
+    paramValue = MibSPar_->entry(MibSParams::usePureIntegerCut);
+
+    if(paramValue == PARAM_NOTSET)
+	MibSPar()->setEntry(MibSParams::usePureIntegerCut, PARAM_OFF);
+    else if(paramValue == PARAM_ON){
+	if((isPureInteger_ == false) || (isUpperCoeffInt_ == false)
+	   || (isLowerCoeffInt_ == false)){
+	std::cout << "The pure integer cut does not work for this problem. Automatically disabling this cut." << std::endl;
+	MibSPar()->setEntry(MibSParams::usePureIntegerCut, PARAM_OFF);
+	}
+    }
+
     //Param: "MibS_useNoGoodCut"
     paramValue = MibSPar_->entry(MibSParams::useNoGoodCut);
 
     if(paramValue == PARAM_NOTSET)
 	MibSPar()->setEntry(MibSParams::useNoGoodCut, PARAM_OFF);
     else if((paramValue == PARAM_ON) && (allUpperBin_ == false)){
-	    std::cout << "The no-good cut does not work for this problem." << std::endl;
-	    assert(paramValue == PARAM_OFF);
+	    std::cout << "The no-good cut does not work for this problem. Automatically disabling this cut." << std::endl;
+	    MibSPar()->setEntry(MibSParams::useNoGoodCut, PARAM_OFF);
     }
 
     //Param: "MibS_useBendersCut"
@@ -3001,10 +3060,40 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix)
 	MibSPar()->setEntry(MibSParams::useBendersCut, PARAM_OFF);
     else if(paramValue == PARAM_ON){
 	if((allUpperBin_ == false) || (allLowerBin_ == false) || (positiveG2_ == false)){ 
-	std::cout << "The benders cut does not work for this problem." << std::endl;
-	assert(paramValue == PARAM_OFF);
+	    std::cout << "The benders cut does not work for this problem. Automatically disabling this cut." << std::endl;
+	    MibSPar()->setEntry(MibSParams::useBendersCut, PARAM_OFF);
 	}
     }
+    
+    //Param: "MibS_useInterSectionCut" (Type1)
+    paramValue = MibSPar_->entry(MibSParams::useIntersectionCut);
+
+    if(paramValue == PARAM_NOTSET){
+	MibSPar()->setEntry(MibSParams::useBendersCut, PARAM_OFF);
+    }
+    else if(paramValue == PARAM_ON){
+	cutType =  MibSPar_->entry(MibSParams::intersectionCutType);
+	if(cutType == 1){
+	    if((isPureInteger_ == false) || (isLowerCoeffInt_ == false)){
+		std::cout << "The intersection cut 1 does not work for this problem.  Automatically disabling this cut." << std::endl;
+		MibSPar()->setEntry(MibSParams::useIntersectionCut, PARAM_OFF);
+	    }
+	}
+    }
+
+    //Param: "MibS_useInterSectionCut" (hypercube IC)
+    if(isHypercubeOn == false){
+	if((MibSPar_->entry(MibSParams::usePureIntegerCut) == PARAM_OFF) &&
+	   (MibSPar_->entry(MibSParams::useNoGoodCut) == PARAM_OFF) &&
+	   (MibSPar_->entry(MibSParams::useBendersCut) == PARAM_OFF) &&
+	   (MibSPar_->entry(MibSParams::useIntersectionCut) == PARAM_OFF)){
+	    //turn on hupercube IC
+	    MibSPar()->setEntry(MibSParams::useIntersectionCut, PARAM_ON);
+	    MibSPar()->setEntry(MibSParams::intersectionCutType, 2);
+	    std::cout << "Since no appropriate cut is selected, hypercube IC is turned on automatically." << std::endl;
+	}
+    }
+    
 }
 
 
