@@ -28,10 +28,7 @@ MibSParams::createKeywordList() {
    //--------------------------------------------------------
    // BoolPar
    //--------------------------------------------------------
-   
-   keys_.push_back(make_pair(std::string("MibS_usePureIntegerCut"),
-			     AlpsParameter(AlpsBoolPar, usePureIntegerCut)));
-   
+  
    keys_.push_back(make_pair(std::string("MibS_useValFuncCut"),
 			     AlpsParameter(AlpsBoolPar, useValFuncCut)));
    
@@ -123,6 +120,9 @@ MibSParams::createKeywordList() {
    keys_.push_back(make_pair(std::string("MibS_useGreedyHeuristic"),
 			     AlpsParameter(AlpsIntPar, useGreedyHeuristic)));
 
+   keys_.push_back(make_pair(std::string("MibS_usePureIntegerCut"),
+			     AlpsParameter(AlpsIntPar, usePureIntegerCut)));
+
    keys_.push_back(make_pair(std::string("MibS_useNoGoodCut"),
 			     AlpsParameter(AlpsIntPar, useNoGoodCut)));
 
@@ -155,8 +155,6 @@ MibSParams::setDefaultEntries() {
    //-------------------------------------------------------------
    // Bool Parameters.
    //-------------------------------------------------------------
-   
-   setEntry(usePureIntegerCut, true);
 
    setEntry(useValFuncCut, false);
    
@@ -213,6 +211,8 @@ MibSParams::setDefaultEntries() {
    setEntry(useWSHeuristic, PARAM_NOTSET);
 
    setEntry(useGreedyHeuristic, PARAM_NOTSET);
+
+   setEntry(usePureIntegerCut, PARAM_NOTSET);
 
    setEntry(useNoGoodCut, PARAM_NOTSET);
 

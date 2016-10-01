@@ -85,10 +85,16 @@ class MibSModel : public BlisModel {
   int structRowNum_;
 
   /** Determines type of problem(general or interdiction) **/
-  bool isInterdict_; 
+  bool isInterdict_;
 
-  /** Determines if all coefficients are integer or not **/
-  bool isInteger_;
+  /** Determines if problem is pure integer or not **/
+  bool isPureInteger_;
+
+  /** Determines if all upper-level coefficients are integer or not**/
+  bool isUpperCoeffInt_;
+
+  /** Determines if all lower-level coefficients are integer or not**/
+  bool isLowerCoeffInt_;  
 
   /** Determines if all variables of upper-level problem are binary or not **/
   bool allUpperBin_;
@@ -371,12 +377,11 @@ class MibSModel : public BlisModel {
   void readProblemData();
 
   /** Set problem data directly when using MibS as a library **/
-  void loadProblemData(const CoinPackedMatrix& matrix,
-		       const double* colLB, const double* colUB,   
-		       const double* obj,
-		       const double* rowLB, const double* rowUB,
-		       const char *type, double objSense,
-		       double infinity);
+    void loadProblemData(const CoinPackedMatrix& matrix,
+			 const double* colLB, const double* colUB,
+			 const double* obj, const double* rowLB,
+			 const double* rowUB, const char *types,
+			 double objSense, double infinity,  const char *rowSense);
   
   /** Set integer indices and number of integer variables **/
   void findIntegers();
@@ -418,7 +423,8 @@ class MibSModel : public BlisModel {
   void setRequiredFixedList(const CoinPackedMatrix *newMatrix);
 
   /** Determines the properties of instance. */
-  void instanceStructure(const CoinPackedMatrix *newMatrix); 
+    void instanceStructure(const CoinPackedMatrix *newMatrix, const double* rowLB,
+			   const double* rowUB, const char *rowSense);
                                                                                                                                                                
   AlpsTreeNode * createRoot();
 
