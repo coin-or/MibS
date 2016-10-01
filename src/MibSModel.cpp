@@ -2825,8 +2825,8 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix, const double* ro
     std::cout<<"======================================="<<std::endl;                                                                                                              
     std::cout<<"             Problem Structure          "<<std::endl;                                                                                                             
     std::cout<<"======================================="<<std::endl;                                                                                                              
-    std::cout<<"Number of UL Variables: "<<upperDim_<<std::endl;                                                                                                                  
-    std::cout<<"Number of LL Variables: "<<lowerDim_<<std::endl;                                                                                                                  
+    std::cout<<"Number of UL Variables: "<<upperDim_<<std::endl;
+    std::cout<<"Number of LL Variables: "<<lowerDim_<<std::endl;
     std::cout<<"Number of UL Rows: "<<upperRowNum_<<std::endl;                                                                                                                    
     std::cout<<"Number of LL Rows: "<<lowerRowNum_<<std::endl;                                                                                                                   
 
@@ -2863,8 +2863,8 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix, const double* ro
 		allLowerBin_ = false;
 	    }
 	    if((allUpperBin_ == false) && (allLowerBin_ == false)){
-		    break;
-		}
+		break;
+	    }
 	}
     }
 
@@ -2933,23 +2933,23 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix, const double* ro
     if((isUpperCoeffInt_ == true) || (isLowerCoeffInt_ == true)){
 	for(i = 0; i < numRows; i++){
 	    switch(rowSense[i]){
-		case 'L':
-		    rhs = rowUB[i];
-		    break;
-		case 'G':
-		    rhs = rowLB[i];
-		    break;
-		case 'E':
-		    std::cout
-			<< "MibS cannot currently handle equality constraints." << std::endl;
-		    abort();
-		    break;
-		case 'R':
-		    std::cout
-			<< "MibS cannot currently handle range constraints." << std::endl;
-		    abort();
-		    break;
-		}
+	    case 'L':
+		rhs = rowUB[i];
+		break;
+	    case 'G':
+		rhs = rowLB[i];
+		break;
+	    case 'E':
+		std::cout
+		    << "MibS cannot currently handle equality constraints." << std::endl;
+		abort();
+		break;
+	    case 'R':
+		std::cout
+		    << "MibS cannot currently handle range constraints." << std::endl;
+		abort();
+		break;
+	    }
 	    if((fabs(rhs - floor(rhs)) > etol_) &&
 	       (fabs(rhs - ceil(rhs)) > etol_)){
 		posRow = binarySearch(0, lRows - 1, rowIndex, lRowIndices);
@@ -3038,8 +3038,8 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix, const double* ro
     else if(paramValue == PARAM_ON){
 	if((isPureInteger_ == false) || (isUpperCoeffInt_ == false)
 	   || (isLowerCoeffInt_ == false)){
-	std::cout << "The pure integer cut does not work for this problem. Automatically disabling this cut." << std::endl;
-	MibSPar()->setEntry(MibSParams::usePureIntegerCut, PARAM_OFF);
+	    std::cout << "The pure integer cut does not work for this problem. Automatically disabling this cut." << std::endl;
+	    MibSPar()->setEntry(MibSParams::usePureIntegerCut, PARAM_OFF);
 	}
     }
 
@@ -3049,8 +3049,8 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix, const double* ro
     if(paramValue == PARAM_NOTSET)
 	MibSPar()->setEntry(MibSParams::useNoGoodCut, PARAM_OFF);
     else if((paramValue == PARAM_ON) && (allUpperBin_ == false)){
-	    std::cout << "The no-good cut does not work for this problem. Automatically disabling this cut." << std::endl;
-	    MibSPar()->setEntry(MibSParams::useNoGoodCut, PARAM_OFF);
+	std::cout << "The no-good cut does not work for this problem. Automatically disabling this cut." << std::endl;
+	MibSPar()->setEntry(MibSParams::useNoGoodCut, PARAM_OFF);
     }
 
     //Param: "MibS_useBendersCut"
