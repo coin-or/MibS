@@ -576,7 +576,7 @@ MibSHeuristic::greedyHeuristic()
 	//fix the corresponding upper-level variable to 1
 	 randchoice = RANDOM() % 2;
 	if(0)
-	  std::cout << "randchoice " << random << std::endl;
+	  std::cout << "randchoice " << randchoice << std::endl;
 	if(randchoice){
 	  fixedVars[ind_min_wt] = 1.0;
 	  usedBudget += intCost[ind_min_wt];
