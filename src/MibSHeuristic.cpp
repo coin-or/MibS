@@ -531,7 +531,7 @@ MibSHeuristic::greedyHeuristic()
   //std::multimap<double, int>::iterator first;
   //std::multimap<double, int>::iterator last;
   //int dist = std::distance(first, last);
-  srandom((unsigned) time(NULL));
+  SRANDOM((unsigned) time(NULL));
 
   int randchoice(0); 
   if(0)
@@ -574,7 +574,7 @@ MibSHeuristic::greedyHeuristic()
 	
 	//FIXME: SHOULD BE CHECKING FOR CURRENT BOUNDS HERE  
 	//fix the corresponding upper-level variable to 1
-	randchoice = random() % 2;
+	 randchoice = RANDOM() % 2;
 	if(0)
 	  std::cout << "randchoice " << random << std::endl;
 	if(randchoice){
