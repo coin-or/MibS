@@ -33,8 +33,8 @@
 #ifndef MibSConfig_hpp_
 #define MibSConfig_hpp_
 
-#if defined(_MSC_VER) || defined(__MINGW32__)/* Different function call in 
-						Windows */
+#if defined(_MSC_VER) || defined(__MINGW32__) || defined(__MINGW64__)
+/* Different function call in Windows */
 #define SRANDOM(seed) srand(seed)
 #define RANDOM() rand()
 #else
