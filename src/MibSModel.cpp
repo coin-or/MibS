@@ -3083,10 +3083,10 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix, const double* ro
 
     //Param: "MibS_useInterSectionCut" (hypercube IC)
     if(isHypercubeOn == false){
-	if((MibSPar_->entry(MibSParams::usePureIntegerCut) == PARAM_OFF) &&
-	   (MibSPar_->entry(MibSParams::useNoGoodCut) == PARAM_OFF) &&
-	   (MibSPar_->entry(MibSParams::useBendersCut) == PARAM_OFF) &&
-	   (MibSPar_->entry(MibSParams::useIntersectionCut) == PARAM_OFF)){
+	if((MibSPar_->entry(MibSParams::usePureIntegerCut) != PARAM_ON) &&
+	   (MibSPar_->entry(MibSParams::useNoGoodCut) != PARAM_ON) &&
+	   (MibSPar_->entry(MibSParams::useBendersCut) != PARAM_ON) &&
+	   (MibSPar_->entry(MibSParams::useIntersectionCut) != PARAM_ON)){
 	    //turn on hupercube IC
 	    MibSPar()->setEntry(MibSParams::useIntersectionCut, PARAM_ON);
 	    MibSPar()->setEntry(MibSParams::intersectionCutType, 2);
