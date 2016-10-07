@@ -34,7 +34,7 @@ before_script:
 
 script:
   - bash BuildTools/get.dependencies.sh build --verbosity=2
-  - cd /home/travis/build/tkralphs/MibS/build/bin && ./mibs \ 
+  - cd $TRAVIS_BUILD_DIR/build/bin && ./mibs \ 
     -Alps_instance ../../data/interdiction/MCDM/NO_CORR/10_ITEMS_1000/K5010W03.KNP.mps \
     -MibS_auxiliaryInfoFile ../../data/interdiction/MCDM/NO_CORR/10_ITEMS_1000/K5010W03.KNP.txt
 
