@@ -28,10 +28,7 @@ MibSParams::createKeywordList() {
    //--------------------------------------------------------
    // BoolPar
    //--------------------------------------------------------
-   
-   keys_.push_back(make_pair(std::string("MibS_usePureIntegerCut"),
-			     AlpsParameter(AlpsBoolPar, usePureIntegerCut)));
-   
+  
    keys_.push_back(make_pair(std::string("MibS_useValFuncCut"),
 			     AlpsParameter(AlpsBoolPar, useValFuncCut)));
    
@@ -123,6 +120,9 @@ MibSParams::createKeywordList() {
    keys_.push_back(make_pair(std::string("MibS_useGreedyHeuristic"),
 			     AlpsParameter(AlpsIntPar, useGreedyHeuristic)));
 
+   keys_.push_back(make_pair(std::string("MibS_usePureIntegerCut"),
+			     AlpsParameter(AlpsIntPar, usePureIntegerCut)));
+
    keys_.push_back(make_pair(std::string("MibS_useNoGoodCut"),
 			     AlpsParameter(AlpsIntPar, useNoGoodCut)));
 
@@ -131,6 +131,9 @@ MibSParams::createKeywordList() {
 
    keys_.push_back(make_pair(std::string("MibS_useIntersectionCut"),
                              AlpsParameter(AlpsIntPar, useIntersectionCut)));
+
+   keys_.push_back(make_pair(std::string("MibS_intersectionCutType"),
+			     AlpsParameter(AlpsIntPar, intersectionCutType)));
 
    //--------------------------------------------------------
    // String Parameters.
@@ -152,8 +155,6 @@ MibSParams::setDefaultEntries() {
    //-------------------------------------------------------------
    // Bool Parameters.
    //-------------------------------------------------------------
-   
-   setEntry(usePureIntegerCut, true);
 
    setEntry(useValFuncCut, false);
    
@@ -211,11 +212,15 @@ MibSParams::setDefaultEntries() {
 
    setEntry(useGreedyHeuristic, PARAM_NOTSET);
 
+   setEntry(usePureIntegerCut, PARAM_NOTSET);
+
    setEntry(useNoGoodCut, PARAM_NOTSET);
 
    setEntry(useBendersCut, PARAM_NOTSET);
 
    setEntry(useIntersectionCut, PARAM_NOTSET);
+
+   setEntry(intersectionCutType, PARAM_NOTSET);
 
    //-------------------------------------------------------------
    // Double Parameters
