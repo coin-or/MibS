@@ -82,14 +82,22 @@ MibSBranchStrategyPseudo::createCandBranchObjects(int numPassesLeft, double ub)
     double *saveSolution = NULL;
 
     BlisModel *model = dynamic_cast<BlisModel *>(model_);
+    MibSModel *mibsmodel = dynamic_cast<MibSModel *>(model);
     OsiSolverInterface *solver = model->solver();
     
+    double etol = mibsmodel->etol_;
     int numCols = model->getNumCols();
     int numObjects = model->numObjects();
     int aveIterations = model->getAveIterations();
+    int uN = mibsmodel->upperDim_;
+    int * upperColInd = mibsmodel->getUpperColInd();
+    int * fixedInd = mibsmodel->fixedInd_;
+    char * colType = mibsmodel->colType_;
 
+    // If upper-level variable is fixed -> fixedVar = 1
+    int *fixedVar = new int[numCols]();
 
-    //std::cout <<  "aveIterations = " <<  aveIterations << std::endl;
+    int *candidate = new int[numCols];
 
      //------------------------------------------------------
     // Check if max time is reached or no pass is left.
@@ -139,13 +147,71 @@ MibSBranchStrategyPseudo::createCandBranchObjects(int numPassesLeft, double ub)
             
         infObjects.clear();
         firstObjects.clear();
-        
+
+	int index(0), found(0);
+
+	int branchPar(mibsmodel->MibSPar_->entry(MibSParams::branchProcedure));
+
+	if(branchPar == 1){
+	    for (i = 0; i < uN; ++i){
+		index = upperColInd[i];
+		if (fabs(lower[index]-upper[index])<=etol){
+		    fixedVar[index]=1;
+		}
+	    }
+	    
+	    index = 0;
+	    //sa:To Do:
+	    //Make sure index[object] = i
+	    for (i = 0; i < numObjects; ++i) {
+		if((fixedInd[index] == 1) && (colType[index] != 'C')){
+		    object = model->objects(i);
+		    infeasibility = object->infeasibility(model, preferDir);
+		    if(infeasibility > etol){
+			found = 1;
+			break;
+		    }
+		}
+		index++;
+	    }
+	}
+
+
+	if(branchPar == 1){
+	    index = -1;
+	    for (i = 0; i < numObjects; ++i) {
+		object = model->objects(i);
+		index++;
+		if((fixedInd[index] == 1) && (colType[index] != 'C')){
+		    infeasibility = object->infeasibility(model, preferDir);
+		    if (((found == 0) && (fixedVar[index] != 1))
+			|| (fabs(infeasibility) > etol)){
+			candidate[i] = 1;
+		    }
+		}
+	    }
+	}
+	else {
+	    for (i = 0; i < numObjects; ++i) {
+		object = model->objects(i);
+		infeasibility = object->infeasibility(model, preferDir);
+		if ((fabs(infeasibility) > etol) && (colType[i] != 'C')) {
+		    candidate[i] = 1;
+		}
+	    }
+	}
+    	
+	    
+		    
+	    
+
+	    
+	
         for (i = 0; i < numObjects; ++i) {
                 
             object = model->objects(i);
-            infeasibility = object->infeasibility(model, preferDir);
             
-            if (infeasibility) {
+            if (candidate[i] == 1) {
                 
                 ++numInfs;
                 intObject = dynamic_cast<BlisObjectInt *>(object);
@@ -387,6 +453,8 @@ MibSBranchStrategyPseudo::createCandBranchObjects(int numPassesLeft, double ub)
     delete [] saveSolution;
     delete [] saveLower;
     delete [] saveUpper;
+    delete [] fixedVar;
+    delete [] candidate;
 
     return bStatus;
 

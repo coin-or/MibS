@@ -3035,7 +3035,7 @@ MibSCutGenerator::weakIncObjCutCurrent(BcpsConstraintPool &conPool)
 
   double * tmpsol = new double[lN + uN];
   CoinZeroN(tmpsol, lN + uN);
-  OsiSolverInterface * lSolver = bS->setUpModel(solver, true, tmpsol);
+  OsiSolverInterface * lSolver = bS->setUpModel(solver, 0, false, true, tmpsol);
 
 #ifndef COIN_HAS_SYMPHONY
   dynamic_cast<OsiCbcSolverInterface *> 
@@ -3133,7 +3133,7 @@ MibSCutGenerator::weakIncObjCutMaximal(BcpsConstraintPool &conPool)
   //if we keep this as our big M, should move (same every time)
   double * tmpsol = new double[lN + uN];
   CoinZeroN(tmpsol, lN + uN);
-  OsiSolverInterface * lSolver = bS->setUpModel(solver, tmpsol);
+  OsiSolverInterface * lSolver = bS->setUpModel(solver, 0, false, tmpsol);
   delete [] tmpsol;
 
 #ifndef COIN_HAS_SYMPHONY
@@ -3173,7 +3173,7 @@ MibSCutGenerator::weakIncObjCutMaximal(BcpsConstraintPool &conPool)
   }
   else{
   
-    OsiSolverInterface * lSolver = bS->setUpModel(solver, sol);  
+      OsiSolverInterface * lSolver = bS->setUpModel(solver, 0, false, sol);  
 
 #ifndef COIN_HAS_SYMPHONY
     dynamic_cast<OsiCbcSolverInterface *> 
@@ -3331,7 +3331,7 @@ MibSCutGenerator::incObjCutMaximal(BcpsConstraintPool &conPool)
   }
   else{
   
-    OsiSolverInterface * lSolver = bS->setUpModel(solver, maximalupper);  
+      OsiSolverInterface * lSolver = bS->setUpModel(solver, 0, false, maximalupper);  
 
 #ifndef COIN_HAS_SYMPHONY
     dynamic_cast<OsiCbcSolverInterface *> 
@@ -3789,14 +3789,14 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
 
     CoinPackedVector *sol = localModel_->getSolution();
 
-    localModel_->solIsUpdated_ = false;
+    /*localModel_->solIsUpdated_ = false;
 
     if(localModel_->solIsUpdated_)
       bS = localModel_->bS_;
     else
       bS->createBilevel(sol, localModel_);
 
-    localModel_->solIsUpdated_ = false;
+      localModel_->solIsUpdated_ = false;*/
 
     if(cutTypes == 0){
       //general type of problem, no specialized cuts

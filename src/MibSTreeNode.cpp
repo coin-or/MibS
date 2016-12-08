@@ -65,7 +65,7 @@ MibSTreeNode::createNewTreeNode(AlpsNodeDesc *&desc) const
     int branchInd = dynamic_cast<BlisNodeDesc *>(desc)->getBranchedInd();
     double lpX = dynamic_cast<BlisNodeDesc *>(desc)->getBranchedVal();
     double f = lpX - floor(lpX);
-    assert(f > 0.0);
+    //assert(f > 0.0);
     
     BlisModel* model = dynamic_cast<BlisModel*>(desc_->getModel());
     int objInd = model->getIntObjIndices()[branchInd];
@@ -379,7 +379,7 @@ MibSTreeNode::process(bool isRoot, bool rampUp)
                     goto TERM_PROCESS;
                 }
                 needBranch = true;
-                reducedCostFix(model);
+                //reducedCostFix(model);
                 
                 //------------------------------------------
                 // Check if tailoff
