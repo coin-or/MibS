@@ -29,74 +29,80 @@ class MibSHeuristic;
 
 class MibSBilevel {
 
-  friend class MibSModel;
-  friend class MibSCutGenerator;
-  friend class MibSBranchStrategyMaxInf;
-  friend class MibSHeuristic;
+    friend class MibSModel;
+    friend class MibSCutGenerator;
+    friend class MibSBranchStrategyMaxInf;
+    friend class MibSHeuristic;
 
- private:
+private:
 
-   bool isIntegral_;
-   bool isBilevelFeasible_;
-   bool isUpperIntegral_;
-   bool useBilevelBranching_;
+    bool isIntegral_;
+    bool isBilevelFeasible_;
+    bool isUpperIntegral_;
+    bool useBilevelBranching_;
+    bool upperFixed_;
+    bool isProvenOptimal_;
 
-   /** Optimal value of LL objective **/
-   double objVal_;
+    /** Optimal value of LL objective **/
+    double objVal_;
     
-   double *upperSolution_;
-   double *lowerSolution_;
-   double *upperSolutionOrd_;
-   double *lowerSolutionOrd_;
-   double *optLowerSolution_;
-   double *optLowerSolutionOrd_;
+    double *upperSolution_;
+    double *lowerSolution_;
+    double *upperSolutionOrd_;
+    double *lowerSolutionOrd_;
+    double *optLowerSolution_;
+    double *optLowerSolutionOrd_;
    
-   MibSModel *model_;
-   MibSHeuristic *heuristic_;
-   OsiSolverInterface * solver_;
-   CoinWarmStart * ws_;
+    MibSModel *model_;
+    MibSHeuristic *heuristic_;
+    OsiSolverInterface * solver_;
+    OsiSolverInterface * solver2_;  
+    CoinWarmStart * ws_;
 
    
- public:
+public:
    
-   MibSBilevel() : isIntegral_(false), isBilevelFeasible_(false),
-		   isUpperIntegral_(false), useBilevelBranching_(false),
-		   objVal_(0.0){
-      upperSolution_ = 0;
-      lowerSolution_ = 0;
-      upperSolutionOrd_ = 0;
-      lowerSolutionOrd_ = 0;
-      optLowerSolution_ = 0;
-      optLowerSolutionOrd_ = 0;
-      model_ = 0;
-      heuristic_= 0;
-      solver_ = 0;
-      ws_ = 0;
-   }
+    MibSBilevel() : isIntegral_(false), isBilevelFeasible_(false),
+		    isUpperIntegral_(false), useBilevelBranching_(false),
+		    objVal_(0.0){
+	upperSolution_ = 0;
+	lowerSolution_ = 0;
+	upperSolutionOrd_ = 0;
+	lowerSolutionOrd_ = 0;
+	optLowerSolution_ = 0;
+	optLowerSolutionOrd_ = 0;
+	model_ = 0;
+	heuristic_= 0;
+	solver_ = 0;
+	solver2_ = 0;
+	ws_ = 0;
+    }
    
-   ~MibSBilevel() {
-      gutsOfDestructor();
-   }
+    ~MibSBilevel() {
+	gutsOfDestructor();
+    }
    
-   void createBilevel(CoinPackedVector *sol,
-   		      MibSModel *mibs=0);
-   void checkBilevelFeasiblity(bool isRoot);
-   void gutsOfDestructor();
+    void createBilevel(CoinPackedVector *sol,
+		       MibSModel *mibs=0);
+    void checkBilevelFeasiblity(bool isRoot, bool upperFixed_);
+    void gutsOfDestructor();
 
- private:
+private:
    
-   int findIndex(int index, int size, int * indices);
-   OsiSolverInterface * setUpModel(OsiSolverInterface * solver,
-				   bool newOsi, const double *sol = NULL);
-   double getLowerObj(const double * sol, double objSense);
-   int binarySearch(int index,int start, int stop, int * indexArray);
-   CoinWarmStart * getWarmStart() {return ws_;}
-   void setWarmStart(CoinWarmStart * ws) {ws_ = ws;}
-   //void findHeuristicSolutions();
-   //void objCutHeuristic();
-   //void lowerObjHeuristic();
-   //void weightedSumsHeuristic();
-   //void greedyHeuristic();
+    int findIndex(int index, int size, int * indices);
+    OsiSolverInterface * setUpRefineModel(OsiSolverInterface * solver, double objValLL,
+					  bool newOsi, const double *sol = NULL);
+    OsiSolverInterface * setUpModel(OsiSolverInterface * solver, double objValLL,
+				    bool bestSolLL, bool newOsi, const double *sol = NULL);
+    double getLowerObj(const double * sol, double objSense);
+    int binarySearch(int index,int start, int stop, int * indexArray);
+    CoinWarmStart * getWarmStart() {return ws_;}
+    void setWarmStart(CoinWarmStart * ws) {ws_ = ws;}
+    //void findHeuristicSolutions();
+    //void objCutHeuristic();
+    //void lowerObjHeuristic();
+    //void weightedSumsHeuristic();
+    //void greedyHeuristic();
 
 };
 
