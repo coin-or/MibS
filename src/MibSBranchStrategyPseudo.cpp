@@ -97,7 +97,7 @@ MibSBranchStrategyPseudo::createCandBranchObjects(int numPassesLeft, double ub)
     // If upper-level variable is fixed -> fixedVar = 1
     int *fixedVar = new int[numCols]();
 
-    int *candidate = new int[numCols];
+    int *candidate = new int[numCols]();
 
      //------------------------------------------------------
     // Check if max time is reached or no pass is left.
@@ -150,6 +150,8 @@ MibSBranchStrategyPseudo::createCandBranchObjects(int numPassesLeft, double ub)
 
 	int index(0), found(0);
 
+	double value(0.0);
+
 	int branchPar(mibsmodel->MibSPar_->entry(MibSParams::branchProcedure));
 
 	if(branchPar == 1){
@@ -160,26 +162,56 @@ MibSBranchStrategyPseudo::createCandBranchObjects(int numPassesLeft, double ub)
 		}
 	    }
 	    
-	    index = 0;
-	    //sa:To Do:
-	    //Make sure index[object] = i
-	    for (i = 0; i < numObjects; ++i) {
-		if((fixedInd[index] == 1) && (colType[index] != 'C')){
-		    object = model->objects(i);
-		    infeasibility = object->infeasibility(model, preferDir);
+       
+	    for (i = 0; i < numCols; ++i) {   
+		if(fixedInd[i] == 1){
+		    value = saveSolution[i];
+		    infeasibility = fabs(floor(value + 0.5) - value);
 		    if(infeasibility > etol){
 			found = 1;
 			break;
 		    }
 		}
-		index++;
 	    }
 	}
 
 
 	if(branchPar == 1){
-	    index = -1;
-	    for (i = 0; i < numObjects; ++i) {
+	    for(i = 0; i < numCols; ++i){
+		if(colType[i] == 'C'){
+		    candidate[i] = 0;
+		}
+		else{
+		    candidate[i] = 2;
+		    if(fixedInd[i] == 1){
+			value =saveSolution[i];
+			infeasibility =fabs(floor(value + 0.5) - value);
+			if (((found == 0) && (fixedVar[i] != 1))
+			    || (fabs(infeasibility) > etol)){
+			    candidate[i] = 1;
+			}
+		    }
+		}
+	    }
+	}
+	else{
+	    for(i = 0; i < numCols; ++i){
+		if(colType[i] == 'C'){
+		    candidate[i] = 0;
+		}
+		else{
+		    candidate[i] = 2;
+		    value =saveSolution[i];
+		    infeasibility =fabs(floor(value + 0.5) - value);
+		    if(infeasibility > etol){
+			candidate[i] = 1;
+		    }
+		}
+	    }
+	}
+	    
+	    
+	/*   for (i = 0; i < numObjects; ++i) {
 		object = model->objects(i);
 		index++;
 		if((fixedInd[index] == 1) && (colType[index] != 'C')){
@@ -199,17 +231,19 @@ MibSBranchStrategyPseudo::createCandBranchObjects(int numPassesLeft, double ub)
 		    candidate[i] = 1;
 		}
 	    }
-	}
+	    }*/
     	
 	    
 		    
 	    
 
 	    
-	
-        for (i = 0; i < numObjects; ++i) {
-                
-            object = model->objects(i);
+	index = -1;
+        for (i = 0; i < numCols; ++i) {
+	    if(candidate[i] != 0){
+		index ++;
+		object = model->objects(index);
+	    }
             
             if (candidate[i] == 1) {
                 

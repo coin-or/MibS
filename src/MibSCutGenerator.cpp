@@ -457,7 +457,7 @@ MibSCutGenerator::intersectionCuts(BcpsConstraintPool &conPool, double *optLower
 					     numNonBasic, sol, alpha);
 		break;
 	    case 2:
-		storeBestSolIntersectionCutType2(sol, optLowerObj);
+		//storeBestSolIntersectionCutType2(sol, optLowerObj);
 		getAlphaIntersectionCutType2(extRay, numStruct, numNonBasic,
 					     alpha);
 		break;
@@ -1461,6 +1461,52 @@ MibSCutGenerator::boundCuts(BcpsConstraintPool &conPool)
 }
 
 //#############################################################################
+int
+MibSCutGenerator::generalNoGoodCut(BcpsConstraintPool &conPool)
+{
+
+    /** Add specialized bilevel feasibility cuts, as appropriate **/
+
+    //std::cout << "Generating No-Good Cuts." << std::endl;
+
+    OsiSolverInterface * solver = localModel_->solver();
+
+    int numCuts(0);
+    double etol(localModel_->etol_);
+    const double * sol = solver->getColSolution();
+    int uN(localModel_->upperDim_);
+    int * upperColInd = localModel_->getUpperColInd();
+    int * fixedInd = localModel_->getFixedInd();
+
+    int i(0), index(0);
+    double cutub(- 1.0);
+    double cutlb(- solver->getInfinity());
+    std::vector<int> indexList;
+    std::vector<double> valsList;
+
+    for(i = 0; i < uN; i++){
+	if(fixedInd[i] == 1){
+	    index = upperColInd[i];
+	    indexList.push_back(index);
+	    if(sol[index] > etol){
+		valsList.push_back(1.0);
+		cutub += 1.0;
+	    }
+	    else{
+		valsList.push_back(- 1.0);
+	    }
+	}
+    }
+
+    assert(indexList.size() == valsList.size());
+
+    numCuts += addCut(conPool, cutlb, cutub, indexList, valsList, false);
+
+    return numCuts;
+
+}
+    
+//########################################################################### 
 double *
 MibSCutGenerator::findDeepestLandPCut_ValFunc()
 {
@@ -3787,6 +3833,9 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
     int useIntersectionCut =
 	localModel_->MibSPar_->entry(MibSParams::useIntersectionCut);
 
+    int useGeneralNoGoodCut = 
+	localModel_->MibSPar_->entry(MibSParams::useGeneralNoGoodCut);
+
     CoinPackedVector *sol = localModel_->getSolution();
 
     /*localModel_->solIsUpdated_ = false;
@@ -3806,6 +3855,10 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
 	      intersectionCuts(conPool, bS->optLowerSolution_,
 			       bS->objVal_);
 	  }
+
+	  if (useGeneralNoGoodCut == PARAM_ON){
+	      generalNoGoodCut(conPool);
+			}
 	 numCuts += feasibilityCuts(conPool) ? true : false;
          if (useBoundCut){
 	     boundCuts(conPool);

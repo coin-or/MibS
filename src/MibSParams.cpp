@@ -126,6 +126,9 @@ MibSParams::createKeywordList() {
    keys_.push_back(make_pair(std::string("MibS_useNoGoodCut"),
 			     AlpsParameter(AlpsIntPar, useNoGoodCut)));
 
+   keys_.push_back(make_pair(std::string("MibS_useGeneralNoGoodCut"),
+			     AlpsParameter(AlpsIntPar, useGeneralNoGoodCut)));
+
    keys_.push_back(make_pair(std::string("MibS_useBendersCut"),
 			     AlpsParameter(AlpsIntPar, useBendersCut)));
 
@@ -217,6 +220,8 @@ MibSParams::setDefaultEntries() {
    setEntry(usePureIntegerCut, PARAM_NOTSET);
 
    setEntry(useNoGoodCut, PARAM_NOTSET);
+
+   setEntry(useGeneralNoGoodCut, PARAM_NOTSET);
 
    setEntry(useBendersCut, PARAM_NOTSET);
 

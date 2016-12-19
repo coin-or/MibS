@@ -3105,6 +3105,7 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix, const double* ro
     if(isHypercubeOn == false){
 	if((MibSPar_->entry(MibSParams::usePureIntegerCut) != PARAM_ON) &&
 	   (MibSPar_->entry(MibSParams::useNoGoodCut) != PARAM_ON) &&
+	   (MibSPar_->entry(MibSParams::useGeneralNoGoodCut) != PARAM_ON) &&
 	   (MibSPar_->entry(MibSParams::useBendersCut) != PARAM_ON) &&
 	   (MibSPar_->entry(MibSParams::useIntersectionCut) != PARAM_ON)){
 	    //turn on hupercube IC
@@ -3113,6 +3114,8 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix, const double* ro
 	    std::cout << "Since no appropriate cut is selected, hypercube IC is turned on automatically." << std::endl;
 	}
     }
+
+    //MibSPar()->setEntry(MibSParams::useIntersectionCut, PARAM_OFF);
 
     //Param: "MibS_branchProcedure"
     paramValue = MibSPar_->entry(MibSParams::branchProcedure);
