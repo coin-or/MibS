@@ -27,6 +27,10 @@
 #define PARAM_OFF      0
 #define PARAM_ON       1
 
+#define PARAM_NOTSET  -1
+#define notRestricted  0
+#define Restricted     1
+
 /*---------  which_active_con_method choices --------------------------------*/
 #define SIMPLE  0
 #define BASIS  1

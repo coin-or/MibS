@@ -211,7 +211,7 @@ MibSModel::setBlisParameters()
   BlisPar()->setEntry(BlisParams::cutPass, ALPS_INT_MAX);
   BlisPar()->setEntry(BlisParams::tailOff, -10000);
   BlisPar()->setEntry(BlisParams::denseConFactor, ALPS_DBL_MAX);
-
+ 
   /* Set cut generation frequency to 1 */
   BlisPar()->setEntry(BlisParams::cutGenerationFrequency, 1);
 
@@ -1679,6 +1679,12 @@ MibSModel::userFeasibleSolution(const double * solution, bool &userFeasible)
   else if(!bS_->isBilevelFeasible_){
     userFeasible = false;
   }
+
+  int allFixed(0);
+  if(bS_->upperFixed_){
+      allFixed = 1;
+      userFeasible = false;
+  }
   
   if(userFeasible){
     //std::cout << "This solution comes from MibSModel.cpp:1637" << std::endl;
@@ -1688,40 +1694,53 @@ MibSModel::userFeasibleSolution(const double * solution, bool &userFeasible)
 				this);
   }
   else{
-    
-    double * lpSolution = new double[getNumCols()];
-    int * upperColInd = getUpperColInd();
-    int * lowerColInd = getLowerColInd();
-    int i(0), index(0);
-    double upperObj(0.0);
+      if((bS_->isUpperIntegral_) && ((bS_->isProvenOptimal_)|| (allFixed))){
+	  double * lpSolution = new double[getNumCols()];
+	  int * upperColInd = getUpperColInd();
+	  int * lowerColInd = getLowerColInd();
+	  int i(0), index(0);
+	  double upperObj(0.0);
+	  CoinFillN(lpSolution, getNumCols(), 0.0);
+	  
+	  if(bS_->isProvenOptimal_){
+	      for(i = 0; i < upperDim_; i++){
+		  index = upperColInd[i];
+		  lpSolution[index] = bS_->upperSolutionOrd_[i];
+		  upperObj += 
+		      bS_->upperSolutionOrd_[i] * solver()->getObjCoefficients()[index];
+	      }
 
-    for(i = 0; i < upperDim_; i++){
-      index = upperColInd[i];
-      lpSolution[index] = bS_->upperSolutionOrd_[i];
-      upperObj += 
-	bS_->upperSolutionOrd_[i] * solver()->getObjCoefficients()[index];
-    }
+	      for(i = 0; i < lowerDim_; i++){
+		  index = lowerColInd[i];
+		  lpSolution[index] = bS_->optLowerSolutionOrd_[i];
+		  upperObj += 
+		      bS_->optLowerSolutionOrd_[i] * solver()->getObjCoefficients()[index];
+	      }
+	  }
 
-    for(i = 0; i < lowerDim_; i++){
-      index = lowerColInd[i];
-      lpSolution[index] = bS_->optLowerSolutionOrd_[i];
-      upperObj += 
-	bS_->optLowerSolutionOrd_[i] * solver()->getObjCoefficients()[index];
-    }
-
-    if(checkUpperFeasibility(lpSolution)){
-      //std::cout << "This solution comes from MibSModel.cpp:1665" << std::endl;
-      mibSol = new MibSSolution(getNumCols(),
-				lpSolution,
-				upperObj,
-				this);
+	  if((checkUpperFeasibility(lpSolution)) || (!bS_->isProvenOptimal_)){
+	      if(!bS_->isProvenOptimal_){
+		  upperObj = 10000000;
+	      }
+	      
+	      //std::cout << "This solution comes from MibSModel.cpp:1665" << std::endl;
+	      mibSol = new MibSSolution(getNumCols(),
+					lpSolution,
+					upperObj,
+					this);
       
-      storeSolution(BlisSolutionTypeHeuristic, mibSol);
-      mibSol = NULL;
-    }
-    delete [] lpSolution;
-    
-  }
+	      storeSolution(BlisSolutionTypeHeuristic, mibSol);
+	      if(allFixed){
+		  userFeasible = true;
+		  //std::cout<<"new"<<std::endl;
+	      }
+	      if(!allFixed){
+		  mibSol = NULL;
+	      }
+	  }
+	  delete [] lpSolution;
+      }
+  }  
   
   delete sol;
   return mibSol;
@@ -2792,6 +2811,7 @@ MibSModel::setRequiredFixedList(const CoinPackedMatrix *newMatrix)
 
     int index1, rowIndex, posRow, start, end;
     int i, j;
+    int num(0);
 
     if(!fixedInd_){
 	fixedInd_ = new int[numVars_]();
@@ -2891,6 +2911,8 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix, const double* ro
     
     int counterStart, counterEnd;                                                                                                                                                 
     int rowIndex, posRow, posCol;
+    //change this
+    bool allFixedBin(true);
     double rhs(0.0);
                                                                                                                                                                                   
     for(i = 0; i < numCols; i++){                                                                                                                                                 
@@ -2932,7 +2954,7 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix, const double* ro
 
     if((isUpperCoeffInt_ == true) || (isLowerCoeffInt_ == true)){
 	for(i = 0; i < numRows; i++){
-	    switch(rowSense[i]){
+	    /*switch(rowSense[i]){
 	    case 'L':
 		rhs = rowUB[i];
 		break;
@@ -2949,7 +2971,7 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix, const double* ro
 		    << "MibS cannot currently handle range constraints." << std::endl;
 		abort();
 		break;
-	    }
+		}*/
 	    if((fabs(rhs - floor(rhs)) > etol_) &&
 	       (fabs(rhs - ceil(rhs)) > etol_)){
 		posRow = binarySearch(0, lRows - 1, rowIndex, lRowIndices);
@@ -2961,7 +2983,20 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix, const double* ro
 		}
 	    }
 	}
-    }	    
+    }
+
+    for(i = 0; i < numCols; i++){
+	if(fixedInd_[i] == 1){
+	    if(colType_[i] == 'C'){
+		std::cout << "All UL variables which participate in LL problem, should be discrete" << std::endl;
+		i = -1;
+		assert(i > 0);
+	    }
+	    if(colType_[i] != 'B'){
+		allFixedBin = false;
+	    }
+	}
+    }		
                                                                                                                                                                                   
     if(positiveA1_ == true){
 	std::cout << "Matrix A1 is positive." << std::endl;
@@ -3030,6 +3065,30 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix, const double* ro
 	MibSPar()->setEntry(MibSParams::useGreedyHeuristic, PARAM_OFF);
     }
 
+    //Param: "MibS_useIncObjCut"
+    paramValue = MibSPar_->entry(MibSParams::useIncObjCut);
+
+    if(paramValue == PARAM_NOTSET)
+	MibSPar()->setEntry(MibSParams::useIncObjCut, PARAM_OFF);
+    else if(paramValue == PARAM_ON){
+	if((allUpperBin_ == false) || (positiveA2_ == false)){
+	    std::cout << "The increasing objective cut does not work for this problem. Automatically disabling this cut." << std::endl;
+	    MibSPar()->setEntry(MibSParams::useIncObjCut, PARAM_OFF);
+	}
+    }
+    
+    //Param: "MibS_useGeneralNoGoodCut"
+    paramValue = MibSPar_->entry(MibSParams::useGeneralNoGoodCut);
+
+    if(paramValue == PARAM_NOTSET)
+	MibSPar()->setEntry(MibSParams::useGeneralNoGoodCut, PARAM_OFF);
+    else if(paramValue == PARAM_ON){
+	if(allFixedBin == false){
+	    std::cout << "Generalized no-good cut does not work for this problem. Automatically disabling this cut." << std::endl;
+	    MibSPar()->setEntry(MibSParams::useGeneralNoGoodCut, PARAM_OFF);
+	}
+    }
+	    
     //Param: "MibS_usePureIntegerCut"
     paramValue = MibSPar_->entry(MibSParams::usePureIntegerCut);
 
@@ -3081,18 +3140,36 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix, const double* ro
 	}
     }
 
+    //Param: "MibS_branchProcedure"
+    paramValue = MibSPar_->entry(MibSParams::branchProcedure);
+    if(paramValue == PARAM_NOTSET){
+	MibSPar()->setEntry(MibSParams::branchProcedure, Restricted);
+	std::cout << "Since no branching procedure is selected, the restricted one is selected automatically." << std::endl;
+    }
+
     //Param: "MibS_useInterSectionCut" (hypercube IC)
     if(isHypercubeOn == false){
-	if((MibSPar_->entry(MibSParams::usePureIntegerCut) != PARAM_ON) &&
+	if((MibSPar_->entry(MibSParams::useIncObjCut) != PARAM_ON) &&
+	   (MibSPar_->entry(MibSParams::usePureIntegerCut) != PARAM_ON) &&
 	   (MibSPar_->entry(MibSParams::useNoGoodCut) != PARAM_ON) &&
+	   (MibSPar_->entry(MibSParams::useGeneralNoGoodCut) != PARAM_ON) &&
 	   (MibSPar_->entry(MibSParams::useBendersCut) != PARAM_ON) &&
 	   (MibSPar_->entry(MibSParams::useIntersectionCut) != PARAM_ON)){
+	    if(MibSPar_->entry(MibSParams::branchProcedure) != Restricted){
 	    //turn on hupercube IC
 	    MibSPar()->setEntry(MibSParams::useIntersectionCut, PARAM_ON);
 	    MibSPar()->setEntry(MibSParams::intersectionCutType, 2);
 	    std::cout << "Since no appropriate cut is selected, hypercube IC is turned on automatically." << std::endl;
+	    }
+	    else {
+		MibSPar()->setEntry(MibSParams::cutStrategy, 1);
+		std::cout << "Since no appropriate cut is selected, pure branch-and-bound algorithm is used." << std::endl;
+	    }
 	}
     }
+
+    //MibSPar()->setEntry(MibSParams::useIntersectionCut, PARAM_OFF);
+
     
 }
 
