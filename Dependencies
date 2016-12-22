@@ -6,7 +6,7 @@ Clp               https://projects.coin-or.org/svn/Clp/trunk/Clp
 Cgl               https://projects.coin-or.org/svn/Cgl/stable/0.59/Cgl
 Alps              https://projects.coin-or.org/svn/CHiPPS/Alps/trunk/Alps
 Bcps              https://projects.coin-or.org/svn/CHiPPS/Bcps/trunk/Bcps
-Blis              https://projects.coin-or.org/svn/CHiPPS/Blis/trunk/Blis
+Blis              https://github.com/SaTahernejad/MibS/tree/newBlis
 SYMPHONY          https://projects.coin-or.org/svn/SYMPHONY/branches/WS/SYMPHONY
 Cbc               https://projects.coin-or.org/svn/Cbc/stable/2.9/Cbc
 
