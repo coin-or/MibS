@@ -3079,7 +3079,7 @@ MibSCutGenerator::weakIncObjCutCurrent(BcpsConstraintPool &conPool)
   int * upperColInd = localModel_->getUpperColInd();
   double lowerObjSense = localModel_->getLowerObjSense(); 
 
-  double * tmpsol = new double[lN + uN];
+  /*double * tmpsol = new double[lN + uN];
   CoinZeroN(tmpsol, lN + uN);
   OsiSolverInterface * lSolver = bS->setUpModel(solver, 0, false, true, tmpsol);
 
@@ -3105,7 +3105,7 @@ MibSCutGenerator::weakIncObjCutCurrent(BcpsConstraintPool &conPool)
 
   //if it's exactly zero, just add a little bit to comply with blis
   if(minLowerObj == 0.0)
-    minLowerObj = minLowerObj + etol;
+  minLowerObj = minLowerObj + etol;*/
 
   if(0)
     std::cout << "minLowerObj " << minLowerObj << std::endl;
@@ -3126,17 +3126,20 @@ MibSCutGenerator::weakIncObjCutCurrent(BcpsConstraintPool &conPool)
     }
   }
 
-  double * optLowerSol = bS->optLowerSolution_; // optimal LL solution 
+  //double * optLowerSol = bS->optLowerSolution_; // optimal LL solution 
   
   for(i = 0; i < lN; i++){
     index = lowerColInd[i];
     //cutub += lObjCoeffs[i] * sol[index]; 
     if(fabs(lObjCoeffs[i]) > etol){
-      cutub += lObjCoeffs[i] * optLowerSol[i]; //should this be position? 
+	//cutub += lObjCoeffs[i] * optLowerSol[i]; //should this be position? 
       indexList.push_back(index);
       valsList.push_back(lowerObjSense * lObjCoeffs[i]);
     }
   }
+
+  cutub = bS->objVal_;
+
 
   assert(indexList.size() == valsList.size());
 
@@ -3836,6 +3839,9 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
     int useGeneralNoGoodCut = 
 	localModel_->MibSPar_->entry(MibSParams::useGeneralNoGoodCut);
 
+    bool useIncObjCut
+	= localModel_->MibSPar_->entry(MibSParams::useIncObjCut);
+
     CoinPackedVector *sol = localModel_->getSolution();
 
     /*localModel_->solIsUpdated_ = false;
@@ -3859,6 +3865,12 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
 	  if (useGeneralNoGoodCut == PARAM_ON){
 	      generalNoGoodCut(conPool);
 			}
+	  if (useBendersCut == PARAM_ON){
+	      numCuts += bendersInterdictionCuts(conPool);
+	  }
+	  if (useIncObjCut == true){
+	      numCuts += weakIncObjCutCurrent(conPool);
+	  }
 	 numCuts += feasibilityCuts(conPool) ? true : false;
          if (useBoundCut){
 	     boundCuts(conPool);
