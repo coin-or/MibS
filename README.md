@@ -4,6 +4,8 @@
 
 [ ![Download](https://api.bintray.com/packages/coin-or/download/MibS/images/download.svg) ](https://bintray.com/coin-or/download/MibS/_latestVersion)
 
+[![DOI](https://zenodo.org/badge/39053653.svg)](https://zenodo.org/badge/latestdoi/39053653)
+
 MibS is a solver for mixed integelibrr bilevel optimization problems. For an
 introduction to bilevel optimization, see [this slide
 deck](http://coral.ie.lehigh.edu/~ted/files/talks/BILEVEL-IWOBIP16.pdf). A
