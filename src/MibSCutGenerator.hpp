@@ -64,6 +64,8 @@ class MibSCutGenerator : public BlisConGenerator {
    /** Add no-good cuts for binary upper-level variables **/
    int noGoodCut(BcpsConstraintPool &conPool);
 
+   int generalNoGoodCut(BcpsConstraintPool &conPool);
+
    /** Add Benders-type cuts for interdiction problems **/
    int bendersInterdictionCuts(BcpsConstraintPool &conPool);
 

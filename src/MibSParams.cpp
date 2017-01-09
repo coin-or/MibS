@@ -92,6 +92,9 @@ MibSParams::createKeywordList() {
 
    keys_.push_back(make_pair(std::string("MibS_blisBranchStrategy"),
 			     AlpsParameter(AlpsIntPar, blisBranchStrategy)));
+   
+   keys_.push_back(make_pair(std::string("MibS_branchProcedure"),
+			     AlpsParameter(AlpsIntPar, branchProcedure)));
  
    keys_.push_back(make_pair(std::string("MibS_upperFileFormat"),
 			     AlpsParameter(AlpsIntPar, upperFileFormat)));
@@ -101,9 +104,6 @@ MibSParams::createKeywordList() {
 
    keys_.push_back(make_pair(std::string("MibS_whichCutsLL"),
 			     AlpsParameter(AlpsIntPar, whichCutsLL)));
-
-   keys_.push_back(make_pair(std::string("MibS_usePreprocessor"),
-			     AlpsParameter(AlpsIntPar, usePreprocessor)));
 
    keys_.push_back(make_pair(std::string("MibS_usePreprocessor"),
 			     AlpsParameter(AlpsIntPar, usePreprocessor)));
@@ -125,6 +125,9 @@ MibSParams::createKeywordList() {
 
    keys_.push_back(make_pair(std::string("MibS_useNoGoodCut"),
 			     AlpsParameter(AlpsIntPar, useNoGoodCut)));
+
+   keys_.push_back(make_pair(std::string("MibS_useGeneralNoGoodCut"),
+			     AlpsParameter(AlpsIntPar, useGeneralNoGoodCut)));
 
    keys_.push_back(make_pair(std::string("MibS_useBendersCut"),
 			     AlpsParameter(AlpsIntPar, useBendersCut)));
@@ -196,6 +199,8 @@ MibSParams::setDefaultEntries() {
 
    setEntry(blisBranchStrategy, 0);
 
+   setEntry(branchProcedure, PARAM_NOTSET);
+
    setEntry(upperFileFormat, 0);
 
    setEntry(maxThreadsLL, 1);
@@ -215,6 +220,8 @@ MibSParams::setDefaultEntries() {
    setEntry(usePureIntegerCut, PARAM_NOTSET);
 
    setEntry(useNoGoodCut, PARAM_NOTSET);
+
+   setEntry(useGeneralNoGoodCut, PARAM_NOTSET);
 
    setEntry(useBendersCut, PARAM_NOTSET);
 
