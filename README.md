@@ -1,4 +1,4 @@
-# MibS (Mixed Integer Bilevel Solver) 0.5
+# MibS (Mixed Integer Bilevel Solver) 0.9
 
 [![Build Status](https://travis-ci.org/tkralphs/MibS.svg?branch=master)](https://travis-ci.org/tkralphs/MibS)
 
