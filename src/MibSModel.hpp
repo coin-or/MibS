@@ -4,6 +4,7 @@
 /*                                                                           */
 /* Authors: Scott DeNegre, Lehigh University                                 */
 /*          Ted Ralphs, Lehigh University                                    */
+/*          Sahar Tahernajad, Lehigh University                              */
 /*                                                                           */
 /* Copyright (C) 2007-2017 Lehigh University, Scott DeNegre, and Ted Ralphs. */
 /* All Rights Reserved.                                                      */
