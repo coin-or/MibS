@@ -1729,12 +1729,12 @@ MibSModel::userFeasibleSolution(const double * solution, bool &userFeasible)
 					upperObj,
 					this);
       
-	      storeSolution(BlisSolutionTypeHeuristic, mibSol);
 	      if(allFixed){
 		  userFeasible = true;
 		  //std::cout<<"new"<<std::endl;
 	      }
 	      if(!allFixed){
+                  storeSolution(BlisSolutionTypeHeuristic, mibSol);
 		  mibSol = NULL;
 	      }
 	  }
