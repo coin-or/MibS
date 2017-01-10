@@ -220,6 +220,17 @@ HELP
 
 Please post questions and issues to the github project page for MibS.
 
+ACKNOWLEDGEMENT
+
+MibS was developed with support from
+
+* National Science Foundation (Grants CMMI-1435453 and CMMI-0728011)
+* Lehigh University
+* Zuse Institute Berlin
+* Research Campus Modal "Mathematical Optimization and Data Analysis 
+Laboratories" funded by the German Federal Ministry of Education and Research
+(BMBF Grant 05M14ZAM) and by the DFG SFB/Transregio 154
+
 http://github.com/tkralphs/MibS
 
 Enjoy!
