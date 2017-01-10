@@ -2,6 +2,8 @@
 
 [![Build Status](https://travis-ci.org/tkralphs/MibS.svg?branch=master)](https://travis-ci.org/tkralphs/MibS)
 
+[![Build status](https://ci.appveyor.com/api/projects/status/fa7egaj3n4kcq101/branch/master?svg=true)](https://ci.appveyor.com/project/tkralphs/mibs/branch/master)
+
 [ ![Download](https://api.bintray.com/packages/coin-or/download/MibS/images/download.svg?version-0.9.0) ](https://bintray.com/coin-or/download/MibS/0.9.0/link)
 
 [![DOI](https://zenodo.org/badge/39053653.svg)](https://zenodo.org/badge/latestdoi/39053653)
