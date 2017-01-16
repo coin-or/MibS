@@ -4,9 +4,8 @@
 /*                                                                           */
 /* Authors: Scott DeNegre, Lehigh University                                 */
 /*          Ted Ralphs, Lehigh University                                    */
-/*          Sahar Tahernajad, Lehigh University                              */
 /*                                                                           */
-/* Copyright (C) 2007-2017 Lehigh University, Scott DeNegre, and Ted Ralphs. */
+/* Copyright (C) 2007-2015 Lehigh University, Scott DeNegre, and Ted Ralphs. */
 /* All Rights Reserved.                                                      */
 /*                                                                           */
 /* This software is licensed under the Eclipse Public License. Please see    */
@@ -790,7 +789,7 @@ MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
    setProblemType(); //determine the type of MIBLP
    //determine the list of first-stage variables participate in second-stage constraints
    setRequiredFixedList(newMatrix);
-   instanceStructure(newMatrix, rowLB, rowUB, rowSense);
+   instanceStructure(newMatrix, conLB, conUB, rowSense);
 }
 
 //#############################################################################
@@ -2861,6 +2860,20 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix, const double* ro
     int * uColIndices = getUpperColInd();         
     int * lColIndices = getLowerColInd();
     int * lRowIndices = getLowerRowInd();
+
+    char * newRowSense = new char[numRows];
+
+    if (isInterdict_ = false){
+	CoinDisjointCopyN(rowSense, numRows, newRowSense);
+    }
+    else{
+	for(i = 0; i < numRows; i++){
+	    newRowSense[i] = 'L';
+	}
+	for(i = 0; i < lRows-lCols; i++){
+	    newRowSense[i+uRows] = rowSense[i];
+	}
+    }
     
     //Checks general or interdiction                                                                                                                                              
     if(isInterdict_ == true){
@@ -2953,7 +2966,7 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix, const double* ro
 
     if((isUpperCoeffInt_ == true) || (isLowerCoeffInt_ == true)){
 	for(i = 0; i < numRows; i++){
-	    switch(rowSense[i]){
+	    switch(newRowSense[i]){
 	    case 'L':
 		rhs = rowUB[i];
 		break;
@@ -3125,7 +3138,7 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix, const double* ro
 	std::cout << "Since no branching procedure is selected, the restricted one is selected automatically." << std::endl;
     }
     
-    
+    delete [] newRowSense;
 }
 
 
