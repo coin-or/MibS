@@ -28,7 +28,6 @@ class MibSParams : public AlpsParameterSet {
       (true = 1, false = 0). */
   enum boolParams{
      useValFuncCut,
-     useIncObjCut,
      useBoundCut,
      boundCutOptimal,
      boundCutRelaxUpper,
@@ -62,6 +61,7 @@ class MibSParams : public AlpsParameterSet {
      usePureIntegerCut,
      useNoGoodCut,
      useGeneralNoGoodCut,
+     useIncObjCut,
      useBendersCut,
      useIntersectionCut,
      intersectionCutType,

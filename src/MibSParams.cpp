@@ -32,10 +32,7 @@ MibSParams::createKeywordList() {
   
    keys_.push_back(make_pair(std::string("MibS_useValFuncCut"),
 			     AlpsParameter(AlpsBoolPar, useValFuncCut)));
-   
-   keys_.push_back(make_pair(std::string("MibS_useIncObjCut"),
-			     AlpsParameter(AlpsBoolPar, useIncObjCut)));
-   
+
    keys_.push_back(make_pair(std::string("MibS_useBoundCut"),
 			     AlpsParameter(AlpsBoolPar, useBoundCut)));
    
@@ -129,6 +126,9 @@ MibSParams::createKeywordList() {
 
    keys_.push_back(make_pair(std::string("MibS_useGeneralNoGoodCut"),
 			     AlpsParameter(AlpsIntPar, useGeneralNoGoodCut)));
+   
+   keys_.push_back(make_pair(std::string("MibS_useIncObjCut"),
+			     AlpsParameter(AlpsIntPar, useIncObjCut)));
 
    keys_.push_back(make_pair(std::string("MibS_useBendersCut"),
 			     AlpsParameter(AlpsIntPar, useBendersCut)));
@@ -161,9 +161,7 @@ MibSParams::setDefaultEntries() {
    //-------------------------------------------------------------
 
    setEntry(useValFuncCut, false);
-   
-   setEntry(useIncObjCut, true);
-   
+     
    setEntry(useBoundCut, false);
    
    setEntry(boundCutOptimal, false);
@@ -223,6 +221,8 @@ MibSParams::setDefaultEntries() {
    setEntry(useNoGoodCut, PARAM_NOTSET);
 
    setEntry(useGeneralNoGoodCut, PARAM_NOTSET);
+
+   setEntry(useIncObjCut, PARAM_NOTSET);
 
    setEntry(useBendersCut, PARAM_NOTSET);
 
