@@ -236,7 +236,7 @@ MibSTreeNode::process(bool isRoot, bool rampUp)
     }
     else if (cutStrategy == BlisCutStrategyAuto) {
 	if (depth_ < maxConstraintDepth) {
-            if (!diving_ || isRoot) genConsHere = true;
+           genConsHere = true;
 	}
     }
     else if (cutStrategy == BlisCutStrategyPeriodic) {
