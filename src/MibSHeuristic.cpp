@@ -507,7 +507,7 @@ MibSHeuristic::greedyHeuristic()
 
   int tCols(uCols + lCols); 
 
-  assert(tCols == oSolver->getNumCols());
+  //assert(tCols == oSolver->getNumCols());
 
   int i(0), ind_min_wt(0);
   double usedBudget(0.0); 
@@ -711,7 +711,7 @@ MibSHeuristic::weightedSumsHeuristic()
       /** should probably add a tolerance here **/
       
       if(find(BETAS.begin(), BETAS.end(), beta) == BETAS.end()){
-	std::cout << "Solving with beta = " << beta << std::endl;
+	  //std::cout << "Solving with beta = " << beta << std::endl;
 	
 	BETAS.push_back(beta);
 	sol = solveSubproblem(beta);
@@ -751,9 +751,9 @@ MibSHeuristic::weightedSumsHeuristic()
 	    
 	  }
       }
-      else{
+      /*else{
 	std::cout << "Repeated beta value.  Skipping problem pair." <<std::endl;
-      }
+	}*/
     }
   }
 
@@ -1185,9 +1185,10 @@ MibSHeuristic::solveSubproblem(double beta)
   const double * uObjCoeffs = oSolver->getObjCoefficients();
 
   double etol(etol_);
-  int tCols(uCols + lCols); 
+  //int tCols(uCols + lCols);
+  int tCols(oSolver->getNumCols());
 
-  assert(tCols == oSolver->getNumCols());
+  //assert(tCols == oSolver->getNumCols());
 
 
   sSolver->loadProblem(*oSolver->getMatrixByCol(),
