@@ -3048,34 +3048,16 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix, const double* ro
 	MibSPar()->setEntry(MibSParams::usePreprocessor, PARAM_OFF);
     }
 
-    //Param: "MibS_useObjCutHeuristic"
-    paramValue = MibSPar_->entry(MibSParams::useObjCutHeuristic);
-
-    if(paramValue == PARAM_NOTSET)
-	MibSPar()->setEntry(MibSParams::useObjCutHeuristic, PARAM_OFF);
-    else if(paramValue == PARAM_ON){
-	std::cout << "The obj-cut heuristic is not currently functional. Automatically disabling your parameter choice." << std::endl;
-	MibSPar()->setEntry(MibSParams::useObjCutHeuristic, PARAM_OFF);
-    }
-
-    //Param: "MibS_useWSHeuristic"
-    paramValue = MibSPar_->entry(MibSParams::useWSHeuristic);
-
-    if(paramValue == PARAM_NOTSET)
-	MibSPar()->setEntry(MibSParams::useWSHeuristic, PARAM_OFF);
-    else if(paramValue == 1){
-	std::cout << "The WS heuristic is not currently functional. Automatically disabling your parameter choice." << std::endl;
-	MibSPar()->setEntry(MibSParams::useWSHeuristic, PARAM_OFF);
-    }
-
     //Param: "MibS_useGreedyHeuristic"
     paramValue = MibSPar_->entry(MibSParams::useGreedyHeuristic);
 
     if(paramValue == PARAM_NOTSET)
 	MibSPar()->setEntry(MibSParams::useGreedyHeuristic, PARAM_OFF);
     else if(paramValue == PARAM_ON){
-	std::cout << "The greedy heuristic is not currently functional. Automatically disabling your parameter choice." << std::endl;
-	MibSPar()->setEntry(MibSParams::useGreedyHeuristic, PARAM_OFF);
+	if(isInterdict_ == false){
+	    MibSPar()->setEntry(MibSParams::useGreedyHeuristic, PARAM_OFF);
+	    std::cout << "This heuristic only works for interdiction problems. Automatically disabling this heuristic." << std::endl;
+	}
     }
 
     //Param: "MibS_useIncObjCut"
