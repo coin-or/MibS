@@ -47,6 +47,7 @@
 
 #include "MibSBranchStrategyMaxInf.hpp"
 #include "MibSBranchStrategyPseudo.hpp"
+#include "MibSBranchStrategyStrong.hpp"
 
 //FIXME::RELIABILITY BRANCHING DOESNT WORK
 //NECESSARY DATA MEMBERS ARE DESIGNATED AS PRIVATE
