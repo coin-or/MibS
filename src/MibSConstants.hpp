@@ -29,8 +29,13 @@
 #define PARAM_ON       1
 
 #define PARAM_NOTSET  -1
-#define notRestricted  0
-#define Restricted     1
+#define fractional     0
+#define setI           1
+
+/*---------  status of bilevel feasibility (bilevelFeasibility_) ------------*/
+#define unknown -1
+#define bilevelInfeasible 0
+#define bilevelFeasible 1
 
 /*---------  which_active_con_method choices --------------------------------*/
 #define SIMPLE  0

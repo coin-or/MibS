@@ -65,6 +65,13 @@ class MibSParams : public AlpsParameterSet {
      useBendersCut,
      useIntersectionCut,
      intersectionCutType,
+     solveLowerWhenXYVarsInt,
+     solveLowerWhenXVarsInt,
+     solveLowerWhenIVarsInt,
+     solveLowerWhenIVarsFixed,
+     computeUBWhenXVarsInt,
+     computeUBWhenIVarsInt,
+     computeUBWhenIVarsFixed,
      endOfIntParams
   };
 

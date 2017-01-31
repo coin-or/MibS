@@ -21,10 +21,12 @@
 
 #include "MibSModel.hpp"
 #include "MibSHeuristic.hpp"
+#include "MibSConstants.hpp"
 
 class MibSModel;
 class MibSCutGenerator;
 class MibSHeuristic;
+class MibSTreeNode;
 
 //#############################################################################
 
@@ -34,15 +36,23 @@ class MibSBilevel {
     friend class MibSCutGenerator;
     friend class MibSBranchStrategyMaxInf;
     friend class MibSHeuristic;
+    friend class MibSTreeNode;
+    friend class MibSBranchStrategyPseudo;
 
 private:
 
     bool isIntegral_;
-    bool isBilevelFeasible_;
     bool isUpperIntegral_;
+    bool isIVarsIntegral_;
     bool useBilevelBranching_;
-    bool upperFixed_;
+    bool isIVarsFixed_;
     bool isProvenOptimal_;
+    /** is lower-level problem solved or not **/
+    bool isLowerSolved_;
+    /** is problem UB solved or not **/
+    bool isUBSolved_;
+
+    int bilevelFeasibility_;
 
     /** Optimal value of LL objective **/
     double objVal_;
@@ -63,9 +73,11 @@ private:
    
 public:
    
-    MibSBilevel() : isIntegral_(false), isBilevelFeasible_(false),
-		    isUpperIntegral_(false), useBilevelBranching_(false),
-		    objVal_(0.0){
+    MibSBilevel() : isIntegral_(false), isUpperIntegral_(false),
+		    isIVarsIntegral_(false), useBilevelBranching_(false),
+		    isIVarsFixed_(false), isProvenOptimal_(false),
+		    isLowerSolved_(false), isUBSolved_(false),
+		    bilevelFeasibility_(-1), objVal_(0.0){
 	upperSolution_ = 0;
 	lowerSolution_ = 0;
 	upperSolutionOrd_ = 0;
@@ -85,7 +97,7 @@ public:
    
     void createBilevel(CoinPackedVector *sol,
 		       MibSModel *mibs=0);
-    void checkBilevelFeasiblity(bool isRoot, bool upperFixed_);
+    void checkBilevelFeasiblity(bool isRoot);
     void gutsOfDestructor();
 
 private:

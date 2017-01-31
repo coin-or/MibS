@@ -859,7 +859,7 @@ bool
 MibSHeuristic::checkUpperFeasibility(double * solution)
 {
 
-  bool feasible(true);
+  bool upperFeasible(true);
   MibSModel * model = MibSModel_;
   int * uRowIndices = model->getUpperRowInd();
   int uRows(model->getUpperRowNum());
@@ -883,11 +883,11 @@ MibSHeuristic::checkUpperFeasibility(double * solution)
       lhs += matElements[j] * solution[index2];
     }
     if((origRowLb[index1] > lhs) || (lhs > origRowUb[index1]))
-      feasible = false;
+      upperFeasible = false;
     lhs = 0.0;
   }
 
-  return feasible;
+  return upperFeasible;
 }
 
 //#############################################################################
@@ -895,7 +895,7 @@ bool
 MibSHeuristic::checkLowerFeasibility1(double * solution)
 {
 
-  bool feasible(true);
+  bool lowerFeasible(true);
   MibSModel * model = MibSModel_;
   int * lRowIndices = model->getLowerRowInd();
   int lRows(model->getLowerRowNum());
@@ -919,11 +919,11 @@ MibSHeuristic::checkLowerFeasibility1(double * solution)
       lhs += matElements[j] * solution[index2];
     }
     if((origRowLb[index1] > lhs) || (lhs > origRowUb[index1]))
-      feasible = false;
+      lowerFeasible = false;
     lhs = 0.0;
   }
 
-  return feasible;
+  return lowerFeasible;
 }
 
 //#############################################################################
