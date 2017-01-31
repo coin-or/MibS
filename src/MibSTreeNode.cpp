@@ -155,6 +155,8 @@ MibSTreeNode::process(bool isRoot, bool rampUp)
     std::vector<int> delIndices;
     
     BlisModel* model = dynamic_cast<BlisModel*>(desc_->getModel());
+    MibSModel *mibsModel = dynamic_cast<MibSModel *>(model);
+    MibSBilevel *bS = mibsModel->bS_;
 
     AlpsPhase phase = knowledgeBroker_->getPhase();
 
@@ -166,6 +168,12 @@ MibSTreeNode::process(bool isRoot, bool rampUp)
 
     int maxPass = BlisPar->entry(BlisParams::cutPass);
     double tailOffTol = BlisPar->entry(BlisParams::tailOff);
+
+    //tailOffTol = 1e-7;
+
+    if(bS->useBilevelBranching_ == false){
+	tailOffTol = -1000;
+    }
 
     if (maxPass < ALPS_INT_MAX) {
 	++maxPass;
@@ -723,7 +731,7 @@ MibSTreeNode::process(bool isRoot, bool rampUp)
 	    voilatedNumCons = newConPool.getNumConstraints() - tempNumCons;
 	    
 	    // Generate constraints (only if no violated).
-	    if (voilatedNumCons == 0) {
+	    if ((voilatedNumCons == 0) && (bS->bilevelFeasibility_ == bilevelInfeasible)) {
 		lpStatus = static_cast<BlisLpStatus> 
 		    (generateConstraints(model, newConPool));
             

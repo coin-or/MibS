@@ -139,6 +139,29 @@ MibSParams::createKeywordList() {
    keys_.push_back(make_pair(std::string("MibS_intersectionCutType"),
 			     AlpsParameter(AlpsIntPar, intersectionCutType)));
 
+   //solve lower-level Parameters
+   keys_.push_back(make_pair(std::string("MibS_solveLowerWhenXYVarsInt"),
+			     AlpsParameter(AlpsIntPar, solveLowerWhenXYVarsInt)));
+
+   keys_.push_back(make_pair(std::string("MibS_solveLowerWhenXVarsInt"),
+			     AlpsParameter(AlpsIntPar, solveLowerWhenXVarsInt)));
+
+   keys_.push_back(make_pair(std::string("MibS_solveLowerWhenIVarsInt"),
+			     AlpsParameter(AlpsIntPar, solveLowerWhenIVarsInt)));
+
+   keys_.push_back(make_pair(std::string("MibS_solveLowerWhenIVarsFixed"),
+			     AlpsParameter(AlpsIntPar, solveLowerWhenIVarsFixed)));
+
+   //solve problem UB
+   keys_.push_back(make_pair(std::string("MibS_computeUBWhenXVarsInt"),
+			     AlpsParameter(AlpsIntPar, computeUBWhenXVarsInt)));
+
+   keys_.push_back(make_pair(std::string("MibS_computeUBWhenIVarsInt"),
+			     AlpsParameter(AlpsIntPar, computeUBWhenIVarsInt)));
+
+   keys_.push_back(make_pair(std::string("MibS_computeUBWhenIVarsFixed"),
+			     AlpsParameter(AlpsIntPar, computeUBWhenIVarsFixed)));
+
    //--------------------------------------------------------
    // String Parameters.
    //--------------------------------------------------------
@@ -229,6 +252,20 @@ MibSParams::setDefaultEntries() {
    setEntry(useIntersectionCut, PARAM_NOTSET);
 
    setEntry(intersectionCutType, PARAM_NOTSET);
+
+   setEntry(solveLowerWhenXYVarsInt, PARAM_NOTSET);
+
+   setEntry(solveLowerWhenXVarsInt, PARAM_NOTSET);
+
+   setEntry(solveLowerWhenIVarsInt, PARAM_NOTSET);
+
+   setEntry(solveLowerWhenIVarsFixed, PARAM_NOTSET);
+
+   setEntry(computeUBWhenXVarsInt, PARAM_NOTSET);
+
+   setEntry(computeUBWhenIVarsInt, PARAM_NOTSET);
+
+   setEntry(computeUBWhenIVarsFixed, PARAM_NOTSET);
 
    //-------------------------------------------------------------
    // Double Parameters

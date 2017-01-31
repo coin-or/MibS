@@ -1657,6 +1657,8 @@ MibSModel::userFeasibleSolution(const double * solution, bool &userFeasible)
   //bool bilevelbranch = MibSPar_->entry(MibSParams::isBilevelBranchProb);
   bool bilevelbranch = false;
 
+  int branchPar(MibSPar_->entry(MibSParams::branchProcedure));
+
   if(bilevelbranch){
     for(i = 0; i < solver()->getNumRows(); i++){
       if(solver()->getRowSense()[i] == 'R'){
@@ -1677,15 +1679,27 @@ MibSModel::userFeasibleSolution(const double * solution, bool &userFeasible)
   if(!bS_->isIntegral_){
     userFeasible = false;
   }
-  else if(!bS_->isBilevelFeasible_){
+  else if(bS_->bilevelFeasibility_ != bilevelFeasible){
     userFeasible = false;
   }
 
-  int allFixed(0);
-  if(bS_->upperFixed_){
-      allFixed = 1;
+  if(bS_->isIntegral_ == true){
+      if(((branchPar == setI) && (bS_->isIVarsFixed_ == true)) ||
+	 (branchPar == fractional)){
+	  bS_->useBilevelBranching_ = false;
+      }
+  }
+	  
+
+  int shouldPrune(0);
+  if((bS_->isIVarsFixed_) && (bS_->isUBSolved_)){
+      shouldPrune = 1;
       userFeasible = false;
   }
+
+  /*if((bS_->isLowerSolved_ == false) && (bS_->isIntegral_ == true)){
+      bS_->useCut_ = false;
+  }*/
   
   if(userFeasible){
     //std::cout << "This solution comes from MibSModel.cpp:1637" << std::endl;
@@ -1695,7 +1709,8 @@ MibSModel::userFeasibleSolution(const double * solution, bool &userFeasible)
 				this);
   }
   else{
-      if((bS_->isUpperIntegral_) && ((bS_->isProvenOptimal_)|| (allFixed))){
+      
+      if((bS_->isLowerSolved_) && ((bS_->isProvenOptimal_)|| (shouldPrune))){
 	  double * lpSolution = new double[getNumCols()];
 	  int * upperColInd = getUpperColInd();
 	  int * lowerColInd = getLowerColInd();
@@ -1730,11 +1745,11 @@ MibSModel::userFeasibleSolution(const double * solution, bool &userFeasible)
 					upperObj,
 					this);
       
-	      if(allFixed){
+	      if(shouldPrune){
 		  userFeasible = true;
 		  //std::cout<<"new"<<std::endl;
 	      }
-	      if(!allFixed){
+	      else{
                   storeSolution(BlisSolutionTypeHeuristic, mibSol);
 		  mibSol = NULL;
 	      }
@@ -1753,7 +1768,7 @@ bool
 MibSModel::checkUpperFeasibility(double * solution)
 {
 
-  bool feasible(true);
+  bool upperFeasible(true);
   int * uRowIndices = getUpperRowInd();
   int uRows(getUpperRowNum());
   const double * RowLb = getSolver()->getRowLower();
@@ -1767,22 +1782,29 @@ MibSModel::checkUpperFeasibility(double * solution)
   double lhs(0.0);
   int i(0), j(0), index1(0), index2(0), start(0), end(0);
 
-  for(i = 0; i < uRows; i++){
-    index1 = uRowIndices[i];
-    start = matStarts[index1];
-    end = start + matrix->getVectorSize(index1);
-    for(j = start; j < end; j++){
-      index2 = matIndices[j];
-      lhs += matElements[j] * solution[index2];
-    }
-    if((RowLb[index1] > lhs) || (lhs > RowUb[index1]))
-      feasible = false;
-    lhs = 0.0;
+  if(bS_->isUBSolved_ == false){
+      if(bS_->isUpperIntegral_ == false){
+      upperFeasible = false;
+      }
+      else{
+	  for(i = 0; i < uRows; i++){
+	      index1 = uRowIndices[i];
+	      start = matStarts[index1];
+	      end = start + matrix->getVectorSize(index1);
+	      for(j = start; j < end; j++){
+		  index2 = matIndices[j];
+		  lhs += matElements[j] * solution[index2];
+	      }
+	      if(((RowLb[index1] - lhs) > etol_)
+		 || ((lhs - RowUb[index1]) > etol_)){
+		  upperFeasible = false;
+	      }
+	      lhs = 0.0;
+	  }
+      }
   }
 
-
-
-  return feasible;
+  return upperFeasible;
 }
 
 
@@ -3138,8 +3160,8 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix, const double* ro
     //Param: "MibS_branchProcedure"
     paramValue = MibSPar_->entry(MibSParams::branchProcedure);
     if(paramValue == PARAM_NOTSET){
-	MibSPar()->setEntry(MibSParams::branchProcedure, Restricted);
-	std::cout << "Since no branching procedure is selected, the restricted one is selected automatically." << std::endl;
+	MibSPar()->setEntry(MibSParams::branchProcedure, setI);
+	std::cout << "Since no branching procedure is selected, it is set to 'setI' automatically." << std::endl;
     }
 
     //Param: "MibS_useInterSectionCut" (hypercube IC)
@@ -3150,11 +3172,11 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix, const double* ro
 	   (MibSPar_->entry(MibSParams::useGeneralNoGoodCut) != PARAM_ON) &&
 	   (MibSPar_->entry(MibSParams::useBendersCut) != PARAM_ON) &&
 	   (MibSPar_->entry(MibSParams::useIntersectionCut) != PARAM_ON)){
-	    if(MibSPar_->entry(MibSParams::branchProcedure) == notRestricted){
+	    if(MibSPar_->entry(MibSParams::branchProcedure) == fractional){
 		//turn on hupercube IC
 		MibSPar()->setEntry(MibSParams::useIntersectionCut, PARAM_ON);
 		MibSPar()->setEntry(MibSParams::intersectionCutType, 2);
-		std::cout << "Since no appropriate cut is selected and the branching procedure is notRestricted, hypercube IC is turned on automatically." << std::endl;
+		std::cout << "Since no appropriate cut is selected and the branching procedure is set to 'fractional', hypercube IC is turned on automatically." << std::endl;
 	    }
 	    else{
 		MibSPar()->setEntry(MibSParams::cutStrategy, 1);
@@ -3192,6 +3214,34 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix, const double* ro
 	}
     }
 
+    //Setting parameters of solving (VF) and (UB)
+    int solveLowerXYVarsInt(MibSPar_->entry(MibSParams::
+					    solveLowerWhenXYVarsInt));
+    int solveLowerXVarsInt(MibSPar_->entry(MibSParams::
+					   solveLowerWhenXVarsInt));
+    int solveLowerIVarsInt(MibSPar_->entry(MibSParams::
+					   solveLowerWhenIVarsInt));
+    int solveLowerIVarsFixed(MibSPar_->entry(MibSParams::
+					     solveLowerWhenIVarsFixed));
+    int computeUBXVarsInt(MibSPar_->entry(MibSParams::
+					      computeUBWhenXVarsInt));
+    int computeUBIVarsInt(MibSPar_->entry(MibSParams::
+					      computeUBWhenIVarsInt));
+    int computeUBIVarsFixed(MibSPar_->entry(MibSParams::
+						computeUBWhenIVarsFixed));
+
+    if((solveLowerXYVarsInt == PARAM_NOTSET) &&
+       (solveLowerXVarsInt == PARAM_NOTSET) &&
+       (solveLowerIVarsInt == PARAM_NOTSET) &&
+       (solveLowerIVarsFixed == PARAM_NOTSET) &&
+       (computeUBXVarsInt == PARAM_NOTSET) &&
+       (computeUBIVarsInt == PARAM_NOTSET) &&
+       (computeUBIVarsFixed == PARAM_NOTSET)){
+	MibSPar()->setEntry(MibSParams::solveLowerWhenXVarsInt, PARAM_ON);
+	MibSPar()->setEntry(MibSParams::solveLowerWhenIVarsFixed, PARAM_ON);
+	MibSPar()->setEntry(MibSParams::computeUBWhenIVarsFixed, PARAM_ON);
+    }
+	
     delete [] newRowSense;
 }
 

@@ -53,6 +53,22 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
   //int uN(N - lN); // upper-level dimension
   int uN(model_->upperDim_); // upper-level dimension
   double etol(model_->BlisPar()->entry(BlisParams::integerTol));
+  int branchPar(model_->MibSPar_->entry(MibSParams::branchProcedure));
+
+  int solveLowerXYVarsInt(model_->MibSPar_->entry
+			   (MibSParams::solveLowerWhenXYVarsInt));
+  int solveLowerXVarsInt(model_->MibSPar_->entry
+			  (MibSParams::solveLowerWhenXVarsInt));
+  int solveLowerIVarsInt(model_->MibSPar_->entry
+			  (MibSParams::solveLowerWhenIVarsInt));
+  int solveLowerIVarsFixed(model_->MibSPar_->entry
+			    (MibSParams::solveLowerWhenIVarsFixed));
+
+  /*std::cout << "solveLowerXYVarsInt = " << solveLowerXYVarsInt << std::endl;
+  std::cout << "solveLowerXVarsInt = "<< solveLowerXVarsInt << std::endl;
+  std::cout << "solveLowerIVarsInt = "<< solveLowerIVarsInt << std::endl;
+  std::cout << "solveLowerIVarsFixed = "<< solveLowerIVarsFixed << std::endl;*/
+  
   //double etol(model_->etol_); 
   
   assert(N == model_->solver()->getNumCols());
@@ -83,8 +99,12 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
   
   isIntegral_ = true;
   isUpperIntegral_ = true;
-  isBilevelFeasible_ = true;
-  upperFixed_ = true;
+  isIVarsIntegral_ = true;
+  bilevelFeasibility_ = unknown;
+  isIVarsFixed_ = true;
+  isLowerSolved_ = false;
+  isUBSolved_ = false;
+  //useCut_ = true;
   
   int * lowerColInd = mibs->getLowerColInd();
   int * upperColInd = mibs->getUpperColInd();
@@ -100,15 +120,16 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
     if(binarySearch(0, uN - 1, index, upperColInd) >= 0){
        if(fabs(floor(value + 0.5) - value) > etol){
 #if 1
-	  //This check is failing when Blis has already declared the solution integral
-	  //It's not really needed
-	  if(mibs->solver()->isInteger(index)){
-	     isUpperIntegral_ = false;
-	     isIntegral_ = false;
-	     isBilevelFeasible_ = false;
-	  }
+	   if(fixedInd[i] == 1){
+	       isIVarsIntegral_ = false;
+	   }
+	   if(mibs->solver()->isInteger(index)){
+	       isUpperIntegral_ = false;
+	       isIntegral_ = false;
+	       bilevelFeasibility_ = bilevelInfeasible;
+	   }
 #endif
-       }
+       }  
     }
     else{
        if(fabs(floor(value + 0.5) - value) > etol){
@@ -117,43 +138,57 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
 	  //It's not really needed
 	  if(mibs->solver()->isInteger(index)){
 	     isIntegral_ = false;
-	     isBilevelFeasible_ = false;
+	     bilevelFeasibility_ = bilevelInfeasible;
 	  }
 #endif
        }    
     }
   }
 
-  //if(isUpperIntegral_){
-      for(i = 0; i < N; i ++){
-	  if(binarySearch(0, uN - 1, i, upperColInd) >= 0){
-	      if(((mibs->solver()->isInteger(i)) && (fixedInd[i] == 1)) &&
-		 (fabs(upper[i] - lower[i]) > etol)){
-		  upperFixed_ = false;
-		  break;
-	      }
+  for(i = 0; i < N; i ++){
+      if(binarySearch(0, uN - 1, i, upperColInd) >= 0){
+	  if(((mibs->solver()->isInteger(i)) && (fixedInd[i] == 1)) &&
+	     (fabs(upper[i] - lower[i]) > etol)){
+	      isIVarsFixed_ = false;
+	      break;
 	  }
       }
-      //}
+  }
  
-
   /* put the solution in order by integers first */
 
   int pos(0);
 
-  for(i = 0; i < numElements; i ++){
+  for(i = 0; i < numElements; i++){
     index = indices[i];
     pos = binarySearch(0, lN - 1, index, lowerColInd);
     if(pos < 0){
       pos = binarySearch(0, uN - 1, index, upperColInd);
+      if(mibs->solver()->isInteger(index)){
+	  upperSolutionOrd_[pos] = (double) floor(values[i] + 0.5);
+      }
+      else{
       upperSolutionOrd_[pos] = values[i];
+      }
     }else{
-      lowerSolutionOrd_[pos] = values[i];
+	if(mibs->solver()->isInteger(index)){
+	    lowerSolutionOrd_[pos] = (double) floor(values[i] + 0.5);
+	}
+	else{
+	    lowerSolutionOrd_[pos] = values[i];
+	}
     }
   }
 
-  if((isUpperIntegral_) || (upperFixed_ == true)){
-      checkBilevelFeasiblity(mibs->isRoot_, upperFixed_);
+  if(((branchPar == setI) && (isIntegral_ == true) &&
+      (isIVarsFixed_ == true)) ||
+     ((branchPar == fractional) && (isIntegral_ == true)) ||
+     ((solveLowerXYVarsInt == PARAM_ON) && (isIntegral_ == true)) || 
+     ((solveLowerXVarsInt == PARAM_ON) && (isUpperIntegral_ == true)) ||
+     ((solveLowerIVarsInt == PARAM_ON) && (isIVarsIntegral_ == true)) ||
+     ((solveLowerIVarsFixed == PARAM_ON) && (isIVarsFixed_ == true))){
+      isLowerSolved_ = true;
+      checkBilevelFeasiblity(mibs->isRoot_);
   }
 
   /* run a heuristic to find a better feasible solution */
@@ -164,26 +199,29 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
 
 //#############################################################################
 void
-MibSBilevel::checkBilevelFeasiblity(bool isRoot, bool upperFixed_)
+MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 {
   
-  int cutStrategy =
-    model_->MibSPar_->entry(MibSParams::cutStrategy);
-
-  bool warmStartLL =
-    model_->MibSPar_->entry(MibSParams::warmStartLL);
-
-  int maxThreadsLL =
-    model_->MibSPar_->entry(MibSParams::maxThreadsLL);
-
-  int whichCutsLL =
-    model_->MibSPar_->entry(MibSParams::whichCutsLL);
-
-  int probType =
-    model_->MibSPar_->entry(MibSParams::bilevelProblemType);
-
-  std::string feasCheckSolver =
-     model_->MibSPar_->entry(MibSParams::feasCheckSolver);
+    int cutStrategy(model_->MibSPar_->entry
+		    (MibSParams::cutStrategy));
+    bool warmStartLL(model_->MibSPar_->entry
+		     (MibSParams::warmStartLL));
+    int maxThreadsLL(model_->MibSPar_->entry
+		     (MibSParams::maxThreadsLL));
+    int whichCutsLL(model_->MibSPar_->entry
+		    (MibSParams::whichCutsLL));
+    int probType(model_->MibSPar_->entry
+		 (MibSParams::bilevelProblemType));
+    std::string feasCheckSolver(model_->MibSPar_->entry
+				(MibSParams::feasCheckSolver));
+    int branchPar(model_->MibSPar_->entry
+		  (MibSParams::branchProcedure));
+    int computeUBXVarsInt(model_->MibSPar_->entry
+			      (MibSParams::computeUBWhenXVarsInt));
+    int computeUBIVarsInt(model_->MibSPar_->entry
+			      (MibSParams::computeUBWhenIVarsInt));
+    int computeUBIVarsFixed(model_->MibSPar_->entry
+			      (MibSParams::computeUBWhenIVarsFixed));
 
   bool bestSolLL = false;
   isProvenOptimal_ = true;
@@ -268,161 +306,179 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot, bool upperFixed_)
   }else{
      lSolver->branchAndBound();
   }
+  if(lSolver->isProvenOptimal()){ 
+      const double * sol = model_->solver()->getColSolution();
+      double objVal(lSolver->getObjValue() * model_->getLowerObjSense());
+      
+      objVal_ = objVal;
+      
+      MibSTreeNode * node = static_cast<MibSTreeNode *>(model_->activeNode_);
+      MibSTreeNode * parent = 
+	  static_cast<MibSTreeNode *>(model_->activeNode_->getParent());
 
-  const double * sol = model_->solver()->getColSolution();
-  double objVal(lSolver->getObjValue() * model_->getLowerObjSense());
+      if((!node->isBoundSet()) 
+	 && (node->getIndex() != 0)){
+	  double parentBound = parent->getLowerUB();
+	  node->setLowerUB(parentBound);
+	  node->setIsBoundSet(true);
+      }
+      
+      if(objVal > node->getLowerUB()){
+	  node->setLowerUB(objVal);
+	  node->setIsBoundSet(true);    
+      }
+      
+      double etol(model_->etol_);
+      double lowerObj = getLowerObj(sol, model_->getLowerObjSense());
 
-  objVal_ = objVal;
+      if(isIntegral_){
+	  assert((objVal - lowerObj) <= etol);
+      }
+
+      int lN(model_->lowerDim_); // lower-level dimension
+      int uN(model_->upperDim_); // lower-level dimension
+      int i(0);
   
-  MibSTreeNode * node = static_cast<MibSTreeNode *>(model_->activeNode_);
-  MibSTreeNode * parent = 
-    static_cast<MibSTreeNode *>(model_->activeNode_->getParent());
+      if(!optLowerSolution_)
+	  optLowerSolution_ = new double[lN];
 
-  if((!node->isBoundSet()) 
-     && (node->getIndex() != 0)){
-    double parentBound = parent->getLowerUB();
-    node->setLowerUB(parentBound);
-    node->setIsBoundSet(true);
-  }
+      if(!optLowerSolutionOrd_)
+	  optLowerSolutionOrd_ = new double[lN];
   
-  if(objVal > node->getLowerUB()){
-    node->setLowerUB(objVal);
-    node->setIsBoundSet(true);
-    
-  }
+      CoinZeroN(optLowerSolution_, lN);
+      CoinZeroN(optLowerSolutionOrd_, lN);
+      int * lowerColInd = model_->getLowerColInd();
+      int * upperColInd = model_->getUpperColInd();
 
-  double etol(model_->etol_);
-  double lowerObj = getLowerObj(sol, model_->getLowerObjSense());
-
-  if(isIntegral_){
-      assert((objVal - lowerObj) <= etol);
-  }
-
-  int lN(model_->lowerDim_); // lower-level dimension
-  int uN(model_->upperDim_); // lower-level dimension
-  int i(0);
+      int index(0);
   
-  if(!optLowerSolution_)
-    optLowerSolution_ = new double[lN];
+      if(0){
+	  std::cout << "objVal: " << objVal << std::endl;
+	  std::cout << "lowerObj: " << lowerObj << std::endl;
+      }
 
-  if(!optLowerSolutionOrd_)
-    optLowerSolutionOrd_ = new double[lN];
-  
-  CoinZeroN(optLowerSolution_, lN);
-  CoinZeroN(optLowerSolutionOrd_, lN);
-  int * lowerColInd = model_->getLowerColInd();
-  int * upperColInd = model_->getUpperColInd();
+      if(fabs(objVal - lowerObj) < etol && isIntegral_){
+	  /** Current solution is bilevel feasible **/
+	  
+	  const double * values = lSolver->getColSolution();
+	  
+	  for(i = 0; i < lN; i++){
+	      if(lSolver->isInteger(i))
+		  lowerSolution_[i] = (double) floor(values[i] + 0.5);
+	      else
+		  lowerSolution_[i] = (double) values[i];
+	  } 
+	  
+	  bilevelFeasibility_ = bilevelFeasible;
+	  useBilevelBranching_ = false;
+	  
+      }else{
+	  //if(lSolver->isProvenOptimal()){
+	  
+	  if(((branchPar == setI) && (isIntegral_ == true) &&
+	      (isIVarsFixed_ == true)) ||
+	     ((computeUBXVarsInt == PARAM_ON) && (isUpperIntegral_ == true)) ||
+	     ((computeUBIVarsInt == PARAM_ON)) ||
+	     ((computeUBIVarsFixed == PARAM_ON) && (isIVarsFixed_ == true))){
 
-  int index(0);
-  
-  if(0){
-      std::cout << "objVal: " << objVal << std::endl;
-      std::cout << "lowerObj: " << lowerObj << std::endl;
-  }
-
-  if(fabs(objVal - lowerObj) < etol && isIntegral_){
-      /** Current solution is bilevel feasible **/
-     
-      const double * values = lSolver->getColSolution();
- 
-      for(i = 0; i < lN; i++){
-	  if(lSolver->isInteger(i))
-	      lowerSolution_[i] = (double) floor(values[i] + 0.5);
-	  else
-	      lowerSolution_[i] = (double) values[i];
-      } 
-
-      isBilevelFeasible_ = true;
-      useBilevelBranching_ = false;
-     
-  }else{
-      if (lSolver->isProvenOptimal()){
-	  /** Current solution is not bilevel feasible,                                                                                                                                    
-	      but we may still have a solution **/
-	  //if(upperFixed_ == true){
-	  if(solver2_){
-	      delete solver2_;
-	  }
-	  solver2_ = setUpRefineModel(model_->getSolver(), objVal, true);
-	  lSolver = solver2_;
-
+	      isUBSolved_ = true;      
+	      if(solver2_){
+		  delete solver2_;
+	      }
+	      solver2_ = setUpRefineModel(model_->getSolver(), objVal, true);
+	      lSolver = solver2_;
+		 
 #ifndef COIN_HAS_SYMPHONY
-	  dynamic_cast<OsiCbcSolverInterface *>
-	      (lSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
+	      dynamic_cast<OsiCbcSolverInterface *>
+		  (lSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
 #else
-	  dynamic_cast<OsiSymSolverInterface *>
-	      (lSolver)->setSymParam("prep_level", -1);
-
-	  dynamic_cast<OsiSymSolverInterface *>
-	      (lSolver)->setSymParam("verbosity", -2);
-
-	  dynamic_cast<OsiSymSolverInterface *>
-	      (lSolver)->setSymParam("max_active_nodes", 1);
+	      dynamic_cast<OsiSymSolverInterface *>
+		  (lSolver)->setSymParam("prep_level", -1);
+	      
+	      dynamic_cast<OsiSymSolverInterface *>
+		  (lSolver)->setSymParam("verbosity", -2);
+	      
+	      dynamic_cast<OsiSymSolverInterface *>
+		  (lSolver)->setSymParam("max_active_nodes", 1);
 #endif
-
-
-	  lSolver->branchAndBound();
-
-	  if (lSolver->isProvenOptimal()){
-
+	      
+	      lSolver->branchAndBound();
+	      
+	      if(lSolver->isProvenOptimal()){
+		  
+		  const double * values = lSolver->getColSolution();
+		  
+		  //int lN(model_->getLowerDim());
+		  //int i(0);
+		  int pos(0);
+		  
+		  //added this 7/1 to store y* for val func cut
+		  for(i = 0; i < lN+uN; i++){
+		      pos = binarySearch(0, uN - 1, i, upperColInd);
+		      if (pos >= 0){
+			  if(lSolver->isInteger(i))
+			      upperSolutionOrd_[pos] = (double) floor(values[i] + 0.5);
+			  else
+			      upperSolutionOrd_[pos] = (double) values[i];
+		      }
+		      else{
+			  pos = binarySearch(0, lN - 1, i, lowerColInd);
+			  if(lSolver->isInteger(i))
+			      optLowerSolutionOrd_[pos] = (double) floor(values[i] + 0.5);
+			  else
+			      optLowerSolutionOrd_[pos] = (double) values[i];
+		      }
+		  }
+		  int numCols = model_->solver()->getNumCols();
+		  pos = 0;
+		  
+		  for(i = 0; i < numCols; i++){
+		      if ((pos = model_->bS_->binarySearch(0, lN - 1, i, lowerColInd)) >= 0){
+			  optLowerSolution_[pos] = optLowerSolutionOrd_[pos];
+		      }
+		  }
+		  heuristic_->findHeuristicSolutions();
+	      }//if(provenoptimal)-> UB
+	      else{
+		  isProvenOptimal_ = false;
+	      }
+	  }// new condition for solving (UB)
+	      /*}//if(provenoptimal) - > VF old
+	     else{
+	     isProvenOptimal_ = false;
+	     }*/
+	  else{//if we do not solve (UB), store (x^t,\hat{y}^t)
 	      const double * values = lSolver->getColSolution();
 
-	      //int lN(model_->getLowerDim());
-	      //int i(0);
-	      int pos(0);
-
-	      //added this 7/1 to store y* for val func cut
-	      for(i = 0; i < lN+uN; i++){
-		  pos = binarySearch(0, uN - 1, i, upperColInd);
-		  if (pos >= 0){
-		      if(lSolver->isInteger(i))
-			  upperSolutionOrd_[pos] = (double) floor(values[i] + 0.5);
-		      else
-			  upperSolutionOrd_[pos] = (double) values[i];
-		  }
-		  else{
-		      pos = binarySearch(0, lN - 1, i, lowerColInd);
-		      if(lSolver->isInteger(i))
-			  optLowerSolutionOrd_[pos] = (double) floor(values[i] + 0.5);
-		      else
-			  optLowerSolutionOrd_[pos] = (double) values[i];
-		  }
+	      for(i = 0; i < lN; i++){
+		  if(lSolver->isInteger(i))
+		      optLowerSolutionOrd_[i] = (double) floor(values[i] + 0.5);
+		  else
+		      optLowerSolutionOrd_[i] = (double) values[i];
 	      }
-	      int numCols = model_->solver()->getNumCols();
-	      pos = 0;
-
-
-	      for(i = 0; i < numCols; i++){
-		  if ((pos = model_->bS_->binarySearch(0, lN - 1, i, lowerColInd)) >= 0){
-		      optLowerSolution_[pos] = optLowerSolutionOrd_[pos];
-		  }
-	      }
-	      heuristic_->findHeuristicSolutions();
+	      
 	  }
-	  else{
-	      isProvenOptimal_ = false;
-	  }
-      }
-      else{
-	  isProvenOptimal_ = false;
-      }
-
-      isBilevelFeasible_ = false;
-      if(cutStrategy != 1)
-	  useBilevelBranching_ = true;
-      //Notice:I delete it
-      //}
-      //int i1(0);
-
-      if(upperFixed_){
-	  isBilevelFeasible_ = true;
-	  useBilevelBranching_ = false;
-      }
-      else{
-	  isBilevelFeasible_ = false;
+	  bilevelFeasibility_ = bilevelInfeasible;
 	  if(cutStrategy != 1)
 	      useBilevelBranching_ = true;
-      }
+	  //Notice:I delete it
+	  //}
+	  //int i1(0);
+	  
+	  if((isIVarsFixed_ == true) && (isUBSolved_ == true)){
+	      bilevelFeasibility_ = bilevelFeasible;
+	      useBilevelBranching_ = false;
+	  }
+	  else{
+	      bilevelFeasibility_ = bilevelInfeasible;
+	      if(cutStrategy != 1)
+		  useBilevelBranching_ = true;
+	  }
+      }//else if bilevel infeasible
+  } //if(provenoptimal) - > VF new
+  else{
+      isProvenOptimal_ = false;
+      //sahar: To Do: add to \E when (VF) is infeasible
   }
   //delete lSolver;
 }
@@ -508,7 +564,7 @@ MibSBilevel::setUpRefineModel(OsiSolverInterface * oSolver, double objValLL,
 	index1 = uColIndices[i];
 	colLb[index1] = oSolver->getColLower()[index1];
 	colUb[index1] = oSolver->getColUpper()[index1];
-	if(upperFixed_ == false){
+	if(isIVarsFixed_ == false){
 	    if(fixedInd[index1] == 1){
 		colLb[index1] = floor(lpSol[index1] + 0.5);
 		colUb[index1] = colLb[index1];
