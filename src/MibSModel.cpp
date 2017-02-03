@@ -105,6 +105,9 @@ MibSModel::initialize()
   lowerRowNum_ = 0;
   upperRowNum_ = 0;
   structRowNum_ = 0;
+  sizeFixedInd_ = 0;
+  counterVF_ = 0;
+  counterUB_ = 0;
   isInterdict_ = false;
   isPureInteger_ = true;
   isUpperCoeffInt_ = true;
@@ -1692,11 +1695,11 @@ MibSModel::userFeasibleSolution(const double * solution, bool &userFeasible)
   }
 	  
 
-  int shouldPrune(0);
+  /*int shouldPrune(0);
   if((bS_->isIVarsFixed_) && (bS_->isUBSolved_)){
       shouldPrune = 1;
       userFeasible = false;
-  }
+      }*/
 
   /*if((bS_->isLowerSolved_ == false) && (bS_->isIntegral_ == true)){
       bS_->useCut_ = false;
@@ -1711,7 +1714,8 @@ MibSModel::userFeasibleSolution(const double * solution, bool &userFeasible)
   }
   else{
       
-      if((bS_->isLowerSolved_) && ((bS_->isProvenOptimal_)|| (shouldPrune))){
+      // if((bS_->isLowerSolved_) && ((bS_->isProvenOptimal_) || (bS_->shouldPrune_))){
+      if(((bS_->isLowerSolved_) && (bS_->isProvenOptimal_)) || (bS_->shouldPrune_)){
 	  double * lpSolution = new double[getNumCols()];
 	  int * upperColInd = getUpperColInd();
 	  int * lowerColInd = getLowerColInd();
@@ -1746,9 +1750,9 @@ MibSModel::userFeasibleSolution(const double * solution, bool &userFeasible)
 					upperObj,
 					this);
       
-	      if(shouldPrune){
+	      if(bS_->shouldPrune_){
 		  userFeasible = true;
-		  //std::cout<<"new"<<std::endl;
+		  bS_->bilevelFeasibility_ = bilevelFeasible;
 	      }
 	      else{
                   storeSolution(BlisSolutionTypeHeuristic, mibSol);
@@ -2851,6 +2855,7 @@ MibSModel::setRequiredFixedList(const CoinPackedMatrix *newMatrix)
 		posRow = binarySearch(0, lRows - 1, rowIndex, lowerRowInd);
 		if(posRow >= 0){
 		    fixedInd_[i] = 1;
+		    sizeFixedInd_ ++;
 		    break;
 		}
 	    }

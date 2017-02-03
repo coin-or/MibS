@@ -38,6 +38,7 @@ class MibSBilevel {
     friend class MibSHeuristic;
     friend class MibSTreeNode;
     friend class MibSBranchStrategyPseudo;
+    friend class MibSBranchStrategyStrong;
 
 private:
 
@@ -51,6 +52,8 @@ private:
     bool isLowerSolved_;
     /** is problem UB solved or not **/
     bool isUBSolved_;
+    /** should prune the node or not **/
+    bool shouldPrune_;
 
     int bilevelFeasibility_;
 
@@ -77,7 +80,8 @@ public:
 		    isIVarsIntegral_(false), useBilevelBranching_(false),
 		    isIVarsFixed_(false), isProvenOptimal_(false),
 		    isLowerSolved_(false), isUBSolved_(false),
-		    bilevelFeasibility_(-1), objVal_(0.0){
+		    shouldPrune_(false), bilevelFeasibility_(-1),
+		    objVal_(0.0){
 	upperSolution_ = 0;
 	lowerSolution_ = 0;
 	upperSolutionOrd_ = 0;
@@ -97,7 +101,7 @@ public:
    
     void createBilevel(CoinPackedVector *sol,
 		       MibSModel *mibs=0);
-    void checkBilevelFeasiblity(bool isRoot);
+    void checkBilevelFeasiblity(bool isRoot, bool isContainedInSetE);
     void gutsOfDestructor();
 
 private:
@@ -111,6 +115,7 @@ private:
     int binarySearch(int index,int start, int stop, int * indexArray);
     CoinWarmStart * getWarmStart() {return ws_;}
     void setWarmStart(CoinWarmStart * ws) {ws_ = ws;}
+    void addSolutionToSetE(int solType);
     //void findHeuristicSolutions();
     //void objCutHeuristic();
     //void lowerObjHeuristic();

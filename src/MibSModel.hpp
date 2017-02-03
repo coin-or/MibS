@@ -37,6 +37,7 @@ class MibSModel : public BlisModel {
     friend class MibSBranchStrategyStrong;
     friend class MibSTreeNode;
     friend class MibSHeuristic;
+    friend class MibSSolution;
 
 private:
 
@@ -86,6 +87,15 @@ private:
 
     /** Number of structural constraints **/
     int structRowNum_;
+
+    /** Size of first-stage variables in second-stage constraints **/
+    int sizeFixedInd_;
+
+    /** Number of (VF) solved **/
+    int counterVF_;
+
+    /** Number of (UB) solved **/
+    int counterUB_;
 
     /** Determines type of problem(general or interdiction) **/
     bool isInterdict_;
@@ -181,7 +191,10 @@ private:
     //int maxAuxCols_;
 
     /** Indicator telling whether solution has been updated **/
-    bool solIsUpdated_;  
+    bool solIsUpdated_;
+
+    /** The set keeps the track of solutions which can be removed **/
+    std::vector<int> setE_;
 
 public:
 

@@ -68,6 +68,8 @@ MibSBranchStrategyStrong::createCandBranchObjects(int numPassesLeft, double ub)
     BlisObjectInt *intObject = NULL;
     
     BlisModel *model = dynamic_cast<BlisModel *>(model_);
+    MibSModel *mibsmodel = dynamic_cast<MibSModel *>(model);
+    MibSBilevel *bS = mibsmodel->bS_;
     OsiSolverInterface * solver = model->solver();
     
     int numCols = model->getNumCols();
@@ -81,7 +83,6 @@ MibSBranchStrategyStrong::createCandBranchObjects(int numPassesLeft, double ub)
     
     BlisStrong * candStrongs = new BlisStrong [maxStrongLen];
 
-    MibSModel *mibsmodel = dynamic_cast<MibSModel *>(model);
     double etol = mibsmodel->etol_;
     int uN = mibsmodel->upperDim_;
     int * upperColInd = mibsmodel->getUpperColInd();
@@ -168,19 +169,38 @@ MibSBranchStrategyStrong::createCandBranchObjects(int numPassesLeft, double ub)
 	    }
 	}
 
-        if(branchPar == 1){
-	    for(i = 0; i < numCols; ++i){
-		if(colType[i] == 'C'){
-		    candidate[i] = 0;
-		}
-		else{
-		    candidate[i] = 2;
-		    if(fixedInd[i] == 1){
+	//*********
+
+	if(branchPar == 1){
+	    if((bS->isIVarsFixed_ == true) && (bS->isIntegral_ == false)){
+		for(i = 0; i < numCols; ++i){
+		    if(colType[i] == 'C'){
+			candidate[i] = 0;
+		    }
+		    else{
+			candidate[i] = 2;
 			value =saveSolution[i];
 			infeasibility =fabs(floor(value + 0.5) - value);
-			if (((found == 0) && (fixedVar[i] != 1))
-			    || (fabs(infeasibility) > etol)){
+			if(fabs(infeasibility) > etol){
 			    candidate[i] = 1;
+			}
+		    }
+		}
+	    }
+	    else{
+		for(i = 0; i < numCols; ++i){
+		    if(colType[i] == 'C'){
+			candidate[i] = 0;
+		    }
+		    else{
+			candidate[i] = 2;
+			if(fixedInd[i] == 1){
+			    value =saveSolution[i];
+			    infeasibility =fabs(floor(value + 0.5) - value);
+			    if (((found == 0) && (fixedVar[i] != 1))
+				|| (fabs(infeasibility) > etol)){
+				candidate[i] = 1;
+			    }
 			}
 		    }
 		}
@@ -201,6 +221,8 @@ MibSBranchStrategyStrong::createCandBranchObjects(int numPassesLeft, double ub)
 		}
 	    }
 	}
+	
+	//*******
 	
 	//for (i = 0; i < numObjects; ++i) {
             
