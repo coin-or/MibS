@@ -133,6 +133,9 @@ MibSSolution::print(std::ostream& os) const
       }
    }
 
+   std::cout << "Number of problems (VF) solved = " << localModel_->counterVF_ << std::endl;
+   std::cout << "Number of problems (UB) solved = " << localModel_->counterUB_ << std::endl;
 
+   
 }
 
