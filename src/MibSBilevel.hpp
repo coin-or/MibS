@@ -54,6 +54,7 @@ private:
     bool isUBSolved_;
     /** should prune the node or not **/
     bool shouldPrune_;
+    bool isContainedInSetE_;
 
     int bilevelFeasibility_;
 
@@ -80,8 +81,8 @@ public:
 		    isIVarsIntegral_(false), useBilevelBranching_(false),
 		    isIVarsFixed_(false), isProvenOptimal_(false),
 		    isLowerSolved_(false), isUBSolved_(false),
-		    shouldPrune_(false), bilevelFeasibility_(-1),
-		    objVal_(0.0){
+		    shouldPrune_(false), isContainedInSetE_(false),
+		    bilevelFeasibility_(-1), objVal_(0.0){
 	upperSolution_ = 0;
 	lowerSolution_ = 0;
 	upperSolutionOrd_ = 0;
@@ -101,7 +102,7 @@ public:
    
     void createBilevel(CoinPackedVector *sol,
 		       MibSModel *mibs=0);
-    void checkBilevelFeasiblity(bool isRoot, bool isContainedInSetE);
+    void checkBilevelFeasiblity(bool isRoot);
     void gutsOfDestructor();
 
 private:

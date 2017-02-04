@@ -99,6 +99,7 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
   isLowerSolved_ = false;
   shouldPrune_ = false;
   isUBSolved_ = false;
+  isContainedInSetE_ = false;
   
   
   int * lowerColInd = mibs->getLowerColInd();
@@ -180,7 +181,6 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
   int numSavedSol(sizeSetE/(sizeFixedInd+1));
   int solType(0);
   int num(0);
-  bool isContainedInSetE(false);
   bool found(true);
   
   if(isIVarsIntegral_ == true){
@@ -202,14 +202,14 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
 	  if(found == true){
 	      index = ((i + 1) * (sizeFixedInd + 1)) - 1;
 	      solType = model_->setE_[index];
-	      isContainedInSetE = true;
+	      isContainedInSetE_ = true;
 	      break;
 	  }
       }
   }
 		  
 		  
-  if(isContainedInSetE == false){
+  if(isContainedInSetE_ == false){
       if(((branchPar == setI) && (isIntegral_ == true) &&
 	  (isIVarsFixed_ == true)) ||
 	 ((branchPar == fractional) && (isIntegral_ == true)) ||
@@ -219,7 +219,7 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
 	 ((solveLowerIVarsFixed == PARAM_ON) && (isIVarsFixed_ == true))){
 	  model_->counterVF_ ++;
 	  isLowerSolved_ = true;
-	  checkBilevelFeasiblity(mibs->isRoot_, isContainedInSetE);
+	  checkBilevelFeasiblity(mibs->isRoot_);
       }
   }
   else if((solType == -1) && (isIntegral_ == true) && (isIVarsFixed_ == false) &&
@@ -227,16 +227,16 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
 	   (solveLowerIVarsInt == PARAM_ON)) || (branchPar == fractional)){
       model_->counterVF_ ++;
       isLowerSolved_ = true;
-      checkBilevelFeasiblity(mibs->isRoot_, isContainedInSetE);
+      checkBilevelFeasiblity(mibs->isRoot_);
   }
   
-  if((isContainedInSetE == true) && (isIVarsFixed_ == true)){
+  if((isContainedInSetE_ == true) && (isIVarsFixed_ == true)){
       useBilevelBranching_ = false;
       isProvenOptimal_ = false;
       shouldPrune_ = true;
   }
   
-  if((isContainedInSetE == true) && (solType == -2)){
+  if((isContainedInSetE_ == true) && (solType == -2)){
       bilevelFeasibility_ = bilevelInfeasible;
   }
 
@@ -248,7 +248,7 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
 
 //#############################################################################
 void
-MibSBilevel::checkBilevelFeasiblity(bool isRoot, bool isContainedInSetE)
+MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 {
   
     int cutStrategy(model_->MibSPar_->entry
@@ -458,7 +458,7 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot, bool isContainedInSetE)
 	      lSolver->branchAndBound();
 
 	      //Adding the current solution to set \E
-	      if(isContainedInSetE == false){
+	      if(isContainedInSetE_ == false){
 		  addSolutionToSetE(-1);
 	      }
 						  	    
@@ -538,7 +538,7 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot, bool isContainedInSetE)
   else{
       isProvenOptimal_ = false;
       //Adding the current solution to set \E
-      if(isContainedInSetE == false){
+      if(isContainedInSetE_ == false){
 	  addSolutionToSetE(-2);
       }
   }

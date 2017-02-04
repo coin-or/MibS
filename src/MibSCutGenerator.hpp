@@ -74,8 +74,8 @@ class MibSCutGenerator : public BlisConGenerator {
    int bendersZeroSumCuts(BcpsConstraintPool &conPool);
 
     /** Add intersection cuts for general problems (Type 1: discrete, Types 2,3: general) **/
-    int intersectionCuts(BcpsConstraintPool &conPool, double *optLowerSolution,
-			 double optLowerObj);
+    int intersectionCuts(BcpsConstraintPool &conPool,
+			 double *optLowerSolution);
 
     /** Helper function for intersection cut Type 1*/
     void getAlphaIntersectionCutType1(double** extRay, double* lowerSolution,
