@@ -3219,6 +3219,13 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix, const double* ro
 	}
     }
 
+    if(MibSPar_->entry(MibSParams::branchProcedure) == setI){
+	std::cout << "Branching procedure is set to 'setI' (new)." << std::endl;
+    }
+    else if(MibSPar_->entry(MibSParams::branchProcedure) == fractional){
+	std::cout << "Branching procedure is set to 'fractional' (old)." << std::endl;
+    }
+	
     //Setting parameters of solving (VF) and (UB)
     int solveLowerXYVarsInt(MibSPar_->entry(MibSParams::
 					    solveLowerWhenXYVarsInt));
