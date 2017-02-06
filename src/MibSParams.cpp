@@ -224,7 +224,7 @@ MibSParams::setDefaultEntries() {
 
    setEntry(blisBranchStrategy, 0);
 
-   setEntry(branchProcedure, PARAM_NOTSET);
+   setEntry(branchProcedure, MibSBranchingProcedureNotSet);
 
    setEntry(upperFileFormat, 0);
 

@@ -53,7 +53,9 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
   //int uN(N - lN); // upper-level dimension
   int uN(model_->upperDim_); // upper-level dimension
   double etol(model_->BlisPar()->entry(BlisParams::integerTol));
-  int branchPar(model_->MibSPar_->entry(MibSParams::branchProcedure));
+
+  MibSBranchingProcedure branchPar = static_cast<MibSBranchingProcedure>
+      (model_->MibSPar_->entry(MibSParams::branchProcedure));
 
   int solveLowerXYVarsInt(model_->MibSPar_->entry
 			   (MibSParams::solveLowerWhenXYVarsInt));
@@ -270,8 +272,8 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 		 (MibSParams::bilevelProblemType));
     std::string feasCheckSolver(model_->MibSPar_->entry
 				(MibSParams::feasCheckSolver));
-    int branchPar(model_->MibSPar_->entry
-		  (MibSParams::branchProcedure));
+    MibSBranchingProcedure branchPar = static_cast<MibSBranchingProcedure>
+	(model_->MibSPar_->entry(MibSParams::branchProcedure));
     int computeUBXVarsInt(model_->MibSPar_->entry
 			      (MibSParams::computeUBWhenXVarsInt));
     int computeUBIVarsInt(model_->MibSPar_->entry

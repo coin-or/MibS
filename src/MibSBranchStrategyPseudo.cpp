@@ -154,9 +154,10 @@ MibSBranchStrategyPseudo::createCandBranchObjects(int numPassesLeft, double ub)
 
 	double value(0.0);
 
-	int branchPar(mibsmodel->MibSPar_->entry(MibSParams::branchProcedure));
+	MibSBranchingProcedure branchPar = static_cast<MibSBranchingProcedure>
+	    (mibsmodel->MibSPar_->entry(MibSParams::branchProcedure));
 
-	if(branchPar == 1){
+	if(branchPar == setI){
 	    for (i = 0; i < uN; ++i){
 		index = upperColInd[i];
 		if (fabs(lower[index]-upper[index])<=etol){
@@ -177,7 +178,7 @@ MibSBranchStrategyPseudo::createCandBranchObjects(int numPassesLeft, double ub)
 	}
 
 
-	if(branchPar == 1){
+	if(branchPar == setI){
 	    if((bS->isIVarsFixed_ == true) && (bS->isIntegral_ == false)){
 		for(i = 0; i < numCols; ++i){
 		    if(colType[i] == 'C'){
