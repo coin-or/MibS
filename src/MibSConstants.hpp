@@ -28,9 +28,21 @@
 #define PARAM_OFF      0
 #define PARAM_ON       1
 
+//#############################################################################    
+
+enum MibSBranchingProcedure{
+    MibSBranchingProcedureNotSet = -1,
+    fractional,
+    setI
+};
+    
+#if 0
 #define PARAM_NOTSET  -1
 #define fractional     0
 #define setI           1
+#endif
+
+//#############################################################################
 
 /*---------  status of bilevel feasibility (bilevelFeasibility_) ------------*/
 #define unknown -1

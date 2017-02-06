@@ -1661,7 +1661,8 @@ MibSModel::userFeasibleSolution(const double * solution, bool &userFeasible)
   //bool bilevelbranch = MibSPar_->entry(MibSParams::isBilevelBranchProb);
   bool bilevelbranch = false;
 
-  int branchPar(MibSPar_->entry(MibSParams::branchProcedure));
+  MibSBranchingProcedure branchPar = static_cast<MibSBranchingProcedure>
+      (MibSPar_->entry(MibSParams::branchProcedure));
 
   if(bilevelbranch){
     for(i = 0; i < solver()->getNumRows(); i++){
@@ -3164,8 +3165,9 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix, const double* ro
     }
 
     //Param: "MibS_branchProcedure"
-    paramValue = MibSPar_->entry(MibSParams::branchProcedure);
-    if(paramValue == PARAM_NOTSET){
+    MibSBranchingProcedure branchPar = static_cast<MibSBranchingProcedure>
+	  (MibSPar_->entry(MibSParams::branchProcedure));
+    if(branchPar == MibSBranchingProcedureNotSet){
 	MibSPar()->setEntry(MibSParams::branchProcedure, setI);
 	std::cout << "Since no branching procedure is selected, it is set to 'setI' automatically." << std::endl;
     }

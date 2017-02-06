@@ -145,12 +145,13 @@ MibSBranchStrategyStrong::createCandBranchObjects(int numPassesLeft, double ub)
 	
 	strongLen = 0;
 
-	int branchPar(mibsmodel->MibSPar_->entry(MibSParams::branchProcedure));
+	MibSBranchingProcedure branchPar = static_cast<MibSBranchingProcedure>
+	    (mibsmodel->MibSPar_->entry(MibSParams::branchProcedure));
 
 	int index(0), found(0);
 	double value(0.0);
 
-	if(branchPar == 1){
+	if(branchPar == setI){
 	    for (i = 0; i < uN; ++i){
 		index = upperColInd[i];
 		if (fabs(lower[index]-upper[index])<=etol){
@@ -171,7 +172,7 @@ MibSBranchStrategyStrong::createCandBranchObjects(int numPassesLeft, double ub)
 
 	//*********
 
-	if(branchPar == 1){
+	if(branchPar == setI){
 	    if((bS->isIVarsFixed_ == true) && (bS->isIntegral_ == false)){
 		for(i = 0; i < numCols; ++i){
 		    if(colType[i] == 'C'){
@@ -248,7 +249,7 @@ MibSBranchStrategyStrong::createCandBranchObjects(int numPassesLeft, double ub)
 		sumDeg += intObject->pseudocost().getScore();
 		
 		// Check for suitability based on infeasibility.
-                if ((infeasibility > minInf) || ((branchPar == 1) &&
+                if ((infeasibility > minInf) || ((branchPar == setI) &&
 						 (found == 0))){
 		    
                     if (candStrongs[leastFrac].bObject) {
@@ -279,7 +280,7 @@ MibSBranchStrategyStrong::createCandBranchObjects(int numPassesLeft, double ub)
                         }
 			//sahar:To Do:If there is no fractional valued var, we consider
 			//the first "maxStrongLen" objects 
-			else if(((branchPar == 0) || (found == 1)) &&
+			else if(((branchPar == fractional) || (found == 1)) &&
 				(candStrongs[j].bObject->getUpScore() < minInf)){
 			    minInf = candStrongs[j].bObject->getUpScore();
 			    leastFrac = j;
