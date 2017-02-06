@@ -77,7 +77,6 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
   double *values = sol->getElements();
   int numElements(sol->getNumElements()); // number of nonzero elements
   int * fixedInd = model_->fixedInd_;
-
  
   //FIXME: These don't seem to be used anymore. 
   if(!lowerSolution_)
@@ -103,6 +102,7 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
   shouldPrune_ = false;
   isUBSolved_ = false;
   isContainedInSetE_ = false;
+  useBilevelBranching_ = true;
   
   
   int * lowerColInd = mibs->getLowerColInd();

@@ -171,9 +171,9 @@ MibSTreeNode::process(bool isRoot, bool rampUp)
 
     //tailOffTol = 1e-7;
 
-    if(bS->useBilevelBranching_ == false){
+    /*if(bS->useBilevelBranching_ == false){
 	tailOffTol = -1000;
-    }
+	}*/
 
     if (maxPass < ALPS_INT_MAX) {
 	++maxPass;
@@ -372,7 +372,15 @@ MibSTreeNode::process(bool isRoot, bool rampUp)
 
 	  // Check if IP feasible 
 	  ipSol = model->feasibleSolution(numIntInfs, numObjInfs);
-            
+
+	  if((bS->useBilevelBranching_ == false) &&
+	     (bS->bilevelFeasibility_ != bilevelFeasible)){
+	      tailOffTol = -1000;
+	  }
+	  else{
+	      tailOffTol = BlisPar->entry(BlisParams::tailOff);
+	  }
+	      
 	  if (ipSol) {         
                 // IP feasible
                 model->storeSolution(BlisSolutionTypeHeuristic, ipSol);
