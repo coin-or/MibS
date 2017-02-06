@@ -3253,6 +3253,19 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix, const double* ro
 	MibSPar()->setEntry(MibSParams::solveLowerWhenIVarsFixed, PARAM_ON);
 	MibSPar()->setEntry(MibSParams::computeUBWhenIVarsFixed, PARAM_ON);
     }
+
+    //Setting "useSetE" parameter
+    
+    if(MibSPar_->entry(MibSParams::useSetE) == PARAM_NOTSET){
+	MibSPar()->setEntry(MibSParams::useSetE, PARAM_ON);
+    }
+
+    if(MibSPar_->entry(MibSParams::useSetE) == PARAM_ON){
+	std::cout << "set E is used " << std::endl;
+    }
+    else{
+	std::cout << "set E is not used " << std::endl;
+    }
 	
     delete [] newRowSense;
 }
