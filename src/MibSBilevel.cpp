@@ -63,6 +63,9 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
 			  (MibSParams::solveLowerWhenIVarsInt));
   int solveLowerIVarsFixed(model_->MibSPar_->entry
 			    (MibSParams::solveLowerWhenIVarsFixed));
+
+  int setEPar(model_->MibSPar_->entry
+			   (MibSParams::useSetE));
   
   assert(N == model_->solver()->getNumCols());
 
@@ -182,33 +185,37 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
   int solType(0);
   int num(0);
   bool found(true);
-  
-  if(isIVarsIntegral_ == true){
-      for(i = 0; i < numSavedSol; i++){
-	  num = 0;
-	  found = true;
-	  for(j = 0; j < uN; j++){
-	      pos = upperColInd[j];
-	      if(fixedInd[pos] == 1){
-		  index = (i * (sizeFixedInd + 1)) + num;
-		  num ++;
-		  if(fabs(upperSolutionOrd_[j] - model_->setE_[index])
-		     > etol){
-		      found = false;
-		      break;
+
+  if(setEPar != PARAM_ON){
+      isContainedInSetE_ = false;
+  }
+  else{
+      if(isIVarsIntegral_ == true){
+	  for(i = 0; i < numSavedSol; i++){
+	      num = 0;
+	      found = true;
+	      for(j = 0; j < uN; j++){
+		  pos = upperColInd[j];
+		  if(fixedInd[pos] == 1){
+		      index = (i * (sizeFixedInd + 1)) + num;
+		      num ++;
+		      if(fabs(upperSolutionOrd_[j] - model_->setE_[index])
+			 > etol){
+			  found = false;
+			  break;
+		      }
 		  }
 	      }
-	  }
-	  if(found == true){
-	      index = ((i + 1) * (sizeFixedInd + 1)) - 1;
-	      solType = model_->setE_[index];
-	      isContainedInSetE_ = true;
-	      break;
+	      if(found == true){
+		  index = ((i + 1) * (sizeFixedInd + 1)) - 1;
+		  solType = model_->setE_[index];
+		  isContainedInSetE_ = true;
+		  break;
+	      }
 	  }
       }
   }
-		  
-		  
+		  		  
   if(isContainedInSetE_ == false){
       if(((branchPar == setI) && (isIntegral_ == true) &&
 	  (isIVarsFixed_ == true)) ||
@@ -271,6 +278,7 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 			      (MibSParams::computeUBWhenIVarsInt));
     int computeUBIVarsFixed(model_->MibSPar_->entry
 			      (MibSParams::computeUBWhenIVarsFixed));
+    int setEPar(model_->MibSPar_->entry(MibSParams::useSetE));
     
     int * fixedInd = model_->fixedInd_;
 
@@ -458,7 +466,7 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 	      lSolver->branchAndBound();
 
 	      //Adding the current solution to set \E
-	      if(isContainedInSetE_ == false){
+	      if((setEPar == PARAM_ON) && (isContainedInSetE_ == false)){
 		  addSolutionToSetE(-1);
 	      }
 						  	    
@@ -538,7 +546,7 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
   else{
       isProvenOptimal_ = false;
       //Adding the current solution to set \E
-      if(isContainedInSetE_ == false){
+      if((setEPar == PARAM_ON) && (isContainedInSetE_ == false)){
 	  addSolutionToSetE(-2);
       }
   }

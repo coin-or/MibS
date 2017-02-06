@@ -162,6 +162,9 @@ MibSParams::createKeywordList() {
    keys_.push_back(make_pair(std::string("MibS_computeUBWhenIVarsFixed"),
 			     AlpsParameter(AlpsIntPar, computeUBWhenIVarsFixed)));
 
+   keys_.push_back(make_pair(std::string("MibS_useSetE"),
+			     AlpsParameter(AlpsIntPar, useSetE)));
+
    //--------------------------------------------------------
    // String Parameters.
    //--------------------------------------------------------
@@ -266,6 +269,8 @@ MibSParams::setDefaultEntries() {
    setEntry(computeUBWhenIVarsInt, PARAM_NOTSET);
 
    setEntry(computeUBWhenIVarsFixed, PARAM_NOTSET);
+
+   setEntry(useSetE, PARAM_NOTSET);
 
    //-------------------------------------------------------------
    // Double Parameters

@@ -72,6 +72,7 @@ class MibSParams : public AlpsParameterSet {
      computeUBWhenXVarsInt,
      computeUBWhenIVarsInt,
      computeUBWhenIVarsFixed,
+     useSetE,
      endOfIntParams
   };
 

@@ -452,6 +452,12 @@ MibSCutGenerator::intersectionCuts(BcpsConstraintPool &conPool,
 	}
 	
 	std::vector<double> alpha(numNonBasic);
+
+	bool shouldFindBestSol(true);
+	if((bS->isContainedInSetE_ == true) || (bS->isUBSolved_ == true) ||
+	   ((bS->isLowerSolved_ == true) && (bS->isProvenOptimal_ == false))){
+	    shouldFindBestSol = false;
+	}
 	
 	switch(ICType){
 	case 1:
@@ -459,20 +465,20 @@ MibSCutGenerator::intersectionCuts(BcpsConstraintPool &conPool,
 					 numNonBasic, sol, alpha);
 	    break;
 	case 2://hypercube IC
-	    if(bS->isContainedInSetE_ == false){ 
+	    if(shouldFindBestSol == true){ 
 		storeBestSolIntersectionCutType2(sol, bS->objVal_);
 	    }
 	    getAlphaIntersectionCutType2(extRay, numStruct, numNonBasic,
 					 alpha);
 	    break;
 	case 3:
-	    if(bS->isContainedInSetE_ == false){
+	    if(shouldFindBestSol == true){
 		storeBestSolIntersectionCutType3(sol, bS->objVal_);
 	    }
 	    getAlphaIntersectionCutType3(extRay, numNonBasic, alpha);
 	    break;
 	case 4:
-	    if(bS->isContainedInSetE_ == false){
+	    if(shouldFindBestSol == true){
 		storeBestSolIntersectionCutType3(sol, bS->objVal_);
 	    }
 	    getAlphaIntersectionCutType2(extRay, numStruct, numNonBasic,
@@ -1493,8 +1499,14 @@ MibSCutGenerator::generalNoGoodCut(BcpsConstraintPool &conPool)
     std::vector<double> valsList;
 
     MibSBilevel *bS = localModel_->bS_;
+
+    bool shouldFindBestSol(true);
+    if((bS->isContainedInSetE_ == true) || (bS->isUBSolved_ == true) ||
+       ((bS->isLowerSolved_ == true) && (bS->isProvenOptimal_ == false))){
+	shouldFindBestSol = false;
+    }
     
-    if(bS->isContainedInSetE_ == false){
+    if(shouldFindBestSol == true){
 	storeBestSolIntersectionCutType2(sol, bS->objVal_);
     }
 
