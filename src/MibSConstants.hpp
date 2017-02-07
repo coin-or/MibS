@@ -45,10 +45,19 @@ enum MibSBranchingProcedure{
 //#############################################################################
 
 /*---------  status of bilevel feasibility (bilevelFeasibility_) ------------*/
+enum MibSFeasibility{
+    unknown = -1,
+    bilevelInfeasible,
+    bilevelFeasible
+};
+
+#if 0
 #define unknown -1
 #define bilevelInfeasible 0
 #define bilevelFeasible 1
+#endif
 
+//############################################################################# 
 /*---------  which_active_con_method choices --------------------------------*/
 #define SIMPLE  0
 #define BASIS  1
