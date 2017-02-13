@@ -54,8 +54,8 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
   int uN(model_->upperDim_); // upper-level dimension
   double etol(model_->BlisPar()->entry(BlisParams::integerTol));
 
-  MibSBranchingProcedure branchPar = static_cast<MibSBranchingProcedure>
-      (model_->MibSPar_->entry(MibSParams::branchProcedure));
+  MibSBranchingStrategy branchPar = static_cast<MibSBranchingStrategy>
+      (model_->MibSPar_->entry(MibSParams::branchStrategy));
 
   int solveLowerXYVarsInt(model_->MibSPar_->entry
 			   (MibSParams::solveLowerWhenXYVarsInt));
@@ -219,9 +219,10 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
   }
 		  		  
   if(isContainedInSetE_ == false){
-      if(((branchPar == setI) && (isIntegral_ == true) &&
-	  (isIVarsFixed_ == true)) ||
-	 ((branchPar == fractional) && (isIntegral_ == true)) ||
+      if(((branchPar == MibSBranchingStrategyLinking) &&
+	  (isIntegral_ == true) && (isIVarsFixed_ == true)) ||
+	 ((branchPar == MibSBranchingStrategyFractional)
+	  && (isIntegral_ == true)) ||
 	 ((solveLowerXYVarsInt == PARAM_ON) && (isIntegral_ == true)) ||
 	 ((solveLowerXVarsInt == PARAM_ON) && (isUpperIntegral_ == true)) ||
 	 ((solveLowerIVarsInt == PARAM_ON) && (isIVarsIntegral_ == true)) ||
@@ -233,7 +234,8 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
   }
   else if((solType == -1) && (isIntegral_ == true) && (isIVarsFixed_ == false) &&
 	  ((solveLowerXYVarsInt == PARAM_ON) || (solveLowerXVarsInt == PARAM_ON) ||
-	   (solveLowerIVarsInt == PARAM_ON)) || (branchPar == fractional)){
+	   (solveLowerIVarsInt == PARAM_ON)) || (branchPar ==
+						 MibSBranchingStrategyFractional)){
       model_->counterVF_ ++;
       isLowerSolved_ = true;
       checkBilevelFeasiblity(mibs->isRoot_);
@@ -272,8 +274,8 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 		 (MibSParams::bilevelProblemType));
     std::string feasCheckSolver(model_->MibSPar_->entry
 				(MibSParams::feasCheckSolver));
-    MibSBranchingProcedure branchPar = static_cast<MibSBranchingProcedure>
-	(model_->MibSPar_->entry(MibSParams::branchProcedure));
+    MibSBranchingStrategy branchPar = static_cast<MibSBranchingStrategy>
+	(model_->MibSPar_->entry(MibSParams::branchStrategy));
     int computeUBXVarsInt(model_->MibSPar_->entry
 			      (MibSParams::computeUBWhenXVarsInt));
     int computeUBIVarsInt(model_->MibSPar_->entry
@@ -437,8 +439,8 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
       }else{
 	  //if(lSolver->isProvenOptimal()){
 	  
-	  if(((branchPar == setI) && (isIntegral_ == true) &&
-	      (isIVarsFixed_ == true)) ||
+	  if(((branchPar == MibSBranchingStrategyLinking) &&
+	      (isIntegral_ == true) && (isIVarsFixed_ == true)) ||
 	     ((computeUBXVarsInt == PARAM_ON) && (isUpperIntegral_ == true)) ||
 	     ((computeUBIVarsInt == PARAM_ON)) ||
 	     ((computeUBIVarsFixed == PARAM_ON) && (isIVarsFixed_ == true))){

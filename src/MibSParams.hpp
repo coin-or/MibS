@@ -49,7 +49,7 @@ class MibSParams : public AlpsParameterSet {
      objBoundStrategy,
      blisCutStrategy,
      blisBranchStrategy,
-     branchProcedure,
+     branchStrategy,
      upperFileFormat,
      maxThreadsLL,
      whichCutsLL,

@@ -1661,8 +1661,8 @@ MibSModel::userFeasibleSolution(const double * solution, bool &userFeasible)
   //bool bilevelbranch = MibSPar_->entry(MibSParams::isBilevelBranchProb);
   bool bilevelbranch = false;
 
-  MibSBranchingProcedure branchPar = static_cast<MibSBranchingProcedure>
-      (MibSPar_->entry(MibSParams::branchProcedure));
+  MibSBranchingStrategy branchPar = static_cast<MibSBranchingStrategy>
+      (MibSPar_->entry(MibSParams::branchStrategy));
 
   if(bilevelbranch){
     for(i = 0; i < solver()->getNumRows(); i++){
@@ -1689,8 +1689,9 @@ MibSModel::userFeasibleSolution(const double * solution, bool &userFeasible)
   }
 
   if(bS_->isIntegral_ == true){
-      if(((branchPar == setI) && (bS_->isIVarsFixed_ == true)) ||
-	 (branchPar == fractional)){
+      if(((branchPar == MibSBranchingStrategyLinking) &&
+	  (bS_->isIVarsFixed_ == true)) ||
+	 (branchPar == MibSBranchingStrategyFractional)){
 	  bS_->useBilevelBranching_ = false;
       }
   }
@@ -3158,18 +3159,21 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix, const double* ro
 	cutType =  MibSPar_->entry(MibSParams::intersectionCutType);
 	if(cutType == 1){
 	    if((isPureInteger_ == false) || (isLowerCoeffInt_ == false)){
-		std::cout << "The intersection cut 1 does not work for this problem.  Automatically disabling this cut." << std::endl;
+		std::cout << "The intersection cut 1 does not work for this problem.  Automatically disabling this cut."
+			  << std::endl;
 		MibSPar()->setEntry(MibSParams::useIntersectionCut, PARAM_OFF);
 	    }
 	}
     }
 
     //Param: "MibS_branchProcedure"
-    MibSBranchingProcedure branchPar = static_cast<MibSBranchingProcedure>
-	  (MibSPar_->entry(MibSParams::branchProcedure));
-    if(branchPar == MibSBranchingProcedureNotSet){
-	MibSPar()->setEntry(MibSParams::branchProcedure, setI);
-	std::cout << "Since no branching procedure is selected, it is set to 'setI' automatically." << std::endl;
+    MibSBranchingStrategy branchPar = static_cast<MibSBranchingStrategy>
+	  (MibSPar_->entry(MibSParams::branchStrategy));
+    if(branchPar == MibSBranchingStrategyNotSet){
+	MibSPar()->setEntry(MibSParams::branchStrategy,
+			    MibSBranchingStrategyLinking);
+	std::cout << "Since no branching procedure is selected, it is set to 'MibSBranchingStrategyLinking' automatically."
+		  << std::endl;
     }
 
     //Param: "MibS_useInterSectionCut" (hypercube IC)
@@ -3180,15 +3184,17 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix, const double* ro
 	   (MibSPar_->entry(MibSParams::useGeneralNoGoodCut) != PARAM_ON) &&
 	   (MibSPar_->entry(MibSParams::useBendersCut) != PARAM_ON) &&
 	   (MibSPar_->entry(MibSParams::useIntersectionCut) != PARAM_ON)){
-	    if(MibSPar_->entry(MibSParams::branchProcedure) == fractional){
+	    if(MibSPar_->entry(MibSParams::branchStrategy) ==
+	       MibSBranchingStrategyFractional){
 		//turn on hupercube IC
 		MibSPar()->setEntry(MibSParams::useIntersectionCut, PARAM_ON);
 		MibSPar()->setEntry(MibSParams::intersectionCutType, 2);
-		std::cout << "Since no appropriate cut is selected and the branching procedure is set to 'fractional', hypercube IC is turned on automatically." << std::endl;
+		std::cout << "Since no appropriate cut is selected and the branching procedure is set to 'MibSBranchingStrategyFractional', hypercube IC is turned on automatically." << std::endl;
 	    }
 	    else{
 		MibSPar()->setEntry(MibSParams::cutStrategy, 1);
-		std::cout << "Since no appropriate cut is selected, pure branch-and-bound algorithm is used." << std::endl;
+		std::cout << "Since no appropriate cut is selected, pure branch-and-bound algorithm is used."
+			  << std::endl;
 	    }
 	}
     }
@@ -3222,11 +3228,15 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix, const double* ro
 	}
     }
 
-    if(MibSPar_->entry(MibSParams::branchProcedure) == setI){
-	std::cout << "Branching procedure is set to 'setI' (new)." << std::endl;
+    if(MibSPar_->entry(MibSParams::branchStrategy) ==
+       MibSBranchingStrategyLinking){
+	std::cout << "Branching procedure is set to 'MibSBranchingStrategyLinking' (new)."
+		  << std::endl;
     }
-    else if(MibSPar_->entry(MibSParams::branchProcedure) == fractional){
-	std::cout << "Branching procedure is set to 'fractional' (old)." << std::endl;
+    else if(MibSPar_->entry(MibSParams::branchStrategy) ==
+	    MibSBranchingStrategyFractional){
+	std::cout << "Branching procedure is set to 'MibSBranchingStrategyFractional' (old)."
+		  << std::endl;
     }
 	
     //Setting parameters of solving (VF) and (UB)

@@ -91,8 +91,8 @@ MibSParams::createKeywordList() {
    keys_.push_back(make_pair(std::string("MibS_blisBranchStrategy"),
 			     AlpsParameter(AlpsIntPar, blisBranchStrategy)));
    
-   keys_.push_back(make_pair(std::string("MibS_branchProcedure"),
-			     AlpsParameter(AlpsIntPar, branchProcedure)));
+   keys_.push_back(make_pair(std::string("MibS_branchStrategy"),
+			     AlpsParameter(AlpsIntPar, branchStrategy)));
  
    keys_.push_back(make_pair(std::string("MibS_upperFileFormat"),
 			     AlpsParameter(AlpsIntPar, upperFileFormat)));
@@ -224,7 +224,7 @@ MibSParams::setDefaultEntries() {
 
    setEntry(blisBranchStrategy, 0);
 
-   setEntry(branchProcedure, MibSBranchingProcedureNotSet);
+   setEntry(branchStrategy, MibSBranchingStrategyNotSet);
 
    setEntry(upperFileFormat, 0);
 

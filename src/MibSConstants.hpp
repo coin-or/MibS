@@ -30,10 +30,10 @@
 
 //#############################################################################    
 
-enum MibSBranchingProcedure{
-    MibSBranchingProcedureNotSet = -1,
-    fractional,
-    setI
+enum MibSBranchingStrategy{
+    MibSBranchingStrategyNotSet = -1,
+    MibSBranchingStrategyFractional,
+    MibSBranchingStrategyLinking
 };
     
 #if 0
