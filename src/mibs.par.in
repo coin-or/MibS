@@ -85,7 +85,7 @@ MibS_objBoundStrategy 0         # 0: LL obj bound, 1: interdiction bound
 MibS_blisCutStrategy -1                 # -2: root, -1: auto, 0: disable, any positive integer
 #MibS_blisBranchStrategy 0      # 0: max inf, 1: pseudocost, 2: relibility, 3: strong
 #MibS_upperFileFormat 0         # 0: mps, 1: AMPL/GMPL (not working, yet)
-MibS_branchProcedure  1
+MibS_branchStrategy  1       # 0: fractional, 1: linking
 MibS_warmStartLL 0
 MibS_maxThreadsLL 1
 MibS_useBendersCut 0
