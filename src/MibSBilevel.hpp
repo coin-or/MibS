@@ -56,7 +56,7 @@ private:
     bool shouldPrune_;
     bool isContainedInSetE_;
 
-    MibSFeasibility bilevelFeasibility_;
+    MibSLPSolStatus LPSolStatus_;
 
     /** Optimal value of LL objective **/
     double objVal_;
@@ -82,7 +82,7 @@ public:
 		    isIVarsFixed_(false), isProvenOptimal_(false),
 		    isLowerSolved_(false), isUBSolved_(false),
 		    shouldPrune_(false), isContainedInSetE_(false),
-		    bilevelFeasibility_(unknown), objVal_(0.0){
+		    LPSolStatus_(MibSLPSolStatusUnknown), objVal_(0.0){
 	upperSolution_ = 0;
 	lowerSolution_ = 0;
 	upperSolutionOrd_ = 0;

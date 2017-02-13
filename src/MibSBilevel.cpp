@@ -98,7 +98,7 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
   isIntegral_ = true;
   isUpperIntegral_ = true;
   isIVarsIntegral_ = true;
-  bilevelFeasibility_ = unknown;
+  LPSolStatus_ = MibSLPSolStatusUnknown;
   isIVarsFixed_ = true;
   isLowerSolved_ = false;
   shouldPrune_ = false;
@@ -127,7 +127,7 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
 	   if(mibs->solver()->isInteger(index)){
 	       isUpperIntegral_ = false;
 	       isIntegral_ = false;
-	       bilevelFeasibility_ = bilevelInfeasible;
+	       LPSolStatus_ = MibSLPSolStatusInfeasible;
 	   }
 #endif
        }  
@@ -139,7 +139,7 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
 	  //It's not really needed
 	  if(mibs->solver()->isInteger(index)){
 	     isIntegral_ = false;
-	     bilevelFeasibility_ = bilevelInfeasible;
+	     LPSolStatus_ = MibSLPSolStatusInfeasible;
 	  }
 #endif
        }    
@@ -248,7 +248,7 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
   }
   
   if((isContainedInSetE_ == true) && (solType == -2)){
-      bilevelFeasibility_ = bilevelInfeasible;
+      LPSolStatus_ = MibSLPSolStatusInfeasible;
   }
 
   /* run a heuristic to find a better feasible solution */
@@ -432,7 +432,7 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 		  lowerSolution_[i] = (double) values[i];
 	  } 
 	  
-	  bilevelFeasibility_ = bilevelFeasible;
+	  LPSolStatus_ = MibSLPSolStatusFeasible;
 	  useBilevelBranching_ = false;
 	  shouldPrune_ = true;
 	  
@@ -528,7 +528,7 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 	      }
 	      
 	  }
-	  bilevelFeasibility_ = bilevelInfeasible;
+	  LPSolStatus_ = MibSLPSolStatusInfeasible;
 	  if(cutStrategy != 1)
 	      useBilevelBranching_ = true;
 	  //Notice:I delete it
@@ -541,7 +541,7 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 	      shouldPrune_ = true;
 	  }
 	  else{
-	      bilevelFeasibility_ = bilevelInfeasible;
+	      LPSolStatus_ = MibSLPSolStatusInfeasible;
 	      if(cutStrategy != 1)
 		  useBilevelBranching_ = true;
 	  }
