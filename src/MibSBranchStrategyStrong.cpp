@@ -158,71 +158,38 @@ MibSBranchStrategyStrong::createCandBranchObjects(int numPassesLeft, double ub)
 		    fixedVar[index]=1;
 		}
 	    }
-	    for (i = 0; i < numCols; ++i) {
-		if(fixedInd[i] == 1){
-		    value = saveSolution[i];
-		    infeasibility = fabs(floor(value + 0.5) - value);
-		    if(infeasibility > etol){
+	}
+
+	for (i = 0; i < numCols; ++i) {
+	    if(colType[i] == 'C'){
+		candidate[i] = 0;
+	    }
+	    else{
+		candidate[i] = 2;
+		value = saveSolution[i];
+		infeasibility = fabs(floor(value + 0.5) - value);
+		if(branchPar == MibSBranchingStrategyLinking){
+		    if((fixedInd[i] == 1) && (fabs(infeasibility) > etol)){
 			found = 1;
 			break;
 		    }
-		}
-	    }
-	}
-
-	//*********
-
-	if(branchPar == MibSBranchingStrategyLinking){
-	    if((bS->isIVarsFixed_ == true) && (bS->isIntegral_ == false)){
-		for(i = 0; i < numCols; ++i){
-		    if(colType[i] == 'C'){
-			candidate[i] = 0;
-		    }
-		    else{
-			candidate[i] = 2;
-			value =saveSolution[i];
-			infeasibility =fabs(floor(value + 0.5) - value);
+		    if((bS->isIVarsFixed_ == true) && (bS->isIntegral_ == false)){
 			if(fabs(infeasibility) > etol){
 			    candidate[i] = 1;
 			}
 		    }
-		}
-	    }
-	    else{
-		for(i = 0; i < numCols; ++i){
-		    if(colType[i] == 'C'){
-			candidate[i] = 0;
-		    }
-		    else{
-			candidate[i] = 2;
-			if(fixedInd[i] == 1){
-			    value =saveSolution[i];
-			    infeasibility =fabs(floor(value + 0.5) - value);
-			    if (((found == 0) && (fixedVar[i] != 1))
-				|| (fabs(infeasibility) > etol)){
-				candidate[i] = 1;
-			    }
-			}
-		    }
-		}
-	    }
-	}
-	else{
-	    for(i = 0; i < numCols; ++i){
-		if(colType[i] == 'C'){
-		    candidate[i] = 0;
-		}
-		else{
-		    candidate[i] = 2;
-		    value =saveSolution[i];
-		    infeasibility =fabs(floor(value + 0.5) - value);
-		    if(infeasibility > etol){
+		    else if((fixedInd[i] == 1) && (((found == 0) &&
+						    (fixedVar[i] != 1)) ||
+						   (fabs(infeasibility) > etol))){
 			candidate[i] = 1;
 		    }
 		}
+		else if(infeasibility > etol){
+		    candidate[i] = 1;
+		}
 	    }
 	}
-	
+
 	//*******
 	
 	//for (i = 0; i < numObjects; ++i) {
