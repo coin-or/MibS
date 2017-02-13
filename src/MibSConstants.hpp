@@ -44,11 +44,10 @@ enum MibSBranchingStrategy{
 
 //#############################################################################
 
-/*---------  status of bilevel feasibility (bilevelFeasibility_) ------------*/
-enum MibSFeasibility{
-    unknown = -1,
-    bilevelInfeasible,
-    bilevelFeasible
+enum MibSLPSolStatus{
+    MibSLPSolStatusUnknown = -1,
+    MibSLPSolStatusInfeasible,
+    MibSLPSolStatusFeasible
 };
 
 #if 0

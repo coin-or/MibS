@@ -374,7 +374,7 @@ MibSTreeNode::process(bool isRoot, bool rampUp)
 	  ipSol = model->feasibleSolution(numIntInfs, numObjInfs);
 
 	  if((bS->useBilevelBranching_ == false) &&
-	     (bS->bilevelFeasibility_ != bilevelFeasible)){
+	     (bS->LPSolStatus_ != MibSLPSolStatusFeasible)){
 	      tailOffTol = -1000;
 	  }
 	  else{
@@ -739,7 +739,8 @@ MibSTreeNode::process(bool isRoot, bool rampUp)
 	    voilatedNumCons = newConPool.getNumConstraints() - tempNumCons;
 	    
 	    // Generate constraints (only if no violated).
-	    if ((voilatedNumCons == 0) && (bS->bilevelFeasibility_ == bilevelInfeasible)) {
+	    if ((voilatedNumCons == 0) && (bS->LPSolStatus_ ==
+					   MibSLPSolStatusInfeasible)) {
 		lpStatus = static_cast<BlisLpStatus> 
 		    (generateConstraints(model, newConPool));
             

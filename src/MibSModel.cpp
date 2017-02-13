@@ -1684,7 +1684,7 @@ MibSModel::userFeasibleSolution(const double * solution, bool &userFeasible)
   if(!bS_->isIntegral_){
     userFeasible = false;
   }
-  else if(bS_->bilevelFeasibility_ != bilevelFeasible){
+  else if(bS_->LPSolStatus_ != MibSLPSolStatusFeasible){
     userFeasible = false;
   }
 
@@ -1754,7 +1754,7 @@ MibSModel::userFeasibleSolution(const double * solution, bool &userFeasible)
       
 	      if(bS_->shouldPrune_){
 		  userFeasible = true;
-		  bS_->bilevelFeasibility_ = bilevelFeasible;
+		  bS_->LPSolStatus_ = MibSLPSolStatusFeasible;
 	      }
 	      else{
                   storeSolution(BlisSolutionTypeHeuristic, mibSol);
