@@ -108,6 +108,7 @@ MibSModel::initialize()
   sizeFixedInd_ = 0;
   counterVF_ = 0;
   counterUB_ = 0;
+  //countTest_ = 0;
   isInterdict_ = false;
   isPureInteger_ = true;
   isUpperCoeffInt_ = true;
@@ -136,7 +137,6 @@ MibSModel::initialize()
   //bindingMethod_ = "BASIS"; //FIXME: should make this a parameter
   MibSPar_ = new MibSParams;
   //maxAuxCols_ = 0; //FIXME: should make this a parameter
-  solIsUpdated_ = false;
 
   MibSCutGenerator *cg = new MibSCutGenerator(this);
 
@@ -1649,21 +1649,25 @@ MibSModel::userFeasibleSolution(const double * solution, bool &userFeasible)
   
   CoinPackedVector *sol = getSolution();
 
-  solIsUpdated_ = true;
-
   MibSSolution *mibSol = NULL;
   userFeasible = true;
   if(0)
     solver()->writeLp("userfeasible1");
 
-  int i(0);
+  int i(0), index(0);
+  double upperObj(0.0);
+  bool isHeurSolution(true);
+  int * upperColInd = getUpperColInd();
+  int * lowerColInd = getLowerColInd();
+  double * lpSolution = new double[getNumCols()];
+  CoinFillN(lpSolution, getNumCols(), 0.0);
+  
+  
 
   //bool bilevelbranch = MibSPar_->entry(MibSParams::isBilevelBranchProb);
   bool bilevelbranch = false;
 
-  MibSBranchingStrategy branchPar = static_cast<MibSBranchingStrategy>
-      (MibSPar_->entry(MibSParams::branchStrategy));
-
+  //sahar:check
   if(bilevelbranch){
     for(i = 0; i < solver()->getNumRows(); i++){
       if(solver()->getRowSense()[i] == 'R'){
@@ -1680,94 +1684,53 @@ MibSModel::userFeasibleSolution(const double * solution, bool &userFeasible)
     solver()->writeLp("userfeasible");
 
   createBilevel(sol);
-  
-  if(!bS_->isIntegral_){
-    userFeasible = false;
+
+  for(i = 0; i < upperDim_; i++){
+      index = upperColInd[i];
+      lpSolution[index] = bS_->optUpperSolutionOrd_[i];
+      upperObj +=
+	  bS_->optUpperSolutionOrd_[i] * solver()->getObjCoefficients()[index];
   }
-  else if(bS_->LPSolStatus_ != MibSLPSolStatusFeasible){
-    userFeasible = false;
+  for(i = 0; i < lowerDim_; i++){
+      index = lowerColInd[i];
+      lpSolution[index] = bS_->optLowerSolutionOrd_[i];
+      upperObj +=
+	  bS_->optLowerSolutionOrd_[i] * solver()->getObjCoefficients()[index];
   }
 
-  if(bS_->isIntegral_ == true){
-      if(((branchPar == MibSBranchingStrategyLinking) &&
-	  (bS_->isIVarsFixed_ == true)) ||
-	 (branchPar == MibSBranchingStrategyFractional)){
-	  bS_->useBilevelBranching_ = false;
+  userFeasible = false;
+  if(bS_->shouldPrune_){
+      userFeasible = true;
+      if(!bS_->isProvenOptimal_){
+	  upperObj = 10000000;
       }
   }
-	  
 
-  /*int shouldPrune(0);
-  if((bS_->isIVarsFixed_) && (bS_->isUBSolved_)){
-      shouldPrune = 1;
-      userFeasible = false;
-      }*/
-
-  /*if((bS_->isLowerSolved_ == false) && (bS_->isIntegral_ == true)){
-      bS_->useCut_ = false;
-  }*/
-  
-  if(userFeasible){
-    //std::cout << "This solution comes from MibSModel.cpp:1637" << std::endl;
-    mibSol = new MibSSolution(getNumCols(),
-			      getLpSolution(),
-			      getLpObjValue() * solver()->getObjSense(),
+  mibSol = NULL;
+  if(userFeasible == true){
+      mibSol = new MibSSolution(getNumCols(),
+				lpSolution,
+				upperObj,
 				this);
   }
-  else{
-      
-      // if((bS_->isLowerSolved_) && ((bS_->isProvenOptimal_) || (bS_->shouldPrune_))){
-      if(((bS_->isLowerSolved_) && (bS_->isProvenOptimal_)) || (bS_->shouldPrune_)){
-	  double * lpSolution = new double[getNumCols()];
-	  int * upperColInd = getUpperColInd();
-	  int * lowerColInd = getLowerColInd();
-	  int i(0), index(0);
-	  double upperObj(0.0);
-	  CoinFillN(lpSolution, getNumCols(), 0.0);
-	  
-	  if(bS_->isProvenOptimal_){
-	      for(i = 0; i < upperDim_; i++){
-		  index = upperColInd[i];
-		  lpSolution[index] = bS_->upperSolutionOrd_[i];
-		  upperObj += 
-		      bS_->upperSolutionOrd_[i] * solver()->getObjCoefficients()[index];
-	      }
-
-	      for(i = 0; i < lowerDim_; i++){
-		  index = lowerColInd[i];
-		  lpSolution[index] = bS_->optLowerSolutionOrd_[i];
-		  upperObj += 
-		      bS_->optLowerSolutionOrd_[i] * solver()->getObjCoefficients()[index];
-	      }
-	  }
-
-	  if((checkUpperFeasibility(lpSolution)) || (!bS_->isProvenOptimal_)){
-	      if(!bS_->isProvenOptimal_){
-		  upperObj = 10000000;
-	      }
-	      
-	      //std::cout << "This solution comes from MibSModel.cpp:1665" << std::endl;
-	      mibSol = new MibSSolution(getNumCols(),
-					lpSolution,
-					upperObj,
-					this);
-      
-	      if(bS_->shouldPrune_){
-		  userFeasible = true;
-		  bS_->LPSolStatus_ = MibSLPSolStatusFeasible;
-	      }
-	      else{
-                  storeSolution(BlisSolutionTypeHeuristic, mibSol);
-		  mibSol = NULL;
-	      }
-	  }
-	  delete [] lpSolution;
+  else if((((bS_->isLowerSolved_) || (bS_->isUBSolved_)) && (bS_->isProvenOptimal_)) ||
+	  ((!bS_->isLowerSolved_) && (bS_->solTagInSetE_ == MibSSetETagVFIsFeasible))){
+      if(!bS_->isUBSolved_){
+	  isHeurSolution = checkUpperFeasibility(lpSolution);
       }
-  }  
+      if(isHeurSolution == true){
+	  mibSol = new MibSSolution(getNumCols(),
+				    lpSolution,
+				    upperObj,
+				    this);
+	  storeSolution(BlisSolutionTypeHeuristic, mibSol);
+	  mibSol = NULL;
+      }
+  }
   
   delete sol;
+  delete [] lpSolution;
   return mibSol;
-   
 }
 
 //#############################################################################
@@ -1785,35 +1748,31 @@ MibSModel::checkUpperFeasibility(double * solution)
   const int * matIndices = matrix->getIndices();
   const int * matStarts = matrix->getVectorStarts();
 
-
   double lhs(0.0);
   int i(0), j(0), index1(0), index2(0), start(0), end(0);
 
-  if(bS_->isUBSolved_ == false){
-      if(bS_->isUpperIntegral_ == false){
+  if(!bS_->isUpperIntegral_){
       upperFeasible = false;
-      }
-      else{
-	  for(i = 0; i < uRows; i++){
-	      index1 = uRowIndices[i];
-	      start = matStarts[index1];
-	      end = start + matrix->getVectorSize(index1);
-	      for(j = start; j < end; j++){
-		  index2 = matIndices[j];
-		  lhs += matElements[j] * solution[index2];
-	      }
-	      if(((RowLb[index1] - lhs) > etol_)
-		 || ((lhs - RowUb[index1]) > etol_)){
-		  upperFeasible = false;
-	      }
-	      lhs = 0.0;
+  }
+  else{
+      for(i = 0; i < uRows; i++){
+	  index1 = uRowIndices[i];
+	  start = matStarts[index1];
+	  end = start + matrix->getVectorSize(index1);
+	  for(j = start; j < end; j++){
+	      index2 = matIndices[j];
+	      lhs += matElements[j] * solution[index2];
 	  }
+	  if(((RowLb[index1] - lhs) > etol_)
+	     || ((lhs - RowUb[index1]) > etol_)){
+	      upperFeasible = false;
+	  }
+	  lhs = 0.0;
       }
   }
-
+  
   return upperFeasible;
 }
-
 
 //#############################################################################
 double

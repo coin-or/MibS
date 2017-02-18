@@ -55,17 +55,18 @@ private:
     /** should prune the node or not **/
     bool shouldPrune_;
     bool isContainedInSetE_;
+    MibSSetETag solTagInSetE_;
+    int indexInSetE_;
 
     MibSLPSolStatus LPSolStatus_;
 
     /** Optimal value of LL objective **/
     double objVal_;
     
-    double *upperSolution_;
-    double *lowerSolution_;
     double *upperSolutionOrd_;
     double *lowerSolutionOrd_;
-    double *optLowerSolution_;
+    //double *optLowerSolution_;
+    double *optUpperSolutionOrd_;// result of solving (UB)
     double *optLowerSolutionOrd_;
    
     MibSModel *model_;
@@ -77,17 +78,17 @@ private:
    
 public:
    
-    MibSBilevel() : isIntegral_(false), isUpperIntegral_(false),
-		    isIVarsIntegral_(false), useBilevelBranching_(false),
-		    isIVarsFixed_(false), isProvenOptimal_(false),
+    MibSBilevel() : isIntegral_(true), isUpperIntegral_(true),
+		    isIVarsIntegral_(true), useBilevelBranching_(true),
+		    isIVarsFixed_(true), isProvenOptimal_(false),
 		    isLowerSolved_(false), isUBSolved_(false),
 		    shouldPrune_(false), isContainedInSetE_(false),
+		    solTagInSetE_(MibSSetETagIsNotSet), indexInSetE_(-1),
 		    LPSolStatus_(MibSLPSolStatusUnknown), objVal_(0.0){
-	upperSolution_ = 0;
-	lowerSolution_ = 0;
 	upperSolutionOrd_ = 0;
 	lowerSolutionOrd_ = 0;
-	optLowerSolution_ = 0;
+	//optLowerSolution_ = 0;
+	optUpperSolutionOrd_ = 0;
 	optLowerSolutionOrd_ = 0;
 	model_ = 0;
 	heuristic_= 0;
@@ -110,13 +111,14 @@ private:
     int findIndex(int index, int size, int * indices);
     OsiSolverInterface * setUpRefineModel(OsiSolverInterface * solver, double objValLL,
 					  bool newOsi, const double *sol = NULL);
-    OsiSolverInterface * setUpModel(OsiSolverInterface * solver, double objValLL,
-				    bool bestSolLL, bool newOsi, const double *sol = NULL);
+    OsiSolverInterface * setUpModel(OsiSolverInterface * solver,
+				    bool newOsi, const double *sol = NULL);
     double getLowerObj(const double * sol, double objSense);
     int binarySearch(int index,int start, int stop, int * indexArray);
     CoinWarmStart * getWarmStart() {return ws_;}
     void setWarmStart(CoinWarmStart * ws) {ws_ = ws;}
-    void addSolutionToSetE(int solType);
+    void addSolutionToSetE(MibSSetETag solTag, std::vector<double>
+		      &shouldStoreValues, double objValue);
     //void findHeuristicSolutions();
     //void objCutHeuristic();
     //void lowerObjHeuristic();

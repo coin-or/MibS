@@ -164,6 +164,14 @@ MibSBranchStrategyPseudo::createCandBranchObjects(int numPassesLeft, double ub)
 		    fixedVar[index]=1;
 		}
 	    }
+	    for (i = 0; i < numCols; ++i) {
+		value = saveSolution[i];
+		infeasibility = fabs(floor(value + 0.5) - value);
+		if((fixedInd[i] == 1) && (fabs(infeasibility) > etol)){
+		    found = 1;
+		    break;
+		}
+	    }
 	}
 	
 	for (i = 0; i < numCols; ++i) {
@@ -175,10 +183,6 @@ MibSBranchStrategyPseudo::createCandBranchObjects(int numPassesLeft, double ub)
 		value = saveSolution[i];
 		infeasibility = fabs(floor(value + 0.5) - value);
 		if(branchPar == MibSBranchingStrategyLinking){
-		    if((fixedInd[i] == 1) && (fabs(infeasibility) > etol)){
-			found = 1;
-			break;
-		    }
 		    if((bS->isIVarsFixed_ == true) && (bS->isIntegral_ == false)){
 			if(fabs(infeasibility) > etol){
 			    candidate[i] = 1;

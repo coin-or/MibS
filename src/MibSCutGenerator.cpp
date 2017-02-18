@@ -1566,7 +1566,7 @@ MibSCutGenerator::findDeepestLandPCut_ValFunc()
   int numLLCols = localModel_->getLowerDim();
   double * upperSol = bS->upperSolutionOrd_; // UL portion from LR soln
   double * lowerSol = bS->lowerSolutionOrd_; // LL portion from LR soln
-  double * optLowerSol = bS->optLowerSolution_; // optimal LL solution 
+  double * optLowerSol = bS->optLowerSolutionOrd_; // optimal LL solution 
 
   /* the negative and positive slopes of the LL value function */
   double leftSlope = localModel_->leftSlope_;
@@ -2528,7 +2528,7 @@ MibSCutGenerator::findDeepestLandPCut1()
   int numLLCols = localModel_->getLowerDim();
   double * upperSol = bS->upperSolutionOrd_; // UL portion from LR soln
   double * lowerSol = bS->lowerSolutionOrd_; // LL portion from LR soln
-  double * optLowerSol = bS->optLowerSolution_; // optimal LL solution 
+  double * optLowerSol = bS->optLowerSolutionOrd_; // optimal LL solution 
 
   /* the negative and positive slopes of the LL value function */
   double leftSlope = localModel_->leftSlope_;
@@ -3208,7 +3208,7 @@ MibSCutGenerator::weakIncObjCutMaximal(BcpsConstraintPool &conPool)
   //if we keep this as our big M, should move (same every time)
   double * tmpsol = new double[lN + uN];
   CoinZeroN(tmpsol, lN + uN);
-  OsiSolverInterface * lSolver = bS->setUpModel(solver, 0, false, tmpsol);
+  OsiSolverInterface * lSolver = bS->setUpModel(solver, tmpsol);
   delete [] tmpsol;
 
 #ifndef COIN_HAS_SYMPHONY
@@ -3248,7 +3248,7 @@ MibSCutGenerator::weakIncObjCutMaximal(BcpsConstraintPool &conPool)
   }
   else{
   
-      OsiSolverInterface * lSolver = bS->setUpModel(solver, 0, false, sol);  
+      OsiSolverInterface * lSolver = bS->setUpModel(solver, sol);  
 
 #ifndef COIN_HAS_SYMPHONY
     dynamic_cast<OsiCbcSolverInterface *> 
@@ -3406,7 +3406,7 @@ MibSCutGenerator::incObjCutMaximal(BcpsConstraintPool &conPool)
   }
   else{
   
-      OsiSolverInterface * lSolver = bS->setUpModel(solver, 0, false, maximalupper);  
+      OsiSolverInterface * lSolver = bS->setUpModel(solver, maximalupper);  
 
 #ifndef COIN_HAS_SYMPHONY
     dynamic_cast<OsiCbcSolverInterface *> 
@@ -3579,7 +3579,7 @@ MibSCutGenerator::incObjCutCurrent(BcpsConstraintPool &conPool)
 
   double * upperSol = bS->upperSolutionOrd_; // UL portion from LR soln
   double * lowerSol = bS->lowerSolutionOrd_; // LL portion from LR soln
-  double * optLowerSol = bS->optLowerSolution_; // optimal LL solution 
+  double * optLowerSol = bS->optLowerSolutionOrd_; // optimal LL solution 
 
   /* 
      returns a double with the values [alpha | beta | gamma]
@@ -3870,21 +3870,12 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
 
     CoinPackedVector *sol = localModel_->getSolution();
 
-    /*localModel_->solIsUpdated_ = false;
-
-    if(localModel_->solIsUpdated_)
-      bS = localModel_->bS_;
-    else
-      bS->createBilevel(sol, localModel_);
-
-      localModel_->solIsUpdated_ = false;*/
-
     if(cutTypes == 0){
       //general type of problem, no specialized cuts
       delete sol;
       if (bS->isIntegral_){
 	  if (useIntersectionCut == PARAM_ON){
-	      intersectionCuts(conPool, bS->optLowerSolution_);
+	      intersectionCuts(conPool, bS->optLowerSolutionOrd_);
 	  }
 
 	  if (useGeneralNoGoodCut == PARAM_ON){

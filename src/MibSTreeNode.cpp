@@ -169,6 +169,9 @@ MibSTreeNode::process(bool isRoot, bool rampUp)
     int maxPass = BlisPar->entry(BlisParams::cutPass);
     double tailOffTol = BlisPar->entry(BlisParams::tailOff);
 
+    MibSBranchingStrategy branchPar = static_cast<MibSBranchingStrategy>
+	(mibsModel->MibSPar_->entry(MibSParams::branchStrategy));
+
     //tailOffTol = 1e-7;
 
     /*if(bS->useBilevelBranching_ == false){
@@ -373,8 +376,10 @@ MibSTreeNode::process(bool isRoot, bool rampUp)
 	  // Check if IP feasible 
 	  ipSol = model->feasibleSolution(numIntInfs, numObjInfs);
 
-	  if((bS->useBilevelBranching_ == false) &&
-	     (bS->LPSolStatus_ != MibSLPSolStatusFeasible)){
+	  //if((bS->useBilevelBranching_ == false) &&
+	  // (bS->LPSolStatus_ != MibSLPSolStatusFeasible)){
+	  if((((branchPar == MibSBranchingStrategyLinking) && (bS->isIVarsFixed_)) ||
+	      (branchPar == MibSBranchingStrategyFractional)) && (bS->isIntegral_)){
 	      tailOffTol = -1000;
 	  }
 	  else{
