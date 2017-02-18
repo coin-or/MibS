@@ -132,6 +132,8 @@ private:
 
     /** the right (positive) slope of the lower-level value function **/
     double rightSlope_;
+
+    //int countTest_;
   
     /** Indices of UL variables **/
     int * upperColInd_;
@@ -189,12 +191,17 @@ private:
 
     /** Max number of aux columns **/
     //int maxAuxCols_;
-
-    /** Indicator telling whether solution has been updated **/
-    bool solIsUpdated_;
-
+    
     /** The set keeps the track of solutions which can be removed **/
     std::vector<int> setE_;
+
+    /** The solution loop which stores the optimal vaalues of 
+	lower-level problem or the optimal solution of problem 
+	and problem (UB) and the optimal values of these problem 
+	for the solutions stored in set E **/
+    std::vector<double> solutionPoolSetE_;
+
+    std::vector<int> addressInSolPool_;
 
 public:
 

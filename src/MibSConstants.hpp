@@ -56,6 +56,15 @@ enum MibSLPSolStatus{
 #define bilevelFeasible 1
 #endif
 
+//#############################################################################
+
+enum MibSSetETag{
+    MibSSetETagIsNotSet = -4,
+    MibSSetETagVFIsInfeasible,
+    MibSSetETagVFIsFeasible,
+    MibSSetETagUBIsSolved
+};  
+
 //############################################################################# 
 /*---------  which_active_con_method choices --------------------------------*/
 #define SIMPLE  0
