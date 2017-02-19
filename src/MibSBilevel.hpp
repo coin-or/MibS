@@ -55,6 +55,7 @@ private:
     /** should prune the node or not **/
     bool shouldPrune_;
     bool isContainedInSetE_;
+    bool haveHeurSolCand_;
     MibSSetETag solTagInSetE_;
     int indexInSetE_;
 
@@ -71,8 +72,7 @@ private:
    
     MibSModel *model_;
     MibSHeuristic *heuristic_;
-    OsiSolverInterface * solver_;
-    OsiSolverInterface * solver2_;  
+    OsiSolverInterface * solver_; 
     CoinWarmStart * ws_;
 
    
@@ -83,8 +83,8 @@ public:
 		    isIVarsFixed_(true), isProvenOptimal_(false),
 		    isLowerSolved_(false), isUBSolved_(false),
 		    shouldPrune_(false), isContainedInSetE_(false),
-		    solTagInSetE_(MibSSetETagIsNotSet), indexInSetE_(-1),
-		    LPSolStatus_(MibSLPSolStatusUnknown), objVal_(0.0){
+		    haveHeurSolCand_(false), solTagInSetE_(MibSSetETagIsNotSet),
+		    indexInSetE_(-1), LPSolStatus_(MibSLPSolStatusUnknown), objVal_(0.0){
 	upperSolutionOrd_ = 0;
 	lowerSolutionOrd_ = 0;
 	//optLowerSolution_ = 0;
@@ -93,7 +93,6 @@ public:
 	model_ = 0;
 	heuristic_= 0;
 	solver_ = 0;
-	solver2_ = 0;
 	ws_ = 0;
     }
    

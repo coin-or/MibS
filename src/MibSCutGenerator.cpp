@@ -250,6 +250,9 @@ MibSCutGenerator::intersectionCuts(BcpsConstraintPool &conPool,
 
         int ICType =
 	    localModel_->MibSPar_->entry(MibSParams::intersectionCutType);
+	
+	int useSetEPar(localModel_->MibSPar_->entry
+		       (MibSParams::useSetE));
 
 	OsiSolverInterface * solver = localModel_->solver();
 
@@ -454,8 +457,10 @@ MibSCutGenerator::intersectionCuts(BcpsConstraintPool &conPool,
 	std::vector<double> alpha(numNonBasic);
 
 	bool shouldFindBestSol(true);
-	if((bS->isContainedInSetE_ == true) || (bS->isUBSolved_ == true) ||
-	   ((bS->isLowerSolved_ == true) && (bS->isProvenOptimal_ == false))){
+	if(((useSetEPar != PARAM_ON) && ((bS->isUBSolved_ == true) ||
+					 ((bS->isLowerSolved_ == true) && (bS->isProvenOptimal_ == false)))) ||
+	   ((useSetEPar == PARAM_ON) && ((bS->solTagInSetE_ == MibSSetETagVFIsInfeasible) ||
+					 (bS->solTagInSetE_ == MibSSetETagUBIsSolved)))){
 	    shouldFindBestSol = false;
 	}
 	
@@ -1482,7 +1487,9 @@ MibSCutGenerator::generalNoGoodCut(BcpsConstraintPool &conPool)
     /** Add specialized bilevel feasibility cuts, as appropriate **/
 
     //std::cout << "Generating No-Good Cuts." << std::endl;
-
+    int useSetEPar(localModel_->MibSPar_->entry
+		   (MibSParams::useSetE));
+    
     OsiSolverInterface * solver = localModel_->solver();
 
     int numCuts(0);
@@ -1501,10 +1508,14 @@ MibSCutGenerator::generalNoGoodCut(BcpsConstraintPool &conPool)
     MibSBilevel *bS = localModel_->bS_;
 
     bool shouldFindBestSol(true);
-    if((bS->isContainedInSetE_ == true) || (bS->isUBSolved_ == true) ||
-       ((bS->isLowerSolved_ == true) && (bS->isProvenOptimal_ == false))){
+
+    if(((useSetEPar != PARAM_ON) && ((bS->isUBSolved_ == true) ||
+				     ((bS->isLowerSolved_ == true) && (bS->isProvenOptimal_ == false)))) ||
+       ((useSetEPar == PARAM_ON) && ((bS->solTagInSetE_ == MibSSetETagVFIsInfeasible) ||
+				     (bS->solTagInSetE_ == MibSSetETagUBIsSolved)))){
 	shouldFindBestSol = false;
     }
+
     
     if(shouldFindBestSol == true){
 	storeBestSolIntersectionCutType2(sol, bS->objVal_);
