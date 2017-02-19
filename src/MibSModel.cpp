@@ -108,7 +108,7 @@ MibSModel::initialize()
   sizeFixedInd_ = 0;
   counterVF_ = 0;
   counterUB_ = 0;
-  //countTest_ = 0;
+  countTest_ = 0;
   isInterdict_ = false;
   isPureInteger_ = true;
   isUpperCoeffInt_ = true;
@@ -1650,7 +1650,7 @@ MibSModel::userFeasibleSolution(const double * solution, bool &userFeasible)
   CoinPackedVector *sol = getSolution();
 
   MibSSolution *mibSol = NULL;
-  userFeasible = true;
+  
   if(0)
     solver()->writeLp("userfeasible1");
 
@@ -1706,13 +1706,13 @@ MibSModel::userFeasibleSolution(const double * solution, bool &userFeasible)
       }
   }
 
-  mibSol = NULL;
   if(userFeasible == true){
       mibSol = new MibSSolution(getNumCols(),
 				lpSolution,
 				upperObj,
 				this);
   }
+  //else if(bS_->haveHeurSolCand_){
   else if((((bS_->isLowerSolved_) || (bS_->isUBSolved_)) && (bS_->isProvenOptimal_)) ||
 	  ((!bS_->isLowerSolved_) && (bS_->solTagInSetE_ == MibSSetETagVFIsFeasible))){
       if(!bS_->isUBSolved_){

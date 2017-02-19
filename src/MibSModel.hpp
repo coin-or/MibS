@@ -133,7 +133,7 @@ private:
     /** the right (positive) slope of the lower-level value function **/
     double rightSlope_;
 
-    //int countTest_;
+    int countTest_;
   
     /** Indices of UL variables **/
     int * upperColInd_;

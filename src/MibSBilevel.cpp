@@ -102,13 +102,20 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
   isIVarsIntegral_ = true;
   LPSolStatus_ = MibSLPSolStatusUnknown;
   isIVarsFixed_ = true;
-  isLowerSolved_ = false;
   shouldPrune_ = false;
+  isLowerSolved_ = false;
   isUBSolved_ = false;
   isContainedInSetE_ = false;
   useBilevelBranching_ = true;
   isProvenOptimal_ = false;
   solTagInSetE_ = MibSSetETagIsNotSet;
+  haveHeurSolCand_ = false;
+
+  model_->countTest_ ++;
+  /*std::cout << "countTest = " << model_->countTest_ << std::endl;
+  if(model_->countTest_ == 82){
+      std::cout << "stopHere" << std::endl;
+      }*/
   
   int * lowerColInd = mibs->getLowerColInd();
   int * upperColInd = mibs->getUpperColInd();
@@ -193,36 +200,32 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
   int num(0);
   bool found(true);
 
-  if(useSetEPar != PARAM_ON){
-      isContainedInSetE_ = false;
-  }
-  else{
-      if(isIVarsIntegral_){
-	  for(i = 0; i < numSavedSol; i++){
-	      num = 0;
-	      found = true;
-	      for(j = 0; j < uN; j++){
-		  pos = upperColInd[j];
-		  index = (i * (sizeFixedInd + 1)) + num;
-		  if(fixedInd[pos] == 1){
-		      num ++;
-		      if(fabs(upperSolutionOrd_[j] - model_->setE_[index])
-			 > etol){
-			  found = false;
-			  break;
-		      }
+  if(isIVarsIntegral_){
+      for(i = 0; i < numSavedSol; i++){
+	  num = 0;
+	  found = true;
+	  for(j = 0; j < uN; j++){
+	      pos = upperColInd[j];
+	      index = (i * (sizeFixedInd + 1)) + num;
+	      if(fixedInd[pos] == 1){
+		  num ++;
+		  if(fabs(upperSolutionOrd_[j] - model_->setE_[index])
+		     > etol){
+		      found = false;
+		      break;
 		  }
 	      }
-	      if(found == true){
-		  index = ((i + 1) * (sizeFixedInd + 1)) - 1;
-		  solType = model_->setE_[index];
-		  indexInSetE_ = ((index + 1)/(sizeFixedInd + 1));
-		  isContainedInSetE_ = true;
-		  break;
-	      }
+	  }
+	  if(found == true){
+	      index = ((i + 1) * (sizeFixedInd + 1)) - 1;
+	      solType = model_->setE_[index];
+	      indexInSetE_ = ((index + 1)/(sizeFixedInd + 1));
+	      isContainedInSetE_ = true;
+	      break;
 	  }
       }
   }
+  
 
   if(isContainedInSetE_){
       solTagInSetE_ = static_cast<MibSSetETag>(solType);
@@ -232,27 +235,28 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
   }
 
   //steps 5-6
-  if((isIVarsFixed_) &&
-     (isContainedInSetE_) && ((solTagInSetE_ == MibSSetETagVFIsInfeasible) ||
-			      (solTagInSetE_ == MibSSetETagUBIsSolved))){
+  if((isIVarsFixed_) && ((solTagInSetE_ == MibSSetETagVFIsInfeasible) ||
+			 (solTagInSetE_ == MibSSetETagUBIsSolved))){
       useBilevelBranching_ = false;
       isProvenOptimal_ = false;
       shouldPrune_ = true;
   }
 
   //step 7
-  if(((solTagInSetE_ == MibSSetETagVFIsFeasible)
-      || (solTagInSetE_ == MibSSetETagUBIsSolved)) ||
-     ((!isContainedInSetE_) &&
-     (((branchPar == MibSBranchingStrategyLinking) &&
-       (isIntegral_) && (isIVarsFixed_)) ||
-      ((branchPar == MibSBranchingStrategyFractional)
-       && (isIntegral_)) ||
-      ((solveLowerXYVarsInt == PARAM_ON) && (isIntegral_)) ||
-      ((solveLowerXVarsInt == PARAM_ON) && (isUpperIntegral_)) ||
-      ((solveLowerIVarsInt == PARAM_ON) && (isIVarsIntegral_)) ||
-      ((solveLowerIVarsFixed == PARAM_ON) && (isIVarsFixed_ ))))){
-      checkBilevelFeasiblity(mibs->isRoot_);
+  if(!shouldPrune_){
+      if(((solTagInSetE_ == MibSSetETagVFIsFeasible)
+	  || (solTagInSetE_ == MibSSetETagUBIsSolved)) ||
+	 ((!isContainedInSetE_) &&
+	  (((branchPar == MibSBranchingStrategyLinking) &&
+	    (isIntegral_) && (isIVarsFixed_)) ||
+	   ((branchPar == MibSBranchingStrategyFractional)
+	    && (isIntegral_)) ||
+	   ((solveLowerXYVarsInt == PARAM_ON) && (isIntegral_)) ||
+	   ((solveLowerXVarsInt == PARAM_ON) && (isUpperIntegral_)) ||
+	   ((solveLowerIVarsInt == PARAM_ON) && (isIVarsIntegral_)) ||
+	   ((solveLowerIVarsFixed == PARAM_ON) && (isIVarsFixed_ ))))){
+	  checkBilevelFeasiblity(mibs->isRoot_);
+      }
   }
   if(cutStrategy == 1){
       useBilevelBranching_ = false;
@@ -438,7 +442,7 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 		node->setIsBoundSet(true);
 	    }
 	}
-    } 
+    }
 
     //step 13
     if(((!useSetEPar) && (isProvenOptimal_)) || ((solTagInSetE_ == MibSSetETagVFIsFeasible) || (solTagInSetE_ ==
@@ -456,9 +460,9 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 	    length = model_->addressInSolPool_[index + 1];
 	    
 	    if(length == lN + 1){
-		if(solTagInSetE_ == MibSSetETagUBIsSolved){
+		/*if(solTagInSetE_ == MibSSetETagUBIsSolved){
 		    LPSolStatus_ = MibSLPSolStatusInfeasible;
-		}
+		    }*/
 		objVal = model_->solutionPoolSetE_[pos + lN];
 		for(i = 0; i < lN; i++){
 		    lowerSol[i] = model_->solutionPoolSetE_[i + pos];
@@ -517,6 +521,7 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 		model_->counterUB_ ++;
 		isUBSolved_ = true;
 		if(UBSolver->isProvenOptimal()){
+		    haveHeurSolCand_ = true;
 		    isProvenOptimal_ = true;
 		    const double * valuesUB = UBSolver->getColSolution();
 		    for(i = 0; i < uN + lN; i++){
@@ -562,6 +567,7 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 	    }
 	    else if((solTagInSetE_ != MibSSetETagUBIsSolved) ||
 		    ((!useSetEPar) && (isUBSolved_))){
+		haveHeurSolCand_ = true;
 		for(i = 0; i < lN; i++){
 		    index = lowerColInd[i];
 		    if(model_->solver()->isInteger(index)){
