@@ -131,7 +131,7 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
     if(binarySearch(0, uN - 1, index, upperColInd) >= 0){
        if(fabs(floor(value + 0.5) - value) > etol){
 #if 1
-	   if(fixedInd[i] == 1){
+	   if(fixedInd[index] == 1){
 	       isIVarsIntegral_ = false;
 	   }
 	   if(mibs->solver()->isInteger(index)){
