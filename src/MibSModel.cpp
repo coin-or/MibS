@@ -3213,12 +3213,12 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix, const double* ro
 
     if(MibSPar_->entry(MibSParams::branchStrategy) ==
        MibSBranchingStrategyLinking){
-	std::cout << "Branching procedure is set to 'MibSBranchingStrategyLinking' (new)."
+	std::cout << "Branching procedure is set to 'MibSBranchingStrategyLinking'."
 		  << std::endl;
     }
     else if(MibSPar_->entry(MibSParams::branchStrategy) ==
 	    MibSBranchingStrategyFractional){
-	std::cout << "Branching procedure is set to 'MibSBranchingStrategyFractional' (old)."
+	std::cout << "Branching procedure is set to 'MibSBranchingStrategyFractional'."
 		  << std::endl;
     }
 	
@@ -3227,27 +3227,27 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix, const double* ro
 					    solveLowerWhenXYVarsInt));
     int solveLowerXVarsInt(MibSPar_->entry(MibSParams::
 					   solveLowerWhenXVarsInt));
-    int solveLowerIVarsInt(MibSPar_->entry(MibSParams::
-					   solveLowerWhenIVarsInt));
-    int solveLowerIVarsFixed(MibSPar_->entry(MibSParams::
-					     solveLowerWhenIVarsFixed));
+    int solveLowerLinkVarsInt(MibSPar_->entry(MibSParams::
+					      solveLowerWhenLinkVarsInt));
+    int solveLowerLinkVarsFixed(MibSPar_->entry(MibSParams::
+						solveLowerWhenLinkVarsFixed));
     int computeUBXVarsInt(MibSPar_->entry(MibSParams::
 					      computeUBWhenXVarsInt));
-    int computeUBIVarsInt(MibSPar_->entry(MibSParams::
-					      computeUBWhenIVarsInt));
-    int computeUBIVarsFixed(MibSPar_->entry(MibSParams::
-						computeUBWhenIVarsFixed));
+    int computeUBLinkVarsInt(MibSPar_->entry(MibSParams::
+					     computeUBWhenLinkVarsInt));
+    int computeUBLinkVarsFixed(MibSPar_->entry(MibSParams::
+					       computeUBWhenLinkVarsFixed));
 
     if((solveLowerXYVarsInt == PARAM_NOTSET) &&
        (solveLowerXVarsInt == PARAM_NOTSET) &&
-       (solveLowerIVarsInt == PARAM_NOTSET) &&
-       (solveLowerIVarsFixed == PARAM_NOTSET) &&
+       (solveLowerLinkVarsInt == PARAM_NOTSET) &&
+       (solveLowerLinkVarsFixed == PARAM_NOTSET) &&
        (computeUBXVarsInt == PARAM_NOTSET) &&
-       (computeUBIVarsInt == PARAM_NOTSET) &&
-       (computeUBIVarsFixed == PARAM_NOTSET)){
+       (computeUBLinkVarsInt == PARAM_NOTSET) &&
+       (computeUBLinkVarsFixed == PARAM_NOTSET)){
 	MibSPar()->setEntry(MibSParams::solveLowerWhenXVarsInt, PARAM_ON);
-	MibSPar()->setEntry(MibSParams::solveLowerWhenIVarsFixed, PARAM_ON);
-	MibSPar()->setEntry(MibSParams::computeUBWhenIVarsFixed, PARAM_ON);
+	MibSPar()->setEntry(MibSParams::solveLowerWhenLinkVarsFixed, PARAM_ON);
+	MibSPar()->setEntry(MibSParams::computeUBWhenLinkVarsFixed, PARAM_ON);
     }
 
     //Setting "useSetE" parameter

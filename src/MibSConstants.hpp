@@ -35,13 +35,7 @@ enum MibSBranchingStrategy{
     MibSBranchingStrategyFractional,
     MibSBranchingStrategyLinking
 };
-    
-#if 0
-#define PARAM_NOTSET  -1
-#define fractional     0
-#define setI           1
-#endif
-
+ 
 //#############################################################################
 
 enum MibSLPSolStatus{
@@ -49,12 +43,6 @@ enum MibSLPSolStatus{
     MibSLPSolStatusInfeasible,
     MibSLPSolStatusFeasible
 };
-
-#if 0
-#define unknown -1
-#define bilevelInfeasible 0
-#define bilevelFeasible 1
-#endif
 
 //#############################################################################
 

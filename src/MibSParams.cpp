@@ -146,21 +146,21 @@ MibSParams::createKeywordList() {
    keys_.push_back(make_pair(std::string("MibS_solveLowerWhenXVarsInt"),
 			     AlpsParameter(AlpsIntPar, solveLowerWhenXVarsInt)));
 
-   keys_.push_back(make_pair(std::string("MibS_solveLowerWhenIVarsInt"),
-			     AlpsParameter(AlpsIntPar, solveLowerWhenIVarsInt)));
+   keys_.push_back(make_pair(std::string("MibS_solveLowerWhenLinkVarsInt"),
+			     AlpsParameter(AlpsIntPar, solveLowerWhenLinkVarsInt)));
 
-   keys_.push_back(make_pair(std::string("MibS_solveLowerWhenIVarsFixed"),
-			     AlpsParameter(AlpsIntPar, solveLowerWhenIVarsFixed)));
+   keys_.push_back(make_pair(std::string("MibS_solveLowerWhenLinkVarsFixed"),
+			     AlpsParameter(AlpsIntPar, solveLowerWhenLinkVarsFixed)));
 
    //solve problem UB
    keys_.push_back(make_pair(std::string("MibS_computeUBWhenXVarsInt"),
 			     AlpsParameter(AlpsIntPar, computeUBWhenXVarsInt)));
 
-   keys_.push_back(make_pair(std::string("MibS_computeUBWhenIVarsInt"),
-			     AlpsParameter(AlpsIntPar, computeUBWhenIVarsInt)));
+   keys_.push_back(make_pair(std::string("MibS_computeUBWhenLinkVarsInt"),
+			     AlpsParameter(AlpsIntPar, computeUBWhenLinkVarsInt)));
 
-   keys_.push_back(make_pair(std::string("MibS_computeUBWhenIVarsFixed"),
-			     AlpsParameter(AlpsIntPar, computeUBWhenIVarsFixed)));
+   keys_.push_back(make_pair(std::string("MibS_computeUBWhenLinkVarsFixed"),
+			     AlpsParameter(AlpsIntPar, computeUBWhenLinkVarsFixed)));
 
    keys_.push_back(make_pair(std::string("MibS_useSetE"),
 			     AlpsParameter(AlpsIntPar, useSetE)));
@@ -260,15 +260,15 @@ MibSParams::setDefaultEntries() {
 
    setEntry(solveLowerWhenXVarsInt, PARAM_NOTSET);
 
-   setEntry(solveLowerWhenIVarsInt, PARAM_NOTSET);
+   setEntry(solveLowerWhenLinkVarsInt, PARAM_NOTSET);
 
-   setEntry(solveLowerWhenIVarsFixed, PARAM_NOTSET);
+   setEntry(solveLowerWhenLinkVarsFixed, PARAM_NOTSET);
 
    setEntry(computeUBWhenXVarsInt, PARAM_NOTSET);
 
-   setEntry(computeUBWhenIVarsInt, PARAM_NOTSET);
+   setEntry(computeUBWhenLinkVarsInt, PARAM_NOTSET);
 
-   setEntry(computeUBWhenIVarsFixed, PARAM_NOTSET);
+   setEntry(computeUBWhenLinkVarsFixed, PARAM_NOTSET);
 
    setEntry(useSetE, PARAM_NOTSET);
 

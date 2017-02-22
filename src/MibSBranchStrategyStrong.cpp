@@ -173,7 +173,7 @@ MibSBranchStrategyStrong::createCandBranchObjects(int numPassesLeft, double ub)
 			found = 1;
 			break;
 		    }
-		    if((bS->isIVarsFixed_ == true) && (bS->isIntegral_ == false)){
+		    if((bS->isLinkVarsFixed_ == true) && (bS->isIntegral_ == false)){
 			if(fabs(infeasibility) > etol){
 			    candidate[i] = 1;
 			}

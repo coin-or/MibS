@@ -67,11 +67,11 @@ class MibSParams : public AlpsParameterSet {
      intersectionCutType,
      solveLowerWhenXYVarsInt,
      solveLowerWhenXVarsInt,
-     solveLowerWhenIVarsInt,
-     solveLowerWhenIVarsFixed,
+     solveLowerWhenLinkVarsInt,
+     solveLowerWhenLinkVarsFixed,
      computeUBWhenXVarsInt,
-     computeUBWhenIVarsInt,
-     computeUBWhenIVarsFixed,
+     computeUBWhenLinkVarsInt,
+     computeUBWhenLinkVarsFixed,
      useSetE,
      endOfIntParams
   };

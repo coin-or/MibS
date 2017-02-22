@@ -183,7 +183,7 @@ MibSBranchStrategyPseudo::createCandBranchObjects(int numPassesLeft, double ub)
 		value = saveSolution[i];
 		infeasibility = fabs(floor(value + 0.5) - value);
 		if(branchPar == MibSBranchingStrategyLinking){
-		    if((bS->isIVarsFixed_ == true) && (bS->isIntegral_ == false)){
+		    if((bS->isLinkVarsFixed_ == true) && (bS->isIntegral_ == false)){
 			if(fabs(infeasibility) > etol){
 			    candidate[i] = 1;
 			}

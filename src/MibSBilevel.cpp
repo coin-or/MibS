@@ -62,10 +62,10 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
 			   (MibSParams::solveLowerWhenXYVarsInt));
   int solveLowerXVarsInt(model_->MibSPar_->entry
 			  (MibSParams::solveLowerWhenXVarsInt));
-  int solveLowerIVarsInt(model_->MibSPar_->entry
-			  (MibSParams::solveLowerWhenIVarsInt));
-  int solveLowerIVarsFixed(model_->MibSPar_->entry
-			    (MibSParams::solveLowerWhenIVarsFixed));
+  int solveLowerLinkVarsInt(model_->MibSPar_->entry
+			  (MibSParams::solveLowerWhenLinkVarsInt));
+  int solveLowerLinkVarsFixed(model_->MibSPar_->entry
+			    (MibSParams::solveLowerWhenLinkVarsFixed));
   int cutStrategy(model_->MibSPar_->entry
 		  (MibSParams::cutStrategy));
 
@@ -99,9 +99,9 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
   
   isIntegral_ = true;
   isUpperIntegral_ = true;
-  isIVarsIntegral_ = true;
+  isLinkVarsIntegral_ = true;
   LPSolStatus_ = MibSLPSolStatusUnknown;
-  isIVarsFixed_ = true;
+  isLinkVarsFixed_ = true;
   shouldPrune_ = false;
   isLowerSolved_ = false;
   isUBSolved_ = false;
@@ -128,7 +128,7 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
        if(fabs(floor(value + 0.5) - value) > etol){
 #if 1
 	   if(fixedInd[index] == 1){
-	       isIVarsIntegral_ = false;
+	       isLinkVarsIntegral_ = false;
 	   }
 	   if(mibs->solver()->isInteger(index)){
 	       isUpperIntegral_ = false;
@@ -155,7 +155,7 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
   for(i = 0; i < N; i ++){
       if(binarySearch(0, uN - 1, i, upperColInd) >= 0){
 	  if((fixedInd[i] == 1) && (fabs(upper[i] - lower[i]) > etol)){
-	      isIVarsFixed_ = false;
+	      isLinkVarsFixed_ = false;
 	      break;
 	  }
       }
@@ -196,7 +196,7 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
   int num(0);
   bool found(true);
 
-  if(isIVarsIntegral_){
+  if(isLinkVarsIntegral_){
       for(i = 0; i < numSavedSol; i++){
 	  num = 0;
 	  found = true;
@@ -231,7 +231,7 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
   }
 
   //steps 5-6
-  if((isIVarsFixed_) && ((solTagInSetE_ == MibSSetETagVFIsInfeasible) ||
+  if((isLinkVarsFixed_) && ((solTagInSetE_ == MibSSetETagVFIsInfeasible) ||
 			 (solTagInSetE_ == MibSSetETagUBIsSolved))){
       useBilevelBranching_ = false;
       isProvenOptimal_ = false;
@@ -244,13 +244,13 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
 	  || (solTagInSetE_ == MibSSetETagUBIsSolved)) ||
 	 ((!isContainedInSetE_) &&
 	  (((branchPar == MibSBranchingStrategyLinking) &&
-	    (isIntegral_) && (isIVarsFixed_)) ||
+	    (isIntegral_) && (isLinkVarsFixed_)) ||
 	   ((branchPar == MibSBranchingStrategyFractional)
 	    && (isIntegral_)) ||
 	   ((solveLowerXYVarsInt == PARAM_ON) && (isIntegral_)) ||
 	   ((solveLowerXVarsInt == PARAM_ON) && (isUpperIntegral_)) ||
-	   ((solveLowerIVarsInt == PARAM_ON) && (isIVarsIntegral_)) ||
-	   ((solveLowerIVarsFixed == PARAM_ON) && (isIVarsFixed_ ))))){
+	   ((solveLowerLinkVarsInt == PARAM_ON) && (isLinkVarsIntegral_)) ||
+	   ((solveLowerLinkVarsFixed == PARAM_ON) && (isLinkVarsFixed_ ))))){
 	  checkBilevelFeasiblity(mibs->isRoot_);
       }
   }
@@ -278,10 +278,10 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 	(model_->MibSPar_->entry(MibSParams::branchStrategy));
     int computeUBXVarsInt(model_->MibSPar_->entry
 			      (MibSParams::computeUBWhenXVarsInt));
-    int computeUBIVarsInt(model_->MibSPar_->entry
-			      (MibSParams::computeUBWhenIVarsInt));
-    int computeUBIVarsFixed(model_->MibSPar_->entry
-			      (MibSParams::computeUBWhenIVarsFixed));
+    int computeUBLinkVarsInt(model_->MibSPar_->entry
+			      (MibSParams::computeUBWhenLinkVarsInt));
+    int computeUBLinkVarsFixed(model_->MibSPar_->entry
+			      (MibSParams::computeUBWhenLinkVarsFixed));
     int useSetEPar(model_->MibSPar_->entry(MibSParams::useSetE));
     int lN(model_->lowerDim_); // lower-level dimension
     int uN(model_->upperDim_); // lower-level dimension
@@ -490,10 +490,10 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 	    //step 18
 	    if((solTagInSetE_ != MibSSetETagUBIsSolved) &&
 	       (((branchPar == MibSBranchingStrategyLinking) &&
-		 (isIntegral_) && (isIVarsFixed_)) ||
+		 (isIntegral_) && (isLinkVarsFixed_)) ||
 		((computeUBXVarsInt == PARAM_ON) && (isUpperIntegral_)) ||
-		((computeUBIVarsInt == PARAM_ON)) ||
-		((computeUBIVarsFixed == PARAM_ON) && (isIVarsFixed_)))){  
+		((computeUBLinkVarsInt == PARAM_ON)) ||
+		((computeUBLinkVarsFixed == PARAM_ON) && (isLinkVarsFixed_)))){  
 		if(UBSolver){
 		    delete UBSolver;
 		}
@@ -555,7 +555,7 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 		shouldStoreValues.clear();
 	    
 		//step 23
-		if(isIVarsFixed_){
+		if(isLinkVarsFixed_){
 		    useBilevelBranching_ = false;
 		    //isProvenOptimal_ = false;
 		    shouldPrune_ = true;
@@ -658,7 +658,7 @@ MibSBilevel::setUpUBModel(OsiSolverInterface * oSolver, double objValLL,
 	index1 = uColIndices[i];
 	colLb[index1] = origColLb[index1];
 	colUb[index1] = origColUb[index1];
-	if(isIVarsFixed_ == false){
+	if(isLinkVarsFixed_ == false){
 	    if(fixedInd[index1] == 1){
 		colLb[index1] = floor(lpSol[index1] + 0.5);
 		colUb[index1] = colLb[index1];
