@@ -111,11 +111,7 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
   solTagInSetE_ = MibSSetETagIsNotSet;
   haveHeurSolCand_ = false;
 
-  model_->countTest_ ++;
-  /*std::cout << "countTest = " << model_->countTest_ << std::endl;
-  if(model_->countTest_ == 82){
-      std::cout << "stopHere" << std::endl;
-      }*/
+  model_->countIteration_ ++;
   
   int * lowerColInd = mibs->getLowerColInd();
   int * upperColInd = mibs->getUpperColInd();
@@ -501,7 +497,7 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 		if(UBSolver){
 		    delete UBSolver;
 		}
-		UBSolver = setUpRefineModel(model_->getSolver(), objVal, true);
+		UBSolver = setUpUBModel(model_->getSolver(), objVal, true);
 	    
 #ifndef COIN_HAS_SYMPHONY
 		dynamic_cast<OsiCbcSolverInterface *>
@@ -598,7 +594,7 @@ MibSBilevel::gutsOfDestructor()
 
 //#############################################################################
 OsiSolverInterface *
-MibSBilevel::setUpRefineModel(OsiSolverInterface * oSolver, double objValLL,
+MibSBilevel::setUpUBModel(OsiSolverInterface * oSolver, double objValLL,
 			      bool newOsi, const double *lpSol)
 {
     int probType =
@@ -625,24 +621,25 @@ MibSBilevel::setUpRefineModel(OsiSolverInterface * oSolver, double objValLL,
     double tmp(0.0);
 
     int uCols(model_->getUpperDim());
-    int uRows(model_->getUpperRowNum());
+    int uRows(model_->getOrigUpperRowNum());
     int lRows(model_->getLowerRowNum());
     int lCols(model_->getLowerDim());
     double objSense(model_->getLowerObjSense());
     double uObjSense(1);
     int * uColIndices = model_->getUpperColInd();
     int * lColIndices = model_->getLowerColInd();
-    int * uRowIndices = model_->getUpperRowInd();
+    int * uRowIndices = model_->getOrigUpperRowInd();
     int * lRowIndices = model_->getLowerRowInd();
     const double * origColLb = model_->getOrigColLb();
     const double * origColUb = model_->getOrigColUb();
     double * lObjCoeffs = model_->getLowerObjCoeffs();
     const double * uObjCoeffs = oSolver->getObjCoefficients();
 
-    const CoinPackedMatrix * matrix = oSolver->getMatrixByRow();
+    CoinPackedMatrix * matrix = NULL;
+    matrix = model_->origConstCoefMatrix_;
 
-    int rowNum(oSolver->getNumRows()+1);
-    int colNum(oSolver->getNumCols());
+    int rowNum(model_->getNumOrigCons() + 1);
+    int colNum(model_->getNumOrigVars());
     double * rowUb = new double[rowNum];
     double * rowLb = new double[rowNum];
     double * colUb = new double[colNum];
@@ -653,14 +650,14 @@ MibSBilevel::setUpRefineModel(OsiSolverInterface * oSolver, double objValLL,
 
     /** Set the row bounds **/
     for(i = 0; i < rowNum-1; i++){
-	rowLb[i] = oSolver->getRowLower()[i];
-	rowUb[i] = oSolver->getRowUpper()[i];
+	rowLb[i] = model_->getOrigRowLb()[i];
+	rowUb[i] = model_->getOrigRowUb()[i];
     }
 
     for(i = 0; i < uCols; i++){
 	index1 = uColIndices[i];
-	colLb[index1] = oSolver->getColLower()[index1];
-	colUb[index1] = oSolver->getColUpper()[index1];
+	colLb[index1] = origColLb[index1];
+	colUb[index1] = origColUb[index1];
 	if(isIVarsFixed_ == false){
 	    if(fixedInd[index1] == 1){
 		colLb[index1] = floor(lpSol[index1] + 0.5);
