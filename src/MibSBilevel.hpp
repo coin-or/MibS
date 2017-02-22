@@ -44,9 +44,9 @@ private:
 
     bool isIntegral_;
     bool isUpperIntegral_;
-    bool isIVarsIntegral_;
+    bool isLinkVarsIntegral_;
     bool useBilevelBranching_;
-    bool isIVarsFixed_;
+    bool isLinkVarsFixed_;
     bool isProvenOptimal_;
     /** is lower-level problem solved or not **/
     bool isLowerSolved_;
@@ -79,8 +79,8 @@ private:
 public:
    
     MibSBilevel() : isIntegral_(true), isUpperIntegral_(true),
-		    isIVarsIntegral_(true), useBilevelBranching_(true),
-		    isIVarsFixed_(true), isProvenOptimal_(false),
+		    isLinkVarsIntegral_(true), useBilevelBranching_(true),
+		    isLinkVarsFixed_(true), isProvenOptimal_(false),
 		    isLowerSolved_(false), isUBSolved_(false),
 		    shouldPrune_(false), isContainedInSetE_(false),
 		    haveHeurSolCand_(false), solTagInSetE_(MibSSetETagIsNotSet),
