@@ -108,7 +108,7 @@ public:
 private:
    
     int findIndex(int index, int size, int * indices);
-    OsiSolverInterface * setUpRefineModel(OsiSolverInterface * solver, double objValLL,
+    OsiSolverInterface * setUpUBModel(OsiSolverInterface * solver, double objValLL,
 					  bool newOsi, const double *sol = NULL);
     OsiSolverInterface * setUpModel(OsiSolverInterface * solver,
 				    bool newOsi, const double *sol = NULL);

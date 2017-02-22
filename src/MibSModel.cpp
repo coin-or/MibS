@@ -68,6 +68,7 @@ MibSModel::~MibSModel()
   if(upperColInd_) delete [] upperColInd_;
   if(lowerColInd_) delete [] lowerColInd_;
   if(upperRowInd_) delete [] upperRowInd_;
+  if(origUpperRowInd_) delete [] origUpperRowInd_;
   if(lowerRowInd_) delete [] lowerRowInd_;
   if(structRowInd_) delete [] structRowInd_;
   if(fixedInd_) delete [] fixedInd_;
@@ -104,11 +105,12 @@ MibSModel::initialize()
   rightSlope_ = 0;
   lowerRowNum_ = 0;
   upperRowNum_ = 0;
+  origUpperRowNum_ =0;
   structRowNum_ = 0;
   sizeFixedInd_ = 0;
   counterVF_ = 0;
   counterUB_ = 0;
-  countTest_ = 0;
+  countIteration_ = 0;
   isInterdict_ = false;
   isPureInteger_ = true;
   isUpperCoeffInt_ = true;
@@ -122,6 +124,7 @@ MibSModel::initialize()
   upperColInd_ = NULL;
   lowerColInd_ = NULL;
   upperRowInd_ = NULL;
+  origUpperRowInd_ = NULL;
   lowerRowInd_ = NULL;
   structRowInd_ = NULL;
   fixedInd_ = NULL;
@@ -131,6 +134,7 @@ MibSModel::initialize()
   origRowUb_ = NULL;
   lowerObjCoeffs_ = NULL;
   interdictCost_ = NULL;
+  origConstCoefMatrix_ = NULL;
   bS_ = new MibSBilevel();
   //simpleCutOnly_ = true; //FIXME: should make this a parameter
   //bindingMethod_ = "BLAND"; //FIXME: should make this a parameter
@@ -786,6 +790,14 @@ MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
       con = NULL;        
    }
 
+   numOrigVars_ = numVars_;
+   numOrigCons_ = numCons_;
+
+   if(countIteration_ == 0){
+       //origConstCoefMatrix_ = new CoinPackedMatrix();
+   origConstCoefMatrix_ = newMatrix;
+   }
+
    setUpperColData();
    setUpperRowData();
    setBounds(); // stores the original column and row bounds
@@ -831,7 +843,7 @@ MibSModel::setUpperColData()
    
       assert(cnt == upperDim_);
    }
-   numOrigVars_ = lowerDim_ + upperDim_;
+   //numOrigVars_ = lowerDim_ + upperDim_;
 }
 
 //#############################################################################
@@ -862,8 +874,20 @@ MibSModel::setUpperRowData()
        }
    }
    assert(cnt == upperRowNum_);
+
+   if(countIteration_ == 0){
+       origUpperRowNum_ = upperRowNum_;
+
+       if(origUpperRowNum_ > 0){
+	   origUpperRowInd_ = new int[origUpperRowNum_];
+       }
+       
+       for(i = 0; i < origUpperRowNum_; i++){
+	   origUpperRowInd_[i] = upperRowInd_[i];
+       }
+   }
    
-   numOrigCons_ = lowerRowNum_ + upperRowNum_;
+   //numOrigCons_ = lowerRowNum_ + upperRowNum_;
 }
 
 //#############################################################################

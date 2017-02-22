@@ -79,6 +79,9 @@ private:
     /** Number of UL constraints **/
     int upperRowNum_;
 
+    /** Original number of UL constraints **/
+    int origUpperRowNum_;
+
     /** Number of LL variables **/
     int lowerDim_;
 
@@ -133,13 +136,16 @@ private:
     /** the right (positive) slope of the lower-level value function **/
     double rightSlope_;
 
-    int countTest_;
+    int countIteration_;
   
     /** Indices of UL variables **/
     int * upperColInd_;
 
-    /** Indices of LL rows **/
+    /** Indices of UL rows **/
     int * upperRowInd_;
+
+    /** Original indices of UL rows **/
+    int * origUpperRowInd_;
 
     /** Indices of LL variables **/
     int * lowerColInd_;
@@ -173,6 +179,9 @@ private:
 
     /** Original row upper bounds from Omega **/
     double * origRowUb_;
+
+    /** Original matrix of constraints coefficients **/
+    CoinPackedMatrix *origConstCoefMatrix_;
 
     /** MibSBilevel object **/
     MibSBilevel *bS_;
@@ -247,6 +256,9 @@ public:
     /** Set the upper-level row number **/
     inline void setUpperRowNum(int val) {upperRowNum_ = val;}
 
+    /** Set the original upper-level row number **/
+    inline void setOrigUpperRowNum(int val) {origUpperRowNum_ = val;}
+
     /** Set the lower-level row number **/
     inline void setLowerRowNum(int val) {lowerRowNum_ = val;}
 
@@ -266,7 +278,10 @@ public:
     void setUpperColData();
 
     /** Set UL row indices **/
-    void setUpperRowInd(int *ptr) {upperRowInd_ = ptr;} 
+    void setUpperRowInd(int *ptr) {upperRowInd_ = ptr;}
+
+    /** Set original UL row indices **/
+    void setOrigUpperRowInd(int *ptr) {origUpperRowInd_ = ptr;}
 
     /** Set UL row indices **/
     void setUpperRowData();
@@ -325,6 +340,9 @@ public:
     /** Get the upper-level row number **/
     int getUpperRowNum() {return upperRowNum_;}
 
+    /** Get the original upper-level row number **/
+    int getOrigUpperRowNum() {return origUpperRowNum_;}
+
     /** Get the lower-level row number **/
     int getLowerRowNum() {return lowerRowNum_;}
 
@@ -339,6 +357,9 @@ public:
 
     /** Get pointer to the UL row index array **/
     int * getUpperRowInd() {return upperRowInd_;}
+
+    /** Get pointer to the original UL row index array **/
+    int * getOrigUpperRowInd() {return origUpperRowInd_;}
 
     /** Get pointer to the LL column index array **/
     int * getLowerColInd() {return lowerColInd_;}
