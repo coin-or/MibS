@@ -189,40 +189,23 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
     }
   }
 
-  int sizeFixedInd(model_->sizeFixedInd_);
-  int sizeSetE(model_->setE_.size());
-  int numSavedSol(sizeSetE/(sizeFixedInd+1));
-  int solType(0), indexInSetE(0);
-  int num(0);
-  bool found(true);
-
+  int solType(0);
+  
   if(isLinkVarsIntegral_){
-      for(i = 0; i < numSavedSol; i++){
-	  num = 0;
-	  found = true;
-	  for(j = 0; j < uN; j++){
-	      pos = upperColInd[j];
-	      index = (i * (sizeFixedInd + 1)) + num;
-	      if(fixedInd[pos] == 1){
-		  num ++;
-		  if(fabs(upperSolutionOrd_[j] - model_->setE_[index])
-		     > etol){
-		      found = false;
-		      break;
-		  }
-	      }
-	  }
-	  if(found == true){
-	      index = ((i + 1) * (sizeFixedInd + 1)) - 1;
-	      solType = model_->setE_[index];
-	      indexInSetE_ = ((index + 1)/(sizeFixedInd + 1));
-	      isContainedInSetE_ = true;
-	      break;
+      std::vector<double> linkSol;
+      for(i = 0; i < uN; i++){
+	  index = upperColInd[i];
+	  if(fixedInd[index] == 1){
+	      linkSol.push_back(upperSolutionOrd_[i]);
 	  }
       }
+      if(model_->seenLinkingSolutions.find(linkSol) !=
+	 model_->seenLinkingSolutions.end()){
+	  isContainedInSetE_ = true;
+	  solType = model_->seenLinkingSolutions.find(linkSol)->second.tag;
+      }
   }
-  
-
+	 
   if(isContainedInSetE_){
       solTagInSetE_ = static_cast<MibSSetETag>(solType);
   }
@@ -297,6 +280,14 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
     std::vector<double> shouldStoreValues;
 
     const double * sol = model_->solver()->getColSolution();
+    
+    std::vector<double> linkSol;
+    for(i = 0; i < uN; i++){
+	index = upperColInd[i];
+	if(fixedInd[index] == 1){
+	    linkSol.push_back(upperSolutionOrd_[i]);
+	}
+    }
 
     isProvenOptimal_ = true; 
 
@@ -451,25 +442,11 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 
 	if(useSetEPar){
 	    //get optimal value  of (VF) from solution pool
-	    index = (indexInSetE_ - 1) * 2;
-	    pos = model_->addressInSolPool_[index];
-	    length = model_->addressInSolPool_[index + 1];
-	    
-	    if(length == lN + 1){
-		/*if(solTagInSetE_ == MibSSetETagUBIsSolved){
-		    LPSolStatus_ = MibSLPSolStatusInfeasible;
-		    }*/
-		objVal = model_->solutionPoolSetE_[pos + lN];
-		for(i = 0; i < lN; i++){
-		    lowerSol[i] = model_->solutionPoolSetE_[i + pos];
-		}
-	    }
-	    else{
-		objVal = model_->solutionPoolSetE_[pos + uN + lN];
-		for(i = 0; i < lN; i++){
-		    lowerSol[i] = model_->solutionPoolSetE_[i + pos + uN];
-		}
-	    }
+	    model_->it = model_->seenLinkingSolutions.find(linkSol);
+	    objVal = model_->it->second.lowerObjVal1;
+	    for(i = 0; i < lN; i++){
+		lowerSol[i] = model_->it->second.lowerSol1[i];
+	    }  
 	}
 	lowerObj = getLowerObj(sol, model_->getLowerObjSense());
 	
@@ -658,12 +635,12 @@ MibSBilevel::setUpUBModel(OsiSolverInterface * oSolver, double objValLL,
 	index1 = uColIndices[i];
 	colLb[index1] = origColLb[index1];
 	colUb[index1] = origColUb[index1];
-	if(isLinkVarsFixed_ == false){
+	//if(isLinkVarsFixed_ == false){
 	    if(fixedInd[index1] == 1){
 		colLb[index1] = floor(lpSol[index1] + 0.5);
 		colUb[index1] = colLb[index1];
 	    }
-	}
+	    //}
     }
 
     //sahar:To Do: check it again
@@ -1186,101 +1163,68 @@ void
     MibSBilevel::addSolutionToSetE(MibSSetETag solTag, std::vector<double>
 				   &shouldStoreValues, double objValue)
 {
-    int i(0), pos(0), index(0), value(0);
-    int indexInSetECopy(indexInSetE_);
+    int i(0),index(0);
     int uN(model_->upperDim_);
     int lN(model_->lowerDim_);
-    double lowerObjVal(0.0);
     int * upperColInd = model_->getUpperColInd();
     int * fixedInd = model_->fixedInd_;
     int solType = static_cast<int>(solTag);
-    int sizeFixedInd(model_->sizeFixedInd_);
-    int numSavedSolInSetE(0), sizeSetE(0);
-    //std::vector<int>::iterator begin;
-    //std::vector<int>::iterator begin1;
-
-    //removing x_L from set E when tag = MibSSetETagUBIsSolved
-    if(solTag == MibSSetETagUBIsSolved){
-    pos = (indexInSetE_ - 1) * (sizeFixedInd + 1);
-    //begin = model_->setE_.begin() + pos;
-    model_->setE_.erase(model_->setE_.begin() + pos,
-			model_->setE_.begin() + pos + uN + 1); 
-    }
-
-    //Storing x_L in set E 
+    
+    std::vector<double> linkSol;
     for(i = 0; i < uN; i++){
-	pos = upperColInd[i];
-	if(fixedInd[pos] == 1){
-	    value = (int)(upperSolutionOrd_[i] + 0.5);
-	    model_->setE_.push_back(value);
+	index = upperColInd[i];
+	if(fixedInd[index] == 1){
+	    linkSol.push_back(upperSolutionOrd_[i]);
 	}
     }
-    model_->setE_.push_back(solType);
-    indexInSetE_ = (model_->setE_.size()/(sizeFixedInd + 1));
-    isContainedInSetE_ = true;
 
+    solTagInSetE_ = solTag;
+    model_->linkingSolution.lowerSol1.clear();
+    model_->linkingSolution.UBSol1.clear();
+    
     switch(solTag){
     case MibSSetETagVFIsInfeasible:
 	{
-	    solTagInSetE_ = MibSSetETagVFIsInfeasible;
-	    model_->addressInSolPool_.push_back
-		(model_->solutionPoolSetE_.size());
-	    model_->addressInSolPool_.push_back(0);
+	    model_->linkingSolution.tag = solType;
+	    model_->linkingSolution.lowerObjVal1 = 0.0;
+	    model_->linkingSolution.UBObjVal1 = 0.0;
+	    model_->seenLinkingSolutions[linkSol] = model_->linkingSolution;
 	    break;
 	}
     case MibSSetETagVFIsFeasible:
 	{
-	    solTagInSetE_ = MibSSetETagVFIsFeasible;
-	    model_->addressInSolPool_.push_back
-		(model_->solutionPoolSetE_.size());
-	    model_->addressInSolPool_.push_back(lN + 1);
+	    model_->linkingSolution.tag = solType;
+	    model_->linkingSolution.lowerObjVal1 = objValue;
+	    model_->linkingSolution.UBObjVal1 = 0.0;
 	    for(i = 0; i < lN; i++){
-		model_->solutionPoolSetE_.push_back(shouldStoreValues[i]);
+		model_->linkingSolution.lowerSol1.push_back(shouldStoreValues[i]);
 	    }
-	    model_->solutionPoolSetE_.push_back(objValue);
+	    model_->seenLinkingSolutions[linkSol] = model_->linkingSolution;
 	    break;
 	}
     case MibSSetETagUBIsSolved:
 	{
-	    solTagInSetE_ = MibSSetETagUBIsSolved;
-	    //Updating addressInSolPool_ after removing x_L from set E
-	    index = (indexInSetECopy - 1) * 2;
-	    for(i = index + 2; i < model_->addressInSolPool_.size(); i++){
-		model_->addressInSolPool_[i] -=  lN + 1;
-		i ++;
-	    }	
-	    pos = model_->addressInSolPool_[index];
-	    //begin1 = model_->addressInSolPool_.begin() + index;
-	    model_->addressInSolPool_.erase(model_->addressInSolPool_.begin() + index,
-					    model_->addressInSolPool_.begin() + index + 2);
-	    lowerObjVal = model_->solutionPoolSetE_[pos + lN];
-	    if(objValue > 9999999){
-		for(i = 0 ; i < lN; i++){
-		    model_->solutionPoolSetE_.push_back
-			(model_->solutionPoolSetE_[pos + i]);
+	    model_->it = model_->seenLinkingSolutions.find(linkSol);
+	    model_->it->second.tag = MibSSetETagUBIsSolved;
+	    model_->it->second.UBObjVal1 = objValue;
+	    if(isProvenOptimal_){
+		for(i = 0; i < uN + lN; i++){
+		    model_->it->second.UBSol1.push_back(shouldStoreValues[i]);
 		}
-		//begin = model_->solutionPoolSetE_.begin() + pos; 
-		model_->solutionPoolSetE_.erase(model_->solutionPoolSetE_.begin() + pos,
-						model_->solutionPoolSetE_.begin() + pos + lN + 1);
-		model_->solutionPoolSetE_.push_back(lowerObjVal);
-		model_->addressInSolPool_.push_back
-		    (model_->solutionPoolSetE_.size() - (lN + 1));
-		model_->addressInSolPool_.push_back(lN + 1);
-	    }
-	    else{
-		for(i = 0; i < lN+uN; i++){ 
-		    model_->solutionPoolSetE_.push_back(shouldStoreValues[i]);
-		}
-		    model_->solutionPoolSetE_.push_back(lowerObjVal);
-		    model_->solutionPoolSetE_.push_back(objValue);
-		    //begin = model_->solutionPoolSetE_.begin() + index;
-		    model_->solutionPoolSetE_.erase(model_->solutionPoolSetE_.begin() + pos,
-						    model_->solutionPoolSetE_.begin() + pos + lN + 1);
-		    model_->addressInSolPool_.push_back
-			(model_->solutionPoolSetE_.size() - (uN + lN + 2));
-		    model_->addressInSolPool_.push_back(uN + lN + 2);
 	    }
 	    break;
 	}
     }
 }
+	    
+	
+	
+	    
+
+
+
+
+
+
+    
+ 
