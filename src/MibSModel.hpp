@@ -212,6 +212,17 @@ private:
 
     std::vector<int> addressInSolPool_;
 
+    struct LINKING_SOLUTION{
+	int tag;
+	double lowerObjVal1;
+	double UBObjVal1;
+	std::vector<double> lowerSol1;
+	std::vector<double> UBSol1;
+    } linkingSolution;
+
+    std::map<std::vector<double>, LINKING_SOLUTION> seenLinkingSolutions;
+    std::map<std::vector<double>, LINKING_SOLUTION>::iterator it;
+    
 public:
 
     MibSModel();
