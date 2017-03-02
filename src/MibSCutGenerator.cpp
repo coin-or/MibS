@@ -794,153 +794,71 @@ void
 MibSCutGenerator::storeBestSolIntersectionCutType2(const double* lpSol,
 						   double optLowerObj)
 {
-
-    std::string feasCheckSolver =
-	localModel_->MibSPar_->entry(MibSParams::feasCheckSolver);
-
     OsiSolverInterface * oSolver = localModel_->solver();
-    const CoinPackedMatrix * matrix = oSolver->getMatrixByRow();
-    MibSBilevel *bS = localModel_->bS_;
-
-    int numRows(oSolver->getNumRows()+1);
+    int i(0);
     int numCols(oSolver->getNumCols());
-    int lCols(localModel_->getLowerDim());
-    double uObjSense(1);
-    double lObjSense(localModel_->getLowerObjSense());
+    int uN(localModel_->getUpperDim());
+    int lN(localModel_->getLowerDim());
+    double objVal(0.0);
     int * fixedInd = localModel_->getFixedInd();
-    int * lColIndices = localModel_->getLowerColInd();
-    const double * uObjCoeffs = oSolver->getObjCoefficients();
-    double * lObjCoeffs = localModel_->getLowerObjCoeffs();
-    double * rowUb = new double[numRows];
-    double * rowLb = new double[numRows];
-    double * colUb = new double[numCols];
-    double * colLb = new double[numCols];
-
-
-    CoinFillN(rowLb, numRows, 0.0);
-    CoinFillN(rowUb, numRows, 0.0);
-
-    CoinFillN(colLb, numCols, 0.0);
-    CoinFillN(colUb, numCols, 0.0);
-
-    int i(0), j(0), pos(0);
-    double tmp(0.0);
-
-
-    /** Set the row bounds **/
-    for(i = 0; i < numRows-1; i++){
-	rowLb[i] = oSolver->getRowLower()[i];
-	rowUb[i] = oSolver->getRowUpper()[i];
-    }
-
-    rowUb[numRows-1] = optLowerObj * lObjSense;
-    rowLb[numRows-1] = -1 * (oSolver->getInfinity());
-
-    for(i = 0; i < numCols; i++){
-	if(fixedInd[i] == 1){
-	    colLb[i] = lpSol[i];
-	    colUb[i] = lpSol[i];
-	}
-	else{
-	    colLb[i] = oSolver->getColLower()[i];
-	    colUb[i] = oSolver->getColUpper()[i];
-	}
-    }
-
-    OsiSolverInterface * nSolver;
-
-#ifndef COIN_HAS_SYMPHONY
-    nSolver = new OsiCbcSolverInterface();
-#else
-    nSolver = new OsiSymSolverInterface();
-#endif
     
-    int * integerVars = new int[numCols];
-    double * objCoeffs = new double[numCols];
+    int useSetEPar(localModel_->MibSPar_->entry
+		   (MibSParams::useSetE));
 
-    CoinFillN(integerVars, numCols, 0);
-    CoinFillN(objCoeffs, numCols, 0.0);
-
-    int intCnt(0);
-
-    /** Fill in array of integer variables **/
-    for(i = 0; i < numCols; i++){
-	if(oSolver->isInteger(i)){
-	    integerVars[intCnt] = i;
-	    intCnt++;
+    std::vector<double> linkSol;
+    for(i = 0; i < uN + lN; i++){
+	if(fixedInd[i] == 1){
+	    linkSol.push_back(lpSol[i]);
 	}
     }
-
-    CoinDisjointCopyN(uObjCoeffs, numCols, objCoeffs);
-
-    CoinPackedMatrix * newMat = new CoinPackedMatrix(false, 0, 0);
-    newMat->setDimensions(0, numCols);
-
-
-    CoinPackedVector row;
-    for(i = 0; i < numRows - 1; i++){
-	for(j = 0; j < numCols; j++){
-	    tmp = matrix->getCoefficient(i, j);
-	    row.insert(j, tmp);
-	}
-	newMat->appendRow(row);
-	row.clear();
+    
+    OsiSolverInterface *UBSolver = 0;
+    if(UBSolver){
+	delete UBSolver;
     }
-
-    for(i = 0; i < numCols; i++){
-	pos = bS->binarySearch(0, lCols - 1, i, lColIndices);
-	if(pos >= 0){
-	    tmp = lObjCoeffs[pos] * lObjSense;
-	}
-	else{
-	    tmp = 0.0;
-	}
-	row.insert(i, tmp);
-    }
-    newMat->appendRow(row);
-    row.clear();
-
-    nSolver->loadProblem(*newMat, colLb, colUb,
-			 objCoeffs, rowLb, rowUb);
-
-    for(i = 0; i < intCnt; i++){
-	nSolver->setInteger(integerVars[i]);
-    }
-
-    nSolver->setObjSense(uObjSense); //1 min; -1 max
-
-    nSolver->setHintParam(OsiDoReducePrint, true, OsiHintDo);
-
-    delete [] integerVars;
-
-    //To Do: sahar: write it more efficient
-    OsiSolverInterface *nSolver2 = nSolver;
-
+    UBSolver = localModel_->bS_->setUpUBModel(localModel_->getSolver(), optLowerObj, true);
 #ifndef COIN_HAS_SYMPHONY
     dynamic_cast<OsiCbcSolverInterface *>
-	(nSolver2)->getModelPtr()->messageHandler()->setLogLevel(0);
+	(UBSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
 #else
     dynamic_cast<OsiSymSolverInterface *>
-	(nSolver2)->setSymParam("prep_level", -1);
+	(UBSolver)->setSymParam("prep_level", -1);
     
     dynamic_cast<OsiSymSolverInterface *>
-	(nSolver2)->setSymParam("verbosity", -2);
+	(UBSolver)->setSymParam("verbosity", -2);
     
     dynamic_cast<OsiSymSolverInterface *>
-	(nSolver2)->setSymParam("max_active_nodes", 1);
+	(UBSolver)->setSymParam("max_active_nodes", 1);
 #endif
+   
+    UBSolver->branchAndBound();
+    localModel_->counterUB_ ++;
     
-    nSolver2->branchAndBound();
-    
-    if(nSolver2->isProvenOptimal()){
-	
-	const double * newSolution = nSolver2->getColSolution();
-	
-	MibSSolution *mibsSol = new MibSSolution(numCols, newSolution,
-						 nSolver2->getObjValue(),
+    if(UBSolver->isProvenOptimal()){
+	MibSSolution *mibsSol = new MibSSolution(numCols,
+						 UBSolver->getColSolution(),
+						 UBSolver->getObjValue(),
 						 localModel_);
-	
+
 	localModel_->storeSolution(BlisSolutionTypeHeuristic, mibsSol);
+	
+	objVal = UBSolver->getObjValue() * localModel_->solver()->getObjSense();
+    }
+    else{
+	    objVal = 10000000;
+	}
+
+    if(useSetEPar){
+	//Add to linking solution pool
+	localModel_->it = localModel_->seenLinkingSolutions.find(linkSol);
+	localModel_->it->second.tag = MibSSetETagUBIsSolved;
+	localModel_->it->second.UBObjVal1 = objVal;
+	if(UBSolver->isProvenOptimal()){
+	    const double * valuesUB = UBSolver->getColSolution();
+	    for(i = 0; i < uN + lN; i++){
+		localModel_->it->second.UBSol1.push_back(valuesUB[i]);
+	    }
+	}
     }
 }
 
