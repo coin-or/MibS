@@ -1255,11 +1255,7 @@ MibSCutGenerator::boundCuts(BcpsConstraintPool &conPool)
       
       int argc = 1;
       char** argv = new char* [1];
-      //argv[0] = "mibs";
-      argv[0][0] = 'm';
-      argv[0][1] = 'i';
-      argv[0][2] = 'b';
-      argv[0][3] = 's';
+      argv[0] = (char *) "mibs";
       
 #ifdef  COIN_HAS_MPI
       AlpsKnowledgeBrokerMPI broker(argc, argv, *boundModel);
@@ -1350,11 +1346,7 @@ MibSCutGenerator::boundCuts(BcpsConstraintPool &conPool)
       
       int argc1 = 1;
       char** argv1 = new char* [1];
-      //argv1[0] = "mibs";
-      argv1[0][0] = 'm';
-      argv1[0][1] = 'i';
-      argv1[0][2] = 'b';
-      argv1[0][3] = 's';
+      argv1[0] = (char *) "mibs";
       
 #ifdef  COIN_HAS_MPI
       AlpsKnowledgeBrokerMPI Newbroker(argc1, argv1, NewboundModel);
