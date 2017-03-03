@@ -112,6 +112,10 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
   haveHeurSolCand_ = false;
 
   model_->countIteration_ ++;
+  //std::cout << "countIteration = " << model_->countIteration_ << std::endl;
+  if(model_->countIteration_ == 701){
+      std::cout << "Stop here!" << std::endl;
+  }
   
   int * lowerColInd = mibs->getLowerColInd();
   int * upperColInd = mibs->getUpperColInd();
