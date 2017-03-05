@@ -825,12 +825,11 @@ MibSCutGenerator::storeBestSolIntersectionCutType2(const double* lpSol,
 	(UBSolver)->setSymParam("prep_level", -1);
     
     dynamic_cast<OsiSymSolverInterface *>
-	(UBSolver)->setSymParam("verbosity", 1);
+	(UBSolver)->setSymParam("verbosity", -2);
     
     dynamic_cast<OsiSymSolverInterface *>
 	(UBSolver)->setSymParam("max_active_nodes", 1);
 #endif
-    std::cout << "we solve (UB) Hyper here" << std::endl;
     UBSolver->branchAndBound();
     localModel_->counterUB_ ++;
     

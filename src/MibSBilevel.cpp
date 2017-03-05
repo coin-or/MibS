@@ -448,6 +448,7 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 	    //get optimal value  of (VF) from solution pool
 	    model_->it = model_->seenLinkingSolutions.find(linkSol);
 	    objVal = model_->it->second.lowerObjVal1;
+	    objVal_ = objVal;
 	    for(i = 0; i < lN; i++){
 		lowerSol[i] = model_->it->second.lowerSol1[i];
 	    }  
