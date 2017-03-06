@@ -463,7 +463,6 @@ MibSCutGenerator::intersectionCuts(BcpsConstraintPool &conPool,
 					 (bS->solTagInSetE_ == MibSSetETagUBIsSolved)))){
 	    shouldFindBestSol = false;
 	}
-	
 	switch(ICType){
 	case 1:
 	    getAlphaIntersectionCutType1(extRay, optLowerSolution, numStruct,
@@ -849,13 +848,18 @@ MibSCutGenerator::storeBestSolIntersectionCutType2(const double* lpSol,
 
     if(useSetEPar){
 	//Add to linking solution pool
-	localModel_->it = localModel_->seenLinkingSolutions.find(linkSol);
-	localModel_->it->second.tag = MibSSetETagUBIsSolved;
-	localModel_->it->second.UBObjVal1 = objVal;
+	//localModel_->it = localModel_->seenLinkingSolutions.find(linkSol);
+	//localModel_->it->second.tag = MibSSetETagUBIsSolved;
+	//localModel_->it->second.UBObjVal1 = objVal;
+	localModel_->seenLinkingSolutions[linkSol].tag = MibSSetETagUBIsSolved;
+	localModel_->seenLinkingSolutions[linkSol].UBObjVal1 = objVal;   
 	if(UBSolver->isProvenOptimal()){
+	    localModel_->seenLinkingSolutions[linkSol].UBSol1.clear();
+	    //localModel_->it->second.UBSol1.clear();
 	    const double * valuesUB = UBSolver->getColSolution();
 	    for(i = 0; i < uN + lN; i++){
-		localModel_->it->second.UBSol1.push_back(valuesUB[i]);
+		//localModel_->it->second.UBSol1.push_back(valuesUB[i]);
+		localModel_->seenLinkingSolutions[linkSol].UBSol1.push_back(valuesUB[i]);
 	    }
 	}
     }

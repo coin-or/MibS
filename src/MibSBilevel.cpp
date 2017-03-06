@@ -112,10 +112,10 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
   haveHeurSolCand_ = false;
 
   model_->countIteration_ ++;
-  //std::cout << "countIteration = " << model_->countIteration_ << std::endl;
-  if(model_->countIteration_ == 701){
+  /*std::cout << "countIteration = " << model_->countIteration_ << std::endl;
+  if(model_->countIteration_ == 821){
       std::cout << "Stop here!" << std::endl;
-  }
+      }*/
   
   int * lowerColInd = mibs->getLowerColInd();
   int * upperColInd = mibs->getUpperColInd();
@@ -1184,6 +1184,8 @@ void
     }
 
     solTagInSetE_ = solTag;
+    model_->linkingSolution.lowerSol1.push_back(0);
+    model_->linkingSolution.UBSol1.push_back(0);
     model_->linkingSolution.lowerSol1.clear();
     model_->linkingSolution.UBSol1.clear();
     
@@ -1193,6 +1195,8 @@ void
 	    model_->linkingSolution.tag = solType;
 	    model_->linkingSolution.lowerObjVal1 = 0.0;
 	    model_->linkingSolution.UBObjVal1 = 0.0;
+	    model_->linkingSolution.lowerSol1.push_back(0);
+	    model_->linkingSolution.UBSol1.push_back(0);
 	    model_->seenLinkingSolutions[linkSol] = model_->linkingSolution;
 	    break;
 	}
@@ -1204,17 +1208,23 @@ void
 	    for(i = 0; i < lN; i++){
 		model_->linkingSolution.lowerSol1.push_back(shouldStoreValues[i]);
 	    }
+	    model_->linkingSolution.UBSol1.push_back(0);
 	    model_->seenLinkingSolutions[linkSol] = model_->linkingSolution;
 	    break;
 	}
     case MibSSetETagUBIsSolved:
 	{
-	    model_->it = model_->seenLinkingSolutions.find(linkSol);
-	    model_->it->second.tag = MibSSetETagUBIsSolved;
-	    model_->it->second.UBObjVal1 = objValue;
+	    //model_->it = model_->seenLinkingSolutions.find(linkSol);
+	    //model_->it->second.tag = MibSSetETagUBIsSolved;
+	    //model_->it->second.UBObjVal1 = objValue;
+	    model_->seenLinkingSolutions[linkSol].tag = MibSSetETagUBIsSolved;
+	    model_->seenLinkingSolutions[linkSol].UBObjVal1 = objValue;
 	    if(isProvenOptimal_){
+		//model_->it->second.UBSol1.clear();
+		model_->seenLinkingSolutions[linkSol].UBSol1.clear();
 		for(i = 0; i < uN + lN; i++){
-		    model_->it->second.UBSol1.push_back(shouldStoreValues[i]);
+		    //model_->it->second.UBSol1.push_back(shouldStoreValues[i]);
+		    model_->seenLinkingSolutions[linkSol].UBSol1.push_back(shouldStoreValues[i]);
 		}
 	    }
 	    break;
