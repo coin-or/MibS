@@ -105,10 +105,10 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
   shouldPrune_ = false;
   isLowerSolved_ = false;
   isUBSolved_ = false;
-  isContainedInSetE_ = false;
+  isContainedInLinkingPool_ = false;
   useBilevelBranching_ = true;
   isProvenOptimal_ = false;
-  tagInSeenLinkingPool_ = MibSSetETagIsNotSet;
+  tagInSeenLinkingPool_ = MibSLinkingPoolTagIsNotSet;
   haveHeurSolCand_ = false;
 
   model_->countIteration_ ++;
@@ -205,21 +205,22 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
       }
       if(model_->seenLinkingSolutions.find(linkSol) !=
 	 model_->seenLinkingSolutions.end()){
-	  isContainedInSetE_ = true;
+	  isContainedInLinkingPool_ = true;
 	  solType = model_->seenLinkingSolutions.find(linkSol)->second.tag;
       }
   }
 	 
-  if(isContainedInSetE_){
-      tagInSeenLinkingPool_ = static_cast<MibSSetETag>(solType);
+  if(isContainedInLinkingPool_){
+      tagInSeenLinkingPool_ = static_cast<MibSLinkingPoolTag>(solType);
   }
-  if(tagInSeenLinkingPool_ == MibSSetETagVFIsInfeasible){
+  if(tagInSeenLinkingPool_ == MibSLinkingPoolTagLowerIsInfeasible){
       LPSolStatus_ = MibSLPSolStatusInfeasible;
   }
 
   //steps 5-6
-  if((isLinkVarsFixed_) && ((tagInSeenLinkingPool_ == MibSSetETagVFIsInfeasible) ||
-			 (tagInSeenLinkingPool_ == MibSSetETagUBIsSolved))){
+  if((isLinkVarsFixed_) && ((tagInSeenLinkingPool_ ==
+			     MibSLinkingPoolTagLowerIsInfeasible) ||
+			 (tagInSeenLinkingPool_ == MibSLinkingPoolTagUBIsSolved))){
       useBilevelBranching_ = false;
       isProvenOptimal_ = false;
       shouldPrune_ = true;
@@ -227,9 +228,9 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
 
   //step 7
   if(!shouldPrune_){
-      if(((tagInSeenLinkingPool_ == MibSSetETagVFIsFeasible)
-	  || (tagInSeenLinkingPool_ == MibSSetETagUBIsSolved)) ||
-	 ((!isContainedInSetE_) &&
+      if(((tagInSeenLinkingPool_ == MibSLinkingPoolTagLowerIsFeasible)
+	  || (tagInSeenLinkingPool_ == MibSLinkingPoolTagUBIsSolved)) ||
+	 ((!isContainedInLinkingPool_) &&
 	  (((branchPar == MibSBranchingStrategyLinking) &&
 	    (isIntegral_) && (isLinkVarsFixed_)) ||
 	   ((branchPar == MibSBranchingStrategyFractional)
@@ -296,7 +297,7 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 
     isProvenOptimal_ = true; 
 
-    if(!isContainedInSetE_){
+    if(!isContainedInLinkingPool_){
 	
 	//isProvenOptimal_ = true;
     
@@ -391,7 +392,8 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 	    if(saveSeenLinkingSols){
 	    //step 10
 	    //Adding x_L to set E
-		addSolutionToSetE(MibSSetETagVFIsInfeasible, shouldStoreValues, 0.0);
+		addSolutionToSeenLinkingSolutionPool
+		    (MibSLinkingPoolTagLowerIsInfeasible, shouldStoreValues, 0.0);
 	    }
 	}
 	else{
@@ -409,7 +411,8 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 		
 		//step 12
 		//Adding x_L to set E  
-		addSolutionToSetE(MibSSetETagVFIsFeasible, shouldStoreValues, objVal_);
+		addSolutionToSeenLinkingSolutionPool
+		    (MibSLinkingPoolTagLowerIsFeasible, shouldStoreValues, objVal_);
 		shouldStoreValues.clear();
 	    }
 	    else{
@@ -438,8 +441,8 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 
     //step 13
     if(((!saveSeenLinkingSols) && (isProvenOptimal_)) ||
-       ((tagInSeenLinkingPool_ == MibSSetETagVFIsFeasible) ||
-	(tagInSeenLinkingPool_ == MibSSetETagUBIsSolved))){
+       ((tagInSeenLinkingPool_ == MibSLinkingPoolTagLowerIsFeasible) ||
+	(tagInSeenLinkingPool_ == MibSLinkingPoolTagUBIsSolved))){
 
 	OsiSolverInterface *UBSolver = 0;
 	
@@ -472,7 +475,7 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 	}
 	if(!shouldPrune_){	
 	    //step 18
-	    if((tagInSeenLinkingPool_ != MibSSetETagUBIsSolved) &&
+	    if((tagInSeenLinkingPool_ != MibSLinkingPoolTagUBIsSolved) &&
 	       (((branchPar == MibSBranchingStrategyLinking) &&
 		 (isIntegral_) && (isLinkVarsFixed_)) ||
 		((computeBestUBWhenXVarsInt == PARAM_ON) && (isUpperIntegral_)) ||
@@ -534,7 +537,8 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 		//step 22
 		//Adding x_L to set E
 		if(saveSeenLinkingSols){
-		    addSolutionToSetE(MibSSetETagUBIsSolved, shouldStoreValues, objVal);
+		    addSolutionToSeenLinkingSolutionPool
+			(MibSLinkingPoolTagUBIsSolved, shouldStoreValues, objVal);
 		}
 		shouldStoreValues.clear();
 	    
@@ -545,7 +549,7 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 		    shouldPrune_ = true;
 		}	
 	    }
-	    else if((tagInSeenLinkingPool_ != MibSSetETagUBIsSolved) ||
+	    else if((tagInSeenLinkingPool_ != MibSLinkingPoolTagUBIsSolved) ||
 		    ((!saveSeenLinkingSols) && (isUBSolved_))){
 		haveHeurSolCand_ = true;
 		for(i = 0; i < lN; i++){
@@ -1167,7 +1171,7 @@ MibSBilevel::getLowerObj(const double * sol, double objSense)
 }
 //#############################################################################
 void
-    MibSBilevel::addSolutionToSetE(MibSSetETag solTag, std::vector<double>
+    MibSBilevel::addSolutionToSeenLinkingSolutionPool(MibSLinkingPoolTag solTag, std::vector<double>
 				   &shouldStoreValues, double objValue)
 {
     int i(0),index(0);
@@ -1192,7 +1196,7 @@ void
     model_->linkingSolution.UBSol1.clear();
     
     switch(solTag){
-    case MibSSetETagVFIsInfeasible:
+    case MibSLinkingPoolTagLowerIsInfeasible:
 	{
 	    model_->linkingSolution.tag = solType;
 	    model_->linkingSolution.lowerObjVal1 = 0.0;
@@ -1202,7 +1206,7 @@ void
 	    model_->seenLinkingSolutions[linkSol] = model_->linkingSolution;
 	    break;
 	}
-    case MibSSetETagVFIsFeasible:
+    case MibSLinkingPoolTagLowerIsFeasible:
 	{
 	    model_->linkingSolution.tag = solType;
 	    model_->linkingSolution.lowerObjVal1 = objValue;
@@ -1214,12 +1218,12 @@ void
 	    model_->seenLinkingSolutions[linkSol] = model_->linkingSolution;
 	    break;
 	}
-    case MibSSetETagUBIsSolved:
+    case MibSLinkingPoolTagUBIsSolved:
 	{
 	    //model_->it = model_->seenLinkingSolutions.find(linkSol);
 	    //model_->it->second.tag = MibSSetETagUBIsSolved;
 	    //model_->it->second.UBObjVal1 = objValue;
-	    model_->seenLinkingSolutions[linkSol].tag = MibSSetETagUBIsSolved;
+	    model_->seenLinkingSolutions[linkSol].tag = MibSLinkingPoolTagUBIsSolved;
 	    model_->seenLinkingSolutions[linkSol].UBObjVal1 = objValue;
 	    if(isProvenOptimal_){
 		//model_->it->second.UBSol1.clear();

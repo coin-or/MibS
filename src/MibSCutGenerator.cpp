@@ -461,8 +461,8 @@ MibSCutGenerator::intersectionCuts(BcpsConstraintPool &conPool,
 	    ((bS->isUBSolved_ == true) || ((bS->isLowerSolved_ == true) &&
 					   (bS->isProvenOptimal_ == false)))) ||
 	   ((saveSeenLinkingSols == PARAM_ON) &&
-	    ((bS->tagInSeenLinkingPool_ == MibSSetETagVFIsInfeasible) ||
-	     (bS->tagInSeenLinkingPool_ == MibSSetETagUBIsSolved)))){
+	    ((bS->tagInSeenLinkingPool_ == MibSLinkingPoolTagLowerIsInfeasible) ||
+	     (bS->tagInSeenLinkingPool_ == MibSLinkingPoolTagUBIsSolved)))){
 	    shouldFindBestSol = false;
 	}
 	switch(ICType){
@@ -853,7 +853,7 @@ MibSCutGenerator::storeBestSolIntersectionCutType2(const double* lpSol,
 	//localModel_->it = localModel_->seenLinkingSolutions.find(linkSol);
 	//localModel_->it->second.tag = MibSSetETagUBIsSolved;
 	//localModel_->it->second.UBObjVal1 = objVal;
-	localModel_->seenLinkingSolutions[linkSol].tag = MibSSetETagUBIsSolved;
+	localModel_->seenLinkingSolutions[linkSol].tag = MibSLinkingPoolTagUBIsSolved;
 	localModel_->seenLinkingSolutions[linkSol].UBObjVal1 = objVal;   
 	if(UBSolver->isProvenOptimal()){
 	    localModel_->seenLinkingSolutions[linkSol].UBSol1.clear();
@@ -1433,9 +1433,12 @@ MibSCutGenerator::generalNoGoodCut(BcpsConstraintPool &conPool)
     bool shouldFindBestSol(true);
 
     if(((saveSeenLinkingSols != PARAM_ON) && ((bS->isUBSolved_ == true) ||
-				     ((bS->isLowerSolved_ == true) && (bS->isProvenOptimal_ == false)))) ||
-       ((saveSeenLinkingSols == PARAM_ON) && ((bS->tagInSeenLinkingPool_ == MibSSetETagVFIsInfeasible) ||
-				     (bS->tagInSeenLinkingPool_ == MibSSetETagUBIsSolved)))){
+				     ((bS->isLowerSolved_ == true) &&
+				      (bS->isProvenOptimal_ == false)))) ||
+       ((saveSeenLinkingSols == PARAM_ON) &&
+	((bS->tagInSeenLinkingPool_ == MibSLinkingPoolTagLowerIsInfeasible) ||
+				     (bS->tagInSeenLinkingPool_ ==
+				      MibSLinkingPoolTagUBIsSolved)))){
 	shouldFindBestSol = false;
     }
 
