@@ -1738,7 +1738,7 @@ MibSModel::userFeasibleSolution(const double * solution, bool &userFeasible)
   }
   //else if(bS_->haveHeurSolCand_){
   else if((((bS_->isLowerSolved_) || (bS_->isUBSolved_)) && (bS_->isProvenOptimal_)) ||
-	  ((!bS_->isLowerSolved_) && (bS_->solTagInSetE_ == MibSSetETagVFIsFeasible))){
+	  ((!bS_->isLowerSolved_) && (bS_->tagInSeenLinkingPool_ == MibSSetETagVFIsFeasible))){
       if(!bS_->isUBSolved_){
 	  isHeurSolution = checkUpperFeasibility(lpSolution);
       }
