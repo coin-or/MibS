@@ -69,9 +69,9 @@ class MibSParams : public AlpsParameterSet {
      solveLowerWhenXVarsInt,
      solveLowerWhenLinkVarsInt,
      solveLowerWhenLinkVarsFixed,
-     computeUBWhenXVarsInt,
-     computeUBWhenLinkVarsInt,
-     computeUBWhenLinkVarsFixed,
+     computeBestUBWhenXVarsInt,
+     computeBestUBWhenLinkVarsInt,
+     computeBestUBWhenLinkVarsFixed,
      useSetE,
      endOfIntParams
   };
