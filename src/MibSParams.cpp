@@ -162,8 +162,8 @@ MibSParams::createKeywordList() {
    keys_.push_back(make_pair(std::string("MibS_computeBestUBWhenLinkVarsFixed"),
 			     AlpsParameter(AlpsIntPar, computeBestUBWhenLinkVarsFixed)));
 
-   keys_.push_back(make_pair(std::string("MibS_useSetE"),
-			     AlpsParameter(AlpsIntPar, useSetE)));
+   keys_.push_back(make_pair(std::string("MibS_saveSeenLinkingSols"),
+			     AlpsParameter(AlpsIntPar, saveSeenLinkingSols)));
 
    //--------------------------------------------------------
    // String Parameters.
@@ -270,7 +270,7 @@ MibSParams::setDefaultEntries() {
 
    setEntry(computeBestUBWhenLinkVarsFixed, PARAM_NOTSET);
 
-   setEntry(useSetE, PARAM_NOTSET);
+   setEntry(saveSeenLinkingSols, PARAM_NOTSET);
 
    //-------------------------------------------------------------
    // Double Parameters

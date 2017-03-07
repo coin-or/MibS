@@ -251,8 +251,8 @@ MibSCutGenerator::intersectionCuts(BcpsConstraintPool &conPool,
         int ICType =
 	    localModel_->MibSPar_->entry(MibSParams::intersectionCutType);
 	
-	int useSetEPar(localModel_->MibSPar_->entry
-		       (MibSParams::useSetE));
+	int saveSeenLinkingSols(localModel_->MibSPar_->entry
+		       (MibSParams::saveSeenLinkingSols));
 
 	OsiSolverInterface * solver = localModel_->solver();
 
@@ -457,9 +457,9 @@ MibSCutGenerator::intersectionCuts(BcpsConstraintPool &conPool,
 	std::vector<double> alpha(numNonBasic);
 
 	bool shouldFindBestSol(true);
-	if(((useSetEPar != PARAM_ON) && ((bS->isUBSolved_ == true) ||
+	if(((saveSeenLinkingSols != PARAM_ON) && ((bS->isUBSolved_ == true) ||
 					 ((bS->isLowerSolved_ == true) && (bS->isProvenOptimal_ == false)))) ||
-	   ((useSetEPar == PARAM_ON) && ((bS->solTagInSetE_ == MibSSetETagVFIsInfeasible) ||
+	   ((saveSeenLinkingSols == PARAM_ON) && ((bS->solTagInSetE_ == MibSSetETagVFIsInfeasible) ||
 					 (bS->solTagInSetE_ == MibSSetETagUBIsSolved)))){
 	    shouldFindBestSol = false;
 	}
@@ -801,8 +801,8 @@ MibSCutGenerator::storeBestSolIntersectionCutType2(const double* lpSol,
     double objVal(0.0);
     int * fixedInd = localModel_->getFixedInd();
     
-    int useSetEPar(localModel_->MibSPar_->entry
-		   (MibSParams::useSetE));
+    int saveSeenLinkingSols(localModel_->MibSPar_->entry
+		   (MibSParams::saveSeenLinkingSols));
 
     std::vector<double> linkSol;
     for(i = 0; i < uN + lN; i++){
@@ -846,7 +846,7 @@ MibSCutGenerator::storeBestSolIntersectionCutType2(const double* lpSol,
 	    objVal = 10000000;
 	}
 
-    if(useSetEPar){
+    if(saveSeenLinkingSols){
 	//Add to linking solution pool
 	//localModel_->it = localModel_->seenLinkingSolutions.find(linkSol);
 	//localModel_->it->second.tag = MibSSetETagUBIsSolved;
@@ -1408,8 +1408,8 @@ MibSCutGenerator::generalNoGoodCut(BcpsConstraintPool &conPool)
     /** Add specialized bilevel feasibility cuts, as appropriate **/
 
     //std::cout << "Generating No-Good Cuts." << std::endl;
-    int useSetEPar(localModel_->MibSPar_->entry
-		   (MibSParams::useSetE));
+    int saveSeenLinkingSols(localModel_->MibSPar_->entry
+		   (MibSParams::saveSeenLinkingSols));
     
     OsiSolverInterface * solver = localModel_->solver();
 
@@ -1430,9 +1430,9 @@ MibSCutGenerator::generalNoGoodCut(BcpsConstraintPool &conPool)
 
     bool shouldFindBestSol(true);
 
-    if(((useSetEPar != PARAM_ON) && ((bS->isUBSolved_ == true) ||
+    if(((saveSeenLinkingSols != PARAM_ON) && ((bS->isUBSolved_ == true) ||
 				     ((bS->isLowerSolved_ == true) && (bS->isProvenOptimal_ == false)))) ||
-       ((useSetEPar == PARAM_ON) && ((bS->solTagInSetE_ == MibSSetETagVFIsInfeasible) ||
+       ((saveSeenLinkingSols == PARAM_ON) && ((bS->solTagInSetE_ == MibSSetETagVFIsInfeasible) ||
 				     (bS->solTagInSetE_ == MibSSetETagUBIsSolved)))){
 	shouldFindBestSol = false;
     }

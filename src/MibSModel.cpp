@@ -3249,17 +3249,17 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix, const double* ro
 	MibSPar()->setEntry(MibSParams::computeBestUBWhenLinkVarsFixed, PARAM_ON);
     }
 
-    //Setting "useSetE" parameter
+    //Setting "saveSeenLinkingSols" parameter
     
-    if(MibSPar_->entry(MibSParams::useSetE) == PARAM_NOTSET){
-	MibSPar()->setEntry(MibSParams::useSetE, PARAM_ON);
+    if(MibSPar_->entry(MibSParams::saveSeenLinkingSols) == PARAM_NOTSET){
+	MibSPar()->setEntry(MibSParams::saveSeenLinkingSols, PARAM_ON);
     }
 
-    if(MibSPar_->entry(MibSParams::useSetE) == PARAM_ON){
-	std::cout << "set E is used " << std::endl;
+    if(MibSPar_->entry(MibSParams::saveSeenLinkingSols) == PARAM_ON){
+	std::cout << "'seenLinkingSolutions' pool is used." << std::endl;
     }
     else{
-	std::cout << "set E is not used " << std::endl;
+	std::cout << "'seenLinkingSolutions' pool is not used." << std::endl;
     }
 	
     delete [] newRowSense;

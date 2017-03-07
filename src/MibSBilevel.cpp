@@ -69,8 +69,8 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
   int cutStrategy(model_->MibSPar_->entry
 		  (MibSParams::cutStrategy));
 
-  int useSetEPar(model_->MibSPar_->entry
-			   (MibSParams::useSetE));
+  int saveSeenLinkingSols(model_->MibSPar_->entry
+			   (MibSParams::saveSeenLinkingSols));
   
   assert(N == model_->solver()->getNumCols());
 
@@ -269,7 +269,8 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 			      (MibSParams::computeBestUBWhenLinkVarsInt));
     int computeBestUBWhenLinkVarsFixed(model_->MibSPar_->entry
 			      (MibSParams::computeBestUBWhenLinkVarsFixed));
-    int useSetEPar(model_->MibSPar_->entry(MibSParams::useSetE));
+    int saveSeenLinkingSols(model_->MibSPar_->entry
+			    (MibSParams::saveSeenLinkingSols));
     int lN(model_->lowerDim_); // lower-level dimension
     int uN(model_->upperDim_); // lower-level dimension
     int i(0), index(0), length(0), pos(0);
@@ -387,7 +388,7 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 	if(!lSolver->isProvenOptimal()){
 	    LPSolStatus_ = MibSLPSolStatusInfeasible;
 	    isProvenOptimal_ = false;
-	    if(useSetEPar){
+	    if(saveSeenLinkingSols){
 	    //step 10
 	    //Adding x_L to set E
 		addSolutionToSetE(MibSSetETagVFIsInfeasible, shouldStoreValues, 0.0);
@@ -401,7 +402,7 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 
 	    const double * values = lSolver->getColSolution();
 	    
-	    if(useSetEPar){
+	    if(saveSeenLinkingSols){
 		for(i = 0; i < lN; i++){
 		    shouldStoreValues.push_back(values[i]);
 		}
@@ -436,7 +437,7 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
     }
 
     //step 13
-    if(((!useSetEPar) && (isProvenOptimal_)) || ((solTagInSetE_ == MibSSetETagVFIsFeasible) || (solTagInSetE_ ==
+    if(((!saveSeenLinkingSols) && (isProvenOptimal_)) || ((solTagInSetE_ == MibSSetETagVFIsFeasible) || (solTagInSetE_ ==
 									MibSSetETagUBIsSolved))){
 
 	OsiSolverInterface *UBSolver = 0;
@@ -444,7 +445,7 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 	//double *lowerSol = new double[lN];
 	//CoinFillN(lowerSol, lN, 0.0);
 
-	if(useSetEPar){
+	if(saveSeenLinkingSols){
 	    //get optimal value  of (VF) from solution pool
 	    model_->it = model_->seenLinkingSolutions.find(linkSol);
 	    objVal = model_->it->second.lowerObjVal1;
@@ -531,7 +532,7 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 		}
 		//step 22
 		//Adding x_L to set E
-		if(useSetEPar){
+		if(saveSeenLinkingSols){
 		    addSolutionToSetE(MibSSetETagUBIsSolved, shouldStoreValues, objVal);
 		}
 		shouldStoreValues.clear();
@@ -544,7 +545,7 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 		}	
 	    }
 	    else if((solTagInSetE_ != MibSSetETagUBIsSolved) ||
-		    ((!useSetEPar) && (isUBSolved_))){
+		    ((!saveSeenLinkingSols) && (isUBSolved_))){
 		haveHeurSolCand_ = true;
 		for(i = 0; i < lN; i++){
 		    index = lowerColInd[i];

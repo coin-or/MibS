@@ -72,7 +72,7 @@ class MibSParams : public AlpsParameterSet {
      computeBestUBWhenXVarsInt,
      computeBestUBWhenLinkVarsInt,
      computeBestUBWhenLinkVarsFixed,
-     useSetE,
+     saveSeenLinkingSols,
      endOfIntParams
   };
 
