@@ -153,14 +153,14 @@ MibSParams::createKeywordList() {
 			     AlpsParameter(AlpsIntPar, solveLowerWhenLinkVarsFixed)));
 
    //solve problem UB
-   keys_.push_back(make_pair(std::string("MibS_computeUBWhenXVarsInt"),
-			     AlpsParameter(AlpsIntPar, computeUBWhenXVarsInt)));
+   keys_.push_back(make_pair(std::string("MibS_computeBestUBWhenXVarsInt"),
+			     AlpsParameter(AlpsIntPar, computeBestUBWhenXVarsInt)));
 
-   keys_.push_back(make_pair(std::string("MibS_computeUBWhenLinkVarsInt"),
-			     AlpsParameter(AlpsIntPar, computeUBWhenLinkVarsInt)));
+   keys_.push_back(make_pair(std::string("MibS_computeBestUBWhenLinkVarsInt"),
+			     AlpsParameter(AlpsIntPar, computeBestUBWhenLinkVarsInt)));
 
-   keys_.push_back(make_pair(std::string("MibS_computeUBWhenLinkVarsFixed"),
-			     AlpsParameter(AlpsIntPar, computeUBWhenLinkVarsFixed)));
+   keys_.push_back(make_pair(std::string("MibS_computeBestUBWhenLinkVarsFixed"),
+			     AlpsParameter(AlpsIntPar, computeBestUBWhenLinkVarsFixed)));
 
    keys_.push_back(make_pair(std::string("MibS_useSetE"),
 			     AlpsParameter(AlpsIntPar, useSetE)));
@@ -264,11 +264,11 @@ MibSParams::setDefaultEntries() {
 
    setEntry(solveLowerWhenLinkVarsFixed, PARAM_NOTSET);
 
-   setEntry(computeUBWhenXVarsInt, PARAM_NOTSET);
+   setEntry(computeBestUBWhenXVarsInt, PARAM_NOTSET);
 
-   setEntry(computeUBWhenLinkVarsInt, PARAM_NOTSET);
+   setEntry(computeBestUBWhenLinkVarsInt, PARAM_NOTSET);
 
-   setEntry(computeUBWhenLinkVarsFixed, PARAM_NOTSET);
+   setEntry(computeBestUBWhenLinkVarsFixed, PARAM_NOTSET);
 
    setEntry(useSetE, PARAM_NOTSET);
 
