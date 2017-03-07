@@ -56,7 +56,7 @@ private:
     bool shouldPrune_;
     bool isContainedInSetE_;
     bool haveHeurSolCand_;
-    MibSSetETag solTagInSetE_;
+    MibSSetETag tagInSeenLinkingPool_;
     int indexInSetE_;
 
     MibSLPSolStatus LPSolStatus_;
@@ -83,7 +83,7 @@ public:
 		    isLinkVarsFixed_(true), isProvenOptimal_(false),
 		    isLowerSolved_(false), isUBSolved_(false),
 		    shouldPrune_(false), isContainedInSetE_(false),
-		    haveHeurSolCand_(false), solTagInSetE_(MibSSetETagIsNotSet),
+		    haveHeurSolCand_(false), tagInSeenLinkingPool_(MibSSetETagIsNotSet),
 		    indexInSetE_(-1), LPSolStatus_(MibSLPSolStatusUnknown), objVal_(0.0){
 	upperSolutionOrd_ = 0;
 	lowerSolutionOrd_ = 0;

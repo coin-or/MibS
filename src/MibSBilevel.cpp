@@ -108,7 +108,7 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
   isContainedInSetE_ = false;
   useBilevelBranching_ = true;
   isProvenOptimal_ = false;
-  solTagInSetE_ = MibSSetETagIsNotSet;
+  tagInSeenLinkingPool_ = MibSSetETagIsNotSet;
   haveHeurSolCand_ = false;
 
   model_->countIteration_ ++;
@@ -211,15 +211,15 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
   }
 	 
   if(isContainedInSetE_){
-      solTagInSetE_ = static_cast<MibSSetETag>(solType);
+      tagInSeenLinkingPool_ = static_cast<MibSSetETag>(solType);
   }
-  if(solTagInSetE_ == MibSSetETagVFIsInfeasible){
+  if(tagInSeenLinkingPool_ == MibSSetETagVFIsInfeasible){
       LPSolStatus_ = MibSLPSolStatusInfeasible;
   }
 
   //steps 5-6
-  if((isLinkVarsFixed_) && ((solTagInSetE_ == MibSSetETagVFIsInfeasible) ||
-			 (solTagInSetE_ == MibSSetETagUBIsSolved))){
+  if((isLinkVarsFixed_) && ((tagInSeenLinkingPool_ == MibSSetETagVFIsInfeasible) ||
+			 (tagInSeenLinkingPool_ == MibSSetETagUBIsSolved))){
       useBilevelBranching_ = false;
       isProvenOptimal_ = false;
       shouldPrune_ = true;
@@ -227,8 +227,8 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
 
   //step 7
   if(!shouldPrune_){
-      if(((solTagInSetE_ == MibSSetETagVFIsFeasible)
-	  || (solTagInSetE_ == MibSSetETagUBIsSolved)) ||
+      if(((tagInSeenLinkingPool_ == MibSSetETagVFIsFeasible)
+	  || (tagInSeenLinkingPool_ == MibSSetETagUBIsSolved)) ||
 	 ((!isContainedInSetE_) &&
 	  (((branchPar == MibSBranchingStrategyLinking) &&
 	    (isIntegral_) && (isLinkVarsFixed_)) ||
@@ -437,8 +437,9 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
     }
 
     //step 13
-    if(((!saveSeenLinkingSols) && (isProvenOptimal_)) || ((solTagInSetE_ == MibSSetETagVFIsFeasible) || (solTagInSetE_ ==
-									MibSSetETagUBIsSolved))){
+    if(((!saveSeenLinkingSols) && (isProvenOptimal_)) ||
+       ((tagInSeenLinkingPool_ == MibSSetETagVFIsFeasible) ||
+	(tagInSeenLinkingPool_ == MibSSetETagUBIsSolved))){
 
 	OsiSolverInterface *UBSolver = 0;
 	
@@ -471,7 +472,7 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 	}
 	if(!shouldPrune_){	
 	    //step 18
-	    if((solTagInSetE_ != MibSSetETagUBIsSolved) &&
+	    if((tagInSeenLinkingPool_ != MibSSetETagUBIsSolved) &&
 	       (((branchPar == MibSBranchingStrategyLinking) &&
 		 (isIntegral_) && (isLinkVarsFixed_)) ||
 		((computeBestUBWhenXVarsInt == PARAM_ON) && (isUpperIntegral_)) ||
@@ -544,7 +545,7 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 		    shouldPrune_ = true;
 		}	
 	    }
-	    else if((solTagInSetE_ != MibSSetETagUBIsSolved) ||
+	    else if((tagInSeenLinkingPool_ != MibSSetETagUBIsSolved) ||
 		    ((!saveSeenLinkingSols) && (isUBSolved_))){
 		haveHeurSolCand_ = true;
 		for(i = 0; i < lN; i++){
@@ -1184,7 +1185,7 @@ void
 	}
     }
 
-    solTagInSetE_ = solTag;
+    tagInSeenLinkingPool_ = solTag;
     model_->linkingSolution.lowerSol1.push_back(0);
     model_->linkingSolution.UBSol1.push_back(0);
     model_->linkingSolution.lowerSol1.clear();

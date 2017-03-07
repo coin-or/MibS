@@ -457,10 +457,12 @@ MibSCutGenerator::intersectionCuts(BcpsConstraintPool &conPool,
 	std::vector<double> alpha(numNonBasic);
 
 	bool shouldFindBestSol(true);
-	if(((saveSeenLinkingSols != PARAM_ON) && ((bS->isUBSolved_ == true) ||
-					 ((bS->isLowerSolved_ == true) && (bS->isProvenOptimal_ == false)))) ||
-	   ((saveSeenLinkingSols == PARAM_ON) && ((bS->solTagInSetE_ == MibSSetETagVFIsInfeasible) ||
-					 (bS->solTagInSetE_ == MibSSetETagUBIsSolved)))){
+	if(((saveSeenLinkingSols != PARAM_ON) &&
+	    ((bS->isUBSolved_ == true) || ((bS->isLowerSolved_ == true) &&
+					   (bS->isProvenOptimal_ == false)))) ||
+	   ((saveSeenLinkingSols == PARAM_ON) &&
+	    ((bS->tagInSeenLinkingPool_ == MibSSetETagVFIsInfeasible) ||
+	     (bS->tagInSeenLinkingPool_ == MibSSetETagUBIsSolved)))){
 	    shouldFindBestSol = false;
 	}
 	switch(ICType){
@@ -1432,8 +1434,8 @@ MibSCutGenerator::generalNoGoodCut(BcpsConstraintPool &conPool)
 
     if(((saveSeenLinkingSols != PARAM_ON) && ((bS->isUBSolved_ == true) ||
 				     ((bS->isLowerSolved_ == true) && (bS->isProvenOptimal_ == false)))) ||
-       ((saveSeenLinkingSols == PARAM_ON) && ((bS->solTagInSetE_ == MibSSetETagVFIsInfeasible) ||
-				     (bS->solTagInSetE_ == MibSSetETagUBIsSolved)))){
+       ((saveSeenLinkingSols == PARAM_ON) && ((bS->tagInSeenLinkingPool_ == MibSSetETagVFIsInfeasible) ||
+				     (bS->tagInSeenLinkingPool_ == MibSSetETagUBIsSolved)))){
 	shouldFindBestSol = false;
     }
 
