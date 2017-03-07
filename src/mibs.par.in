@@ -104,8 +104,8 @@ MibS_solveLowerWhenXVarsInt  0
 MibS_solveLowerWhenIVarsInt 0
 MibS_solveLowerWhenIVarsFixed 1
 
-MibS_computeUBWhenXVarsInt 0
-MibS_computeUBWhenIVarsInt 0
-MibS_computeUBWhenIVarsFixed 1
+MibS_computeBestUBWhenXVarsInt 0
+MibS_computeBestUBWhenIVarsInt 0
+MibS_computeBestUBWhenIVarsFixed 1
 
-useSetE 1
+saveSeenLinkingSols 1

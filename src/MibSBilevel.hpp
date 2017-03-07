@@ -54,10 +54,9 @@ private:
     bool isUBSolved_;
     /** should prune the node or not **/
     bool shouldPrune_;
-    bool isContainedInSetE_;
+    bool isContainedInLinkingPool_;
     bool haveHeurSolCand_;
-    MibSSetETag tagInSeenLinkingPool_;
-    int indexInSetE_;
+    MibSLinkingPoolTag tagInSeenLinkingPool_;
 
     MibSLPSolStatus LPSolStatus_;
 
@@ -82,9 +81,10 @@ public:
 		    isLinkVarsIntegral_(true), useBilevelBranching_(true),
 		    isLinkVarsFixed_(true), isProvenOptimal_(false),
 		    isLowerSolved_(false), isUBSolved_(false),
-		    shouldPrune_(false), isContainedInSetE_(false),
-		    haveHeurSolCand_(false), tagInSeenLinkingPool_(MibSSetETagIsNotSet),
-		    indexInSetE_(-1), LPSolStatus_(MibSLPSolStatusUnknown), objVal_(0.0){
+		    shouldPrune_(false), isContainedInLinkingPool_(false),
+		    haveHeurSolCand_(false),
+		    tagInSeenLinkingPool_(MibSLinkingPoolTagIsNotSet),
+		    LPSolStatus_(MibSLPSolStatusUnknown), objVal_(0.0){
 	upperSolutionOrd_ = 0;
 	lowerSolutionOrd_ = 0;
 	//optLowerSolution_ = 0;
@@ -116,7 +116,7 @@ private:
     int binarySearch(int index,int start, int stop, int * indexArray);
     CoinWarmStart * getWarmStart() {return ws_;}
     void setWarmStart(CoinWarmStart * ws) {ws_ = ws;}
-    void addSolutionToSetE(MibSSetETag solTag, std::vector<double>
+    void addSolutionToSeenLinkingSolutionPool(MibSLinkingPoolTag solTag, std::vector<double>
 		      &shouldStoreValues, double objValue);
     //void findHeuristicSolutions();
     //void objCutHeuristic();

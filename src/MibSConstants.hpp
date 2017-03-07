@@ -46,11 +46,11 @@ enum MibSLPSolStatus{
 
 //#############################################################################
 
-enum MibSSetETag{
-    MibSSetETagIsNotSet = -4,
-    MibSSetETagVFIsInfeasible,
-    MibSSetETagVFIsFeasible,
-    MibSSetETagUBIsSolved
+enum MibSLinkingPoolTag{
+    MibSLinkingPoolTagIsNotSet = -4,
+    MibSLinkingPoolTagLowerIsInfeasible,
+    MibSLinkingPoolTagLowerIsFeasible,
+    MibSLinkingPoolTagUBIsSolved
 };  
 
 //############################################################################# 
