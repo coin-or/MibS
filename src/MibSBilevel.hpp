@@ -22,6 +22,7 @@
 #include "MibSModel.hpp"
 #include "MibSHeuristic.hpp"
 #include "MibSConstants.hpp"
+#include "MibSHelp.hpp"
 
 class MibSModel;
 class MibSCutGenerator;
@@ -62,7 +63,7 @@ private:
 
     /** Optimal value of LL objective **/
     double objVal_;
-    
+
     double *upperSolutionOrd_;
     double *lowerSolutionOrd_;
     //double *optLowerSolution_;
@@ -73,6 +74,8 @@ private:
     MibSHeuristic *heuristic_;
     OsiSolverInterface * solver_; 
     CoinWarmStart * ws_;
+
+    std::map<std::vector<double>, LINKING_SOLUTION> seenLinkingSolutions;
 
    
 public:

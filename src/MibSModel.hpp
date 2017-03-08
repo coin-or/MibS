@@ -22,6 +22,7 @@
 #include "BlisSolution.h"
 #include "MibSBilevel.hpp"
 #include "MibSParams.hpp"
+#include "MibSHelp.hpp"
 
 class MibSBilevel;
 class MibSCutGenerator;
@@ -201,16 +202,16 @@ private:
     /** Max number of aux columns **/
     //int maxAuxCols_;
     
-    struct LINKING_SOLUTION{
+    /*struct LINKING_SOLUTION{
 	int tag;
 	double lowerObjVal1;
 	double UBObjVal1;
 	std::vector<double> lowerSol1;
 	std::vector<double> UBSol1;
-    } linkingSolution;
+	} linkingSolution;*/
 
     std::map<std::vector<double>, LINKING_SOLUTION> seenLinkingSolutions;
-    std::map<std::vector<double>, LINKING_SOLUTION>::iterator it;
+    //std::map<std::vector<double>, LINKING_SOLUTION>::iterator it;
     
 public:
 
