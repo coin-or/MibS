@@ -854,14 +854,14 @@ MibSCutGenerator::storeBestSolIntersectionCutType2(const double* lpSol,
 	//localModel_->it->second.tag = MibSSetETagUBIsSolved;
 	//localModel_->it->second.UBObjVal1 = objVal;
 	localModel_->seenLinkingSolutions[linkSol].tag = MibSLinkingPoolTagUBIsSolved;
-	localModel_->seenLinkingSolutions[linkSol].UBObjVal1 = objVal;   
+	localModel_->seenLinkingSolutions[linkSol].UBObjValue = objVal;   
 	if(UBSolver->isProvenOptimal()){
-	    localModel_->seenLinkingSolutions[linkSol].UBSol1.clear();
+	    localModel_->seenLinkingSolutions[linkSol].UBSolution.clear();
 	    //localModel_->it->second.UBSol1.clear();
 	    const double * valuesUB = UBSolver->getColSolution();
 	    for(i = 0; i < uN + lN; i++){
 		//localModel_->it->second.UBSol1.push_back(valuesUB[i]);
-		localModel_->seenLinkingSolutions[linkSol].UBSol1.push_back(valuesUB[i]);
+		localModel_->seenLinkingSolutions[linkSol].UBSolution.push_back(valuesUB[i]);
 	    }
 	}
     }
