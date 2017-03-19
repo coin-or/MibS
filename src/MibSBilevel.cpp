@@ -243,6 +243,9 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
   if(cutStrategy == 1){
       useBilevelBranching_ = false;
   }
+  
+  heuristic_->findHeuristicSolutions();
+  
 }
 
 
