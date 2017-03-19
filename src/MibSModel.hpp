@@ -116,6 +116,9 @@ private:
     /** Determines if all variables of upper-level problem are binary or not **/
     bool allUpperBin_;
 
+    /** Determines if all linking variables are binary or not **/
+    bool allLinkingBin_;
+
     /** Determines if all variables of upper-level problem are binary or not **/
     bool allLowerBin_;
 
