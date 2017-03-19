@@ -234,14 +234,15 @@ MibSModel::setBlisParameters()
 void 
 MibSModel::readAuxiliaryData()
 {
+  std::string fileName = getLowerFile();
+  fileCoinReadable(fileName);
+  std::ifstream data_stream(fileName.c_str());
 
-  std::ifstream data_stream(getLowerFile().c_str());
-  
   if (!data_stream){
-    std::cout << "Error opening input data file. Aborting.\n";
-    abort();
+     std::cout << "Error opening input data file. Aborting.\n";
+     abort();
   }
-  
+
   std::string key;
   int iValue(0);
   double dValue(0.0);
