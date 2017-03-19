@@ -2905,12 +2905,15 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix, const double* ro
     for(i = 0; i < numCols; i++){
 	if (colType_[i] != 'B'){
 	    if(binarySearch(0, lCols - 1, i, lColIndices) < 0){
+		if(fixedInd_[i] == 1){
+		    allLinkingBin_ = false;
+		}
 		allUpperBin_ = false;
 	    }
 	    else{
 		allLowerBin_ = false;
 	    }
-	    if((allUpperBin_ == false) && (allLowerBin_ == false)){
+	    if((!allUpperBin_) && (!allLowerBin_) && (!allLinkingBin_)){
 		break;
 	    }
 	}
@@ -2936,7 +2939,6 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix, const double* ro
     int counterStart, counterEnd;
     int rowIndex, posRow, posCol;
     double rhs(0.0);
-    bool allFixedBin(true);
     
     const double * matElements = newMatrix->getElements();
     const int * matIndices = newMatrix->getIndices();           
@@ -2960,19 +2962,19 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix, const double* ro
 	    }
 	    if(matElements[j] < 0){
 		if(posRow < 0){
-		    if(posCol < 0){                                                                                                                                               
-			positiveA1_ = false;                                                                                                                                      
-		    }                                                                                                                                                             
-		    else{                                                                                                                                                         
-                        positiveG1_ = false;                                                                                                                                      
-                    }                                                                                                                                                             
+		    if(posCol < 0){
+			positiveA1_ = false;
+		    }  
+		    else{
+                        positiveG1_ = false;
+                    }  
                 }   
-                else{                                                                                                                                                             
-                    if(posCol < 0){                                                                                                                                               
-                        positiveA2_ = false;                                                                                                                                      
-                    }                                                                                                                                                             
-                    else{                                                                                                                                                         
-                        positiveG2_ = false;                                                                                                                                      
+                else{  
+                    if(posCol < 0){
+                        positiveA2_ = false;
+                    }  
+                    else{
+                        positiveG2_ = false;                                                                                                               
                     }
 		}
 	    }
@@ -3015,12 +3017,9 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix, const double* ro
     for(i = 0; i < numCols; i++){
 	if(fixedInd_[i] == 1){
 	    if(colType_[i] == 'C'){
-		std::cout << "All UL variables which participate in LL problem, should be discrete" << std::endl;
+		std::cout << "All linking variables should be discrete" << std::endl;
 		i = -1;
 		assert(i > 0);
-	    }
-	    if(colType_[i] != 'B'){
-		allFixedBin = false;
 	    }
 	}
     }
@@ -3042,15 +3041,18 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix, const double* ro
     }
 
     int paramValue(0), cutType(0);
-    bool isHypercubeOn(false);
+    //bool isHypercubeOn(false);
 
-    //Check if hypercube IC is on or off
+    bool turnOffOtherCuts(MibSPar_->entry(MibSParams::turnOffOtherCuts));
+    bool defaultCutIsOn(false);
+
+    /*//Check if hypercube IC is on or off
     paramValue = MibSPar_->entry(MibSParams::useIntersectionCut);
     cutType =  MibSPar_->entry(MibSParams::intersectionCutType);
 
     if((paramValue == PARAM_ON) && (cutType == 2)){
 	isHypercubeOn = true;
-    }
+    }*/
     
     //Param: "MibS_usePreprocessor" 
     paramValue = MibSPar_->entry(MibSParams::usePreprocessor);
@@ -3075,6 +3077,11 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix, const double* ro
     }
 
     //Param: "MibS_useIncObjCut"
+    if((turnOffOtherCuts == true) &&
+       (MibSPar_->entry(MibSParams::useIncObjCut) == PARAM_NOTSET)){
+	MibSPar()->setEntry(MibSParams::useIncObjCut, PARAM_OFF);
+    }
+    
     paramValue = MibSPar_->entry(MibSParams::useIncObjCut);
 
     if(paramValue == PARAM_NOTSET)
@@ -3086,58 +3093,12 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix, const double* ro
 	}
     }
 
-    //Param: "MibS_useGeneralNoGoodCut"
-    paramValue = MibSPar_->entry(MibSParams::useGeneralNoGoodCut);
-
-    if(paramValue == PARAM_NOTSET)
-	MibSPar()->setEntry(MibSParams::useGeneralNoGoodCut, PARAM_OFF);
-    else if(paramValue == PARAM_ON){
-	if(allFixedBin == false){
-	    std::cout << "Generalized no-good cut does not work for this problem. Automatically disabling this cut." << std::endl;
-	    MibSPar()->setEntry(MibSParams::useGeneralNoGoodCut, PARAM_OFF);
-	}
-    }
-
-    //Param: "MibS_usePureIntegerCut"
-    paramValue = MibSPar_->entry(MibSParams::usePureIntegerCut);
-
-    if(paramValue == PARAM_NOTSET)
-	MibSPar()->setEntry(MibSParams::usePureIntegerCut, PARAM_OFF);
-    else if(paramValue == PARAM_ON){
-	if((isPureInteger_ == false) || (isUpperCoeffInt_ == false)
-	   || (isLowerCoeffInt_ == false)){
-	    std::cout << "The pure integer cut does not work for this problem. Automatically disabling this cut." << std::endl;
-	    MibSPar()->setEntry(MibSParams::usePureIntegerCut, PARAM_OFF);
-	}
-    }
-
-    //Param: "MibS_useNoGoodCut"
-    paramValue = MibSPar_->entry(MibSParams::useNoGoodCut);
-
-    if(paramValue == PARAM_NOTSET)
-	MibSPar()->setEntry(MibSParams::useNoGoodCut, PARAM_OFF);
-    else if((paramValue == PARAM_ON) && (allUpperBin_ == false)){
-	std::cout << "The no-good cut does not work for this problem. Automatically disabling this cut." << std::endl;
-	MibSPar()->setEntry(MibSParams::useNoGoodCut, PARAM_OFF);
-    }
-
-    //Param: "MibS_useBendersCut"
-    paramValue = MibSPar_->entry(MibSParams::useBendersCut);
-
-    if(paramValue == PARAM_NOTSET)
-       if((isInterdict_ == false) || (positiveG2_ == false)){
-          MibSPar()->setEntry(MibSParams::useBendersCut, PARAM_OFF);
-       }else{
-          MibSPar()->setEntry(MibSParams::useBendersCut, PARAM_ON);
-       }
-    else if(paramValue == PARAM_ON){
-	if((isInterdict_ == false) || (positiveG2_ == false)){ 
-	    std::cout << "The benders cut does not work for this problem. Automatically disabling this cut." << std::endl;
-	    MibSPar()->setEntry(MibSParams::useBendersCut, PARAM_OFF);
-	}
+    //Param: "MibS_useInterSectionCut" (Type1)
+    if((turnOffOtherCuts == true) &&
+       (MibSPar_->entry(MibSParams::useIntersectionCut) == PARAM_NOTSET)){
+	MibSPar()->setEntry(MibSParams::useIntersectionCut, PARAM_OFF);
     }
     
-    //Param: "MibS_useInterSectionCut" (Type1)
     paramValue = MibSPar_->entry(MibSParams::useIntersectionCut);
 
     if(paramValue == PARAM_NOTSET){
@@ -3154,6 +3115,122 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix, const double* ro
 	}
     }
 
+    //Param: "MibS_useBendersCut"
+    if((turnOffOtherCuts == true) &&
+       (MibSPar_->entry(MibSParams::useBendersCut) == PARAM_NOTSET)){
+	MibSPar()->setEntry(MibSParams::useBendersCut, PARAM_OFF);
+    }
+    
+    paramValue = MibSPar_->entry(MibSParams::useBendersCut);
+
+    if(paramValue == PARAM_NOTSET){
+	if((isInterdict_ == false) || (positiveG2_ == false)){
+	    MibSPar()->setEntry(MibSParams::useBendersCut, PARAM_OFF);
+	}else{
+	    MibSPar()->setEntry(MibSParams::useBendersCut, PARAM_ON);
+	}
+    }
+    else if(paramValue == PARAM_ON){
+	if((isInterdict_ == false) || (positiveG2_ == false)){
+	    std::cout << "The benders cut does not work for this problem. Automatically disabling this cut." << std::endl;
+	    MibSPar()->setEntry(MibSParams::useBendersCut, PARAM_OFF);
+	}
+    }
+    if(MibSPar_->entry(MibSParams::useBendersCut) == PARAM_ON){
+	    defaultCutIsOn = true;
+	}
+   
+
+    //Param: "MibS_useNoGoodCut"
+    if((turnOffOtherCuts == true) &&
+       (MibSPar_->entry(MibSParams::useNoGoodCut) == PARAM_NOTSET)){
+	MibSPar()->setEntry(MibSParams::useNoGoodCut, PARAM_OFF);
+    }
+    
+    paramValue = MibSPar_->entry(MibSParams::useNoGoodCut);
+
+    if(paramValue == PARAM_NOTSET){
+	    if(allUpperBin_ == false){
+	    MibSPar()->setEntry(MibSParams::useNoGoodCut, PARAM_OFF);
+	}
+	    else if(defaultCutIsOn == false){
+		MibSPar()->setEntry(MibSParams::useNoGoodCut, PARAM_ON);
+	    }
+    }	    
+    else if((paramValue == PARAM_ON) && (allUpperBin_ == false)){
+	std::cout << "The no-good cut does not work for this problem. Automatically disabling this cut." << std::endl;
+	MibSPar()->setEntry(MibSParams::useNoGoodCut, PARAM_OFF);
+    }
+    if(MibSPar_->entry(MibSParams::useNoGoodCut) == PARAM_ON){
+	defaultCutIsOn = true;
+    }
+
+    //Param: "MibS_useGeneralNoGoodCut"
+    if((turnOffOtherCuts == true) &&
+       (MibSPar_->entry(MibSParams::useNoGoodCut) == PARAM_NOTSET)){
+	MibSPar()->setEntry(MibSParams::useGeneralNoGoodCut, PARAM_OFF);
+    }
+    
+    paramValue = MibSPar_->entry(MibSParams::useGeneralNoGoodCut);
+
+    if(paramValue == PARAM_NOTSET){
+	if(allLinkingBin_ == false){
+	    MibSPar()->setEntry(MibSParams::useGeneralNoGoodCut, PARAM_OFF);
+	}
+	else if(defaultCutIsOn == false){
+	    MibSPar()->setEntry(MibSParams::useGeneralNoGoodCut, PARAM_ON);
+	}
+    }
+    else if((paramValue == PARAM_ON) && (allLinkingBin_ == false)){
+	std::cout << "Generalized no-good cut does not work for this problem. Automatically disabling this cut." << std::endl;
+	MibSPar()->setEntry(MibSParams::useGeneralNoGoodCut, PARAM_OFF);
+    }
+    if(MibSPar_->entry(MibSParams::useGeneralNoGoodCut) == PARAM_ON){
+	defaultCutIsOn = true;
+    }
+
+
+    //Param: "MibS_usePureIntegerCut"
+    if((turnOffOtherCuts == true) &&
+       (MibSPar_->entry(MibSParams::usePureIntegerCut) == PARAM_NOTSET)){
+	MibSPar()->setEntry(MibSParams::usePureIntegerCut, PARAM_OFF);
+    }
+    
+    paramValue = MibSPar_->entry(MibSParams::usePureIntegerCut);
+
+    if(paramValue == PARAM_NOTSET){
+	if((isPureInteger_ == false) || (isUpperCoeffInt_ == false)
+	   || (isLowerCoeffInt_ == false)){
+	    MibSPar()->setEntry(MibSParams::usePureIntegerCut, PARAM_OFF);
+	}
+	else if(defaultCutIsOn == false){
+	    MibSPar()->setEntry(MibSParams::usePureIntegerCut, PARAM_ON);
+	}
+    }
+    else if((isPureInteger_ == false) || (isUpperCoeffInt_ == false)
+	    || (isLowerCoeffInt_ == false)){
+	std::cout << "The pure integer cut does not work for this problem. Automatically disabling this cut." << std::endl;
+	MibSPar()->setEntry(MibSParams::usePureIntegerCut, PARAM_OFF);
+    }
+    if(MibSPar_->entry(MibSParams::usePureIntegerCut) == PARAM_ON){
+	defaultCutIsOn = true;
+    }
+
+    //Param: "MibS_useInterSectionCut" (hypercube IC)
+    if((turnOffOtherCuts == true) &&
+       (MibSPar_->entry(MibSParams::useIntersectionCut) == PARAM_NOTSET)){
+	MibSPar()->setEntry(MibSParams::useIntersectionCut, PARAM_OFF);
+    }
+    
+    paramValue = MibSPar_->entry(MibSParams::useIntersectionCut);
+
+    if(paramValue == PARAM_NOTSET){
+	if(defaultCutIsOn == false){
+	    MibSPar()->setEntry(MibSParams::useIntersectionCut, PARAM_ON);
+	    MibSPar()->setEntry(MibSParams::intersectionCutType, 2);
+	}
+    }
+
     //Param: "MibS_branchProcedure"
     MibSBranchingStrategy branchPar = static_cast<MibSBranchingStrategy>
 	  (MibSPar_->entry(MibSParams::branchStrategy));
@@ -3164,31 +3241,13 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix, const double* ro
 		  << std::endl;
     }
 
-    //Param: "MibS_useInterSectionCut" (hypercube IC)
-    if(isHypercubeOn == false){
-	if((MibSPar_->entry(MibSParams::useIncObjCut) != PARAM_ON) &&
-	   (MibSPar_->entry(MibSParams::usePureIntegerCut) != PARAM_ON) &&
-	   (MibSPar_->entry(MibSParams::useNoGoodCut) != PARAM_ON) &&
-	   (MibSPar_->entry(MibSParams::useGeneralNoGoodCut) != PARAM_ON) &&
-	   (MibSPar_->entry(MibSParams::useBendersCut) != PARAM_ON) &&
-	   (MibSPar_->entry(MibSParams::useIntersectionCut) != PARAM_ON)){
-	    if(MibSPar_->entry(MibSParams::branchStrategy) ==
-	       MibSBranchingStrategyFractional){
-		//turn on hupercube IC
-		MibSPar()->setEntry(MibSParams::useIntersectionCut, PARAM_ON);
-		MibSPar()->setEntry(MibSParams::intersectionCutType, 2);
-		std::cout << "Since no appropriate cut is selected and the branching procedure is set to 'MibSBranchingStrategyFractional', hypercube IC is turned on automatically." << std::endl;
-	    }
-	    else{
-		MibSPar()->setEntry(MibSParams::cutStrategy, 1);
-		std::cout << "Since no appropriate cut is selected, pure branch-and-bound algorithm is used."
-			  << std::endl;
-	    }
-	}
-    }
 
     if(MibSPar_->entry(MibSParams::useIncObjCut) == PARAM_ON){
 	std::cout << "'Increasing objective cut' genertor is on." << std::endl;
+    }
+
+    if(MibSPar_->entry(MibSParams::useBendersCut) == PARAM_ON){
+	std::cout << "'Benders cut' genertor is on." << std::endl;
     }
 
     if(MibSPar_->entry(MibSParams::usePureIntegerCut) == PARAM_ON){
@@ -3201,10 +3260,6 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix, const double* ro
 
     if(MibSPar_->entry(MibSParams::useGeneralNoGoodCut) == PARAM_ON){
 	std::cout << "'Generalized no-good cut' genertor is on."<< std::endl;
-    }
-
-    if(MibSPar_->entry(MibSParams::useBendersCut) == PARAM_ON){
-	std::cout << "'Benders cut' genertor is on."<< std::endl;
     }
 
     if(MibSPar_->entry(MibSParams::useIntersectionCut) == PARAM_ON){
@@ -3250,7 +3305,7 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix, const double* ro
        (computeBestUBWhenXVarsInt == PARAM_NOTSET) &&
        (computeBestUBWhenLinkVarsInt == PARAM_NOTSET) &&
        (computeBestUBWhenLinkVarsFixed == PARAM_NOTSET)){
-	MibSPar()->setEntry(MibSParams::solveLowerWhenXVarsInt, PARAM_ON);
+	MibSPar()->setEntry(MibSParams::solveLowerWhenXYVarsInt, PARAM_ON);
 	MibSPar()->setEntry(MibSParams::solveLowerWhenLinkVarsFixed, PARAM_ON);
 	MibSPar()->setEntry(MibSParams::computeBestUBWhenLinkVarsFixed, PARAM_ON);
     }
