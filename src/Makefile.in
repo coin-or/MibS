@@ -363,7 +363,8 @@ libMibs_la_SOURCES = \
 	MibSBranchStrategyRel.cpp \
 	MibSModel.cpp \
 	MibSBranchStrategyRel.hpp \
-	MibSModel.hpp
+	MibSModel.hpp \
+	MibSHelp.hpp
 
 
 # List all additionally required libraries
@@ -409,7 +410,8 @@ includecoin_HEADERS = \
 	MibSBranchStrategyRel.hpp \
 	MibSModel.hpp \
 	MibSBranchStrategyStrong.hpp \
-	MibSObjectInt.hpp
+	MibSObjectInt.hpp \
+	MibSHelp.hpp
 
 all: config.h config_mibs.h
 	$(MAKE) $(AM_MAKEFLAGS) all-am
