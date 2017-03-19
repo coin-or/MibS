@@ -2877,7 +2877,7 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix, const double* ro
     int * lRowIndices = getLowerRowInd();
     char * newRowSense = new char[numRows];
 
-    if (isInterdict_ = false){
+    if (isInterdict_ == false){
 	CoinDisjointCopyN(rowSense, numRows, newRowSense);
     }
     else{
@@ -3125,7 +3125,11 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix, const double* ro
     paramValue = MibSPar_->entry(MibSParams::useBendersCut);
 
     if(paramValue == PARAM_NOTSET)
-	MibSPar()->setEntry(MibSParams::useBendersCut, PARAM_OFF);
+       if((isInterdict_ == false) || (positiveG2_ == false)){
+          MibSPar()->setEntry(MibSParams::useBendersCut, PARAM_OFF);
+       }else{
+          MibSPar()->setEntry(MibSParams::useBendersCut, PARAM_ON);
+       }
     else if(paramValue == PARAM_ON){
 	if((isInterdict_ == false) || (positiveG2_ == false)){ 
 	    std::cout << "The benders cut does not work for this problem. Automatically disabling this cut." << std::endl;
