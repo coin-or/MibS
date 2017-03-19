@@ -3283,40 +3283,40 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix, const double* ro
     }
 	
     //Setting parameters of solving (VF) and (UB)
-    int solveLowerWhenXYVarsInt(MibSPar_->entry(MibSParams::
-					    solveLowerWhenXYVarsInt));
-    int solveLowerWhenXVarsInt(MibSPar_->entry(MibSParams::
-					   solveLowerWhenXVarsInt));
-    int solveLowerWhenLinkVarsInt(MibSPar_->entry(MibSParams::
-					      solveLowerWhenLinkVarsInt));
-    int solveLowerWhenLinkVarsFixed(MibSPar_->entry(MibSParams::
-						solveLowerWhenLinkVarsFixed));
+    int solveSecondLevelWhenXYVarsInt(MibSPar_->entry(MibSParams::
+					    solveSecondLevelWhenXYVarsInt));
+    int solveSecondLevelWhenXVarsInt(MibSPar_->entry(MibSParams::
+					   solveSecondLevelWhenXVarsInt));
+    int solveSecondLevelWhenLVarsInt(MibSPar_->entry(MibSParams::
+					      solveSecondLevelWhenLVarsInt));
+    int solveSecondLevelWhenLVarsFixed(MibSPar_->entry(MibSParams::
+						solveSecondLevelWhenLVarsFixed));
     int computeBestUBWhenXVarsInt(MibSPar_->entry(MibSParams::
 					      computeBestUBWhenXVarsInt));
-    int computeBestUBWhenLinkVarsInt(MibSPar_->entry(MibSParams::
-					     computeBestUBWhenLinkVarsInt));
-    int computeBestUBWhenLinkVarsFixed(MibSPar_->entry(MibSParams::
-					       computeBestUBWhenLinkVarsFixed));
+    int computeBestUBWhenLVarsInt(MibSPar_->entry(MibSParams::
+						  computeBestUBWhenLVarsInt));
+    int computeBestUBWhenLVarsFixed(MibSPar_->entry(MibSParams::
+						    computeBestUBWhenLVarsFixed));
 
-    if((solveLowerWhenXYVarsInt == PARAM_NOTSET) &&
-       (solveLowerWhenXVarsInt == PARAM_NOTSET) &&
-       (solveLowerWhenLinkVarsInt == PARAM_NOTSET) &&
-       (solveLowerWhenLinkVarsFixed == PARAM_NOTSET) &&
+    if((solveSecondLevelWhenXYVarsInt == PARAM_NOTSET) &&
+       (solveSecondLevelWhenXVarsInt == PARAM_NOTSET) &&
+       (solveSecondLevelWhenLVarsInt == PARAM_NOTSET) &&
+       (solveSecondLevelWhenLVarsFixed == PARAM_NOTSET) &&
        (computeBestUBWhenXVarsInt == PARAM_NOTSET) &&
-       (computeBestUBWhenLinkVarsInt == PARAM_NOTSET) &&
-       (computeBestUBWhenLinkVarsFixed == PARAM_NOTSET)){
-	MibSPar()->setEntry(MibSParams::solveLowerWhenXYVarsInt, PARAM_ON);
-	MibSPar()->setEntry(MibSParams::solveLowerWhenLinkVarsFixed, PARAM_ON);
-	MibSPar()->setEntry(MibSParams::computeBestUBWhenLinkVarsFixed, PARAM_ON);
+       (computeBestUBWhenLVarsInt == PARAM_NOTSET) &&
+       (computeBestUBWhenLVarsFixed == PARAM_NOTSET)){
+	MibSPar()->setEntry(MibSParams::solveSecondLevelWhenXYVarsInt, PARAM_ON);
+	MibSPar()->setEntry(MibSParams::solveSecondLevelWhenLVarsFixed, PARAM_ON);
+	MibSPar()->setEntry(MibSParams::computeBestUBWhenLVarsFixed, PARAM_ON);
     }
 
     //Setting "saveSeenLinkingSols" parameter
     
-    if(MibSPar_->entry(MibSParams::saveSeenLinkingSols) == PARAM_NOTSET){
-	MibSPar()->setEntry(MibSParams::saveSeenLinkingSols, PARAM_ON);
+    if(MibSPar_->entry(MibSParams::useLinkingSolutionPool) == PARAM_NOTSET){
+	MibSPar()->setEntry(MibSParams::useLinkingSolutionPool, PARAM_ON);
     }
 
-    if(MibSPar_->entry(MibSParams::saveSeenLinkingSols) == PARAM_ON){
+    if(MibSPar_->entry(MibSParams::useLinkingSolutionPool) == PARAM_ON){
 	std::cout << "'seenLinkingSolutions' pool is used." << std::endl;
     }
     else{
