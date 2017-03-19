@@ -100,13 +100,13 @@ MibS_whichCutsLL 2           # 0: no cuts, 1: gomory only, 2: all cuts
 MibS_doDualFixing 0
 MibS_feasCheckSolver SYMPHONY
 
-MibS_solveSecondLevelWhenXYVarsInt 0
-MibS_solveSecondLevelWhenXVarsInt  0
-MibS_solveSecondLevelWhenLVarsInt 0
-MibS_solveSecondLevelWhenLVarsFixed 1
+MibS_solveLowerWhenXYVarsInt 0
+MibS_solveLowerWhenXVarsInt  0
+MibS_solveLowerWhenIVarsInt 0
+MibS_solveLowerWhenIVarsFixed 1
 
 MibS_computeBestUBWhenXVarsInt 0
-MibS_computeBestUBWhenLVarsInt 0
-MibS_computeBestUBWhenLVarsFixed 1
+MibS_computeBestUBWhenIVarsInt 0
+MibS_computeBestUBWhenIVarsFixed 1
 
-useLinkingSolutionPool 1
+saveSeenLinkingSols 1
