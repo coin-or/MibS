@@ -489,7 +489,7 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 		}
 		UBSolver = setUpUBModel(model_->getSolver(), objVal, true);
 	    
-#ifndef COIN_HAS_SYMPHONY
+		/*#ifndef COIN_HAS_SYMPHONY
 		dynamic_cast<OsiCbcSolverInterface *>
 		    (UBSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
 #else
@@ -501,7 +501,67 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 	    
 		dynamic_cast<OsiSymSolverInterface *>
 		    (UBSolver)->setSymParam("max_active_nodes", 1);
+		    #endif*/
+
+                if (feasCheckSolver == "Cbc"){
+		                    dynamic_cast<OsiCbcSolverInterface *>
+					(UBSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
+		}else if (feasCheckSolver == "SYMPHONY"){
+		    #if COIN_HAS_SYMPHONY
+		    //dynamic_cast<OsiSymSolverInterface *>
+		    // (lSolver)->setSymParam("prep_level", -1);
+
+		    sym_environment *env = dynamic_cast<OsiSymSolverInterface *>
+			(UBSolver)->getSymphonyEnvironment();
+		    if (warmStartLL){
+			sym_set_int_param(env, "keep_warm_start", TRUE);
+			if (probType == 1){ //Interdiction
+			    sym_set_int_param(env, "should_use_rel_br", FALSE);
+			    sym_set_int_param(env, "use_hot_starts", FALSE);
+			    sym_set_int_param(env, "should_warmstart_node", TRUE);
+			    sym_set_int_param(env, "sensitivity_analysis", TRUE);
+			    sym_set_int_param(env, "sensitivity_bounds", TRUE);
+			    sym_set_int_param(env, "set_obj_upper_lim", FALSE);
+			}
+		    }
+		    //Always uncomment for debugging!!
+		    sym_set_int_param(env, "do_primal_heuristic", FALSE);
+		    sym_set_int_param(env, "verbosity", -2);
+		    sym_set_int_param(env, "prep_level", -1);
+		    sym_set_int_param(env, "max_active_nodes", maxThreadsLL);
+		    sym_set_int_param(env, "tighten_root_bounds", FALSE);
+		    sym_set_int_param(env, "max_sp_size", 100);
+		    sym_set_int_param(env, "do_reduced_cost_fixing", FALSE);
+		    if (whichCutsLL == 0){
+			sym_set_int_param(env, "generate_cgl_cuts", FALSE);
+		    }else{
+			sym_set_int_param(env, "generate_cgl_gomory_cuts", GENERATE_DEFAULT);
+		    }
+		    if (whichCutsLL == 1){
+			sym_set_int_param(env, "generate_cgl_knapsack_cuts",
+					  DO_NOT_GENERATE);
+			sym_set_int_param(env, "generate_cgl_probing_cuts",
+					  DO_NOT_GENERATE);
+			sym_set_int_param(env, "generate_cgl_clique_cuts",
+					  DO_NOT_GENERATE);
+			sym_set_int_param(env, "generate_cgl_twomir_cuts",
+					  DO_NOT_GENERATE);
+			sym_set_int_param(env, "generate_cgl_flowcover_cuts",
+					  DO_NOT_GENERATE);
+		    }
 #endif
+		}else if (feasCheckSolver == "CPLEX"){
+#ifdef COIN_HAS_CPLEX
+		    UBSolver->setHintParam(OsiDoReducePrint);
+		    UBSolver->messageHandler()->setLogLevel(0);
+		    CPXENVptr cpxEnv =
+			dynamic_cast<OsiCpxSolverInterface*>(UBSolver)->getEnvironmentPtr();
+		    assert(cpxEnv);
+		    CPXsetintparam(cpxEnv, CPX_PARAM_SCRIND, CPX_OFF);
+		    CPXsetintparam(cpxEnv, CPX_PARAM_THREADS, maxThreadsLL);
+#endif
+		}
+
 		//step 19
 		UBSolver->branchAndBound();
 		model_->counterUB_ ++;
