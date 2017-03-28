@@ -32,6 +32,11 @@
 #include "symphony.h"
 #endif
 
+#ifdef COIN_HAS_CPLEX
+#include "cplex.h"
+#include "OsiCpxSolverInterface.hpp"
+#endif
+
 #if  COIN_HAS_MPI
 #include "AlpsKnowledgeBrokerMPI.h"
 #else
