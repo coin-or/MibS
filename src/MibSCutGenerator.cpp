@@ -930,6 +930,7 @@ MibSCutGenerator::storeBestSolIntersectionCutType2(const double* lpSol,
 	//localModel_->it = localModel_->seenLinkingSolutions.find(linkSol);
 	//localModel_->it->second.tag = MibSSetETagUBIsSolved;
 	//localModel_->it->second.UBObjVal1 = objVal;
+	localModel_->bS_->tagInSeenLinkingPool_ = MibSLinkingPoolTagUBIsSolved;
 	localModel_->seenLinkingSolutions[linkSol].tag = MibSLinkingPoolTagUBIsSolved;
 	localModel_->seenLinkingSolutions[linkSol].UBObjValue = objVal;   
 	if(UBSolver->isProvenOptimal()){
