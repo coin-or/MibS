@@ -74,9 +74,6 @@ private:
     MibSHeuristic *heuristic_;
     OsiSolverInterface * solver_; 
     CoinWarmStart * ws_;
-
-    std::map<std::vector<double>, LINKING_SOLUTION> seenLinkingSolutions;
-
    
 public:
    
