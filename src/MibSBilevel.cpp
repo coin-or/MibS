@@ -201,10 +201,10 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
 	      linkSol.push_back(upperSolutionOrd_[i]);
 	  }
       }
-      if(seenLinkingSolutions.find(linkSol) !=
-	 seenLinkingSolutions.end()){
+      if(model_->seenLinkingSolutions.find(linkSol) !=
+	 model_->seenLinkingSolutions.end()){
 	  isContainedInLinkingPool_ = true;
-	  solType = seenLinkingSolutions.find(linkSol)->second.tag;
+	  solType = model_->seenLinkingSolutions.find(linkSol)->second.tag;
       }
   }
 	 
@@ -454,11 +454,11 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 	    //get optimal value  of (VF) from solution pool
 	    //model_->it = seenLinkingSolutions.find(linkSol);
 	    //objVal = model_->it->second.lowerObjVal1;
-	    objVal = seenLinkingSolutions[linkSol].lowerObjValue; 
+	    objVal = model_->seenLinkingSolutions[linkSol].lowerObjValue; 
 	    //objVal = seenLinkingSolutions.find(linkSol).
 	    objVal_ = objVal;
 	    for(i = 0; i < lN; i++){
-		lowerSol[i] = seenLinkingSolutions[linkSol].lowerSolution[i];
+		lowerSol[i] = model_->seenLinkingSolutions[linkSol].lowerSolution[i];
 	    }  
 	}
 	lowerObj = getLowerObj(sol, model_->getLowerObjSense());
@@ -1252,7 +1252,7 @@ void
 	    linkingSolution.UBObjValue = 0.0;
 	    linkingSolution.lowerSolution.push_back(0);
 	    linkingSolution.UBSolution.push_back(0);
-	    seenLinkingSolutions[linkSol] = linkingSolution;
+	    model_->seenLinkingSolutions[linkSol] = linkingSolution;
 	    break;
 	}
     case MibSLinkingPoolTagLowerIsFeasible:
@@ -1264,22 +1264,17 @@ void
 		linkingSolution.lowerSolution.push_back(shouldStoreValues[i]);
 	    }
 	    linkingSolution.UBSolution.push_back(0);
-	    seenLinkingSolutions[linkSol] = linkingSolution;
+	    model_->seenLinkingSolutions[linkSol] = linkingSolution;
 	    break;
 	}
     case MibSLinkingPoolTagUBIsSolved:
 	{
-	    //model_->it = model_->seenLinkingSolutions.find(linkSol);
-	    //model_->it->second.tag = MibSSetETagUBIsSolved;
-	    //model_->it->second.UBObjVal1 = objValue;
-	    seenLinkingSolutions[linkSol].tag = MibSLinkingPoolTagUBIsSolved;
-	    seenLinkingSolutions[linkSol].UBObjValue = objValue;
+	    model_->seenLinkingSolutions[linkSol].tag = MibSLinkingPoolTagUBIsSolved;
+	    model_->seenLinkingSolutions[linkSol].UBObjValue = objValue;
 	    if(isProvenOptimal_){
-		//model_->it->second.UBSol1.clear();
-		seenLinkingSolutions[linkSol].UBSolution.clear();
+		model_->seenLinkingSolutions[linkSol].UBSolution.clear();
 		for(i = 0; i < uN + lN; i++){
-		    //model_->it->second.UBSol1.push_back(shouldStoreValues[i]);
-		    seenLinkingSolutions[linkSol].UBSolution.push_back(shouldStoreValues[i]);
+		    model_->seenLinkingSolutions[linkSol].UBSolution.push_back(shouldStoreValues[i]);
 		}
 	    }
 	    break;
