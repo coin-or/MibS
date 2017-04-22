@@ -184,6 +184,12 @@ private:
     /** Original row upper bounds from Omega **/
     double * origRowUb_;
 
+    /** Names of columns **/
+    std::string * columnName_;
+
+    /** Names of rows **/
+    std::string * rowName_;
+
     /** Original matrix of constraints coefficients **/
     CoinPackedMatrix *origConstCoefMatrix_;
 
@@ -389,6 +395,12 @@ public:
     /** Get pointer to the LL objective coefficient array **/
     double * getLowerObjCoeffs() {return lowerObjCoeffs_;}
 
+    /** Get pointer to the names of columns **/
+    std::string * getColumnName() {return columnName_;}
+
+    /** Get pointer to the names of rows **/
+    std::string * getRowName() {return rowName_;}
+
     /** Get pointer to the interdiction coefficient array **/
     double * getInterdictCost() {return interdictCost_;}
 
@@ -405,7 +417,7 @@ public:
     void setBlisParameters();
   
     /** Read auxiliary data file **/
-    void readAuxiliaryData();
+    void readAuxiliaryData(int numCols, int numRows);
 
     /** Set auxiliary data directly when using MibS as a library **/
     void loadAuxiliaryData(int lowerColNum, int lowerRowNum,
