@@ -143,30 +143,30 @@ MibSParams::createKeywordList() {
 			     AlpsParameter(AlpsIntPar, intersectionCutType)));
 
    //solve lower-level Parameters
-   keys_.push_back(make_pair(std::string("MibS_solveLowerWhenXYVarsInt"),
-			     AlpsParameter(AlpsIntPar, solveLowerWhenXYVarsInt)));
+   keys_.push_back(make_pair(std::string("MibS_solveSecondLevelWhenXYVarsInt"),
+			     AlpsParameter(AlpsIntPar, solveSecondLevelWhenXYVarsInt)));
 
-   keys_.push_back(make_pair(std::string("MibS_solveLowerWhenXVarsInt"),
-			     AlpsParameter(AlpsIntPar, solveLowerWhenXVarsInt)));
+   keys_.push_back(make_pair(std::string("MibS_solveSecondLevelWhenXVarsInt"),
+			     AlpsParameter(AlpsIntPar, solveSecondLevelWhenXVarsInt)));
 
-   keys_.push_back(make_pair(std::string("MibS_solveLowerWhenLinkVarsInt"),
-			     AlpsParameter(AlpsIntPar, solveLowerWhenLinkVarsInt)));
+   keys_.push_back(make_pair(std::string("MibS_solveSecondLevelWhenLVarsInt"),
+			     AlpsParameter(AlpsIntPar, solveSecondLevelWhenLVarsInt)));
 
-   keys_.push_back(make_pair(std::string("MibS_solveLowerWhenLinkVarsFixed"),
-			     AlpsParameter(AlpsIntPar, solveLowerWhenLinkVarsFixed)));
+   keys_.push_back(make_pair(std::string("MibS_solveSecondLevelWhenLVarsFixed"),
+			     AlpsParameter(AlpsIntPar, solveSecondLevelWhenLVarsFixed)));
 
    //solve problem UB
    keys_.push_back(make_pair(std::string("MibS_computeBestUBWhenXVarsInt"),
 			     AlpsParameter(AlpsIntPar, computeBestUBWhenXVarsInt)));
 
-   keys_.push_back(make_pair(std::string("MibS_computeBestUBWhenLinkVarsInt"),
-			     AlpsParameter(AlpsIntPar, computeBestUBWhenLinkVarsInt)));
+   keys_.push_back(make_pair(std::string("MibS_computeBestUBWhenLVarsInt"),
+			     AlpsParameter(AlpsIntPar, computeBestUBWhenLVarsInt)));
 
-   keys_.push_back(make_pair(std::string("MibS_computeBestUBWhenLinkVarsFixed"),
-			     AlpsParameter(AlpsIntPar, computeBestUBWhenLinkVarsFixed)));
+   keys_.push_back(make_pair(std::string("MibS_computeBestUBWhenLVarsFixed"),
+			     AlpsParameter(AlpsIntPar, computeBestUBWhenLVarsFixed)));
 
-   keys_.push_back(make_pair(std::string("MibS_saveSeenLinkingSols"),
-			     AlpsParameter(AlpsIntPar, saveSeenLinkingSols)));
+   keys_.push_back(make_pair(std::string("MibS_useLinkingSolutionPool"),
+			     AlpsParameter(AlpsIntPar, useLinkingSolutionPool)));
 
    //--------------------------------------------------------
    // String Parameters.
@@ -177,6 +177,9 @@ MibSParams::createKeywordList() {
 
    keys_.push_back(make_pair(std::string("MibS_feasCheckSolver"),
 			     AlpsParameter(AlpsStringPar, feasCheckSolver)));
+
+   keys_.push_back(make_pair(std::string("MibS_inputFormat"),
+			     AlpsParameter(AlpsStringPar, inputFormat)));
 
 }
 
@@ -261,21 +264,21 @@ MibSParams::setDefaultEntries() {
 
    setEntry(intersectionCutType, PARAM_NOTSET);
 
-   setEntry(solveLowerWhenXYVarsInt, PARAM_NOTSET);
+   setEntry(solveSecondLevelWhenXYVarsInt, PARAM_NOTSET);
 
-   setEntry(solveLowerWhenXVarsInt, PARAM_NOTSET);
+   setEntry(solveSecondLevelWhenXVarsInt, PARAM_NOTSET);
 
-   setEntry(solveLowerWhenLinkVarsInt, PARAM_NOTSET);
+   setEntry(solveSecondLevelWhenLVarsInt, PARAM_NOTSET);
 
-   setEntry(solveLowerWhenLinkVarsFixed, PARAM_NOTSET);
+   setEntry(solveSecondLevelWhenLVarsFixed, PARAM_NOTSET);
 
    setEntry(computeBestUBWhenXVarsInt, PARAM_NOTSET);
 
-   setEntry(computeBestUBWhenLinkVarsInt, PARAM_NOTSET);
+   setEntry(computeBestUBWhenLVarsInt, PARAM_NOTSET);
 
-   setEntry(computeBestUBWhenLinkVarsFixed, PARAM_NOTSET);
+   setEntry(computeBestUBWhenLVarsFixed, PARAM_NOTSET);
 
-   setEntry(saveSeenLinkingSols, PARAM_NOTSET);
+   setEntry(useLinkingSolutionPool, PARAM_NOTSET);
 
    //-------------------------------------------------------------
    // Double Parameters
@@ -289,6 +292,7 @@ MibSParams::setDefaultEntries() {
 
    setEntry(feasCheckSolver, "SYMPHONY");
 
+   setEntry(inputFormat, "indexBased");
 }
 
 //#############################################################################

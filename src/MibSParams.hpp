@@ -66,14 +66,14 @@ class MibSParams : public AlpsParameterSet {
      useBendersCut,
      useIntersectionCut,
      intersectionCutType,
-     solveLowerWhenXYVarsInt,
-     solveLowerWhenXVarsInt,
-     solveLowerWhenLinkVarsInt,
-     solveLowerWhenLinkVarsFixed,
+     solveSecondLevelWhenXYVarsInt,
+     solveSecondLevelWhenXVarsInt,
+     solveSecondLevelWhenLVarsInt,
+     solveSecondLevelWhenLVarsFixed,
      computeBestUBWhenXVarsInt,
-     computeBestUBWhenLinkVarsInt,
-     computeBestUBWhenLinkVarsFixed,
-     saveSeenLinkingSols,
+     computeBestUBWhenLVarsInt,
+     computeBestUBWhenLVarsFixed,
+     useLinkingSolutionPool,
      endOfIntParams
   };
 
@@ -88,6 +88,7 @@ class MibSParams : public AlpsParameterSet {
       strDummy,
       auxiliaryInfoFile,
       feasCheckSolver,
+      inputFormat,
       endOfStrParams
   };
 

@@ -56,19 +56,19 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
   MibSBranchingStrategy branchPar = static_cast<MibSBranchingStrategy>
       (model_->MibSPar_->entry(MibSParams::branchStrategy));
 
-  int solveLowerWhenXYVarsInt(model_->MibSPar_->entry
-			   (MibSParams::solveLowerWhenXYVarsInt));
-  int solveLowerWhenXVarsInt(model_->MibSPar_->entry
-			  (MibSParams::solveLowerWhenXVarsInt));
-  int solveLowerWhenLinkVarsInt(model_->MibSPar_->entry
-			  (MibSParams::solveLowerWhenLinkVarsInt));
-  int solveLowerWhenLinkVarsFixed(model_->MibSPar_->entry
-			    (MibSParams::solveLowerWhenLinkVarsFixed));
+  int solveSecondLevelWhenXYVarsInt(model_->MibSPar_->entry
+			   (MibSParams::solveSecondLevelWhenXYVarsInt));
+  int solveSecondLevelWhenXVarsInt(model_->MibSPar_->entry
+			  (MibSParams::solveSecondLevelWhenXVarsInt));
+  int solveSecondLevelWhenLVarsInt(model_->MibSPar_->entry
+			  (MibSParams::solveSecondLevelWhenLVarsInt));
+  int solveSecondLevelWhenLVarsFixed(model_->MibSPar_->entry
+			    (MibSParams::solveSecondLevelWhenLVarsFixed));
   int cutStrategy(model_->MibSPar_->entry
 		  (MibSParams::cutStrategy));
 
-  int saveSeenLinkingSols(model_->MibSPar_->entry
-			   (MibSParams::saveSeenLinkingSols));
+  int useLinkingSolutionPool(model_->MibSPar_->entry
+			   (MibSParams::useLinkingSolutionPool));
   
   assert(N == model_->solver()->getNumCols());
 
@@ -171,22 +171,12 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
     index = indices[i];
     pos = binarySearch(0, lN - 1, index, lowerColInd);
     if(pos < 0){
-      pos = binarySearch(0, uN - 1, index, upperColInd);
-      if(mibs->solver()->isInteger(index)){
-	  upperSolutionOrd_[pos] = (double) floor(values[i] + 0.5);
-      }
-      else{
-      upperSolutionOrd_[pos] = values[i];
-      }
-      optUpperSolutionOrd_[pos] = upperSolutionOrd_[pos];
+	pos = binarySearch(0, uN - 1, index, upperColInd);
+	upperSolutionOrd_[pos] = values[i];
+	optUpperSolutionOrd_[pos] = upperSolutionOrd_[pos];
     }
     else{
-	if(mibs->solver()->isInteger(index)){
-	    lowerSolutionOrd_[pos] = (double) floor(values[i] + 0.5);
-	}
-	else{
-	    lowerSolutionOrd_[pos] = values[i];
-	}
+	lowerSolutionOrd_[pos] = values[i];
 	optLowerSolutionOrd_[pos] = lowerSolutionOrd_[pos];	
     }
   }
@@ -201,10 +191,10 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
 	      linkSol.push_back(upperSolutionOrd_[i]);
 	  }
       }
-      if(seenLinkingSolutions.find(linkSol) !=
-	 seenLinkingSolutions.end()){
+      if(model_->seenLinkingSolutions.find(linkSol) !=
+	 model_->seenLinkingSolutions.end()){
 	  isContainedInLinkingPool_ = true;
-	  solType = seenLinkingSolutions.find(linkSol)->second.tag;
+	  solType = model_->seenLinkingSolutions.find(linkSol)->second.tag;
       }
   }
 	 
@@ -233,16 +223,19 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
 	    (isIntegral_) && (isLinkVarsFixed_)) ||
 	   ((branchPar == MibSBranchingStrategyFractional)
 	    && (isIntegral_)) ||
-	   ((solveLowerWhenXYVarsInt == PARAM_ON) && (isIntegral_)) ||
-	   ((solveLowerWhenXVarsInt == PARAM_ON) && (isUpperIntegral_)) ||
-	   ((solveLowerWhenLinkVarsInt == PARAM_ON) && (isLinkVarsIntegral_)) ||
-	   ((solveLowerWhenLinkVarsFixed == PARAM_ON) && (isLinkVarsFixed_ ))))){
+	   ((solveSecondLevelWhenXYVarsInt == PARAM_ON) && (isIntegral_)) ||
+	   ((solveSecondLevelWhenXVarsInt == PARAM_ON) && (isUpperIntegral_)) ||
+	   ((solveSecondLevelWhenLVarsInt == PARAM_ON) && (isLinkVarsIntegral_)) ||
+	   ((solveSecondLevelWhenLVarsFixed == PARAM_ON) && (isLinkVarsFixed_ ))))){
 	  checkBilevelFeasiblity(mibs->isRoot_);
       }
   }
   if(cutStrategy == 1){
       useBilevelBranching_ = false;
   }
+  
+  heuristic_->findHeuristicSolutions();
+  
 }
 
 
@@ -264,12 +257,12 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 	(model_->MibSPar_->entry(MibSParams::branchStrategy));
     int computeBestUBWhenXVarsInt(model_->MibSPar_->entry
 			      (MibSParams::computeBestUBWhenXVarsInt));
-    int computeBestUBWhenLinkVarsInt(model_->MibSPar_->entry
-			      (MibSParams::computeBestUBWhenLinkVarsInt));
-    int computeBestUBWhenLinkVarsFixed(model_->MibSPar_->entry
-			      (MibSParams::computeBestUBWhenLinkVarsFixed));
-    int saveSeenLinkingSols(model_->MibSPar_->entry
-			    (MibSParams::saveSeenLinkingSols));
+    int computeBestUBWhenLVarsInt(model_->MibSPar_->entry
+				     (MibSParams::computeBestUBWhenLVarsInt));
+    int computeBestUBWhenLVarsFixed(model_->MibSPar_->entry
+				    (MibSParams::computeBestUBWhenLVarsFixed));
+    int useLinkingSolutionPool(model_->MibSPar_->entry
+			    (MibSParams::useLinkingSolutionPool));
     int lN(model_->lowerDim_); // lower-level dimension
     int uN(model_->upperDim_); // lower-level dimension
     int i(0), index(0), length(0), pos(0);
@@ -387,7 +380,7 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 	if(!lSolver->isProvenOptimal()){
 	    LPSolStatus_ = MibSLPSolStatusInfeasible;
 	    isProvenOptimal_ = false;
-	    if(saveSeenLinkingSols){
+	    if(useLinkingSolutionPool){
 	    //step 10
 	    //Adding x_L to set E
 		addSolutionToSeenLinkingSolutionPool
@@ -402,7 +395,7 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 
 	    const double * values = lSolver->getColSolution();
 	    
-	    if(saveSeenLinkingSols){
+	    if(useLinkingSolutionPool){
 		for(i = 0; i < lN; i++){
 		    shouldStoreValues.push_back(values[i]);
 		}
@@ -438,7 +431,7 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
     }
 
     //step 13
-    if(((!saveSeenLinkingSols) && (isProvenOptimal_)) ||
+    if(((!useLinkingSolutionPool) && (isProvenOptimal_)) ||
        ((tagInSeenLinkingPool_ == MibSLinkingPoolTagLowerIsFeasible) ||
 	(tagInSeenLinkingPool_ == MibSLinkingPoolTagUBIsSolved))){
 
@@ -447,15 +440,15 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 	//double *lowerSol = new double[lN];
 	//CoinFillN(lowerSol, lN, 0.0);
 
-	if(saveSeenLinkingSols){
+	if(useLinkingSolutionPool){
 	    //get optimal value  of (VF) from solution pool
 	    //model_->it = seenLinkingSolutions.find(linkSol);
 	    //objVal = model_->it->second.lowerObjVal1;
-	    objVal = seenLinkingSolutions[linkSol].lowerObjValue; 
+	    objVal = model_->seenLinkingSolutions[linkSol].lowerObjValue; 
 	    //objVal = seenLinkingSolutions.find(linkSol).
 	    objVal_ = objVal;
 	    for(i = 0; i < lN; i++){
-		lowerSol[i] = seenLinkingSolutions[linkSol].lowerSolution[i];
+		lowerSol[i] = model_->seenLinkingSolutions[linkSol].lowerSolution[i];
 	    }  
 	}
 	lowerObj = getLowerObj(sol, model_->getLowerObjSense());
@@ -479,14 +472,14 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 	       (((branchPar == MibSBranchingStrategyLinking) &&
 		 (isIntegral_) && (isLinkVarsFixed_)) ||
 		((computeBestUBWhenXVarsInt == PARAM_ON) && (isUpperIntegral_)) ||
-		((computeBestUBWhenLinkVarsInt == PARAM_ON)) ||
-		((computeBestUBWhenLinkVarsFixed == PARAM_ON) && (isLinkVarsFixed_)))){  
+		((computeBestUBWhenLVarsInt == PARAM_ON)) ||
+		((computeBestUBWhenLVarsFixed == PARAM_ON) && (isLinkVarsFixed_)))){  
 		if(UBSolver){
 		    delete UBSolver;
 		}
 		UBSolver = setUpUBModel(model_->getSolver(), objVal, true);
 	    
-#ifndef COIN_HAS_SYMPHONY
+		/*#ifndef COIN_HAS_SYMPHONY
 		dynamic_cast<OsiCbcSolverInterface *>
 		    (UBSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
 #else
@@ -498,7 +491,67 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 	    
 		dynamic_cast<OsiSymSolverInterface *>
 		    (UBSolver)->setSymParam("max_active_nodes", 1);
+		    #endif*/
+
+                if (feasCheckSolver == "Cbc"){
+		                    dynamic_cast<OsiCbcSolverInterface *>
+					(UBSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
+		}else if (feasCheckSolver == "SYMPHONY"){
+		    #if COIN_HAS_SYMPHONY
+		    //dynamic_cast<OsiSymSolverInterface *>
+		    // (lSolver)->setSymParam("prep_level", -1);
+
+		    sym_environment *env = dynamic_cast<OsiSymSolverInterface *>
+			(UBSolver)->getSymphonyEnvironment();
+		    if (warmStartLL){
+			sym_set_int_param(env, "keep_warm_start", TRUE);
+			if (probType == 1){ //Interdiction
+			    sym_set_int_param(env, "should_use_rel_br", FALSE);
+			    sym_set_int_param(env, "use_hot_starts", FALSE);
+			    sym_set_int_param(env, "should_warmstart_node", TRUE);
+			    sym_set_int_param(env, "sensitivity_analysis", TRUE);
+			    sym_set_int_param(env, "sensitivity_bounds", TRUE);
+			    sym_set_int_param(env, "set_obj_upper_lim", FALSE);
+			}
+		    }
+		    //Always uncomment for debugging!!
+		    sym_set_int_param(env, "do_primal_heuristic", FALSE);
+		    sym_set_int_param(env, "verbosity", -2);
+		    sym_set_int_param(env, "prep_level", -1);
+		    sym_set_int_param(env, "max_active_nodes", maxThreadsLL);
+		    sym_set_int_param(env, "tighten_root_bounds", FALSE);
+		    sym_set_int_param(env, "max_sp_size", 100);
+		    sym_set_int_param(env, "do_reduced_cost_fixing", FALSE);
+		    if (whichCutsLL == 0){
+			sym_set_int_param(env, "generate_cgl_cuts", FALSE);
+		    }else{
+			sym_set_int_param(env, "generate_cgl_gomory_cuts", GENERATE_DEFAULT);
+		    }
+		    if (whichCutsLL == 1){
+			sym_set_int_param(env, "generate_cgl_knapsack_cuts",
+					  DO_NOT_GENERATE);
+			sym_set_int_param(env, "generate_cgl_probing_cuts",
+					  DO_NOT_GENERATE);
+			sym_set_int_param(env, "generate_cgl_clique_cuts",
+					  DO_NOT_GENERATE);
+			sym_set_int_param(env, "generate_cgl_twomir_cuts",
+					  DO_NOT_GENERATE);
+			sym_set_int_param(env, "generate_cgl_flowcover_cuts",
+					  DO_NOT_GENERATE);
+		    }
 #endif
+		}else if (feasCheckSolver == "CPLEX"){
+#ifdef COIN_HAS_CPLEX
+		    UBSolver->setHintParam(OsiDoReducePrint);
+		    UBSolver->messageHandler()->setLogLevel(0);
+		    CPXENVptr cpxEnv =
+			dynamic_cast<OsiCpxSolverInterface*>(UBSolver)->getEnvironmentPtr();
+		    assert(cpxEnv);
+		    CPXsetintparam(cpxEnv, CPX_PARAM_SCRIND, CPX_OFF);
+		    CPXsetintparam(cpxEnv, CPX_PARAM_THREADS, maxThreadsLL);
+#endif
+		}
+
 		//step 19
 		UBSolver->branchAndBound();
 		model_->counterUB_ ++;
@@ -511,21 +564,11 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 			shouldStoreValues.push_back(valuesUB[i]);
 			pos = binarySearch(0, uN - 1, i, upperColInd);
 			if (pos >= 0){
-			    if(UBSolver->isInteger(i)){
-				optUpperSolutionOrd_[pos] = (double) floor(valuesUB[i] + 0.5);
-			    }
-			    else{
-				optUpperSolutionOrd_[pos] = (double) valuesUB[i];
-			    }
+			    optUpperSolutionOrd_[pos] = (double) valuesUB[i];
 			}
 			else{
 			    pos = binarySearch(0, lN - 1, i, lowerColInd);
-			    if(UBSolver->isInteger(i)){
-				optLowerSolutionOrd_[pos] = (double) floor(valuesUB[i] + 0.5);
-			    }
-			    else{
-				optLowerSolutionOrd_[pos] = (double) valuesUB[i];
-			    }
+			    optLowerSolutionOrd_[pos] = (double) valuesUB[i];
 			}
 		    }
 		    objVal = UBSolver->getObjValue() * model_->solver()->getObjSense();
@@ -536,7 +579,7 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 		}
 		//step 22
 		//Adding x_L to set E
-		if(saveSeenLinkingSols){
+		if(useLinkingSolutionPool){
 		    addSolutionToSeenLinkingSolutionPool
 			(MibSLinkingPoolTagUBIsSolved, shouldStoreValues, objVal);
 		}
@@ -550,16 +593,11 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 		}	
 	    }
 	    else if((tagInSeenLinkingPool_ != MibSLinkingPoolTagUBIsSolved) ||
-		    ((!saveSeenLinkingSols) && (isUBSolved_))){
+		    ((!useLinkingSolutionPool) && (isUBSolved_))){
 		haveHeurSolCand_ = true;
 		for(i = 0; i < lN; i++){
 		    index = lowerColInd[i];
-		    if(model_->solver()->isInteger(index)){
-			optLowerSolutionOrd_[i] = (double) floor(lowerSol[i] + 0.5);
-		    }
-		    else{
 			optLowerSolutionOrd_[i] = (double) lowerSol[i];
-		    }
 		}
 	    }
 	}
@@ -1189,7 +1227,7 @@ void
 	    linkingSolution.UBObjValue = 0.0;
 	    linkingSolution.lowerSolution.push_back(0);
 	    linkingSolution.UBSolution.push_back(0);
-	    seenLinkingSolutions[linkSol] = linkingSolution;
+	    model_->seenLinkingSolutions[linkSol] = linkingSolution;
 	    break;
 	}
     case MibSLinkingPoolTagLowerIsFeasible:
@@ -1201,22 +1239,17 @@ void
 		linkingSolution.lowerSolution.push_back(shouldStoreValues[i]);
 	    }
 	    linkingSolution.UBSolution.push_back(0);
-	    seenLinkingSolutions[linkSol] = linkingSolution;
+	    model_->seenLinkingSolutions[linkSol] = linkingSolution;
 	    break;
 	}
     case MibSLinkingPoolTagUBIsSolved:
 	{
-	    //model_->it = model_->seenLinkingSolutions.find(linkSol);
-	    //model_->it->second.tag = MibSSetETagUBIsSolved;
-	    //model_->it->second.UBObjVal1 = objValue;
-	    seenLinkingSolutions[linkSol].tag = MibSLinkingPoolTagUBIsSolved;
-	    seenLinkingSolutions[linkSol].UBObjValue = objValue;
+	    model_->seenLinkingSolutions[linkSol].tag = MibSLinkingPoolTagUBIsSolved;
+	    model_->seenLinkingSolutions[linkSol].UBObjValue = objValue;
 	    if(isProvenOptimal_){
-		//model_->it->second.UBSol1.clear();
-		seenLinkingSolutions[linkSol].UBSolution.clear();
+		model_->seenLinkingSolutions[linkSol].UBSolution.clear();
 		for(i = 0; i < uN + lN; i++){
-		    //model_->it->second.UBSol1.push_back(shouldStoreValues[i]);
-		    seenLinkingSolutions[linkSol].UBSolution.push_back(shouldStoreValues[i]);
+		    model_->seenLinkingSolutions[linkSol].UBSolution.push_back(shouldStoreValues[i]);
 		}
 	    }
 	    break;

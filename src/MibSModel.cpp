@@ -78,6 +78,8 @@ MibSModel::~MibSModel()
   if(origRowLb_) delete [] origRowLb_;
   if(origRowUb_) delete [] origRowUb_;
   if(lowerObjCoeffs_) delete [] lowerObjCoeffs_;
+  if(columnName_) delete [] columnName_;
+  if(rowName_) delete [] rowName_;
   if(MibSPar_) delete MibSPar_;
   if(bS_) delete bS_;
     
@@ -133,6 +135,8 @@ MibSModel::initialize()
   origRowLb_ = NULL;
   origRowUb_ = NULL;
   lowerObjCoeffs_ = NULL;
+  columnName_ = NULL;
+  rowName_ = NULL;
   interdictCost_ = NULL;
   origConstCoefMatrix_ = NULL;
   bS_ = new MibSBilevel();
@@ -202,7 +206,7 @@ MibSModel::readInstance(const char* dataFile)
 #endif
 
   setUpperFile(dataFile);
-  readAuxiliaryData(); // reads in lower-level vars, rows, obj coeffs
+  //readAuxiliaryData(); // reads in lower-level vars, rows, obj coeffs
   readProblemData(); // reads in max c^1x + d^1y s.t. (x,y) in Omega^I
 }
 
@@ -232,21 +236,26 @@ MibSModel::setBlisParameters()
 
 //#############################################################################
 void 
-MibSModel::readAuxiliaryData()
+MibSModel::readAuxiliaryData(int numCols, int numRows)
 {
+
   std::string fileName = getLowerFile();
   fileCoinReadable(fileName);
   std::ifstream data_stream(fileName.c_str());
 
+  std::string inputFormat(MibSPar_->entry
+			  (MibSParams::inputFormat));
+  
   if (!data_stream){
-     std::cout << "Error opening input data file. Aborting.\n";
-     abort();
+      std::cout << "Error opening input data file. Aborting.\n";
+      abort();
   }
-
+  
   std::string key;
   int iValue(0);
+  std::string cValue;
   double dValue(0.0);
-  int i(0), j(0), k(0), m(0);
+  int i(0), j(0), k(0), m(0), p(0), pos(0);
 
   while (data_stream >> key){
      if(key == "N"){ 
@@ -260,17 +269,43 @@ MibSModel::readAuxiliaryData()
      else if(key == "LC"){
        if(!getLowerColInd())
 	 lowerColInd_ = new int[getLowerDim()];
-	
+
+       if(inputFormat == "indexBased"){
 	data_stream >> iValue;
 	lowerColInd_[i] = iValue;
+       }
+       else{
+	   data_stream >> cValue;
+	   for(p = 0; p < numCols; ++p){
+	       if(columnName_[p] == cValue){
+		   pos = p;
+		   break;
+	       }
+	   }
+	   lowerColInd_[i] = pos;
+       }
+       
 	i++;
      }
      else if(key == "LR"){
        if(!getLowerRowInd())
 	 lowerRowInd_ = new int[getLowerRowNum()];
+       
+       if(inputFormat == "indexBased"){
+	   data_stream >> iValue;
+	   lowerRowInd_[j] = iValue;
+       }
+       else{
+	   data_stream >> cValue;
+	   for(p = 0; p < numRows; ++p){
+	       if(rowName_[p] == cValue){
+		   pos = p;
+		   break;
+	       }
+	   }
+	   lowerRowInd_[j] = pos;
+       }
 	
-	data_stream >> iValue;
-	lowerRowInd_[j] = iValue;
 	j++;
      }
      else if(key == "LO"){
@@ -442,6 +477,24 @@ MibSModel::readProblemData()
 
    int numCols = mps->getNumCols(); 
    int numRows = mps->getNumRows();
+
+   std::string tmpString;
+   
+   if(!getColumnName())
+       columnName_ = new std::string [numCols];
+       
+   for(j = 0; j < numCols; ++j){
+       std::string tmpString(mps->columnName(j));
+       columnName_[j] = tmpString;
+   }
+
+   if(!getRowName())
+       rowName_ = new std::string [numRows];
+
+   for(j = 0; j < numRows; ++j){
+       std::string tmpString(mps->rowName(j));
+       rowName_[j] = tmpString;
+   }
    
    double *varLB = new double [numCols];
    double *varUB = new double [numCols];
@@ -489,6 +542,8 @@ MibSModel::readProblemData()
    memcpy(objCoef, mpsObj, sizeof(double) * numCols);
 
    const char* rowSense = mps->getRowSense();
+
+   readAuxiliaryData(numCols, numRows); // reads in lower-level vars, rows, obj coeffs 
    
    loadProblemData(matrix, varLB, varUB, objCoef, conLB, conUB, colType, 
 		   objSense, mps->getInfinity(), rowSense);
@@ -2865,17 +2920,37 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix, const double* ro
     std::cout<<"Number of UL Rows: "<<upperRowNum_<<std::endl;                                                                                         
     std::cout<<"Number of LL Rows: "<<lowerRowNum_<<std::endl;
     
-    int i(0),j(0);                                                                                                                                         
+    int i(0),j(0),index(0);                                                                                                                                
     int numCols(numVars_);
     int numRows(numCons_);
     int uCols(upperDim_);
     int lCols(lowerDim_);
     int uRows(upperRowNum_);
     int lRows(lowerRowNum_);
+    int numUpperInt(0);
+    int numLowerInt(0);
     int * uColIndices = getUpperColInd();         
     int * lColIndices = getLowerColInd();
     int * lRowIndices = getLowerRowInd();
     char * newRowSense = new char[numRows];
+
+    if (isInterdict_ == false){
+	for(i = 0; i < uCols; i++){
+	    index = uColIndices[i];
+	    if(colType_[index] != 'C'){
+		numUpperInt ++;
+	    }
+	}
+	std::cout <<"Number of integer UL Variables: " << numUpperInt << std::endl;
+	for(i = 0; i < lCols; i++){
+	    index = lColIndices[i];
+	    if(colType_[index] != 'C'){
+		numLowerInt++;
+	    }
+	}
+	std::cout <<"Number of integer LL Variables: " << numLowerInt << std::endl;
+    }
+
 
     if (isInterdict_ == false){
 	CoinDisjointCopyN(rowSense, numRows, newRowSense);
@@ -3207,8 +3282,8 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix, const double* ro
 	    MibSPar()->setEntry(MibSParams::usePureIntegerCut, PARAM_ON);
 	}
     }
-    else if((isPureInteger_ == false) || (isUpperCoeffInt_ == false)
-	    || (isLowerCoeffInt_ == false)){
+    else if((paramValue == PARAM_ON) && ((isPureInteger_ == false) || (isUpperCoeffInt_ == false)
+					 || (isLowerCoeffInt_ == false))){
 	std::cout << "The pure integer cut does not work for this problem. Automatically disabling this cut." << std::endl;
 	MibSPar()->setEntry(MibSParams::usePureIntegerCut, PARAM_OFF);
     }
@@ -3235,10 +3310,18 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix, const double* ro
     MibSBranchingStrategy branchPar = static_cast<MibSBranchingStrategy>
 	  (MibSPar_->entry(MibSParams::branchStrategy));
     if(branchPar == MibSBranchingStrategyNotSet){
+	if((isInterdict_ == true) || (numUpperInt <= numLowerInt)){
 	MibSPar()->setEntry(MibSParams::branchStrategy,
 			    MibSBranchingStrategyLinking);
 	std::cout << "Since no branching procedure is selected, it is set to 'MibSBranchingStrategyLinking' automatically."
 		  << std::endl;
+	}
+	else{
+	    MibSPar()->setEntry(MibSParams::branchStrategy,
+				MibSBranchingStrategyFractional);
+	    std::cout << "Since no branching procedure is selected, it is set to 'MibSBranchingStrategyFractional' automatically."
+		      << std::endl;
+	}
     }
 
 
@@ -3283,40 +3366,68 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix, const double* ro
     }
 	
     //Setting parameters of solving (VF) and (UB)
-    int solveLowerWhenXYVarsInt(MibSPar_->entry(MibSParams::
-					    solveLowerWhenXYVarsInt));
-    int solveLowerWhenXVarsInt(MibSPar_->entry(MibSParams::
-					   solveLowerWhenXVarsInt));
-    int solveLowerWhenLinkVarsInt(MibSPar_->entry(MibSParams::
-					      solveLowerWhenLinkVarsInt));
-    int solveLowerWhenLinkVarsFixed(MibSPar_->entry(MibSParams::
-						solveLowerWhenLinkVarsFixed));
+    int solveSecondLevelWhenXYVarsInt(MibSPar_->entry(MibSParams::
+					    solveSecondLevelWhenXYVarsInt));
+    int solveSecondLevelWhenXVarsInt(MibSPar_->entry(MibSParams::
+					   solveSecondLevelWhenXVarsInt));
+    int solveSecondLevelWhenLVarsInt(MibSPar_->entry(MibSParams::
+					      solveSecondLevelWhenLVarsInt));
+    int solveSecondLevelWhenLVarsFixed(MibSPar_->entry(MibSParams::
+						solveSecondLevelWhenLVarsFixed));
     int computeBestUBWhenXVarsInt(MibSPar_->entry(MibSParams::
 					      computeBestUBWhenXVarsInt));
-    int computeBestUBWhenLinkVarsInt(MibSPar_->entry(MibSParams::
-					     computeBestUBWhenLinkVarsInt));
-    int computeBestUBWhenLinkVarsFixed(MibSPar_->entry(MibSParams::
-					       computeBestUBWhenLinkVarsFixed));
+    int computeBestUBWhenLVarsInt(MibSPar_->entry(MibSParams::
+						  computeBestUBWhenLVarsInt));
+    int computeBestUBWhenLVarsFixed(MibSPar_->entry(MibSParams::
+						    computeBestUBWhenLVarsFixed));
 
-    if((solveLowerWhenXYVarsInt == PARAM_NOTSET) &&
-       (solveLowerWhenXVarsInt == PARAM_NOTSET) &&
-       (solveLowerWhenLinkVarsInt == PARAM_NOTSET) &&
-       (solveLowerWhenLinkVarsFixed == PARAM_NOTSET) &&
+    if((solveSecondLevelWhenXYVarsInt == PARAM_NOTSET) &&
+       (solveSecondLevelWhenXVarsInt == PARAM_NOTSET) &&
+       (solveSecondLevelWhenLVarsInt == PARAM_NOTSET) &&
+       (solveSecondLevelWhenLVarsFixed == PARAM_NOTSET) &&
        (computeBestUBWhenXVarsInt == PARAM_NOTSET) &&
-       (computeBestUBWhenLinkVarsInt == PARAM_NOTSET) &&
-       (computeBestUBWhenLinkVarsFixed == PARAM_NOTSET)){
-	MibSPar()->setEntry(MibSParams::solveLowerWhenXYVarsInt, PARAM_ON);
-	MibSPar()->setEntry(MibSParams::solveLowerWhenLinkVarsFixed, PARAM_ON);
-	MibSPar()->setEntry(MibSParams::computeBestUBWhenLinkVarsFixed, PARAM_ON);
+       (computeBestUBWhenLVarsInt == PARAM_NOTSET) &&
+       (computeBestUBWhenLVarsFixed == PARAM_NOTSET)){
+	MibSPar()->setEntry(MibSParams::solveSecondLevelWhenXYVarsInt, PARAM_ON);
+	MibSPar()->setEntry(MibSParams::solveSecondLevelWhenLVarsFixed, PARAM_ON);
+	MibSPar()->setEntry(MibSParams::computeBestUBWhenLVarsFixed, PARAM_ON);
+    }
+
+    if(MibSPar_->entry(MibSParams::solveSecondLevelWhenXYVarsInt) == PARAM_ON){
+	std::cout << "'solveSecondLevelWhenXYVarsInt' is true." << std::endl;
+    }
+    
+    if(MibSPar_->entry(MibSParams::solveSecondLevelWhenXVarsInt) == PARAM_ON){
+	std::cout << "'solveSecondLevelWhenXVarsInt' is true." <<std::endl;
+    }
+
+    if(MibSPar_->entry(MibSParams::solveSecondLevelWhenLVarsInt) == PARAM_ON){
+	std::cout << "'solveSecondLevelWhenLVarsInt' is true." <<std::endl;
+    }
+
+    if(MibSPar_->entry(MibSParams::solveSecondLevelWhenLVarsFixed) == PARAM_ON){
+	std::cout << "'solveSecondLevelWhenLVarsFixed' is true." <<std::endl;
+    }
+
+    if(MibSPar_->entry(MibSParams::computeBestUBWhenXVarsInt) == PARAM_ON){
+	std::cout << "'computeBestUBWhenXVarsInt' is true." <<std::endl;
+    }
+
+    if(MibSPar_->entry(MibSParams::computeBestUBWhenLVarsInt) == PARAM_ON){
+	std::cout << "'computeBestUBWhenLVarsInt' is true." <<std::endl;
+    }
+
+    if(MibSPar_->entry(MibSParams::computeBestUBWhenLVarsFixed) == PARAM_ON){
+	std::cout << "'computeBestUBWhenLVarsFixed' is true." <<std::endl;
     }
 
     //Setting "saveSeenLinkingSols" parameter
     
-    if(MibSPar_->entry(MibSParams::saveSeenLinkingSols) == PARAM_NOTSET){
-	MibSPar()->setEntry(MibSParams::saveSeenLinkingSols, PARAM_ON);
+    if(MibSPar_->entry(MibSParams::useLinkingSolutionPool) == PARAM_NOTSET){
+	MibSPar()->setEntry(MibSParams::useLinkingSolutionPool, PARAM_ON);
     }
 
-    if(MibSPar_->entry(MibSParams::saveSeenLinkingSols) == PARAM_ON){
+    if(MibSPar_->entry(MibSParams::useLinkingSolutionPool) == PARAM_ON){
 	std::cout << "'seenLinkingSolutions' pool is used." << std::endl;
     }
     else{
