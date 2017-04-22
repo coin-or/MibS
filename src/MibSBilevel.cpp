@@ -168,17 +168,31 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
   int pos(0);
 
   for(i = 0; i < numElements; i++){
-    index = indices[i];
-    pos = binarySearch(0, lN - 1, index, lowerColInd);
-    if(pos < 0){
-	pos = binarySearch(0, uN - 1, index, upperColInd);
-	upperSolutionOrd_[pos] = values[i];
-	optUpperSolutionOrd_[pos] = upperSolutionOrd_[pos];
-    }
-    else{
-	lowerSolutionOrd_[pos] = values[i];
-	optLowerSolutionOrd_[pos] = lowerSolutionOrd_[pos];	
-    }
+      index = indices[i];
+      pos = binarySearch(0, lN - 1, index, lowerColInd);
+      if(pos < 0){
+	  pos = binarySearch(0, uN - 1, index, upperColInd);
+	  if((mibs->solver()->isInteger(index)) &&
+	     (((values[i] - floor(values[i]))<etol) ||
+	      ((ceil(values[i]) - values[i]) < etol))){
+	      upperSolutionOrd_[pos] = (double) floor(values[i] + 0.5);
+	  }
+	  else{
+		  upperSolutionOrd_[pos] = values[i];
+	      }
+	  optUpperSolutionOrd_[pos] = upperSolutionOrd_[pos];
+      }
+      else{
+	  if((mibs->solver()->isInteger(index)) &&
+	     (((values[i] - floor(values[i]))<etol) ||
+	      ((ceil(values[i]) - values[i]) < etol))){
+		  lowerSolutionOrd_[pos] = (double) floor(values[i] + 0.5);
+	  }
+	  else{
+	      lowerSolutionOrd_[pos] = values[i];
+	  }
+	  optLowerSolutionOrd_[pos] = lowerSolutionOrd_[pos];	
+      }
   }
 
   int solType(0);
@@ -564,11 +578,25 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 			shouldStoreValues.push_back(valuesUB[i]);
 			pos = binarySearch(0, uN - 1, i, upperColInd);
 			if (pos >= 0){
-			    optUpperSolutionOrd_[pos] = (double) valuesUB[i];
+			    if((UBSolver->isInteger(i)) &&
+			       (((valuesUB[i] - floor(valuesUB[i]))<etol) ||
+				((ceil(valuesUB[i]) - valuesUB[i]) < etol))){
+				optUpperSolutionOrd_[pos] = (double) floor(valuesUB[i] + 0.5);
+			    }
+			    else{
+				optUpperSolutionOrd_[pos] = (double) valuesUB[i];
+			    }
 			}
 			else{
 			    pos = binarySearch(0, lN - 1, i, lowerColInd);
-			    optLowerSolutionOrd_[pos] = (double) valuesUB[i];
+			    if((UBSolver->isInteger(i)) &&
+			       (((valuesUB[i] - floor(valuesUB[i]))<etol) ||
+				((ceil(valuesUB[i]) - valuesUB[i]) < etol))){
+				optLowerSolutionOrd_[pos] = (double) floor(valuesUB[i] + 0.5);
+			    }
+			    else{
+				optLowerSolutionOrd_[pos] = (double) valuesUB[i];
+			    }
 			}
 		    }
 		    objVal = UBSolver->getObjValue() * model_->solver()->getObjSense();
@@ -597,7 +625,14 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 		haveHeurSolCand_ = true;
 		for(i = 0; i < lN; i++){
 		    index = lowerColInd[i];
+		    if((model_->solver()->isInteger(index)) &&
+		       (((lowerSol[i] - floor(lowerSol[i]))<etol) ||
+			((ceil(lowerSol[i]) - lowerSol[i]) < etol))){
+			optLowerSolutionOrd_[i] = (double) floor(lowerSol[i] + 0.5);
+		    }
+		    else{
 			optLowerSolutionOrd_[i] = (double) lowerSol[i];
+		    }
 		}
 	    }
 	}
