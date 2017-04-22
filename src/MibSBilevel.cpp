@@ -167,28 +167,25 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
 
   int pos(0);
 
-  for(i = 0; i < numElements; i++){
+  for (i = 0; i < numElements; i++){
       index = indices[i];
       pos = binarySearch(0, lN - 1, index, lowerColInd);
-      if(pos < 0){
+      if (pos < 0){
 	  pos = binarySearch(0, uN - 1, index, upperColInd);
-	  if((mibs->solver()->isInteger(index)) &&
-	     (((values[i] - floor(values[i]))<etol) ||
-	      ((ceil(values[i]) - values[i]) < etol))){
+	  if ((mibs->solver()->isInteger(index)) &&
+	      (((values[i] - floor(values[i])) < etol) ||
+	       ((ceil(values[i]) - values[i]) < etol))){
 	      upperSolutionOrd_[pos] = (double) floor(values[i] + 0.5);
+	  }else{
+	      upperSolutionOrd_[pos] = values[i];
 	  }
-	  else{
-		  upperSolutionOrd_[pos] = values[i];
-	      }
 	  optUpperSolutionOrd_[pos] = upperSolutionOrd_[pos];
-      }
-      else{
-	  if((mibs->solver()->isInteger(index)) &&
-	     (((values[i] - floor(values[i]))<etol) ||
-	      ((ceil(values[i]) - values[i]) < etol))){
-		  lowerSolutionOrd_[pos] = (double) floor(values[i] + 0.5);
-	  }
-	  else{
+      }else{
+	  if ((mibs->solver()->isInteger(index)) &&
+	      (((values[i] - floor(values[i])) < etol) ||
+	       ((ceil(values[i]) - values[i]) < etol))){
+	      lowerSolutionOrd_[pos] = (double) floor(values[i] + 0.5);
+	  }else{
 	      lowerSolutionOrd_[pos] = values[i];
 	  }
 	  optLowerSolutionOrd_[pos] = lowerSolutionOrd_[pos];	
@@ -570,38 +567,34 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 		UBSolver->branchAndBound();
 		model_->counterUB_ ++;
 		isUBSolved_ = true;
-		if(UBSolver->isProvenOptimal()){
+		if (UBSolver->isProvenOptimal()){
 		    haveHeurSolCand_ = true;
 		    isProvenOptimal_ = true;
 		    const double * valuesUB = UBSolver->getColSolution();
-		    for(i = 0; i < uN + lN; i++){
+		    for (i = 0; i < uN + lN; i++){
 			shouldStoreValues.push_back(valuesUB[i]);
 			pos = binarySearch(0, uN - 1, i, upperColInd);
 			if (pos >= 0){
-			    if((UBSolver->isInteger(i)) &&
-			       (((valuesUB[i] - floor(valuesUB[i]))<etol) ||
-				((ceil(valuesUB[i]) - valuesUB[i]) < etol))){
+			    if ((UBSolver->isInteger(i)) &&
+				(((valuesUB[i] - floor(valuesUB[i])) < etol) ||
+				 ((ceil(valuesUB[i]) - valuesUB[i]) < etol))){
 				optUpperSolutionOrd_[pos] = (double) floor(valuesUB[i] + 0.5);
-			    }
-			    else{
+			    }else{
 				optUpperSolutionOrd_[pos] = (double) valuesUB[i];
 			    }
-			}
-			else{
+			}else{
 			    pos = binarySearch(0, lN - 1, i, lowerColInd);
-			    if((UBSolver->isInteger(i)) &&
-			       (((valuesUB[i] - floor(valuesUB[i]))<etol) ||
-				((ceil(valuesUB[i]) - valuesUB[i]) < etol))){
+			    if ((UBSolver->isInteger(i)) &&
+				(((valuesUB[i] - floor(valuesUB[i])) < etol) ||
+				 ((ceil(valuesUB[i]) - valuesUB[i]) < etol))){
 				optLowerSolutionOrd_[pos] = (double) floor(valuesUB[i] + 0.5);
-			    }
-			    else{
+			    }else{
 				optLowerSolutionOrd_[pos] = (double) valuesUB[i];
 			    }
 			}
 		    }
 		    objVal = UBSolver->getObjValue() * model_->solver()->getObjSense();
-		}
-		else{
+		}else{
 		    objVal = 10000000;
 		    isProvenOptimal_ = false;
 		}
@@ -620,17 +613,16 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 		    shouldPrune_ = true;
 		}	
 	    }
-	    else if((tagInSeenLinkingPool_ != MibSLinkingPoolTagUBIsSolved) ||
-		    ((!useLinkingSolutionPool) && (isUBSolved_))){
+	    else if ((tagInSeenLinkingPool_ != MibSLinkingPoolTagUBIsSolved) ||
+		     ((!useLinkingSolutionPool) && (isUBSolved_))){
 		haveHeurSolCand_ = true;
-		for(i = 0; i < lN; i++){
+		for (i = 0; i < lN; i++){
 		    index = lowerColInd[i];
-		    if((model_->solver()->isInteger(index)) &&
-		       (((lowerSol[i] - floor(lowerSol[i]))<etol) ||
-			((ceil(lowerSol[i]) - lowerSol[i]) < etol))){
+		    if ((model_->solver()->isInteger(index)) &&
+			(((lowerSol[i] - floor(lowerSol[i])) < etol) ||
+			 ((ceil(lowerSol[i]) - lowerSol[i]) < etol))){
 			optLowerSolutionOrd_[i] = (double) floor(lowerSol[i] + 0.5);
-		    }
-		    else{
+		    }else{
 			optLowerSolutionOrd_[i] = (double) lowerSol[i];
 		    }
 		}
