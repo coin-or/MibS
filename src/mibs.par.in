@@ -1,9 +1,17 @@
-#Alps_instance ../data/notInterdiction/moore90.mps
-#MibS_auxiliaryInfoFile ../data/notInterdiction/moore90.txt
-#Alps_instance ../data/interdiction/Assignment/2AP05-1.mps
-#MibS_auxiliaryInfoFile ../data/interdiction/Assignment/2AP05-1.txt
-Alps_instance ../data/interdiction/MCDM/NO_CORR/10_ITEMS_1000/K5010W03.KNP.mps
-MibS_auxiliaryInfoFile ../data/interdiction/MCDM/NO_CORR/10_ITEMS_1000/K5010W03.KNP.txt
+#Alps_instance ../data/MIPS/RANDOM/NEW_MIPINT/miblp_10_10_50_0110_0_2.mps
+#MibS_auxiliaryInfoFile ../data/MIPS/RANDOM/NEW_MIPINT/NONSYMMETRIC/miblp_10_10_50_0110_0_2.mps.txt
+#Alps_instance ../data/miplibconv/p0033-0.500000.mps
+#MibS_auxiliaryInfoFile ../data/miplibconv/p0033-0.500000.aux
+#Alps_instance /home/sat214/MIBS/OldMibS/data/MCDM/NO_CORR/10_ITEMS_1000/K5010W11.KNP.mps
+#MibS_auxiliaryInfoFile /home/sat214/MIBS/OldMibS/data/MCDM/NO_CORR/10_ITEMS_1000/K5010W11.KNP.txt
+#Alps_instance /home/sat214/MIBS/OldMibS/data/moore90.mps
+#MibS_auxiliaryInfoFile /home/sat214/MIBS/OldMibS/data/moore90.txt
+#Alps_instance /home/sat214/MIBS/OldMibS/data/MIPS/RANDOM/RAND_BILEVEL/miblp_20_15_50_0110_10_3.mps
+#MibS_auxiliaryInfoFile /home/sat214/MIBS/OldMibS/data/MIPS/RANDOM/RAND_BILEVEL/miblp_20_15_50_0110_10_3.txt
+#Alps_instance /home/sat214/MIBS/data/K5020W06.KNP.mps
+#MibS_auxiliaryInfoFile /home/sat214/MIBS/data/K5020W06.KNP.txt
+Alps_instance /home/sat214/forkBlis/name/MibS/build/src/moore90.mps
+MibS_auxiliaryInfoFile /home/sat214/forkBlis/name/MibS/build/src/moore90.txt
 Alps_timeLimit 3600
 #Alps_nodeLimit 4000000
 #Alps_nodeLimit 20000
@@ -32,6 +40,7 @@ Alps_timeLimit 3600
 #Alps_receiverThreshold 0.10
 #Alps_masterBalancePeriod 0.3
 #Alps_hubReportPeriod 0.5
+
 
 #Blis_cutRampUp 1      # true(1) or false(0)
 #Blis_cutStrategy      3
@@ -85,7 +94,7 @@ MibS_objBoundStrategy 0         # 0: LL obj bound, 1: interdiction bound
 MibS_blisCutStrategy -1                 # -2: root, -1: auto, 0: disable, any positive integer
 #MibS_blisBranchStrategy 0      # 0: max inf, 1: pseudocost, 2: relibility, 3: strong
 #MibS_upperFileFormat 0         # 0: mps, 1: AMPL/GMPL (not working, yet)
-MibS_branchStrategy  1          # 0: fractional, 1: linking
+MibS_branchStrategy  1       # 0: fractional, 1: linking
 MibS_warmStartLL 0
 MibS_maxThreadsLL 1
 MibS_useBendersCut 0
@@ -95,18 +104,19 @@ MibS_intersectionCutType 1
 MibS_useBoundCut 0
 MibS_boundCutOptimal 1
 MibS_boundCutRelaxUpper 0    # This option doesn't work for now
-MibS_turnOffOtherCuts 0
 MibS_whichCutsLL 2           # 0: no cuts, 1: gomory only, 2: all cuts
 MibS_doDualFixing 0
 MibS_feasCheckSolver SYMPHONY
 
-MibS_solveLowerWhenXYVarsInt 0
-MibS_solveLowerWhenXVarsInt  0
-MibS_solveLowerWhenIVarsInt 0
-MibS_solveLowerWhenIVarsFixed 1
+MibS_solveSecondLevelWhenXYVarsInt 1
+MibS_solveSecondLevelWhenXVarsInt 0
+MibS_solveSecondLevelWhenLVarsInt 0
+MibS_solveSecondLevelWhenLVarsFixed 1
 
 MibS_computeBestUBWhenXVarsInt 0
-MibS_computeBestUBWhenIVarsInt 0
-MibS_computeBestUBWhenIVarsFixed 1
+MibS_computeBestUBWhenLVarsInt 0
+MibS_computeBestUBWhenLVarsFixed 1
 
-saveSeenLinkingSols 1
+MibS_useLinkingSolutionPool 1
+
+MibS_inputFormat indexBased
