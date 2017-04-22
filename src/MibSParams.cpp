@@ -292,7 +292,7 @@ MibSParams::setDefaultEntries() {
 
    setEntry(feasCheckSolver, "SYMPHONY");
 
-   setEntry(inputFormat, "IndexBased");
+   setEntry(inputFormat, "indexBased");
 }
 
 //#############################################################################
