@@ -1646,7 +1646,7 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
 cat >>confdefs.h <<\_ACEOF
-#define MIBS_GIT_VERSION v0.95.0-16-g40a2fa4
+#define MIBS_GIT_VERSION v0.95.1
 _ACEOF
 
 
