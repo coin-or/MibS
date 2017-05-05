@@ -1,0 +1,9 @@
+N 1
+M 4
+LC LV
+LR R1
+LR R2
+LR R3
+LR R4
+LO 1
+OS 1
