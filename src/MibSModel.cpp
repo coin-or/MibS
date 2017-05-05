@@ -3139,6 +3139,24 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix, const double* ro
 	MibSPar()->setEntry(MibSParams::usePreprocessor, PARAM_OFF);
     }
 
+    //Param: "MibS_useLowerObjHeuristic"
+    paramValue = MibSPar_->entry(MibSParams::useLowerObjHeuristic);
+
+    if(paramValue == PARAM_NOTSET)
+	MibSPar()->setEntry(MibSParams::useLowerObjHeuristic, PARAM_OFF);
+
+    //Param: "MibS_useObjCutHeuristic"
+    paramValue = MibSPar_->entry(MibSParams::useObjCutHeuristic);
+
+    if(paramValue == PARAM_NOTSET)
+	MibSPar()->setEntry(MibSParams::useObjCutHeuristic, PARAM_OFF);
+
+    //Param: "MibS_useWSHeuristic"
+    paramValue = MibSPar_->entry(MibSParams::useWSHeuristic);
+
+    if(paramValue == PARAM_NOTSET)
+	MibSPar()->setEntry(MibSParams::useWSHeuristic, PARAM_OFF);
+    
     //Param: "MibS_useGreedyHeuristic"
     paramValue = MibSPar_->entry(MibSParams::useGreedyHeuristic);
 
