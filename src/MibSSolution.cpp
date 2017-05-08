@@ -81,7 +81,9 @@ MibSSolution::~MibSSolution()
 void
 MibSSolution::print(std::ostream& os) const 
 {
-   
+
+    std::string inputFormat(localModel_->MibSPar_->entry
+			    (MibSParams::inputFormat));
    double nearInt = 0.0;
    //int size(localModel_->getNumOrigVars());
    int j(0); 
@@ -92,6 +94,7 @@ MibSSolution::print(std::ostream& os) const
    int index(0);
    int * upperColInd = localModel_->getUpperColInd();
    int * lowerColInd = localModel_->getLowerColInd();
+   std::string * columnName = localModel_->getColumnName();
 
    /*   
    for(j = 0; j < size; ++j) {
@@ -112,10 +115,20 @@ MibSSolution::print(std::ostream& os) const
       if (values_[index] > 1.0e-15 || values_[index] < -1.0e-15) {
 	 nearInt = floor(values_[index] + 0.5);
 	 if (ALPS_FABS(nearInt - values_[index]) < 1.0e-6) {
-	    os << "x[" << j << "] = " << nearInt << std::endl;
+	     if (inputFormat == "indexBased") {
+		 os << "x[" << j << "] = " << nearInt << std::endl;
+	     }
+	     else {
+		 os << columnName[index] << " = " << nearInt << std::endl;
+	     }
 	 }
 	 else {
-	    os << "x[" << j << "] = " << values_[index] << std::endl;
+	     if (inputFormat == "indexBased") {
+		 os << "x[" << j << "] = " << values_[index] << std::endl;
+	     }
+	     else {
+		 os << columnName[index] << " = " << values_[index] << std::endl;
+	     }
 	 }
       }
    }
@@ -125,10 +138,20 @@ MibSSolution::print(std::ostream& os) const
       if (values_[index] > 1.0e-15 || values_[index] < -1.0e-15) {
 	 nearInt = floor(values_[index] + 0.5);
 	 if (ALPS_FABS(nearInt - values_[index]) < 1.0e-6) {
-	    os << "y[" << j << "] = " << nearInt << std::endl;
+	     if (inputFormat == "indexBased") {
+		 os << "y[" << j << "] = " << nearInt << std::endl;
+	     }
+	     else {
+		 os << columnName[index] <<" = " << nearInt << std::endl;
+	     }
 	 }
 	 else {
-	    os << "y[" << j << "] = " << values_[index] << std::endl;
+	     if(inputFormat == "indexBased"){
+		 os << "y[" << j << "] = " << values_[index] << std::endl;
+	     }
+	     else{
+		 os << "y[" << j << "] = " << values_[index] << std::endl;
+	     }
 	 }
       }
    }
