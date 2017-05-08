@@ -256,6 +256,7 @@ MibSModel::readAuxiliaryData(int numCols, int numRows)
   std::string cValue;
   double dValue(0.0);
   int i(0), j(0), k(0), m(0), p(0), pos(0);
+  int lowerColNum(0), lowerRowNum(0);
 
   while (data_stream >> key){
      if(key == "N"){ 
@@ -335,6 +336,54 @@ MibSModel::readAuxiliaryData(int numCols, int numRows)
        //FIXME: ALLOW MORE THAN ONE ROW
 	data_stream >> dValue;
 	interdictBudget_ = dValue;
+     }
+     else if(key == "@VARSBEGIN"){
+	 pos = -1;
+	 lowerColNum = getLowerDim();
+	 if(!getLowerColInd())
+	     lowerColInd_ = new int[lowerColNum];
+	 if(!getLowerObjCoeffs())
+	     lowerObjCoeffs_ = new double[lowerColNum];
+	 for(i = 0; i < lowerColNum; i++){
+	     data_stream >> cValue;
+	     data_stream >> dValue;
+	     for(p = 0; p < numCols; ++p){
+		 if(columnName_[p] == cValue){
+		     pos = p;
+		     break;
+		 }
+	     }
+	     if(pos < 0){
+		 std::cout << cValue << " does not belong to the list of variables." << std::endl;
+	     }
+	     else{
+		 lowerObjCoeffs_[pos] = dValue;
+		 lowerColInd_[i] = pos;
+	     }
+	     pos = -1;
+	 }
+     }
+     else if(key == "@CONSTSBEGIN"){
+	 pos = -1;
+	 lowerRowNum = getLowerRowNum();
+	 if(!getLowerRowInd())
+	     lowerRowInd_ = new int[lowerRowNum];
+	 for(i = 0; i < lowerRowNum; i++){
+	     data_stream >> cValue;
+	     for(p = 0; p < numRows; ++p){
+		 if(rowName_[p] == cValue){
+		     pos = p;
+		     break;
+		 }
+	     }
+	     if(pos < 0){
+		 std::cout << cValue << " does not belong to the list of constraints." << std::endl;
+	     }
+	     else{
+		 lowerRowInd_[i] = pos;
+	     }
+	     pos = -1;
+	 }
      }
   }
 
