@@ -1,0 +1,11 @@
+MibS Change Log
+	
+## 0.95.1
+	
+ * Updates for new experiments in updated draft.
+ * Changed parameter names to match paper
+ * Fixed bug in linking solution pool	
+
+##0.95.0
+
+ * Version used for initial draft of [paper](http://coral.ie.lehigh.edu/~ted/files/papers/MIBLP16.pdf)	
