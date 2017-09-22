@@ -4,8 +4,9 @@
 /*                                                                           */
 /* Authors: Scott DeNegre, Lehigh University                                 */
 /*          Ted Ralphs, Lehigh University                                    */
+/*          Sahar Tahernajad, Lehigh University                              */
 /*                                                                           */
-/* Copyright (C) 2007-2015 Lehigh University, Scott DeNegre, and Ted Ralphs. */
+/* Copyright (C) 2007-2017 Lehigh University, Scott DeNegre, and Ted Ralphs. */
 /* All Rights Reserved.                                                      */
 /*                                                                           */
 /* This software is licensed under the Eclipse Public License. Please see    */
@@ -27,6 +28,32 @@
 #define PARAM_OFF      0
 #define PARAM_ON       1
 
+//#############################################################################    
+
+enum MibSBranchingStrategy{
+    MibSBranchingStrategyNotSet = -1,
+    MibSBranchingStrategyFractional,
+    MibSBranchingStrategyLinking
+};
+ 
+//#############################################################################
+
+enum MibSLPSolStatus{
+    MibSLPSolStatusUnknown = -1,
+    MibSLPSolStatusInfeasible,
+    MibSLPSolStatusFeasible
+};
+
+//#############################################################################
+
+enum MibSLinkingPoolTag{
+    MibSLinkingPoolTagIsNotSet = -4,
+    MibSLinkingPoolTagLowerIsInfeasible,
+    MibSLinkingPoolTagLowerIsFeasible,
+    MibSLinkingPoolTagUBIsSolved
+};  
+
+//############################################################################# 
 /*---------  which_active_con_method choices --------------------------------*/
 #define SIMPLE  0
 #define BASIS  1

@@ -4,8 +4,9 @@
 /*                                                                           */
 /* Authors: Scott DeNegre, Lehigh University                                 */
 /*          Ted Ralphs, Lehigh University                                    */
+/*          Sahar Tahernajad, Lehigh University                              */
 /*                                                                           */
-/* Copyright (C) 2007-2015 Lehigh University, Scott DeNegre, and Ted Ralphs. */
+/* Copyright (C) 2007-2017 Lehigh University, Scott DeNegre, and Ted Ralphs. */
 /* All Rights Reserved.                                                      */
 /*                                                                           */
 /* This software is licensed under the Eclipse Public License. Please see    */
@@ -20,83 +21,108 @@
 
 #include "MibSModel.hpp"
 #include "MibSHeuristic.hpp"
+#include "MibSConstants.hpp"
+#include "MibSHelp.hpp"
 
 class MibSModel;
 class MibSCutGenerator;
 class MibSHeuristic;
+class MibSTreeNode;
 
 //#############################################################################
 
 class MibSBilevel {
 
-  friend class MibSModel;
-  friend class MibSCutGenerator;
-  friend class MibSBranchStrategyMaxInf;
-  friend class MibSHeuristic;
+    friend class MibSModel;
+    friend class MibSCutGenerator;
+    friend class MibSBranchStrategyMaxInf;
+    friend class MibSHeuristic;
+    friend class MibSTreeNode;
+    friend class MibSBranchStrategyPseudo;
+    friend class MibSBranchStrategyStrong;
 
- private:
+private:
 
-   bool isIntegral_;
-   bool isBilevelFeasible_;
-   bool isUpperIntegral_;
-   bool useBilevelBranching_;
+    bool isIntegral_;
+    bool isUpperIntegral_;
+    bool isLinkVarsIntegral_;
+    bool useBilevelBranching_;
+    bool isLinkVarsFixed_;
+    bool isProvenOptimal_;
+    /** is lower-level problem solved or not **/
+    bool isLowerSolved_;
+    /** is problem UB solved or not **/
+    bool isUBSolved_;
+    /** should prune the node or not **/
+    bool shouldPrune_;
+    bool isContainedInLinkingPool_;
+    bool haveHeurSolCand_;
+    MibSLinkingPoolTag tagInSeenLinkingPool_;
 
-   /** Optimal value of LL objective **/
-   double objVal_;
-    
-   double *upperSolution_;
-   double *lowerSolution_;
-   double *upperSolutionOrd_;
-   double *lowerSolutionOrd_;
-   double *optLowerSolution_;
-   double *optLowerSolutionOrd_;
-   
-   MibSModel *model_;
-   MibSHeuristic *heuristic_;
-   OsiSolverInterface * solver_;
-   CoinWarmStart * ws_;
+    MibSLPSolStatus LPSolStatus_;
 
-   
- public:
-   
-   MibSBilevel() : isIntegral_(false), isBilevelFeasible_(false),
-		   isUpperIntegral_(false), useBilevelBranching_(false),
-		   objVal_(0.0){
-      upperSolution_ = 0;
-      lowerSolution_ = 0;
-      upperSolutionOrd_ = 0;
-      lowerSolutionOrd_ = 0;
-      optLowerSolution_ = 0;
-      optLowerSolutionOrd_ = 0;
-      model_ = 0;
-      heuristic_= 0;
-      solver_ = 0;
-      ws_ = 0;
-   }
-   
-   ~MibSBilevel() {
-      gutsOfDestructor();
-   }
-   
-   void createBilevel(CoinPackedVector *sol,
-   		      MibSModel *mibs=0);
-   void checkBilevelFeasiblity(bool isRoot);
-   void gutsOfDestructor();
+    /** Optimal value of LL objective **/
+    double objVal_;
 
- private:
+    double *upperSolutionOrd_;
+    double *lowerSolutionOrd_;
+    //double *optLowerSolution_;
+    double *optUpperSolutionOrd_;// result of solving (UB)
+    double *optLowerSolutionOrd_;
    
-   int findIndex(int index, int size, int * indices);
-   OsiSolverInterface * setUpModel(OsiSolverInterface * solver,
-				   bool newOsi, const double *sol = NULL);
-   double getLowerObj(const double * sol, double objSense);
-   int binarySearch(int index,int start, int stop, int * indexArray);
-   CoinWarmStart * getWarmStart() {return ws_;}
-   void setWarmStart(CoinWarmStart * ws) {ws_ = ws;}
-   //void findHeuristicSolutions();
-   //void objCutHeuristic();
-   //void lowerObjHeuristic();
-   //void weightedSumsHeuristic();
-   //void greedyHeuristic();
+    MibSModel *model_;
+    MibSHeuristic *heuristic_;
+    OsiSolverInterface * solver_; 
+    CoinWarmStart * ws_;
+   
+public:
+   
+    MibSBilevel() : isIntegral_(true), isUpperIntegral_(true),
+		    isLinkVarsIntegral_(true), useBilevelBranching_(true),
+		    isLinkVarsFixed_(true), isProvenOptimal_(false),
+		    isLowerSolved_(false), isUBSolved_(false),
+		    shouldPrune_(false), isContainedInLinkingPool_(false),
+		    haveHeurSolCand_(false),
+		    tagInSeenLinkingPool_(MibSLinkingPoolTagIsNotSet),
+		    LPSolStatus_(MibSLPSolStatusUnknown), objVal_(0.0){
+	upperSolutionOrd_ = 0;
+	lowerSolutionOrd_ = 0;
+	//optLowerSolution_ = 0;
+	optUpperSolutionOrd_ = 0;
+	optLowerSolutionOrd_ = 0;
+	model_ = 0;
+	heuristic_= 0;
+	solver_ = 0;
+	ws_ = 0;
+    }
+   
+    ~MibSBilevel() {
+	gutsOfDestructor();
+    }
+   
+    void createBilevel(CoinPackedVector *sol,
+		       MibSModel *mibs=0);
+    void checkBilevelFeasiblity(bool isRoot);
+    void gutsOfDestructor();
+
+private:
+   
+    int findIndex(int index, int size, int * indices);
+    OsiSolverInterface * setUpUBModel(OsiSolverInterface * solver, double objValLL,
+					  bool newOsi, const double *sol = NULL);
+    OsiSolverInterface * setUpModel(OsiSolverInterface * solver,
+				    bool newOsi, const double *sol = NULL);
+    double getLowerObj(const double * sol, double objSense);
+    int binarySearch(int index,int start, int stop, int * indexArray);
+    CoinWarmStart * getWarmStart() {return ws_;}
+    void setWarmStart(CoinWarmStart * ws) {ws_ = ws;}
+    void addSolutionToSeenLinkingSolutionPool(MibSLinkingPoolTag solTag, std::vector<double>
+		      &shouldStoreValues, double objValue);
+    //void findHeuristicSolutions();
+    //void objCutHeuristic();
+    //void lowerObjHeuristic();
+    //void weightedSumsHeuristic();
+    //void greedyHeuristic();
 
 };
 

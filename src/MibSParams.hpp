@@ -4,8 +4,9 @@
 /*                                                                           */
 /* Authors: Scott DeNegre, Lehigh University                                 */
 /*          Ted Ralphs, Lehigh University                                    */
+/*          Sahar Tahernajad, Lehigh University                              */
 /*                                                                           */
-/* Copyright (C) 2007-2015 Lehigh University, Scott DeNegre, and Ted Ralphs. */
+/* Copyright (C) 2007-2017 Lehigh University, Scott DeNegre, and Ted Ralphs. */
 /* All Rights Reserved.                                                      */
 /*                                                                           */
 /* This software is licensed under the Eclipse Public License. Please see    */
@@ -27,7 +28,6 @@ class MibSParams : public AlpsParameterSet {
       (true = 1, false = 0). */
   enum boolParams{
      useValFuncCut,
-     useIncObjCut,
      useBoundCut,
      boundCutOptimal,
      boundCutRelaxUpper,
@@ -35,6 +35,7 @@ class MibSParams : public AlpsParameterSet {
      isBilevelBranchProb,
      warmStartLL,
      doDualFixing,
+     turnOffOtherCuts,
      endOfBoolParams
   };
   
@@ -49,6 +50,7 @@ class MibSParams : public AlpsParameterSet {
      objBoundStrategy,
      blisCutStrategy,
      blisBranchStrategy,
+     branchStrategy,
      upperFileFormat,
      maxThreadsLL,
      whichCutsLL,
@@ -59,9 +61,19 @@ class MibSParams : public AlpsParameterSet {
      useGreedyHeuristic,
      usePureIntegerCut,
      useNoGoodCut,
+     useGeneralNoGoodCut,
+     useIncObjCut,
      useBendersCut,
      useIntersectionCut,
      intersectionCutType,
+     solveSecondLevelWhenXYVarsInt,
+     solveSecondLevelWhenXVarsInt,
+     solveSecondLevelWhenLVarsInt,
+     solveSecondLevelWhenLVarsFixed,
+     computeBestUBWhenXVarsInt,
+     computeBestUBWhenLVarsInt,
+     computeBestUBWhenLVarsFixed,
+     useLinkingSolutionPool,
      endOfIntParams
   };
 

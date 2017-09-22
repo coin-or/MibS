@@ -4,8 +4,9 @@
 /*                                                                           */
 /* Authors: Scott DeNegre, Lehigh University                                 */
 /*          Ted Ralphs, Lehigh University                                    */
+/*          Sahar Tahernajad, Lehigh University                              */
 /*                                                                           */
-/* Copyright (C) 2007-2015 Lehigh University, Scott DeNegre, and Ted Ralphs. */
+/* Copyright (C) 2007-2017 Lehigh University, Scott DeNegre, and Ted Ralphs. */
 /* All Rights Reserved.                                                      */
 /*                                                                           */
 /* This software is licensed under the Eclipse Public License. Please see    */
@@ -65,7 +66,7 @@ MibSTreeNode::createNewTreeNode(AlpsNodeDesc *&desc) const
     int branchInd = dynamic_cast<BlisNodeDesc *>(desc)->getBranchedInd();
     double lpX = dynamic_cast<BlisNodeDesc *>(desc)->getBranchedVal();
     double f = lpX - floor(lpX);
-    assert(f > 0.0);
+    //assert(f > 0.0);
     
     BlisModel* model = dynamic_cast<BlisModel*>(desc_->getModel());
     int objInd = model->getIntObjIndices()[branchInd];
@@ -154,6 +155,8 @@ MibSTreeNode::process(bool isRoot, bool rampUp)
     std::vector<int> delIndices;
     
     BlisModel* model = dynamic_cast<BlisModel*>(desc_->getModel());
+    MibSModel *mibsModel = dynamic_cast<MibSModel *>(model);
+    MibSBilevel *bS = mibsModel->bS_;
 
     AlpsPhase phase = knowledgeBroker_->getPhase();
 
@@ -165,6 +168,15 @@ MibSTreeNode::process(bool isRoot, bool rampUp)
 
     int maxPass = BlisPar->entry(BlisParams::cutPass);
     double tailOffTol = BlisPar->entry(BlisParams::tailOff);
+
+    MibSBranchingStrategy branchPar = static_cast<MibSBranchingStrategy>
+	(mibsModel->MibSPar_->entry(MibSParams::branchStrategy));
+
+    //tailOffTol = 1e-7;
+
+    /*if(bS->useBilevelBranching_ == false){
+	tailOffTol = -1000;
+	}*/
 
     if (maxPass < ALPS_INT_MAX) {
 	++maxPass;
@@ -235,7 +247,7 @@ MibSTreeNode::process(bool isRoot, bool rampUp)
     }
     else if (cutStrategy == BlisCutStrategyAuto) {
 	if (depth_ < maxConstraintDepth) {
-            if (!diving_ || isRoot) genConsHere = true;
+           genConsHere = true;
 	}
     }
     else if (cutStrategy == BlisCutStrategyPeriodic) {
@@ -363,7 +375,17 @@ MibSTreeNode::process(bool isRoot, bool rampUp)
 
 	  // Check if IP feasible 
 	  ipSol = model->feasibleSolution(numIntInfs, numObjInfs);
-            
+
+	  //if((bS->useBilevelBranching_ == false) &&
+	  // (bS->LPSolStatus_ != MibSLPSolStatusFeasible)){
+	  if((((branchPar == MibSBranchingStrategyLinking) && (bS->isLinkVarsFixed_)) ||
+	      (branchPar == MibSBranchingStrategyFractional)) && (bS->isIntegral_)){
+	      tailOffTol = -1000;
+	  }
+	  else{
+	      tailOffTol = BlisPar->entry(BlisParams::tailOff);
+	  }
+	      
 	  if (ipSol) {         
                 // IP feasible
                 model->storeSolution(BlisSolutionTypeHeuristic, ipSol);
@@ -379,7 +401,7 @@ MibSTreeNode::process(bool isRoot, bool rampUp)
                     goto TERM_PROCESS;
                 }
                 needBranch = true;
-                reducedCostFix(model);
+                //reducedCostFix(model);
                 
                 //------------------------------------------
                 // Check if tailoff
@@ -722,7 +744,8 @@ MibSTreeNode::process(bool isRoot, bool rampUp)
 	    voilatedNumCons = newConPool.getNumConstraints() - tempNumCons;
 	    
 	    // Generate constraints (only if no violated).
-	    if (voilatedNumCons == 0) {
+	    if ((voilatedNumCons == 0) && (bS->LPSolStatus_ ==
+					   MibSLPSolStatusInfeasible)) {
 		lpStatus = static_cast<BlisLpStatus> 
 		    (generateConstraints(model, newConPool));
             

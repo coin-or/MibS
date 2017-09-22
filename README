@@ -1,4 +1,4 @@
-# MibS (Mixed Integer Bilevel Solver) 0.5
+# MibS (Mixed Integer Bilevel Solver) 0.95
 
 [![Build Status](https://travis-ci.org/tkralphs/MibS.svg?branch=library)](https://travis-ci.org/tkralphs/MibS)
 
@@ -212,7 +212,7 @@ mibs -param mibs.par
 MibS has many parameters. See the example parameter file `mibs.par` and
 the header file `MibParam.h` for explanations.
 
-HELP
+## HELP
 
 Please post questions and issues to the github project page for MibS.
 

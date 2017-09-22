@@ -4,8 +4,9 @@
 /*                                                                           */
 /* Authors: Scott DeNegre, Lehigh University                                 */
 /*          Ted Ralphs, Lehigh University                                    */
+/*          Sahar Tahernajad, Lehigh University                              */
 /*                                                                           */
-/* Copyright (C) 2007-2015 Lehigh University, Scott DeNegre, and Ted Ralphs. */
+/* Copyright (C) 2007-2017 Lehigh University, Scott DeNegre, and Ted Ralphs. */
 /* All Rights Reserved.                                                      */
 /*                                                                           */
 /* This software is licensed under the Eclipse Public License. Please see    */
@@ -82,14 +83,23 @@ MibSBranchStrategyPseudo::createCandBranchObjects(int numPassesLeft, double ub)
     double *saveSolution = NULL;
 
     BlisModel *model = dynamic_cast<BlisModel *>(model_);
+    MibSModel *mibsmodel = dynamic_cast<MibSModel *>(model);
+    MibSBilevel *bS = mibsmodel->bS_;
     OsiSolverInterface *solver = model->solver();
-    
+   
+    double etol = mibsmodel->etol_;
     int numCols = model->getNumCols();
     int numObjects = model->numObjects();
     int aveIterations = model->getAveIterations();
+    int uN = mibsmodel->upperDim_;
+    int * upperColInd = mibsmodel->getUpperColInd();
+    int * fixedInd = mibsmodel->fixedInd_;
+    char * colType = mibsmodel->colType_;
 
+    // If upper-level variable is fixed -> fixedVar = 1
+    int *fixedVar = new int[numCols]();
 
-    //std::cout <<  "aveIterations = " <<  aveIterations << std::endl;
+    int *candidate = new int[numCols]();
 
      //------------------------------------------------------
     // Check if max time is reached or no pass is left.
@@ -139,13 +149,65 @@ MibSBranchStrategyPseudo::createCandBranchObjects(int numPassesLeft, double ub)
             
         infObjects.clear();
         firstObjects.clear();
-        
-        for (i = 0; i < numObjects; ++i) {
-                
-            object = model->objects(i);
-            infeasibility = object->infeasibility(model, preferDir);
+
+	int index(0), found(0);
+
+	double value(0.0);
+
+	MibSBranchingStrategy branchPar = static_cast<MibSBranchingStrategy>
+	    (mibsmodel->MibSPar_->entry(MibSParams::branchStrategy));
+
+	if(branchPar == MibSBranchingStrategyLinking){
+	    for (i = 0; i < uN; ++i){
+		index = upperColInd[i];
+		if (fabs(lower[index]-upper[index])<=etol){
+		    fixedVar[index]=1;
+		}
+	    }
+	    for (i = 0; i < numCols; ++i) {
+		value = saveSolution[i];
+		infeasibility = fabs(floor(value + 0.5) - value);
+		if((fixedInd[i] == 1) && (fabs(infeasibility) > etol)){
+		    found = 1;
+		    break;
+		}
+	    }
+	}
+	
+	for (i = 0; i < numCols; ++i) {
+	    if(colType[i] == 'C'){
+		candidate[i] = 0;
+	    }
+	    else{
+		candidate[i] = 2;
+		value = saveSolution[i];
+		infeasibility = fabs(floor(value + 0.5) - value);
+		if(branchPar == MibSBranchingStrategyLinking){
+		    if((bS->isLinkVarsFixed_ == true) && (bS->isIntegral_ == false)){
+			if(fabs(infeasibility) > etol){
+			    candidate[i] = 1;
+			}
+		    }
+		    else if((fixedInd[i] == 1) && (((found == 0) &&
+						    (fixedVar[i] != 1)) ||
+						   (fabs(infeasibility) > etol))){
+			candidate[i] = 1;
+		    }
+		}
+		else if(infeasibility > etol){
+		    candidate[i] = 1;
+		}
+	    }
+	}
+	    
+	index = -1;
+        for (i = 0; i < numCols; ++i) {
+	    if(candidate[i] != 0){
+		index ++;
+		object = model->objects(index);
+	    }
             
-            if (infeasibility) {
+            if (candidate[i] == 1) {
                 
                 ++numInfs;
                 intObject = dynamic_cast<BlisObjectInt *>(object);
@@ -387,6 +449,8 @@ MibSBranchStrategyPseudo::createCandBranchObjects(int numPassesLeft, double ub)
     delete [] saveSolution;
     delete [] saveLower;
     delete [] saveUpper;
+    delete [] fixedVar;
+    delete [] candidate;
 
     return bStatus;
 

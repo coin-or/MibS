@@ -4,8 +4,9 @@
 /*                                                                           */
 /* Authors: Scott DeNegre, Lehigh University                                 */
 /*          Ted Ralphs, Lehigh University                                    */
+/*          Sahar Tahernajad, Lehigh University                              */
 /*                                                                           */
-/* Copyright (C) 2007-2015 Lehigh University, Scott DeNegre, and Ted Ralphs. */
+/* Copyright (C) 2007-2017 Lehigh University, Scott DeNegre, and Ted Ralphs. */
 /* All Rights Reserved.                                                      */
 /*                                                                           */
 /* This software is licensed under the Eclipse Public License. Please see    */
@@ -64,6 +65,8 @@ class MibSCutGenerator : public BlisConGenerator {
    /** Add no-good cuts for binary upper-level variables **/
    int noGoodCut(BcpsConstraintPool &conPool);
 
+   int generalNoGoodCut(BcpsConstraintPool &conPool);
+
    /** Add Benders-type cuts for interdiction problems **/
    int bendersInterdictionCuts(BcpsConstraintPool &conPool);
 
@@ -71,8 +74,8 @@ class MibSCutGenerator : public BlisConGenerator {
    int bendersZeroSumCuts(BcpsConstraintPool &conPool);
 
     /** Add intersection cuts for general problems (Type 1: discrete, Types 2,3: general) **/
-    int intersectionCuts(BcpsConstraintPool &conPool, double *optLowerSolution,
-			 double optLowerObj);
+    int intersectionCuts(BcpsConstraintPool &conPool,
+			 double *optLowerSolution);
 
     /** Helper function for intersection cut Type 1*/
     void getAlphaIntersectionCutType1(double** extRay, double* lowerSolution,

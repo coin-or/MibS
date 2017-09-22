@@ -4,8 +4,9 @@
 /*                                                                           */
 /* Authors: Scott DeNegre, Lehigh University                                 */
 /*          Ted Ralphs, Lehigh University                                    */
+/*          Sahar Tahernajad, Lehigh University                              */
 /*                                                                           */
-/* Copyright (C) 2007-2015 Lehigh University, Scott DeNegre, and Ted Ralphs. */
+/* Copyright (C) 2007-2017 Lehigh University, Scott DeNegre, and Ted Ralphs. */
 /* All Rights Reserved.                                                      */
 /*                                                                           */
 /* This software is licensed under the Eclipse Public License. Please see    */
@@ -67,6 +68,8 @@ MibSBranchStrategyStrong::createCandBranchObjects(int numPassesLeft, double ub)
     BlisObjectInt *intObject = NULL;
     
     BlisModel *model = dynamic_cast<BlisModel *>(model_);
+    MibSModel *mibsmodel = dynamic_cast<MibSModel *>(model);
+    MibSBilevel *bS = mibsmodel->bS_;
     OsiSolverInterface * solver = model->solver();
     
     int numCols = model->getNumCols();
@@ -79,6 +82,18 @@ MibSBranchStrategyStrong::createCandBranchObjects(int numPassesLeft, double ub)
     int maxStrongLen = CoinMax(CoinMin(givenStrongLen, numObjects), 1);
     
     BlisStrong * candStrongs = new BlisStrong [maxStrongLen];
+
+    double etol = mibsmodel->etol_;
+    int uN = mibsmodel->upperDim_;
+    int * upperColInd = mibsmodel->getUpperColInd();
+    int * fixedInd = mibsmodel->fixedInd_;
+    char * colType = mibsmodel->colType_;
+
+    // If upper-level variable is fixed -> fixedVar = 1
+    int *fixedVar = new int[numCols]();
+
+    int *candidate = new int[numCols]();
+    
 
     //------------------------------------------------------
     // Allocate memory and store current solution info.
@@ -117,6 +132,8 @@ MibSBranchStrategyStrong::createCandBranchObjects(int numPassesLeft, double ub)
 	sumDeg = 0.0; 
 	numInfs = 0;
 
+	BcpsObject * object = NULL;
+
         int preferDir;        
 	int leastFrac = 0;
         double infeasibility;
@@ -127,21 +144,81 @@ MibSBranchStrategyStrong::createCandBranchObjects(int numPassesLeft, double ub)
 	}
 	
 	strongLen = 0;
-        
-	for (i = 0; i < numObjects; ++i) {
+
+	MibSBranchingStrategy branchPar = static_cast<MibSBranchingStrategy>
+	    (mibsmodel->MibSPar_->entry(MibSParams::branchStrategy));
+
+	int index(0), found(0);
+	double value(0.0);
+
+	if(branchPar == MibSBranchingStrategyLinking){
+	    for (i = 0; i < uN; ++i){
+		index = upperColInd[i];
+		if (fabs(lower[index]-upper[index])<=etol){
+		    fixedVar[index]=1;
+		}
+	    }
+	}
+
+	for (i = 0; i < numCols; ++i) {
+	    if(colType[i] == 'C'){
+		candidate[i] = 0;
+	    }
+	    else{
+		candidate[i] = 2;
+		value = saveSolution[i];
+		infeasibility = fabs(floor(value + 0.5) - value);
+		if(branchPar == MibSBranchingStrategyLinking){
+		    if((fixedInd[i] == 1) && (fabs(infeasibility) > etol)){
+			found = 1;
+			break;
+		    }
+		    if((bS->isLinkVarsFixed_ == true) && (bS->isIntegral_ == false)){
+			if(fabs(infeasibility) > etol){
+			    candidate[i] = 1;
+			}
+		    }
+		    else if((fixedInd[i] == 1) && (((found == 0) &&
+						    (fixedVar[i] != 1)) ||
+						   (fabs(infeasibility) > etol))){
+			candidate[i] = 1;
+		    }
+		}
+		else if(infeasibility > etol){
+		    candidate[i] = 1;
+		}
+	    }
+	}
+
+	//*******
+	
+	//for (i = 0; i < numObjects; ++i) {
             
             // TODO: currently all integer object.
-	    intObject = dynamic_cast<BlisObjectInt *>(model->objects(i));
-	    infeasibility = intObject->infeasibility(model, preferDir);
+	    //intObject = dynamic_cast<BlisObjectInt *>(model->objects(i));
+	    //infeasibility = intObject->infeasibility(model, preferDir);
             
-	    if (infeasibility) {
+	    //if (infeasibility) {
+
+	index = -1;
+	for (i = 0; i < numCols; ++i) {
+	    if(candidate[i] != 0){
+		index ++;
+		object = model->objects(index);
+	    }
+
+	    if (candidate[i] == 1) {
 		++numInfs;
-                
+                intObject = dynamic_cast<BlisObjectInt *>(object);
+		infeasibility = intObject->infeasibility(model, preferDir);
+		
 		// Increase estimated degradation to solution
 		sumDeg += intObject->pseudocost().getScore();
 		
 		// Check for suitability based on infeasibility.
-                if (infeasibility > minInf) {
+                if ((infeasibility > minInf) ||
+		    ((branchPar == MibSBranchingStrategyLinking) &&
+		     (found == 0))){
 		    
                     if (candStrongs[leastFrac].bObject) {
                         // The slot already has one, free it.
@@ -169,7 +246,11 @@ MibSBranchStrategyStrong::createCandBranchObjects(int numPassesLeft, double ub)
                             leastFrac = j;
                             break;
                         }
-			else if(candStrongs[j].bObject->getUpScore() < minInf){
+			//sahar:To Do:If there is no fractional valued var, we consider
+			//the first "maxStrongLen" objects 
+			else if(((branchPar == MibSBranchingStrategyFractional)
+				 || (found == 1)) &&
+				(candStrongs[j].bObject->getUpScore() < minInf)){
 			    minInf = candStrongs[j].bObject->getUpScore();
 			    leastFrac = j;
 			}
@@ -629,6 +710,8 @@ MibSBranchStrategyStrong::createCandBranchObjects(int numPassesLeft, double ub)
     delete [] saveSolution;
     delete [] saveLower;
     delete [] saveUpper;
+    delete [] fixedVar;
+    delete [] candidate;
     for (i = 0; i < maxStrongLen; ++i) {
         if (candStrongs[i].bObject) {
             delete candStrongs[i].bObject;

@@ -60,7 +60,8 @@ libMibs_la_SOURCES = \
 	MibSBranchStrategyRel.cpp \
 	MibSModel.cpp \
 	MibSBranchStrategyRel.hpp \
-	MibSModel.hpp
+	MibSModel.hpp \
+	MibSHelp.hpp
 
 # List all additionally required libraries
 if DEPENDENCY_LINKING
@@ -113,7 +114,8 @@ includecoin_HEADERS = \
 	MibSBranchStrategyRel.hpp \
 	MibSModel.hpp \
 	MibSBranchStrategyStrong.hpp \
-	MibSObjectInt.hpp
+	MibSObjectInt.hpp \
+	MibSHelp.hpp
 
 ########################################################################
 #                     Installing manifest (MSVC++)                     #

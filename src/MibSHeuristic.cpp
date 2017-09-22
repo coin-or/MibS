@@ -4,8 +4,9 @@
 /*                                                                           */
 /* Authors: Scott DeNegre, Lehigh University                                 */
 /*          Ted Ralphs, Lehigh University                                    */
+/*          Sahar Tahernajad, Lehigh University                              */
 /*                                                                           */
-/* Copyright (C) 2007-2015 Lehigh University, Scott DeNegre, and Ted Ralphs. */
+/* Copyright (C) 2007-2017 Lehigh University, Scott DeNegre, and Ted Ralphs. */
 /* All Rights Reserved.                                                      */
 /*                                                                           */
 /* This software is licensed under the Eclipse Public License. Please see    */
@@ -506,7 +507,7 @@ MibSHeuristic::greedyHeuristic()
 
   int tCols(uCols + lCols); 
 
-  assert(tCols == oSolver->getNumCols());
+  //assert(tCols == oSolver->getNumCols());
 
   int i(0), ind_min_wt(0);
   double usedBudget(0.0); 
@@ -710,7 +711,7 @@ MibSHeuristic::weightedSumsHeuristic()
       /** should probably add a tolerance here **/
       
       if(find(BETAS.begin(), BETAS.end(), beta) == BETAS.end()){
-	std::cout << "Solving with beta = " << beta << std::endl;
+	  //std::cout << "Solving with beta = " << beta << std::endl;
 	
 	BETAS.push_back(beta);
 	sol = solveSubproblem(beta);
@@ -750,9 +751,9 @@ MibSHeuristic::weightedSumsHeuristic()
 	    
 	  }
       }
-      else{
+      /*else{
 	std::cout << "Repeated beta value.  Skipping problem pair." <<std::endl;
-      }
+	}*/
     }
   }
 
@@ -858,7 +859,7 @@ bool
 MibSHeuristic::checkUpperFeasibility(double * solution)
 {
 
-  bool feasible(true);
+  bool upperFeasible(true);
   MibSModel * model = MibSModel_;
   int * uRowIndices = model->getUpperRowInd();
   int uRows(model->getUpperRowNum());
@@ -882,11 +883,11 @@ MibSHeuristic::checkUpperFeasibility(double * solution)
       lhs += matElements[j] * solution[index2];
     }
     if((origRowLb[index1] > lhs) || (lhs > origRowUb[index1]))
-      feasible = false;
+      upperFeasible = false;
     lhs = 0.0;
   }
 
-  return feasible;
+  return upperFeasible;
 }
 
 //#############################################################################
@@ -894,7 +895,7 @@ bool
 MibSHeuristic::checkLowerFeasibility1(double * solution)
 {
 
-  bool feasible(true);
+  bool lowerFeasible(true);
   MibSModel * model = MibSModel_;
   int * lRowIndices = model->getLowerRowInd();
   int lRows(model->getLowerRowNum());
@@ -918,11 +919,11 @@ MibSHeuristic::checkLowerFeasibility1(double * solution)
       lhs += matElements[j] * solution[index2];
     }
     if((origRowLb[index1] > lhs) || (lhs > origRowUb[index1]))
-      feasible = false;
+      lowerFeasible = false;
     lhs = 0.0;
   }
 
-  return feasible;
+  return lowerFeasible;
 }
 
 //#############################################################################
@@ -1184,9 +1185,10 @@ MibSHeuristic::solveSubproblem(double beta)
   const double * uObjCoeffs = oSolver->getObjCoefficients();
 
   double etol(etol_);
-  int tCols(uCols + lCols); 
+  //int tCols(uCols + lCols);
+  int tCols(oSolver->getNumCols());
 
-  assert(tCols == oSolver->getNumCols());
+  //assert(tCols == oSolver->getNumCols());
 
 
   sSolver->loadProblem(*oSolver->getMatrixByCol(),

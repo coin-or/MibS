@@ -4,8 +4,9 @@
 /*                                                                           */
 /* Authors: Scott DeNegre, Lehigh University                                 */
 /*          Ted Ralphs, Lehigh University                                    */
+/*          Sahar Tahernajad, Lehigh University                              */
 /*                                                                           */
-/* Copyright (C) 2007-2015 Lehigh University, Scott DeNegre, and Ted Ralphs. */
+/* Copyright (C) 2007-2017 Lehigh University, Scott DeNegre, and Ted Ralphs. */
 /* All Rights Reserved.                                                      */
 /*                                                                           */
 /* This software is licensed under the Eclipse Public License. Please see    */
@@ -132,6 +133,9 @@ MibSSolution::print(std::ostream& os) const
       }
    }
 
+   std::cout << "Number of problems (VF) solved = " << localModel_->counterVF_ << std::endl;
+   std::cout << "Number of problems (UB) solved = " << localModel_->counterUB_ << std::endl;
 
+   
 }
 

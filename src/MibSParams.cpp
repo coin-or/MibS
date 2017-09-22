@@ -4,8 +4,9 @@
 /*                                                                           */
 /* Authors: Scott DeNegre, Lehigh University                                 */
 /*          Ted Ralphs, Lehigh University                                    */
+/*          Sahar Tahernajad, Lehigh University                              */
 /*                                                                           */
-/* Copyright (C) 2007-2015 Lehigh University, Scott DeNegre, and Ted Ralphs. */
+/* Copyright (C) 2007-2017 Lehigh University, Scott DeNegre, and Ted Ralphs. */
 /* All Rights Reserved.                                                      */
 /*                                                                           */
 /* This software is licensed under the Eclipse Public License. Please see    */
@@ -31,10 +32,7 @@ MibSParams::createKeywordList() {
   
    keys_.push_back(make_pair(std::string("MibS_useValFuncCut"),
 			     AlpsParameter(AlpsBoolPar, useValFuncCut)));
-   
-   keys_.push_back(make_pair(std::string("MibS_useIncObjCut"),
-			     AlpsParameter(AlpsBoolPar, useIncObjCut)));
-   
+
    keys_.push_back(make_pair(std::string("MibS_useBoundCut"),
 			     AlpsParameter(AlpsBoolPar, useBoundCut)));
    
@@ -55,6 +53,9 @@ MibSParams::createKeywordList() {
 
    keys_.push_back(make_pair(std::string("MibS_doDualFixing"),
 			     AlpsParameter(AlpsBoolPar, doDualFixing)));
+   
+   keys_.push_back(make_pair(std::string("MibS_turnOffOtherCuts"),
+			     AlpsParameter(AlpsBoolPar, turnOffOtherCuts)));
 
    //--------------------------------------------------------
    // BoolArrayPar
@@ -92,6 +93,9 @@ MibSParams::createKeywordList() {
 
    keys_.push_back(make_pair(std::string("MibS_blisBranchStrategy"),
 			     AlpsParameter(AlpsIntPar, blisBranchStrategy)));
+   
+   keys_.push_back(make_pair(std::string("MibS_branchStrategy"),
+			     AlpsParameter(AlpsIntPar, branchStrategy)));
  
    keys_.push_back(make_pair(std::string("MibS_upperFileFormat"),
 			     AlpsParameter(AlpsIntPar, upperFileFormat)));
@@ -101,9 +105,6 @@ MibSParams::createKeywordList() {
 
    keys_.push_back(make_pair(std::string("MibS_whichCutsLL"),
 			     AlpsParameter(AlpsIntPar, whichCutsLL)));
-
-   keys_.push_back(make_pair(std::string("MibS_usePreprocessor"),
-			     AlpsParameter(AlpsIntPar, usePreprocessor)));
 
    keys_.push_back(make_pair(std::string("MibS_usePreprocessor"),
 			     AlpsParameter(AlpsIntPar, usePreprocessor)));
@@ -126,6 +127,12 @@ MibSParams::createKeywordList() {
    keys_.push_back(make_pair(std::string("MibS_useNoGoodCut"),
 			     AlpsParameter(AlpsIntPar, useNoGoodCut)));
 
+   keys_.push_back(make_pair(std::string("MibS_useGeneralNoGoodCut"),
+			     AlpsParameter(AlpsIntPar, useGeneralNoGoodCut)));
+   
+   keys_.push_back(make_pair(std::string("MibS_useIncObjCut"),
+			     AlpsParameter(AlpsIntPar, useIncObjCut)));
+
    keys_.push_back(make_pair(std::string("MibS_useBendersCut"),
 			     AlpsParameter(AlpsIntPar, useBendersCut)));
 
@@ -134,6 +141,32 @@ MibSParams::createKeywordList() {
 
    keys_.push_back(make_pair(std::string("MibS_intersectionCutType"),
 			     AlpsParameter(AlpsIntPar, intersectionCutType)));
+
+   //solve lower-level Parameters
+   keys_.push_back(make_pair(std::string("MibS_solveSecondLevelWhenXYVarsInt"),
+			     AlpsParameter(AlpsIntPar, solveSecondLevelWhenXYVarsInt)));
+
+   keys_.push_back(make_pair(std::string("MibS_solveSecondLevelWhenXVarsInt"),
+			     AlpsParameter(AlpsIntPar, solveSecondLevelWhenXVarsInt)));
+
+   keys_.push_back(make_pair(std::string("MibS_solveSecondLevelWhenLVarsInt"),
+			     AlpsParameter(AlpsIntPar, solveSecondLevelWhenLVarsInt)));
+
+   keys_.push_back(make_pair(std::string("MibS_solveSecondLevelWhenLVarsFixed"),
+			     AlpsParameter(AlpsIntPar, solveSecondLevelWhenLVarsFixed)));
+
+   //solve problem UB
+   keys_.push_back(make_pair(std::string("MibS_computeBestUBWhenXVarsInt"),
+			     AlpsParameter(AlpsIntPar, computeBestUBWhenXVarsInt)));
+
+   keys_.push_back(make_pair(std::string("MibS_computeBestUBWhenLVarsInt"),
+			     AlpsParameter(AlpsIntPar, computeBestUBWhenLVarsInt)));
+
+   keys_.push_back(make_pair(std::string("MibS_computeBestUBWhenLVarsFixed"),
+			     AlpsParameter(AlpsIntPar, computeBestUBWhenLVarsFixed)));
+
+   keys_.push_back(make_pair(std::string("MibS_useLinkingSolutionPool"),
+			     AlpsParameter(AlpsIntPar, useLinkingSolutionPool)));
 
    //--------------------------------------------------------
    // String Parameters.
@@ -157,9 +190,7 @@ MibSParams::setDefaultEntries() {
    //-------------------------------------------------------------
 
    setEntry(useValFuncCut, false);
-   
-   setEntry(useIncObjCut, true);
-   
+     
    setEntry(useBoundCut, false);
    
    setEntry(boundCutOptimal, false);
@@ -173,6 +204,8 @@ MibSParams::setDefaultEntries() {
    setEntry(warmStartLL, false);
 
    setEntry(doDualFixing, false);
+
+   setEntry(turnOffOtherCuts, false);
 
    //-------------------------------------------------------------
    // Int Parameters.
@@ -196,6 +229,8 @@ MibSParams::setDefaultEntries() {
 
    setEntry(blisBranchStrategy, 0);
 
+   setEntry(branchStrategy, MibSBranchingStrategyNotSet);
+
    setEntry(upperFileFormat, 0);
 
    setEntry(maxThreadsLL, 1);
@@ -216,11 +251,31 @@ MibSParams::setDefaultEntries() {
 
    setEntry(useNoGoodCut, PARAM_NOTSET);
 
+   setEntry(useGeneralNoGoodCut, PARAM_NOTSET);
+
+   setEntry(useIncObjCut, PARAM_NOTSET);
+
    setEntry(useBendersCut, PARAM_NOTSET);
 
    setEntry(useIntersectionCut, PARAM_NOTSET);
 
    setEntry(intersectionCutType, PARAM_NOTSET);
+
+   setEntry(solveSecondLevelWhenXYVarsInt, PARAM_NOTSET);
+
+   setEntry(solveSecondLevelWhenXVarsInt, PARAM_NOTSET);
+
+   setEntry(solveSecondLevelWhenLVarsInt, PARAM_NOTSET);
+
+   setEntry(solveSecondLevelWhenLVarsFixed, PARAM_NOTSET);
+
+   setEntry(computeBestUBWhenXVarsInt, PARAM_NOTSET);
+
+   setEntry(computeBestUBWhenLVarsInt, PARAM_NOTSET);
+
+   setEntry(computeBestUBWhenLVarsFixed, PARAM_NOTSET);
+
+   setEntry(useLinkingSolutionPool, PARAM_NOTSET);
 
    //-------------------------------------------------------------
    // Double Parameters

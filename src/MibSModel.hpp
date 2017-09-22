@@ -4,8 +4,9 @@
 /*                                                                           */
 /* Authors: Scott DeNegre, Lehigh University                                 */
 /*          Ted Ralphs, Lehigh University                                    */
+/*          Sahar Tahernajad, Lehigh University                              */
 /*                                                                           */
-/* Copyright (C) 2007-2015 Lehigh University, Scott DeNegre, and Ted Ralphs. */
+/* Copyright (C) 2007-2017 Lehigh University, Scott DeNegre, and Ted Ralphs. */
 /* All Rights Reserved.                                                      */
 /*                                                                           */
 /* This software is licensed under the Eclipse Public License. Please see    */
@@ -21,6 +22,7 @@
 #include "BlisSolution.h"
 #include "MibSBilevel.hpp"
 #include "MibSParams.hpp"
+#include "MibSHelp.hpp"
 
 class MibSBilevel;
 class MibSCutGenerator;
@@ -32,8 +34,11 @@ class MibSModel : public BlisModel {
     friend class MibSCutGenerator;
     friend class MibSBilevel;
     friend class MibSBranchStrategyMaxInf;
+    friend class MibSBranchStrategyPseudo;
+    friend class MibSBranchStrategyStrong;
     friend class MibSTreeNode;
     friend class MibSHeuristic;
+    friend class MibSSolution;
 
 private:
 
@@ -75,6 +80,9 @@ private:
     /** Number of UL constraints **/
     int upperRowNum_;
 
+    /** Original number of UL constraints **/
+    int origUpperRowNum_;
+
     /** Number of LL variables **/
     int lowerDim_;
 
@@ -83,6 +91,15 @@ private:
 
     /** Number of structural constraints **/
     int structRowNum_;
+
+    /** Size of first-stage variables in second-stage constraints **/
+    int sizeFixedInd_;
+
+    /** Number of (VF) solved **/
+    int counterVF_;
+
+    /** Number of (UB) solved **/
+    int counterUB_;
 
     /** Determines type of problem(general or interdiction) **/
     bool isInterdict_;
@@ -98,6 +115,9 @@ private:
 
     /** Determines if all variables of upper-level problem are binary or not **/
     bool allUpperBin_;
+
+    /** Determines if all linking variables are binary or not **/
+    bool allLinkingBin_;
 
     /** Determines if all variables of upper-level problem are binary or not **/
     bool allLowerBin_;
@@ -119,12 +139,17 @@ private:
 
     /** the right (positive) slope of the lower-level value function **/
     double rightSlope_;
+
+    int countIteration_;
   
     /** Indices of UL variables **/
     int * upperColInd_;
 
-    /** Indices of LL rows **/
+    /** Indices of UL rows **/
     int * upperRowInd_;
+
+    /** Original indices of UL rows **/
+    int * origUpperRowInd_;
 
     /** Indices of LL variables **/
     int * lowerColInd_;
@@ -159,6 +184,9 @@ private:
     /** Original row upper bounds from Omega **/
     double * origRowUb_;
 
+    /** Original matrix of constraints coefficients **/
+    CoinPackedMatrix *origConstCoefMatrix_;
+
     /** MibSBilevel object **/
     MibSBilevel *bS_;
 
@@ -176,10 +204,18 @@ private:
 
     /** Max number of aux columns **/
     //int maxAuxCols_;
+    
+    /*struct LINKING_SOLUTION{
+	int tag;
+	double lowerObjVal1;
+	double UBObjVal1;
+	std::vector<double> lowerSol1;
+	std::vector<double> UBSol1;
+	} linkingSolution;*/
 
-    /** Indicator telling whether solution has been updated **/
-    bool solIsUpdated_;  
-
+    std::map<std::vector<double>, LINKING_SOLUTION> seenLinkingSolutions;
+    //std::map<std::vector<double>, LINKING_SOLUTION>::iterator it;
+    
 public:
 
     MibSModel();
@@ -224,6 +260,9 @@ public:
     /** Set the upper-level row number **/
     inline void setUpperRowNum(int val) {upperRowNum_ = val;}
 
+    /** Set the original upper-level row number **/
+    inline void setOrigUpperRowNum(int val) {origUpperRowNum_ = val;}
+
     /** Set the lower-level row number **/
     inline void setLowerRowNum(int val) {lowerRowNum_ = val;}
 
@@ -243,7 +282,10 @@ public:
     void setUpperColData();
 
     /** Set UL row indices **/
-    void setUpperRowInd(int *ptr) {upperRowInd_ = ptr;} 
+    void setUpperRowInd(int *ptr) {upperRowInd_ = ptr;}
+
+    /** Set original UL row indices **/
+    void setOrigUpperRowInd(int *ptr) {origUpperRowInd_ = ptr;}
 
     /** Set UL row indices **/
     void setUpperRowData();
@@ -302,6 +344,9 @@ public:
     /** Get the upper-level row number **/
     int getUpperRowNum() {return upperRowNum_;}
 
+    /** Get the original upper-level row number **/
+    int getOrigUpperRowNum() {return origUpperRowNum_;}
+
     /** Get the lower-level row number **/
     int getLowerRowNum() {return lowerRowNum_;}
 
@@ -316,6 +361,9 @@ public:
 
     /** Get pointer to the UL row index array **/
     int * getUpperRowInd() {return upperRowInd_;}
+
+    /** Get pointer to the original UL row index array **/
+    int * getOrigUpperRowInd() {return origUpperRowInd_;}
 
     /** Get pointer to the LL column index array **/
     int * getLowerColInd() {return lowerColInd_;}
