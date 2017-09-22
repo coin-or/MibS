@@ -239,11 +239,11 @@ MibSParams::setDefaultEntries() {
 
    setEntry(usePreprocessor, PARAM_NOTSET);
 
-   setEntry(useLowerObjHeuristic, PARAM_NOTSET);
+   setEntry(useLowerObjHeuristic, PARAM_OFF);
 
-   setEntry(useObjCutHeuristic, PARAM_NOTSET);
+   setEntry(useObjCutHeuristic, PARAM_OFF);
 
-   setEntry(useWSHeuristic, PARAM_NOTSET);
+   setEntry(useWSHeuristic, PARAM_OFF);
 
    setEntry(useGreedyHeuristic, PARAM_NOTSET);
 
