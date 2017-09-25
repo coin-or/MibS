@@ -178,6 +178,9 @@ MibSParams::createKeywordList() {
    keys_.push_back(make_pair(std::string("MibS_feasCheckSolver"),
 			     AlpsParameter(AlpsStringPar, feasCheckSolver)));
 
+   keys_.push_back(make_pair(std::string("MibS_inputFormat"),
+			     AlpsParameter(AlpsStringPar, inputFormat)));
+
 }
 
 //#############################################################################
@@ -289,6 +292,7 @@ MibSParams::setDefaultEntries() {
 
    setEntry(feasCheckSolver, "SYMPHONY");
 
+   setEntry(inputFormat, "indexBased");
 }
 
 //#############################################################################

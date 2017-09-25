@@ -78,6 +78,8 @@ MibSModel::~MibSModel()
   if(origRowLb_) delete [] origRowLb_;
   if(origRowUb_) delete [] origRowUb_;
   if(lowerObjCoeffs_) delete [] lowerObjCoeffs_;
+  if(columnName_) delete [] columnName_;
+  if(rowName_) delete [] rowName_;
   if(MibSPar_) delete MibSPar_;
   if(bS_) delete bS_;
     
@@ -133,6 +135,8 @@ MibSModel::initialize()
   origRowLb_ = NULL;
   origRowUb_ = NULL;
   lowerObjCoeffs_ = NULL;
+  columnName_ = NULL;
+  rowName_ = NULL;
   interdictCost_ = NULL;
   origConstCoefMatrix_ = NULL;
   bS_ = new MibSBilevel();
@@ -202,7 +206,7 @@ MibSModel::readInstance(const char* dataFile)
 #endif
 
   setUpperFile(dataFile);
-  readAuxiliaryData(); // reads in lower-level vars, rows, obj coeffs
+  //readAuxiliaryData(); // reads in lower-level vars, rows, obj coeffs
   readProblemData(); // reads in max c^1x + d^1y s.t. (x,y) in Omega^I
 }
 
@@ -232,21 +236,27 @@ MibSModel::setBlisParameters()
 
 //#############################################################################
 void 
-MibSModel::readAuxiliaryData()
+MibSModel::readAuxiliaryData(int numCols, int numRows)
 {
+
   std::string fileName = getLowerFile();
   fileCoinReadable(fileName);
   std::ifstream data_stream(fileName.c_str());
 
+  std::string inputFormat(MibSPar_->entry
+			  (MibSParams::inputFormat));
+  
   if (!data_stream){
-     std::cout << "Error opening input data file. Aborting.\n";
-     abort();
+      std::cout << "Error opening input data file. Aborting.\n";
+      abort();
   }
-
+  
   std::string key;
   int iValue(0);
+  std::string cValue;
   double dValue(0.0);
-  int i(0), j(0), k(0), m(0);
+  int i(0), j(0), k(0), m(0), p(0), pos(0);
+  int lowerColNum(0), lowerRowNum(0);
 
   while (data_stream >> key){
      if(key == "N"){ 
@@ -260,17 +270,43 @@ MibSModel::readAuxiliaryData()
      else if(key == "LC"){
        if(!getLowerColInd())
 	 lowerColInd_ = new int[getLowerDim()];
-	
+
+       if(inputFormat == "indexBased"){
 	data_stream >> iValue;
 	lowerColInd_[i] = iValue;
+       }
+       else{
+	   data_stream >> cValue;
+	   for(p = 0; p < numCols; ++p){
+	       if(columnName_[p] == cValue){
+		   pos = p;
+		   break;
+	       }
+	   }
+	   lowerColInd_[i] = pos;
+       }
+       
 	i++;
      }
      else if(key == "LR"){
        if(!getLowerRowInd())
 	 lowerRowInd_ = new int[getLowerRowNum()];
+       
+       if(inputFormat == "indexBased"){
+	   data_stream >> iValue;
+	   lowerRowInd_[j] = iValue;
+       }
+       else{
+	   data_stream >> cValue;
+	   for(p = 0; p < numRows; ++p){
+	       if(rowName_[p] == cValue){
+		   pos = p;
+		   break;
+	       }
+	   }
+	   lowerRowInd_[j] = pos;
+       }
 	
-	data_stream >> iValue;
-	lowerRowInd_[j] = iValue;
 	j++;
      }
      else if(key == "LO"){
@@ -300,6 +336,54 @@ MibSModel::readAuxiliaryData()
        //FIXME: ALLOW MORE THAN ONE ROW
 	data_stream >> dValue;
 	interdictBudget_ = dValue;
+     }
+     else if(key == "@VARSBEGIN"){
+	 pos = -1;
+	 lowerColNum = getLowerDim();
+	 if(!getLowerColInd())
+	     lowerColInd_ = new int[lowerColNum];
+	 if(!getLowerObjCoeffs())
+	     lowerObjCoeffs_ = new double[lowerColNum];
+	 for(i = 0; i < lowerColNum; i++){
+	     data_stream >> cValue;
+	     data_stream >> dValue;
+	     for(p = 0; p < numCols; ++p){
+		 if(columnName_[p] == cValue){
+		     pos = p;
+		     break;
+		 }
+	     }
+	     if(pos < 0){
+		 std::cout << cValue << " does not belong to the list of variables." << std::endl;
+	     }
+	     else{
+		 lowerObjCoeffs_[pos] = dValue;
+		 lowerColInd_[i] = pos;
+	     }
+	     pos = -1;
+	 }
+     }
+     else if(key == "@CONSTSBEGIN"){
+	 pos = -1;
+	 lowerRowNum = getLowerRowNum();
+	 if(!getLowerRowInd())
+	     lowerRowInd_ = new int[lowerRowNum];
+	 for(i = 0; i < lowerRowNum; i++){
+	     data_stream >> cValue;
+	     for(p = 0; p < numRows; ++p){
+		 if(rowName_[p] == cValue){
+		     pos = p;
+		     break;
+		 }
+	     }
+	     if(pos < 0){
+		 std::cout << cValue << " does not belong to the list of constraints." << std::endl;
+	     }
+	     else{
+		 lowerRowInd_[i] = pos;
+	     }
+	     pos = -1;
+	 }
      }
   }
 
@@ -442,6 +526,24 @@ MibSModel::readProblemData()
 
    int numCols = mps->getNumCols(); 
    int numRows = mps->getNumRows();
+
+   std::string tmpString;
+   
+   if(!getColumnName())
+       columnName_ = new std::string [numCols];
+       
+   for(j = 0; j < numCols; ++j){
+       std::string tmpString(mps->columnName(j));
+       columnName_[j] = tmpString;
+   }
+
+   if(!getRowName())
+       rowName_ = new std::string [numRows];
+
+   for(j = 0; j < numRows; ++j){
+       std::string tmpString(mps->rowName(j));
+       rowName_[j] = tmpString;
+   }
    
    double *varLB = new double [numCols];
    double *varUB = new double [numCols];
@@ -489,6 +591,8 @@ MibSModel::readProblemData()
    memcpy(objCoef, mpsObj, sizeof(double) * numCols);
 
    const char* rowSense = mps->getRowSense();
+
+   readAuxiliaryData(numCols, numRows); // reads in lower-level vars, rows, obj coeffs 
    
    loadProblemData(matrix, varLB, varUB, objCoef, conLB, conUB, colType, 
 		   objSense, mps->getInfinity(), rowSense);
@@ -3084,6 +3188,24 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix, const double* ro
 	MibSPar()->setEntry(MibSParams::usePreprocessor, PARAM_OFF);
     }
 
+    //Param: "MibS_useLowerObjHeuristic"
+    paramValue = MibSPar_->entry(MibSParams::useLowerObjHeuristic);
+
+    if(paramValue == PARAM_NOTSET)
+	MibSPar()->setEntry(MibSParams::useLowerObjHeuristic, PARAM_OFF);
+
+    //Param: "MibS_useObjCutHeuristic"
+    paramValue = MibSPar_->entry(MibSParams::useObjCutHeuristic);
+
+    if(paramValue == PARAM_NOTSET)
+	MibSPar()->setEntry(MibSParams::useObjCutHeuristic, PARAM_OFF);
+
+    //Param: "MibS_useWSHeuristic"
+    paramValue = MibSPar_->entry(MibSParams::useWSHeuristic);
+
+    if(paramValue == PARAM_NOTSET)
+	MibSPar()->setEntry(MibSParams::useWSHeuristic, PARAM_OFF);
+    
     //Param: "MibS_useGreedyHeuristic"
     paramValue = MibSPar_->entry(MibSParams::useGreedyHeuristic);
 
