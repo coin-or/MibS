@@ -493,6 +493,13 @@ MibSModel::readProblemData()
    loadProblemData(matrix, varLB, varUB, objCoef, conLB, conUB, colType, 
 		   objSense, mps->getInfinity(), rowSense);
 
+   delete [] colType;
+   delete [] varLB;
+   delete [] varUB;
+   delete [] conLB;
+   delete [] conUB;
+   delete [] objCoef;
+
    delete mps;
 }
 
