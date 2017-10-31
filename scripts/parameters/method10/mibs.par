@@ -1,0 +1,118 @@
+#Alps_instance ../data/MIPS/RANDOM/NEW_MIPINT/miblp_10_10_50_0110_0_2.mps
+#MibS_auxiliaryInfoFile ../data/MIPS/RANDOM/NEW_MIPINT/NONSYMMETRIC/miblp_10_10_50_0110_0_2.mps.txt
+#Alps_instance ../data/miplibconv/p0033-0.500000.mps
+#MibS_auxiliaryInfoFile ../data/miplibconv/p0033-0.500000.aux
+#Alps_instance /home/sat214/MIBS/OldMibS/data/MCDM/NO_CORR/10_ITEMS_1000/K5010W11.KNP.mps
+#MibS_auxiliaryInfoFile /home/sat214/MIBS/OldMibS/data/MCDM/NO_CORR/10_ITEMS_1000/K5010W11.KNP.txt
+#Alps_instance /home/sat214/MIBS/OldMibS/data/moore90.mps
+#MibS_auxiliaryInfoFile /home/sat214/MIBS/OldMibS/data/moore90.txt
+#Alps_instance /home/sat214/MIBS/OldMibS/data/MIPS/RANDOM/RAND_BILEVEL/miblp_20_15_50_0110_10_3.mps
+#MibS_auxiliaryInfoFile /home/sat214/MIBS/OldMibS/data/MIPS/RANDOM/RAND_BILEVEL/miblp_20_15_50_0110_10_3.txt
+#Alps_instance /home/sat214/MIBS/data/K5020W06.KNP.mps
+#MibS_auxiliaryInfoFile /home/sat214/MIBS/data/K5020W06.KNP.txt
+Alps_timeLimit 3600
+#Alps_nodeLimit 4000000
+#Alps_nodeLimit 20000
+
+#Alps_msgLevel 1000
+#Alps_hubMsgLevel 0
+#Alps_workerMsgLevel 0
+#Alps_logFileLevel 3
+
+#Alps_hubNum 2
+
+#Alps_interClusterBalance 1      # 1: balancing load, 0: don't.
+#Alps_intraClusterBalance 1      # 1: balancing load, 0: don't.
+
+#Alps_searchStrategy     4   # 0: Best, 1: Best-est, 2: Breath, 3: Depth, 4 hybrid
+#Alps_searchStrategyRampUp  0
+#Alps_nodeLogInterval 1
+#Alps_hubWorkClusterSizeLimit 2
+#Alps_masterInitNodeNum 8
+#Alps_hubInitNodeNum 16
+#Alps_unitWorkNodes 100         # or unit time
+#Alps_unitWorkTime 0.03
+#Alps_needWorkThreshold 0.5
+#Alps_changeWorkThreshold 0.10
+#Alps_donorThreshold 0.10
+#Alps_receiverThreshold 0.10
+#Alps_masterBalancePeriod 0.3
+#Alps_hubReportPeriod 0.5
+
+
+#Blis_cutRampUp 1      # true(1) or false(0)
+#Blis_cutStrategy      3
+#Blis_cutGenerationFrequency 1
+
+#Blis_cutCliqueStrategy      0
+#Blis_cutGomoryStrategy      3
+#Blis_cutFlowCoverStrategy   0
+#Blis_cutKnapsackStrategy    0
+
+
+#Blis_cutMirStrategy         0
+
+#Blis_cutOddHoleStrategy     0
+#Blis_cutProbingStrategy     0
+
+#Blis_cutTwoMirStrategy      0
+
+Blis_heurStrategy  0   # -2: root, -1: auto, 0: disable, any positive integer
+Blis_heurRound     0   # -2: root, -1: auto, 0: disable, any positive integer
+
+#Blis_branchStrategy 0   # 0: max inf, 1: pseudocost, 2: relibility, 3: strong
+#Blis_branchStrategyRampUp 0
+
+#Blis_pseudoWeight        0.8  # [0.0, 1.0]
+#Blis_pseudoRelibility      8
+#Blis_lookAhead             4
+#Blis_denseConFactor        5.0
+#Blis_scaleConFactor        100000000.0
+#Blis_difference    1
+
+#Blis_sharePseudocostRampUp 1
+#Blis_sharePseudocostSearch 1
+
+#Blis_checkMemory 1
+
+MibS_usePreprocessor 0          # -1: auto, 0: false, 1: true
+MibS_useLowerObjHeuristic 0     # -1: auto, 0: false, 1: true
+MibS_useObjCutHeuristic 0       # -1: auto, 0: false, 1: true
+MibS_useWSHeuristic 0           # -1: auto, 0: false, 1: true
+MibS_useGreedyHeuristic 0       # 0: false, 1: true
+MibS_usePureIntegerCut 1        # 0: false, 1: true
+MibS_useValFuncCut 0            # 0: false, 1: true
+MibS_useNoGoodCut 0             # 0: false, 1: true
+MibS_useIncObjCut 0             # 0: false, 1: true
+MibS_bilevelProblemType 1       # 0: general, 1: interdict
+MibS_bilevelCutTypes 0          # 0: general, 1: general/interdict, 2: #general/binary UL, 3: binary UL
+#MibS_whichActiveConMethod 1    # 0: simple, 1: basis
+MibS_cutStrategy 2              # 0: branch only, 1: cut only, 2: use cut #and branch
+MibS_objBoundStrategy 0         # 0: LL obj bound, 1: interdiction bound
+MibS_blisCutStrategy -1                 # -2: root, -1: auto, 0: disable, any positive integer
+#MibS_blisBranchStrategy 0      # 0: max inf, 1: pseudocost, 2: relibility, 3: strong
+#MibS_upperFileFormat 0         # 0: mps, 1: AMPL/GMPL (not working, yet)
+MibS_branchStrategy  1       # 0: fractional, 1: linking
+MibS_warmStartLL 0
+MibS_maxThreadsLL 1
+MibS_useBendersCut 0
+MibS_useGeneralNoGoodCut 0
+MibS_useIntersectionCut 0
+MibS_intersectionCutType 1
+MibS_useBoundCut 0
+MibS_boundCutOptimal 1
+MibS_boundCutRelaxUpper 0    # This option doesn't work for now
+MibS_whichCutsLL 2           # 0: no cuts, 1: gomory only, 2: all cuts
+MibS_doDualFixing 0
+MibS_feasCheckSolver SYMPHONY
+
+MibS_solveSecondLevelWhenXYVarsInt 1
+MibS_solveSecondLevelWhenXVarsInt 0
+MibS_solveSecondLevelWhenLVarsInt 0
+MibS_solveSecondLevelWhenLVarsFixed 0
+
+MibS_computeBestUBWhenXVarsInt 0
+MibS_computeBestUBWhenLVarsInt 0
+MibS_computeBestUBWhenLVarsFixed 1
+
+MibS_useLinkingSolutionPool 0
