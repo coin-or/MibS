@@ -1,0 +1,81 @@
+#!/bin/bash
+
+
+cd ../..
+
+PWD=`pwd`
+
+MibSPATH=$PWD
+EXECUTABLE=$PWD/build/MibS/src
+RESULTSPATH=$PWD/output
+INSTPATH=$PWD/testSets/BilevelLib/general
+SCRIPTPATH=$PWD/scripts
+
+#creating the directories for stroing the outputs
+mkdir output
+
+cd $RESULTSPATH
+
+for i in {1..11}
+do
+    cd $RESULTSPATH
+    
+    name=method${i}Output
+    mkdir $name
+    cd $name
+
+    name=dataIBLP-DEN
+    mkdir $name
+
+    name=dataIBLP-FIS
+    mkdir $name
+
+    name=dataMIBLP-XU
+    mkdir $name
+done
+
+#storing the test sets
+cd $MibSPATH
+mkdir testSets
+cd testSets
+git clone https://github.com/tkralphs/BilevelLib.git
+
+cd $EXECUTABLE
+
+for i in {1..11}
+do
+    rm -f mibs.par
+
+    name=$SCRIPTPATH/parameters/method${i}/mibs.par
+    cp $name $EXECUTABLE
+
+    #running the instances in MIBLP-XU
+    CURRENTINSTPATH=$INSTPATH/MIBLP-XU
+
+    for file in ${CURRENTINSTPATH}/*.mps
+    do
+	instance_name=`basename ${file%.*}`
+	./mibs -param mibs.par -Alps_instance $CURRENTINSTPATH/${instance_name}.mps -MibS_auxiliaryInfoFile $CURRENTINSTPATH/${instance_name}.aux -MibS_useIntersectionCut 1 -MibS_intersectionCutType 2 > $RESULTSPATH/method${i}Output/dataMIBLP-XU/${instance_name}.out
+    done
+
+    #running the instances in IBLP-DEN
+    CURRENTINSTPATH=$INSTPATH/RANDOM/RAND_BILEVEL
+
+    for file in ${CURRENTINSTPATH}/*.mps
+    do
+	instance_name=`basename ${file%.*}`
+	./mibs -param mibs.par -Alps_instance $CURRENTINSTPATH/${instance_name}.mps -MibS_auxiliaryInfoFile $CURRENTINSTPATH/${instance_name}.aux > $RESULTSPATH/method${i}Output/dataIBLP-DEN/${instance_name}.out
+    done
+
+    #running the instances in IBLP-FIS
+    CURRENTINSTPATH=$INSTPATH/IBLP-FIS
+
+    for instance_name in lseu-0.100000 lseu-0.900000 p0033-0.100000 p0033-0.500000 p0033-0.900000 p0201-0.900000 p0548-0.100000 p0548-0.500000 p0548-0.900000 p2756-0.100000 p2756-0.500000 p2756-0.900000 seymour-0.100000 seymour-0.500000 seymour-0.900000 stein27-0.100000 stein27-0.500000 stein27-0.900000 stein45-0.100000 stein45-0.500000 stein45-0.900000
+    do
+	./mibs -param mibs.par -Alps_instance $CURRENTINSTPATH/${instance_name}.mps -MibS_auxiliaryInfoFile $CURRENTINSTPATH/${instance_name}.aux > $RESULTSPATH/method${i}Output/dataIBLP-FIS/${instance_name}.out
+    done
+done
+
+cd $SCRIPTPATH/analyze
+
+$SCRIPTPATH/analyze/gathering 
