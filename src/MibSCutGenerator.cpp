@@ -943,6 +943,7 @@ MibSCutGenerator::storeBestSolIntersectionCutType2(const double* lpSol,
 	    }
 	}
     }
+    delete UBSolver;
 }
 
 //#############################################################################
