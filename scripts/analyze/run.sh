@@ -1,15 +1,84 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
+# Parse arguments
+function parse_args {
+    echo "Script run with the following arguments:"
+    for arg in "$@"
+    do
+	echo $arg
+	option=
+	option_arg=
+	case $arg in
+	    *=*)
+		option=`expr "x$arg" : 'x\(.*\)=[^=]*'`
+		option_arg=`expr "x$arg" : 'x[^=]*=\(.*\)'`
+		# with bash, one could also do it in the following way:
+		# option=${arg%%=*}    # remove longest suffix matching =*
+		# option_arg=${arg#*=} # remove shortest prefix matching *=
+		case $option in
+		    --build-dir)
+			if [ "x$option_arg" != x ]; then
+			    case $option_arg in
+				[\\/$]* | ?:[\\/]* | NONE | '' )
+				    build_dir=$option_arg
+				    ;;
+				*)
+				    build_dir=$PWD/$option_arg
+				    ;;
+			    esac
+			else
+			    echo "No path provided for --build-dir"
+			    exit 3
+			fi
+			;;
+		    --mibs-dir)
+			if [ "x$option_arg" != x ]; then
+			    case $option_arg in
+				[\\/$]* | ?:[\\/]* | NONE | '' )
+				    mibs_dir=$option_arg
+				    ;;
+				*)
+				    mibs_dir=$PWD/$option_arg
+				    ;;
+			    esac
+			else
+			    echo "No path provided for --mibs-dir"
+			    exit 3
+			fi
+			;;
+		    *)
+			echo "Unrecognized command...exiting"
+			exit 3
+			;;
+		esac
+		;;
+	    *)
+		echo "Unrecognized command...exiting"
+                exit 3
+		;;
+	esac
+    done
+}
 
 cd ../..
 
 PWD=`pwd`
 
-MibSPATH=$PWD
-EXECUTABLE=$PWD/build/MibS/src
-RESULTSPATH=$PWD/output
-INSTPATH=$PWD/testSets/BilevelLib/general
-SCRIPTPATH=$PWD/scripts
+build_dir=$PWD/build
+mibs_dir=$PWD
+
+parse_args "$@"
+
+MibSPATH=$mibs_dir
+EXECUTABLE=$build_dir/MibS/src
+RESULTSPATH=$mibs_dir/output
+INSTPATH=$mibs_dir/testSets/BilevelLib/general
+SCRIPTPATH=$mibs_dir/scripts
+
+cd $MibSPATH
+
+rm -r -f testSets
+rm -r -f output
 
 #creating the directories for stroing the outputs
 mkdir -p output
@@ -78,4 +147,4 @@ done
 
 cd $SCRIPTPATH/analyze
 
-$SCRIPTPATH/analyze/gathering 
+$SCRIPTPATH/analyze/gather.sh

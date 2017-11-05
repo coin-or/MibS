@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 cd ../..
 
@@ -10,8 +10,12 @@ SCRIPTPATH=$PWD/scripts
 
 cd $SCRIPTPATH/analyze
 
+rm -f $SCRIPTPATH/analyze/performance/figure*
+rm -r -f tmp
+
 for figNum in '2a' '2b' '3a' '3b' '4a' '4b'
 do
+    echo Plotting Figure $figNum 
     if [ $figNum == '2a' ]
     then
 	for i in {1..11}
