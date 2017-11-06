@@ -60,8 +60,8 @@ git clone https://github.com/coin-or-tools/BuildTools/
 and then execute
 
 ```
-BuildTools/get.dependencies fetch
-BuildTools/get.dependencies build --quiet
+BuildTools/get.dependencies.sh fetch
+BuildTools/get.dependencies.sh build --quiet
 ```
 
 This will build all required dependencies and MibS itself. Afterwards, the
@@ -70,7 +70,7 @@ in the directory `MibS/build/lib`. If you wish to install in a different
 directory, such as `/usr/local`, then run the command
 
 ```
-BuildTools/get.dependencies install --prefix=/path/to/install/dir
+BuildTools/get.dependencies.sh install --prefix=/path/to/install/dir
 ```
 
 After installation, you will also need to add `/your/install/dir/bin` to your
@@ -114,8 +114,8 @@ git clone https://github.com/coin-or-tools/BuildTools/
 and then execute
 
 ```
-BuildTools/get.dependencies fetch
-BuildTools/get.dependencies build --quiet
+BuildTools/get.dependencies.sh fetch
+BuildTools/get.dependencies.sh build --quiet
 ```
 
 This will build all required dependencies and MibS itself. Afterwards, the
@@ -124,7 +124,7 @@ in the directory `MibS/build/lib`. If you wish to install in a different
 directory, such /c/Program\ Files\ \(x86\)/MibS, then run the command
 
 ```
-BuildTools/get.dependencies install --prefix=/path/to/install/dir
+BuildTools/get.dependencies.sh install --prefix=/path/to/install/dir
 ```
 
  7. To use the resulting binaries and/or libraries, you will need to add the
@@ -144,7 +144,7 @@ free). Then follow all the steps above, but replace the `build` command
 with
 
 ```
-BuildTools/get.dependencies build --quiet --enable-msvc 
+BuildTools/get.dependencies.sh build --quiet --enable-msvc 
 ```
 
 ### Building on OS X
@@ -176,8 +176,8 @@ git clone https://github.com/coin-or-tools/BuildTools/
 and then execute
 
 ```
-BuildTools/get.dependencies fetch
-BuildTools/get.dependencies build --quiet
+BuildTools/get.dependencies.sh fetch
+BuildTools/get.dependencies.sh build --quiet
 ```
 
 This will build all required dependencies and MibS itself. Afterwards, the
@@ -192,14 +192,14 @@ If you want to use the `gcc` compiler provided by Homebrew, then replace the
 `build` command above with
 
 ```
-BuildTools/get.dependencies build --quiet CC=gcc-5 CXX=g++-5
+BuildTools/get.dependencies.sh build --quiet CC=gcc-5 CXX=g++-5
 ```
 
 If you wish to install in a different
 directory, such as `/usr/local`, then run the command
 
 ```
-BuildTools/get.dependencies install --prefix=/path/to/install/dir
+BuildTools/get.dependencies.sh install --prefix=/path/to/install/dir
 ```
 
 After installation, you will also need to add `/your/install/dir/bin` to your
@@ -217,10 +217,14 @@ with the each level. Then call `mibs` like this:
 It is also possible to specify additional settings in a parameter file with,
 e.g., 
 ```
-<build_or_install_dir>/bin/mibs -param <build_or_install_dir>/src/mibs.par
+<build_or_install_dir>/bin/mibs -param <build_or_install_dir>/MibS/src/mibs.par
 ```
 MibS has many parameters. See the example parameter file `mibs.par` and
-the header file `MibParam.h` for explanations.
+the header file `MibParam.h` for explanations. You can also find a detailed
+description of MibS
+[here](http://www.optimization-online.org/DB_FILE/2017/04/5977.pdf).
+Furthermore, to conduct the experiments illustrated in this report, see
+the `README` file in the directory `scripts`.     
 
 HELP
 
