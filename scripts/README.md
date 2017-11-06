@@ -1,38 +1,10 @@
+This script is a guidance for conducting the experiments illustrated
+[here](http://www.optimization-online.org/DB_FILE/2017/04/5977.pdf).
+
 # Building and Installing MibS
 
-To obtain the source code, open a terminal and do
-
-```
-git clone https://www.github.com/tkralphs/MibS
-```
-
-To build from source, there is a script that fetches dependent projects
-and builds automatically. To get the script and perform the build, do
-
-```
-cd MibS
-git clone https://github.com/coin-or-tools/BuildTools/
-```
-
-and then execute
-
-```
-BuildTools/get.dependencies.sh fetch
-BuildTools/get.dependencies.sh build --quiet
-```
-
-This will build all required dependencies and MibS itself. Afterwards, the
-binaries will be installed in the directory `Mibs/build/bin` and the libraries
-in the directory `MibS/build/lib`. If you wish to install in a different
-directory, such as `/usr/local`, then run the command
-
-```
-BuildTools/get.dependencies install --prefix=/path/to/install/dir
-```
-
-After installation, you will also need to add `/your/install/dir/bin` to your
-`PATH` variable in your `.bashrc` and also add `/your/install/dir/lib`
-to your `LD_LIBRARY_PATH` if you want to link to COIN libraries.
+In order to install `MibS`, see
+[here](https://github.com/tkralphs/MibS/blob/master/README.md).
 
 The addresses of the directories in which `MibS` is placed and installed
 are referred by `<mibs-dir>` and `<build-dir>` respectively in the next sections.
@@ -52,7 +24,7 @@ experiments as follows:
 
 # Conducting the experiments
 
-All described problems in Section 2 should be solved by all 11
+All described problems in previous section should be solved by all 11
 methods used in our analyses.
 
 If the directory `build` is placed inside of the directory `MibS`
