@@ -778,7 +778,7 @@ MibSBilevel::setUpUBModel(OsiSolverInterface * oSolver, double objValLL,
 	newRow[i] = newRow[i] * objSense;
     }
 
-    rowUb[rowNum-1] = objValLL * objSense;
+    rowUb[rowNum-1] = objValLL;
     rowLb[rowNum-1] = -1 * (oSolver->getInfinity());
 
     CoinPackedMatrix * newMat = new CoinPackedMatrix(false, 0, 0);
@@ -931,6 +931,9 @@ MibSBilevel::setUpModel(OsiSolverInterface * oSolver, bool newOsi,
      }
      
      CoinDisjointCopyN(lObjCoeffs, lCols, objCoeffs);
+     /*for(i = 0; i < lCols; i++){
+	 objCoeffs[i] = objCoeffs[i] * objSense;
+	 }*/
      
      CoinPackedMatrix * newMat = new CoinPackedMatrix(false, 0, 0);
      newMat->setDimensions(0, lCols);
