@@ -1837,7 +1837,7 @@ MibSModel::userFeasibleSolution(const double * solution, bool &userFeasible)
   if(bS_->shouldPrune_){
       userFeasible = true;
       if(!bS_->isProvenOptimal_){
-	  upperObj = 10000000;
+	  upperObj = 1e+20;
       }
   }
 
