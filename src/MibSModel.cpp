@@ -1836,12 +1836,12 @@ MibSModel::userFeasibleSolution(const double * solution, bool &userFeasible)
   userFeasible = false;
   if(bS_->shouldPrune_){
       userFeasible = true;
-      if(!bS_->isProvenOptimal_){
-	  upperObj = 1e+20;
-      }
   }
 
-  if(userFeasible == true){
+  if(!bS_->isProvenOptimal_){
+      userFeasible = false;
+  }
+  else if(userFeasible == true){
       mibSol = new MibSSolution(getNumCols(),
 				lpSolution,
 				upperObj,

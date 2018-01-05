@@ -385,13 +385,16 @@ MibSTreeNode::process(bool isRoot, bool rampUp)
 	  else{
 	      tailOffTol = BlisPar->entry(BlisParams::tailOff);
 	  }
+
+	  if((!ipSol) && (bS->shouldPrune_)){
+	      setStatus(AlpsNodeStatusFathomed);
+	      goto TERM_PROCESS;
+	  }
 	      
 	  if (ipSol) {
-	      if(ipSol->getQuality() < 1e+19){
-		  // IP feasible
-		  model->storeSolution(BlisSolutionTypeHeuristic, ipSol);
-		  //model->storeSolution(BlisSolutionTypeRounding, ipSol);
-	      }
+		// IP feasible
+		model->storeSolution(BlisSolutionTypeHeuristic, ipSol);
+		//model->storeSolution(BlisSolutionTypeRounding, ipSol);
                 // Update cutoff
                 cutoff = model->getCutoff();
                 setStatus(AlpsNodeStatusFathomed);
