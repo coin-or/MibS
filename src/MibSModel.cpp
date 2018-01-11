@@ -2962,15 +2962,17 @@ MibSModel::setRequiredFixedList(const CoinPackedMatrix *newMatrix)
 }
 
 //#############################################################################
-void                                                                                                                                                                             
+void                                                                                                                                                       
 MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix, const double* rowLB,
 			     const double* rowUB, const char *rowSense)
 {
-    
     /** Determines the properties of instance **/
-    std::cout<<"======================================="<<std::endl;                                                                                                              
-    std::cout<<"             Problem Structure          "<<std::endl;                                                                                                             
-    std::cout<<"======================================="<<std::endl;                                                                                                              
+    std::cout<<"======================================="<<std::endl;
+    
+    std::cout<<"             Problem Structure          "<<std::endl;
+    
+    std::cout<<"======================================="<<std::endl;
+    
     std::cout<<"Number of UL Variables: "<<upperDim_<<std::endl;
     std::cout<<"Number of LL Variables: "<<lowerDim_<<std::endl;
     std::cout<<"Number of UL Rows: "<<upperRowNum_<<std::endl;                                                                                         
@@ -3056,16 +3058,15 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix, const double* ro
     else{
 	std::cout << "This instance is a mixed_integer bilevel optimization problem" << std::endl;
     }
-	
-                                                                                                                                                                         
+    
     if(allUpperBin_ == true){
 	std::cout << "All of UL varibles are binary." << std::endl;
-    }                                                                                                                                                                             
-                                                                                                                                                                                  
+    }
+    
     if(allLowerBin_ == true){
 	std::cout << "All of LL varibles are binary." << std::endl; 
-    }                                                                                                                                                                             
-                                                                                                                                                                                  
+    }
+    
     int nonZero (newMatrix->getNumElements());
     int counterStart, counterEnd;
     int rowIndex, posRow, posCol;
@@ -3075,12 +3076,12 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix, const double* ro
     const int * matIndices = newMatrix->getIndices();           
     const int * matStarts = newMatrix->getVectorStarts();
     
-    for(i = 0; i < numCols; i++){                                                                                                                                                 
-        counterStart = matStarts[i];                                                                                                                                              
-        counterEnd = matStarts[i+1];                                                                                                                                              
+    for(i = 0; i < numCols; i++){
+        counterStart = matStarts[i];
+        counterEnd = matStarts[i+1];
         for(j = counterStart; j < counterEnd; j++){                                                                  
-	    rowIndex = matIndices[j];                                                                                                                                         
-	    posRow = binarySearch(0, lRows - 1, rowIndex, lRowIndices);                                                                                                       
+	    rowIndex = matIndices[j];
+	    posRow = binarySearch(0, lRows - 1, rowIndex, lRowIndices);       
 	    posCol = binarySearch(0, lCols - 1, i, lColIndices);
 	    if((fabs(matElements[j] - floor(matElements[j])) > etol_) &&
 	       (fabs(matElements[j] - ceil(matElements[j])) > etol_)){
@@ -3225,25 +3226,26 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix, const double* ro
     }
 
     //Param: "MibS_useInterSectionCut" (Type1)
-    if((turnOffOtherCuts == true) &&
-       (MibSPar_->entry(MibSParams::useIntersectionCut) == PARAM_NOTSET)){
-	MibSPar()->setEntry(MibSParams::useIntersectionCut, PARAM_OFF);
-    }
-    
     paramValue = MibSPar_->entry(MibSParams::useIntersectionCut);
+    cutType =  MibSPar_->entry(MibSParams::intersectionCutType);
+
+    if((paramValue == PARAM_ON) && (cutType == 1)){
+	if((isPureInteger_ == false) || (isLowerCoeffInt_ == false)){
+	    std::cout << "The intersection cut 1 does not work for this problem.  Automatically disabling this cut."
+		      << std::endl;
+	    MibSPar()->setEntry(MibSParams::useIntersectionCut, PARAM_NOTSET);
+	}
+    }    
+
+    //Param: "MibS_useNoGoodCut"
+    paramValue = MibSPar_->entry(MibSParams::useNoGoodCut);
 
     if(paramValue == PARAM_NOTSET){
-	MibSPar()->setEntry(MibSParams::useIntersectionCut, PARAM_OFF);
+	MibSPar()->setEntry(MibSParams::useNoGoodCut, PARAM_OFF);
     }
-    else if(paramValue == PARAM_ON){
-	cutType =  MibSPar_->entry(MibSParams::intersectionCutType);
-	if(cutType == 1){
-	    if((isPureInteger_ == false) || (isLowerCoeffInt_ == false)){
-		std::cout << "The intersection cut 1 does not work for this problem.  Automatically disabling this cut."
-			  << std::endl;
-		MibSPar()->setEntry(MibSParams::useIntersectionCut, PARAM_OFF);
-	    }
-	}
+    else if((paramValue == PARAM_ON) && (allUpperBin_ == false)){
+	std::cout << "The no-good cut does not work for this problem. Automatically disabling this cut." << std::endl;
+	MibSPar()->setEntry(MibSParams::useNoGoodCut, PARAM_OFF);
     }
 
     //Param: "MibS_useBendersCut"
@@ -3270,31 +3272,6 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix, const double* ro
     if(MibSPar_->entry(MibSParams::useBendersCut) == PARAM_ON){
 	    defaultCutIsOn = true;
 	}
-   
-
-    //Param: "MibS_useNoGoodCut"
-    if((turnOffOtherCuts == true) &&
-       (MibSPar_->entry(MibSParams::useNoGoodCut) == PARAM_NOTSET)){
-	MibSPar()->setEntry(MibSParams::useNoGoodCut, PARAM_OFF);
-    }
-    
-    paramValue = MibSPar_->entry(MibSParams::useNoGoodCut);
-
-    if(paramValue == PARAM_NOTSET){
-	    if(allUpperBin_ == false){
-	    MibSPar()->setEntry(MibSParams::useNoGoodCut, PARAM_OFF);
-	}
-	    else if(defaultCutIsOn == false){
-		MibSPar()->setEntry(MibSParams::useNoGoodCut, PARAM_ON);
-	    }
-    }	    
-    else if((paramValue == PARAM_ON) && (allUpperBin_ == false)){
-	std::cout << "The no-good cut does not work for this problem. Automatically disabling this cut." << std::endl;
-	MibSPar()->setEntry(MibSParams::useNoGoodCut, PARAM_OFF);
-    }
-    if(MibSPar_->entry(MibSParams::useNoGoodCut) == PARAM_ON){
-	defaultCutIsOn = true;
-    }
 
     //Param: "MibS_useGeneralNoGoodCut"
     if((turnOffOtherCuts == true) &&
@@ -3319,7 +3296,6 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix, const double* ro
     if(MibSPar_->entry(MibSParams::useGeneralNoGoodCut) == PARAM_ON){
 	defaultCutIsOn = true;
     }
-
 
     //Param: "MibS_usePureIntegerCut"
     if((turnOffOtherCuts == true) &&
@@ -3361,7 +3337,7 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix, const double* ro
 	    MibSPar()->setEntry(MibSParams::intersectionCutType, 2);
 	}
     }
-
+    
     //Param: "MibS_branchProcedure"
     MibSBranchingStrategy branchPar = static_cast<MibSBranchingStrategy>
 	  (MibSPar_->entry(MibSParams::branchStrategy));
@@ -3492,5 +3468,3 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix, const double* ro
 	
     delete [] newRowSense;
 }
-
-
