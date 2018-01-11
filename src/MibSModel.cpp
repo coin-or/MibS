@@ -3220,7 +3220,7 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix, const double* ro
 	MibSPar()->setEntry(MibSParams::useIncObjCut, PARAM_OFF);
     else if(paramValue == PARAM_ON){
 	if((allUpperBin_ == false) || (positiveA2_ == false)){
-	    std::cout << "The increasing objective cut does not work for this problem. Automatically disabling this cut." << std::endl;
+	    std::cout << "The increasing objective cut is not valid for this problem. Automatically disabling this cut." << std::endl;
 	    MibSPar()->setEntry(MibSParams::useIncObjCut, PARAM_OFF);
 	}
     }
@@ -3231,7 +3231,7 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix, const double* ro
 
     if((paramValue == PARAM_ON) && (cutType == 1)){
 	if((isPureInteger_ == false) || (isLowerCoeffInt_ == false)){
-	    std::cout << "The intersection cut 1 does not work for this problem.  Automatically disabling this cut."
+	    std::cout << "The intersection cut 1 is not valid problem.  Automatically disabling this cut."
 		      << std::endl;
 	    MibSPar()->setEntry(MibSParams::useIntersectionCut, PARAM_NOTSET);
 	}
@@ -3244,7 +3244,7 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix, const double* ro
 	MibSPar()->setEntry(MibSParams::useNoGoodCut, PARAM_OFF);
     }
     else if((paramValue == PARAM_ON) && (allUpperBin_ == false)){
-	std::cout << "The no-good cut does not work for this problem. Automatically disabling this cut." << std::endl;
+	std::cout << "The no-good cut is not valid for this problem. Automatically disabling this cut." << std::endl;
 	MibSPar()->setEntry(MibSParams::useNoGoodCut, PARAM_OFF);
     }
 
@@ -3265,7 +3265,7 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix, const double* ro
     }
     else if(paramValue == PARAM_ON){
 	if((isInterdict_ == false) || (positiveG2_ == false)){
-	    std::cout << "The benders cut does not work for this problem. Automatically disabling this cut." << std::endl;
+	    std::cout << "The benders cut is not valid for this problem. Automatically disabling this cut." << std::endl;
 	    MibSPar()->setEntry(MibSParams::useBendersCut, PARAM_OFF);
 	}
     }
@@ -3290,7 +3290,7 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix, const double* ro
 	}
     }
     else if((paramValue == PARAM_ON) && (allLinkingBin_ == false)){
-	std::cout << "Generalized no-good cut does not work for this problem. Automatically disabling this cut." << std::endl;
+	std::cout << "Generalized no-good cut is not valid for this problem. Automatically disabling this cut." << std::endl;
 	MibSPar()->setEntry(MibSParams::useGeneralNoGoodCut, PARAM_OFF);
     }
     if(MibSPar_->entry(MibSParams::useGeneralNoGoodCut) == PARAM_ON){
@@ -3316,7 +3316,7 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix, const double* ro
     }
     else if((paramValue == PARAM_ON) && ((isPureInteger_ == false) || (isUpperCoeffInt_ == false)
 					 || (isLowerCoeffInt_ == false))){
-	std::cout << "The pure integer cut does not work for this problem. Automatically disabling this cut." << std::endl;
+	std::cout << "The pure integer cut is not valid for this problem. Automatically disabling this cut." << std::endl;
 	MibSPar()->setEntry(MibSParams::usePureIntegerCut, PARAM_OFF);
     }
     if(MibSPar_->entry(MibSParams::usePureIntegerCut) == PARAM_ON){
