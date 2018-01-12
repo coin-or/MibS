@@ -635,7 +635,9 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 			optLowerSolutionOrd_[i] = (double) lowerSol[i];
 		    }
 		}
-		storeSol = MibSHeurSol;
+		if(isUpperIntegral_){
+		    storeSol = MibSHeurSol;
+		}
 	    }
 	}
 	delete UBSolver;
