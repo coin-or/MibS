@@ -34,14 +34,14 @@
 #endif
 
 //#############################################################################
-void 
+MibSSolType
 MibSBilevel::createBilevel(CoinPackedVector* sol, 
 			   MibSModel *mibs)
 {
   
   /** Splits sol into two parts, upper- and lower-level components **/
 
-  if(!mibs) return;
+  if(!mibs) return MibSNoSol;
   
   model_ = mibs;
 
@@ -69,6 +69,8 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
 
   int useLinkingSolutionPool(model_->MibSPar_->entry
 			   (MibSParams::useLinkingSolutionPool));
+
+  MibSSolType storeSol(MibSNoSol);
   
   assert(N == model_->solver()->getNumCols());
 
@@ -105,7 +107,7 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
   isUBSolved_ = false;
   isContainedInLinkingPool_ = false;
   useBilevelBranching_ = true;
-  isProvenOptimal_ = false;
+  isProvenOptimal_ = true;
   tagInSeenLinkingPool_ = MibSLinkingPoolTagIsNotSet;
   haveHeurSolCand_ = false;
 
@@ -221,7 +223,6 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
 			     MibSLinkingPoolTagLowerIsInfeasible) ||
 			 (tagInSeenLinkingPool_ == MibSLinkingPoolTagUBIsSolved))){
       useBilevelBranching_ = false;
-      isProvenOptimal_ = false;
       shouldPrune_ = true;
   }
 
@@ -238,7 +239,7 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
 	   ((solveSecondLevelWhenXVarsInt == PARAM_ON) && (isUpperIntegral_)) ||
 	   ((solveSecondLevelWhenLVarsInt == PARAM_ON) && (isLinkVarsIntegral_)) ||
 	   ((solveSecondLevelWhenLVarsFixed == PARAM_ON) && (isLinkVarsFixed_ ))))){
-	  checkBilevelFeasiblity(mibs->isRoot_);
+	  storeSol = checkBilevelFeasiblity(mibs->isRoot_);
       }
   }
   if(cutStrategy == 1){
@@ -248,11 +249,13 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
   heuristic_->findHeuristicSolutions();
 
   delete heuristic_;
+
+  return storeSol;
 }
 
 
 //#############################################################################
-void
+MibSSolType
 MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 {
     bool warmStartLL(model_->MibSPar_->entry
@@ -275,6 +278,7 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 				    (MibSParams::computeBestUBWhenLVarsFixed));
     int useLinkingSolutionPool(model_->MibSPar_->entry
 			    (MibSParams::useLinkingSolutionPool));
+    MibSSolType storeSol(MibSNoSol);
     int lN(model_->lowerDim_); // lower-level dimension
     int uN(model_->upperDim_); // lower-level dimension
     int i(0), index(0), length(0), pos(0);
@@ -480,6 +484,7 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 	    LPSolStatus_ = MibSLPSolStatusFeasible;
 	    useBilevelBranching_ = false;
 	    shouldPrune_ = true;
+	    storeSol = MibSRelaxationSol;
 	}
 	if(!shouldPrune_){	
 	    //step 18
@@ -598,8 +603,8 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 			}
 		    }
 		    objVal = UBSolver->getObjValue() * model_->solver()->getObjSense();
+		    storeSol = MibSHeurSol;
 		}else{
-		    objVal = 10000000;
 		    isProvenOptimal_ = false;
 		}
 		//step 22
@@ -630,11 +635,14 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 			optLowerSolutionOrd_[i] = (double) lowerSol[i];
 		    }
 		}
+		storeSol = MibSHeurSol;
 	    }
 	}
 	delete UBSolver;
     }
     delete [] lowerSol;
+
+    return storeSol;
 }
 	    
 //#############################################################################

@@ -23,6 +23,7 @@
 #include "MibSBilevel.hpp"
 #include "MibSParams.hpp"
 #include "MibSHelp.hpp"
+#include "MibSConstants.hpp"
 
 class MibSBilevel;
 class MibSCutGenerator;
@@ -458,7 +459,7 @@ public:
     CoinPackedVector * getSolution();
 
     /** Calls MibSBilevel::createBilevel(CoinPackedVector *vec) **/
-    void createBilevel(CoinPackedVector *vec);
+    MibSSolType createBilevel(CoinPackedVector *vec);
     //void createBilevel(const double *vec);
 
     /** Print current solution **/
