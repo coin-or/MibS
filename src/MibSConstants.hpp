@@ -28,7 +28,15 @@
 #define PARAM_OFF      0
 #define PARAM_ON       1
 
-//#############################################################################    
+//#############################################################################
+
+enum MibSSolType{
+    MibSNoSol = -1,
+    MibSRelaxationSol,
+    MibSHeurSol
+};
+
+//#############################################################################
 
 enum MibSBranchingStrategy{
     MibSBranchingStrategyNotSet = -1,

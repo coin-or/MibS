@@ -1796,7 +1796,7 @@ MibSModel::userFeasibleSolution(const double * solution, bool &userFeasible)
   int * lowerColInd = getLowerColInd();
   double * lpSolution = new double[getNumCols()];
   CoinFillN(lpSolution, getNumCols(), 0.0);
-  
+  MibSSolType solType;
   
 
   //bool bilevelbranch = MibSPar_->entry(MibSParams::isBilevelBranchProb);
@@ -1818,39 +1818,35 @@ MibSModel::userFeasibleSolution(const double * solution, bool &userFeasible)
   if(0)
     solver()->writeLp("userfeasible");
 
-  createBilevel(sol);
+  solType = createBilevel(sol);
 
-  for(i = 0; i < upperDim_; i++){
-      index = upperColInd[i];
-      lpSolution[index] = bS_->optUpperSolutionOrd_[i];
-      upperObj +=
-	  bS_->optUpperSolutionOrd_[i] * solver()->getObjCoefficients()[index];
-  }
-  for(i = 0; i < lowerDim_; i++){
-      index = lowerColInd[i];
-      lpSolution[index] = bS_->optLowerSolutionOrd_[i];
-      upperObj +=
-	  bS_->optLowerSolutionOrd_[i] * solver()->getObjCoefficients()[index];
+  if(solType != MibSNoSol){
+      for(i = 0; i < upperDim_; i++){
+	  index = upperColInd[i];
+	  lpSolution[index] = bS_->optUpperSolutionOrd_[i];
+	  upperObj +=
+	      bS_->optUpperSolutionOrd_[i] * solver()->getObjCoefficients()[index];
+      }
+      for(i = 0; i < lowerDim_; i++){
+	  index = lowerColInd[i];
+	  lpSolution[index] = bS_->optLowerSolutionOrd_[i];
+	  upperObj +=
+	      bS_->optLowerSolutionOrd_[i] * solver()->getObjCoefficients()[index];
+      }
   }
 
   userFeasible = false;
-  if(bS_->shouldPrune_){
+  if(solType == MibSRelaxationSol){
       userFeasible = true;
   }
 
-  if(!bS_->isProvenOptimal_){
-      userFeasible = false;
-  }
-  else if(userFeasible == true){
+  if(userFeasible == true){
       mibSol = new MibSSolution(getNumCols(),
 				lpSolution,
 				upperObj,
 				this);
   }
-  //else if(bS_->haveHeurSolCand_){
-  else if((((bS_->isLowerSolved_) || (bS_->isUBSolved_)) && (bS_->isProvenOptimal_)) ||
-	  ((!bS_->isLowerSolved_) && (bS_->tagInSeenLinkingPool_ ==
-				      MibSLinkingPoolTagLowerIsFeasible))){
+  else if(solType == MibSHeurSol){
       if(!bS_->isUBSolved_){
 	  isHeurSolution = checkUpperFeasibility(lpSolution);
       }
@@ -1863,7 +1859,7 @@ MibSModel::userFeasibleSolution(const double * solution, bool &userFeasible)
 	  mibSol = NULL;
       }
   }
-  
+
   delete sol;
   delete [] lpSolution;
   return mibSol;
@@ -2431,12 +2427,13 @@ MibSModel::getSolution()
 }
 
 //#############################################################################
-void 
+MibSSolType
 MibSModel::createBilevel(CoinPackedVector *vec)
 {
 
-   bS_->createBilevel(vec, this);
+   MibSSolType solType = bS_->createBilevel(vec, this);
 
+   return solType;
 }
 
 //#############################################################################

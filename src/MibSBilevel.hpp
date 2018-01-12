@@ -100,9 +100,9 @@ public:
 	gutsOfDestructor();
     }
    
-    void createBilevel(CoinPackedVector *sol,
+    MibSSolType createBilevel(CoinPackedVector *sol,
 		       MibSModel *mibs=0);
-    void checkBilevelFeasiblity(bool isRoot);
+    MibSSolType checkBilevelFeasiblity(bool isRoot);
     void gutsOfDestructor();
 
 private:
