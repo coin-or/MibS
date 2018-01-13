@@ -56,7 +56,6 @@ private:
     /** should prune the node or not **/
     bool shouldPrune_;
     bool isContainedInLinkingPool_;
-    bool haveHeurSolCand_;
     MibSLinkingPoolTag tagInSeenLinkingPool_;
 
     MibSLPSolStatus LPSolStatus_;
@@ -82,7 +81,6 @@ public:
 		    isLinkVarsFixed_(true), isProvenOptimal_(false),
 		    isLowerSolved_(false), isUBSolved_(false),
 		    shouldPrune_(false), isContainedInLinkingPool_(false),
-		    haveHeurSolCand_(false),
 		    tagInSeenLinkingPool_(MibSLinkingPoolTagIsNotSet),
 		    LPSolStatus_(MibSLPSolStatusUnknown), objVal_(0.0){
 	upperSolutionOrd_ = 0;
