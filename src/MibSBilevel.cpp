@@ -109,7 +109,6 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
   useBilevelBranching_ = true;
   isProvenOptimal_ = true;
   tagInSeenLinkingPool_ = MibSLinkingPoolTagIsNotSet;
-  haveHeurSolCand_ = false;
 
   model_->countIteration_ ++;
   /*std::cout << "countIteration = " << model_->countIteration_ << std::endl;
@@ -577,7 +576,6 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 		model_->counterUB_ ++;
 		isUBSolved_ = true;
 		if (UBSolver->isProvenOptimal()){
-		    haveHeurSolCand_ = true;
 		    isProvenOptimal_ = true;
 		    const double * valuesUB = UBSolver->getColSolution();
 		    for (i = 0; i < uN + lN; i++){
@@ -624,7 +622,6 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 	    }
 	    else if ((tagInSeenLinkingPool_ != MibSLinkingPoolTagUBIsSolved) ||
 		     ((!useLinkingSolutionPool) && (isUBSolved_))){
-		haveHeurSolCand_ = true;
 		for (i = 0; i < lN; i++){
 		    index = lowerColInd[i];
 		    if ((model_->solver()->isInteger(index)) &&
