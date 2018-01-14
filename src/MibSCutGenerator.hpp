@@ -73,35 +73,33 @@ class MibSCutGenerator : public BlisConGenerator {
    /** Add Benders-type cuts for zero sum problems **/
    int bendersZeroSumCuts(BcpsConstraintPool &conPool);
 
-    /** Add intersection cuts for general problems (Type 1: discrete, Types 2,3: general) **/
+    /** Add intersection cuts for general problems (IC: discrete, hypercube, tender: general) **/
     int intersectionCuts(BcpsConstraintPool &conPool,
 			 double *optLowerSolution);
 
-    /** Helper function for intersection cut Type 1*/
-    void getAlphaIntersectionCutType1(double** extRay, double* lowerSolution,
-				      int numStruct, int numNonBasic,
-				      const double* lpSol, std::vector<double> &alphaVec);
+    /** Helper function for IC*/
+    void getAlphaIC(double** extRay, double* lowerSolution, int numStruct,
+		    int numNonBasic, const double* lpSol, std::vector<double> &alphaVec);
 
-    /** Helper function for intersection cut Type 1*/
-    double solveModelIntersectionCutType1(const CoinPackedMatrix* matrix,
-					  double** extRay, double* rowLb,double* rowUb,
-					  int lRows, int numRows, int numNonBasic, int cnt);
+    /** Helper function for IC*/
+    double solveModelIC(const CoinPackedMatrix* matrix, double** extRay,
+			double* rowLb,double* rowUb, int lRows,
+			int numRows, int numNonBasic, int cnt);
 
-    /** Helper function for intersection cut Type 2*/
-    void storeBestSolIntersectionCutType2(const double* lpSol, double optLowerObj);
+    /** Helper function for hypercube IC*/
+    void storeBestSolHypercubeIC(const double* lpSol, double optLowerObj);
 
-    /** Helper function for intersection cut Type 2*/
-    void getAlphaIntersectionCutType2(double** extRay,
-				      int numStruct, int numNonBasic,
-				      std::vector<double> &alphaVec);
+    /** Helper function for hypercube IC*/
+    void getAlphaHypercubeIC(double** extRay, int numStruct, int numNonBasic,
+			     std::vector<double> &alphaVec);
 
-    /** Helper function for intersection cut Type 3*/
-    void storeBestSolIntersectionCutType3(const double* lpSol,
-					  double optLowerObj);
+    /** Helper function for Tender IC*/
+    void storeBestSolTenderIC(const double* lpSol,
+			      double optLowerObj);
 
-    /** Helper function for intersection cut Type 3*/
-    void getAlphaIntersectionCutType3(double** extRay, int numNonBasic,
-				      std::vector<double> &alphaVec);
+    /** Helper function for Tender IC*/
+    void getAlphaTenderIC(double** extRay, int numNonBasic,
+			  std::vector<double> &alphaVec);
 		     
    /** Add bound cuts for general problems **/
    int boundCuts(BcpsConstraintPool &conPool);
