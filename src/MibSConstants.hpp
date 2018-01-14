@@ -51,7 +51,17 @@ enum MibSLinkingPoolTag{
     MibSLinkingPoolTagLowerIsInfeasible,
     MibSLinkingPoolTagLowerIsFeasible,
     MibSLinkingPoolTagUBIsSolved
-};  
+};
+
+//#############################################################################
+
+enum MibSIntersectionCutType{
+    MibSIntersectionCutTypeNotSet = -1,
+    MibSIntersectionCutTypeIC,
+    MibSIntersectionCutTypeHypercubeIC,
+    MibSIntersectionCutTypeTenderIC,
+    MibSIntersectionCutTypeHybridIC
+};
 
 //############################################################################# 
 /*---------  which_active_con_method choices --------------------------------*/

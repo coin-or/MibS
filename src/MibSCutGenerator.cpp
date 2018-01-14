@@ -253,8 +253,8 @@ MibSCutGenerator::intersectionCuts(BcpsConstraintPool &conPool,
 				   double *optLowerSolution)
 {
 
-        int ICType =
-	    localModel_->MibSPar_->entry(MibSParams::intersectionCutType);
+        MibSIntersectionCutType ICType = static_cast<MibSIntersectionCutType>
+	    (localModel_->MibSPar_->entry(MibSParams::intersectionCutType));
 	
 	int useLinkingSolutionPool(localModel_->MibSPar_->entry
 		       (MibSParams::useLinkingSolutionPool));
@@ -471,29 +471,26 @@ MibSCutGenerator::intersectionCuts(BcpsConstraintPool &conPool,
 	    shouldFindBestSol = false;
 	}
 	switch(ICType){
-	case 1:
-	    getAlphaIntersectionCutType1(extRay, optLowerSolution, numStruct,
-					 numNonBasic, sol, alpha);
+	case MibSIntersectionCutTypeIC:
+	    getAlphaIC(extRay, optLowerSolution, numStruct, numNonBasic, sol, alpha);
 	    break;
-	case 2://hypercube IC
+	case MibSIntersectionCutTypeHypercubeIC:
 	    if(shouldFindBestSol == true){ 
-		storeBestSolIntersectionCutType2(sol, bS->objVal_);
+		storeBestSolHypercubeIC(sol, bS->objVal_);
 	    }
-	    getAlphaIntersectionCutType2(extRay, numStruct, numNonBasic,
-					 alpha);
+	    getAlphaHypercubeIC(extRay, numStruct, numNonBasic, alpha);
 	    break;
-	case 3:
+	case MibSIntersectionCutTypeTenderIC:
 	    if(shouldFindBestSol == true){
-		storeBestSolIntersectionCutType3(sol, bS->objVal_);
+		storeBestSolTenderIC(sol, bS->objVal_);
 	    }
-	    getAlphaIntersectionCutType3(extRay, numNonBasic, alpha);
+	    getAlphaTenderIC(extRay, numNonBasic, alpha);
 	    break;
-	case 4:
+	case MibSIntersectionCutTypeHybridIC:
 	    if(shouldFindBestSol == true){
-		storeBestSolIntersectionCutType3(sol, bS->objVal_);
+		storeBestSolTenderIC(sol, bS->objVal_);
 	    }
-	    getAlphaIntersectionCutType2(extRay, numStruct, numNonBasic,
-					 alpha);
+	    getAlphaHypercubeIC(extRay, numStruct, numNonBasic, alpha);
 	    break;
 	}
 	
@@ -615,9 +612,9 @@ MibSCutGenerator::intersectionCuts(BcpsConstraintPool &conPool,
 
 //#############################################################################
 void
-MibSCutGenerator::getAlphaIntersectionCutType1(double** extRay, double* optLowerSolution,
-					       int numStruct, int numNonBasic,
-					       const double* lpSol, std::vector<double> &alphaVec)
+MibSCutGenerator::getAlphaIC(double** extRay, double* optLowerSolution,
+			     int numStruct, int numNonBasic,
+			     const double* lpSol, std::vector<double> &alphaVec)
 {
 
     OsiSolverInterface * oSolver = localModel_->solver();
@@ -680,8 +677,8 @@ MibSCutGenerator::getAlphaIntersectionCutType1(double** extRay, double* optLower
     double out;
 
     for (i = 0; i < numNonBasic; i++){
-	out = solveModelIntersectionCutType1(matrix, extRay, rowLb, rowUb,
-					     lRows, numRows, numNonBasic, i);
+	out = solveModelIC(matrix, extRay, rowLb, rowUb,
+			   lRows, numRows, numNonBasic, i);
 	alphaVec[i] = out;
     }
 
@@ -693,9 +690,9 @@ MibSCutGenerator::getAlphaIntersectionCutType1(double** extRay, double* optLower
 
 //#############################################################################
 double
-MibSCutGenerator::solveModelIntersectionCutType1(const CoinPackedMatrix* matrix,
-						 double** extRay, double* rowLb,double* rowUb,
-						 int lowerRows, int numRows, int numNonBasic, int cnt)
+MibSCutGenerator::solveModelIC(const CoinPackedMatrix* matrix, double** extRay,
+			       double* rowLb,double* rowUb, int lowerRows,
+			       int numRows, int numNonBasic, int cnt)
 {
 
     OsiSolverInterface * hSolver = localModel_->solver();
@@ -797,8 +794,7 @@ MibSCutGenerator::solveModelIntersectionCutType1(const CoinPackedMatrix* matrix,
 
 //#############################################################################
 void
-MibSCutGenerator::storeBestSolIntersectionCutType2(const double* lpSol,
-						   double optLowerObj)
+MibSCutGenerator::storeBestSolHypercubeIC(const double* lpSol, double optLowerObj)
 {
 
     bool warmStartLL(localModel_->MibSPar_->entry
@@ -948,9 +944,8 @@ MibSCutGenerator::storeBestSolIntersectionCutType2(const double* lpSol,
 
 //#############################################################################
 void
-MibSCutGenerator::getAlphaIntersectionCutType2(double** extRay,
-					       int numStruct, int numNonBasic,
-					       std::vector<double> &alphaVec)
+MibSCutGenerator::getAlphaHypercubeIC(double** extRay, int numStruct, int numNonBasic,
+				      std::vector<double> &alphaVec)
 {
     int * fixedInd = localModel_->getFixedInd();
     double etol(localModel_->etol_);
@@ -986,8 +981,7 @@ MibSCutGenerator::getAlphaIntersectionCutType2(double** extRay,
 
 //#############################################################################
 void
-MibSCutGenerator::storeBestSolIntersectionCutType3(const double* lpSol,
-						   double optLowerObj)
+MibSCutGenerator::storeBestSolTenderIC(const double* lpSol, double optLowerObj)
 {
 
     std::string feasCheckSolver =
@@ -1173,8 +1167,8 @@ MibSCutGenerator::storeBestSolIntersectionCutType3(const double* lpSol,
 
 //#############################################################################
 void
-MibSCutGenerator::getAlphaIntersectionCutType3(double** extRay, int numNonBasic,
-					       std::vector<double> &alphaVec)
+MibSCutGenerator::getAlphaTenderIC(double** extRay, int numNonBasic,
+				   std::vector<double> &alphaVec)
 {
     OsiSolverInterface * hSolver = localModel_->solver();
     const CoinPackedMatrix * matrix = hSolver->getMatrixByRow();
@@ -1523,7 +1517,7 @@ MibSCutGenerator::generalNoGoodCut(BcpsConstraintPool &conPool)
 
     
     if(shouldFindBestSol == true){
-	storeBestSolIntersectionCutType2(sol, bS->objVal_);
+	storeBestSolHypercubeIC(sol, bS->objVal_);
     }
 
     for(i = 0; i < uN; i++){

@@ -3172,7 +3172,8 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix, const double* ro
 	std::cout << "Matrix G2 is positive." << std::endl;
     }
 
-    int paramValue(0), cutType(0);
+    int paramValue(0);
+    MibSIntersectionCutType cutType(MibSIntersectionCutTypeNotSet);
     //bool isHypercubeOn(false);
 
     bool turnOffOtherCuts(MibSPar_->entry(MibSParams::turnOffOtherCuts));
@@ -3225,13 +3226,14 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix, const double* ro
 	}
     }
 
-    //Param: "MibS_useInterSectionCut" (Type1)
+    //Param: "MibS_useInterSectionCut" (MibSIntersectionCutTypeIC)
     paramValue = MibSPar_->entry(MibSParams::useIntersectionCut);
-    cutType =  MibSPar_->entry(MibSParams::intersectionCutType);
+    cutType = static_cast<MibSIntersectionCutType>
+	(MibSPar_->entry(MibSParams::intersectionCutType));
 
-    if((paramValue == PARAM_ON) && (cutType == 1)){
+    if((paramValue == PARAM_ON) && (cutType == MibSIntersectionCutTypeIC)){
 	if((isPureInteger_ == false) || (isLowerCoeffInt_ == false)){
-	    std::cout << "The intersection cut 1 is not valid problem.  Automatically disabling this cut."
+	    std::cout << "The intersection cut IC is not valid problem.  Automatically disabling this cut."
 		      << std::endl;
 	    MibSPar()->setEntry(MibSParams::useIntersectionCut, PARAM_NOTSET);
 	}
@@ -3323,7 +3325,7 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix, const double* ro
 	defaultCutIsOn = true;
     }
 
-    //Param: "MibS_useInterSectionCut" (hypercube IC)
+    //Param: "MibS_useInterSectionCut" (MibSIntersectionCutTypeHypercubeIC) 
     if((turnOffOtherCuts == true) &&
        (MibSPar_->entry(MibSParams::useIntersectionCut) == PARAM_NOTSET)){
 	MibSPar()->setEntry(MibSParams::useIntersectionCut, PARAM_OFF);
@@ -3334,7 +3336,8 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix, const double* ro
     if(paramValue == PARAM_NOTSET){
 	if(defaultCutIsOn == false){
 	    MibSPar()->setEntry(MibSParams::useIntersectionCut, PARAM_ON);
-	    MibSPar()->setEntry(MibSParams::intersectionCutType, 2);
+	    MibSPar()->setEntry(MibSParams::intersectionCutType,
+				MibSIntersectionCutTypeHypercubeIC);
 	}
     }
     
@@ -3378,10 +3381,12 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix, const double* ro
     }
 
     if(MibSPar_->entry(MibSParams::useIntersectionCut) == PARAM_ON){
-	if(MibSPar_->entry(MibSParams::intersectionCutType) == 1){
-	    std::cout << "'Intersection cut 1' generator is on." << std::endl;
+	if(MibSPar_->entry(MibSParams::intersectionCutType) ==
+	   MibSIntersectionCutTypeIC){
+	    std::cout << "'Intersection cut IC' generator is on." << std::endl;
 	}
-	if(MibSPar_->entry(MibSParams::intersectionCutType) == 2){
+	if(MibSPar_->entry(MibSParams::intersectionCutType) ==
+	   MibSIntersectionCutTypeHypercubeIC){
 	    std::cout << "'hypercube IC' generator is on." << std::endl;
 	}
     }

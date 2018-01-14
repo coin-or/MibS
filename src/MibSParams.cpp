@@ -262,7 +262,7 @@ MibSParams::setDefaultEntries() {
 
    setEntry(useIntersectionCut, PARAM_NOTSET);
 
-   setEntry(intersectionCutType, PARAM_NOTSET);
+   setEntry(intersectionCutType, MibSIntersectionCutTypeNotSet);
 
    setEntry(solveSecondLevelWhenXYVarsInt, PARAM_NOTSET);
 
