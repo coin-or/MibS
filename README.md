@@ -1,4 +1,4 @@
-# MibS (Mixed Integer Bilevel Solver) 0.95
+# MibS (Mixed Integer Bilevel Solver) 1.0
 
 ## Build Status
 
