@@ -78,15 +78,17 @@ class MibSCutGenerator : public BlisConGenerator {
     /** Add intersection cuts for general problems (IC: discrete, hypercube, tender: general) **/
     int intersectionCuts(BcpsConstraintPool &conPool,
 			 double *optLowerSolution);
+    /** Helper function for IC*/
+    void findLowerLevelSol(double *uselessIneqs, double *lowerLevelSol);
 
     /** Helper function for IC*/
-    void getAlphaIC(double** extRay, double* lowerSolution, int numStruct,
+    void getAlphaIC(double** extRay, double *uselessIneqs, double* lowerSolution, int numStruct,
 		    int numNonBasic, const double* lpSol, std::vector<double> &alphaVec);
 
     /** Helper function for IC*/
-    double solveModelIC(const CoinPackedMatrix* matrix, double** extRay,
-			double* rowLb,double* rowUb, int lRows,
-			int numRows, int numNonBasic, int cnt);
+    double solveModelIC(const CoinPackedMatrix* matrix, double *uselessIneqs,
+			double** extRay, double* rowLb,double* rowUb,
+			int lRows, int numRows, int numNonBasic, int cnt);
 
     /** Helper function for hypercube IC*/
     void storeBestSolHypercubeIC(const double* lpSol, double optLowerObj);
