@@ -257,6 +257,10 @@ MibSCutGenerator::intersectionCuts(BcpsConstraintPool &conPool,
 
         MibSIntersectionCutType ICType = static_cast<MibSIntersectionCutType>
 	    (localModel_->MibSPar_->entry(MibSParams::intersectionCutType));
+
+	MibSBilevelFreeSetTypeIC bilevelFreeSetType =
+	    static_cast<MibSBilevelFreeSetTypeIC>
+	    (localModel_->MibSPar_->entry(MibSParams::bilevelFreeSetTypeIC));
 	
 	int useLinkingSolutionPool(localModel_->MibSPar_->entry
 		       (MibSParams::useLinkingSolutionPool));
@@ -288,6 +292,8 @@ MibSCutGenerator::intersectionCuts(BcpsConstraintPool &conPool,
 	int newBasic(0);
 	int numCols(numStruct+numArtf);
 	int numRows(numArtf);
+	int lCols(localModel_->getLowerDim());
+	int lRows(localModel_->getLowerRowNum());
 
 	const double * colLb = solver->getColLower();
 	const double * colUb = solver->getColUpper();
@@ -473,8 +479,22 @@ MibSCutGenerator::intersectionCuts(BcpsConstraintPool &conPool,
 	    shouldFindBestSol = false;
 	}
 	switch(ICType){
-	case MibSIntersectionCutTypeIC:
-	    getAlphaIC(extRay, optLowerSolution, numStruct, numNonBasic, sol, alpha);
+	case MibSIntersectionCutTypeIC: 
+	    if(bilevelFreeSetType == MibSBilevelFreeSetTypeICWithNewLLSol){
+		//it shows which lower level rows are not
+		//necessary to be included in the convex set
+		double *uselessIneqs = new double[lRows];
+		double *lowerLevelSol = new double[lCols];
+		CoinZeroN(uselessIneqs, lRows);
+		CoinZeroN(lowerLevelSol, lCols);
+		findLowerLevelSol(uselessIneqs, lowerLevelSol);
+		getAlphaIC(extRay, uselessIneqs, lowerLevelSol, numStruct, numNonBasic, sol, alpha);
+		delete [] uselessIneqs;
+		delete [] lowerLevelSol;
+	    }
+	    else{
+		getAlphaIC(extRay, NULL, optLowerSolution, numStruct, numNonBasic, sol, alpha);
+	    }
 	    break;
 	case MibSIntersectionCutTypeHypercubeIC:
 	    if(shouldFindBestSol == true){ 
@@ -614,8 +634,294 @@ MibSCutGenerator::intersectionCuts(BcpsConstraintPool &conPool,
 
 //#############################################################################
 void
-MibSCutGenerator::getAlphaIC(double** extRay, double* optLowerSolution,
-			     int numStruct, int numNonBasic,
+MibSCutGenerator::findLowerLevelSol(double *uselessIneqs, double *lowerLevelSol)
+{
+    
+    std::string feasCheckSolver(localModel_->MibSPar_->entry
+				(MibSParams::feasCheckSolver));
+    int maxThreadsLL(localModel_->MibSPar_->entry
+		     (MibSParams::maxThreadsLL));
+    int whichCutsLL(localModel_->MibSPar_->entry
+		    (MibSParams::whichCutsLL));
+
+    OsiSolverInterface * oSolver = localModel_->solver();
+    double infinity(oSolver->getInfinity());
+    int i, j;
+    int index(0), cntA2(0), cntG2(0), cntInt(0);
+    double coef(0.0), lObjVal(0.0);
+    int numCols(localModel_->getNumCols());
+    int uCols(localModel_->getUpperDim());
+    int lCols(localModel_->getLowerDim());
+    int lRows(localModel_->getLowerRowNum());
+    int numBinCols(lRows);
+    int newNumCols(lCols + numBinCols);
+    int newNumRows(lRows + 1);
+    double lObjSense(localModel_->getLowerObjSense());
+    double *lObjCoeff(localModel_->getLowerObjCoeffs());
+    int *lRowInd(localModel_->getLowerRowInd());
+    int *uColInd(localModel_->getUpperColInd());
+    int *lColInd(localModel_->getLowerColInd());
+    double *origRowLb(localModel_->getOrigRowLb());
+    double *origRowUb(localModel_->getOrigRowUb());
+    double *origColLb(localModel_->getOrigColLb());
+    double *origColUb(localModel_->getOrigColUb());
+    const double *colLb(oSolver->getColLower());
+    const double *colUb(oSolver->getColUpper());
+    const double * sol = oSolver->getColSolution();
+    char *rowSense = localModel_->getOrigRowSense();
+    CoinPackedMatrix origMatrix = *localModel_->getOrigConstCoefMatrix();
+    
+    CoinShallowPackedVector row;
+    CoinPackedVector rowA2;
+    CoinPackedVector rowG2;
+    CoinPackedVector addedRow;
+
+    //stores A^2*x (x is the optimal first-level solution of relaxation)
+    double *multA2XOpt = new double[lRows];
+    //stores A^2*lb(x)
+    double *multA2XLb = new double[lRows];
+    //stores A^2*ub(x)
+    double *multA2XUb =new double[lRows];
+    //store max(A^2*lb(x), A^2*ub(x))
+    double *multA2XMax = new double[lRows];
+
+    double *optUpperSol = new double[uCols];
+    double *upperColLb = new double[uCols];
+    double *upperColUb = new double[uCols];
+    
+    origMatrix.reverseOrdering();
+    CoinPackedMatrix * matrixA2 = new CoinPackedMatrix(false, 0, 0);
+    matrixA2->setDimensions(0, uCols);
+    CoinPackedMatrix * matrixG2 = new CoinPackedMatrix(false, 0, 0);
+    matrixG2->setDimensions(0, lCols);
+    CoinPackedMatrix * newMatrix = new CoinPackedMatrix(false, 0, 0);
+    newMatrix->setDimensions(0, newNumCols);
+
+    double *newRowLb = new double[newNumRows];
+    double *newRowUb = new double[newNumRows];
+    CoinZeroN(newRowLb, newNumRows);
+    CoinZeroN(newRowUb, newNumRows);
+    double *newColLb = new double[newNumCols];
+    double *newColUb = new double[newNumCols];
+    CoinZeroN(newColLb, newNumCols);
+    CoinZeroN(newColUb, newNumCols);
+    double *newObjCoeff = new double[newNumCols];
+    CoinZeroN(newObjCoeff, newNumCols);
+    int *integerVars = new int[newNumCols];
+    CoinZeroN(integerVars, newNumCols);
+    
+    //extracting matrices A2 and G2
+    for(i = 0; i < lRows; i++){
+	index = lRowInd[i];
+	row = origMatrix.getVector(index);
+	if(rowSense[index] == 'G'){
+	    row = -1 * row;
+	}
+	cntA2 = 0;
+	cntG2 = 0;
+	for(j = 0; j < numCols; j++){
+	    coef = origMatrix.getCoefficient(index,j); 
+	    if(localModel_->binarySearch(0, uCols -1, j, uColInd) >= 0){
+		rowA2.insert(cntA2, coef);
+		cntA2++;
+	    }
+	    else{
+		rowG2.insert(cntG2, coef);
+		cntG2++;
+	    }
+	}
+	matrixA2->appendRow(rowA2);
+	matrixG2->appendRow(rowG2);
+	rowA2.clear();
+	rowG2.clear();
+    }
+
+    //extracting optimal first-level solution of the relaxation problem and
+    // the original bounds
+    for(i = 0; i < uCols; i++){
+	index = uColInd[i];
+	optUpperSol[i] = sol[index];
+	upperColLb[i] = colLb[index];
+	upperColUb[i] = colUb[index];
+    }
+
+    matrixA2->times(optUpperSol, multA2XOpt);
+    matrixA2->times(upperColLb, multA2XLb);
+    matrixA2->times(upperColUb, multA2XUb);
+    for(i = 0; i < lRows; i++){
+	multA2XMax[i] = CoinMax(multA2XLb[i], multA2XUb[i]);
+    }
+
+    //filling matrix of coefficients
+    for(i = 0; i < lCols; i++){
+	addedRow.insert(i, lObjCoeff[i] * lObjSense);
+    }
+
+    newMatrix->appendRow(addedRow);
+    addedRow.clear();
+
+    for(i = 0; i < lRows; i++){
+	row = matrixG2->getVector(i);
+	addedRow.append(row);
+	addedRow.insert(i + lCols, multA2XOpt[i] - multA2XMax[i]);
+	newMatrix->appendRow(addedRow);
+	addedRow.clear();
+    }
+
+    //filling row bounds
+    CoinFillN(newRowLb, newNumRows, -1 * infinity);
+    for(i = 0; i < lCols; i++){
+	index = lColInd[i];
+	lObjVal += lObjCoeff[i] * sol[index];
+    }
+    newRowUb[0] = lObjVal * lObjSense - 1;
+
+    for(i = 0; i < lRows; i++){
+	index = lRowInd[i];
+	if(rowSense[index] == 'L'){
+	    newRowUb[i + 1] = origRowUb[index] - multA2XMax[i];
+	}
+	else if(rowSense[index] == 'G'){
+	    newRowUb[i + 1] = -1 * origRowLb[index] - multA2XMax[i];
+	}
+	else{
+	    assert(0);
+	}
+    }
+
+    //filling col bounds
+    for(i = 0; i < lCols; i++){
+	newColLb[i] = origColLb[lColInd[i]];
+	newColUb[i] = origColUb[lColInd[i]];
+    }
+
+    CoinFillN(newColLb + lCols, numBinCols, 0.0);
+    CoinFillN(newColUb + lCols, numBinCols, 1.0);
+
+    //filling objective coefficients
+    CoinFillN(newObjCoeff + lCols, numBinCols, 1.0);
+
+    //filling integer vars
+    for(i = 0; i < lCols; i++){
+	index = lColInd[i];
+	if(oSolver->isInteger(index)){
+	    integerVars[cntInt] = i;
+	    cntInt ++;
+	}
+    }
+    CoinIotaN(&integerVars[cntInt], numBinCols, lCols);
+    cntInt += numBinCols;
+
+    OsiSolverInterface * nSolver;
+
+    if(feasCheckSolver == "Cbc"){
+        nSolver = new OsiCbcSolverInterface();
+    }else if (feasCheckSolver == "SYMPHONY"){
+#ifdef COIN_HAS_SYMPHONY
+	nSolver = new OsiSymSolverInterface();
+#else
+	throw CoinError("SYMPHONY chosen as solver, but it has not been enabled",
+			"findLowerLevelSol", "MibSCutGenerator");
+#endif
+    }else if (feasCheckSolver == "CPLEX"){
+#ifdef COIN_HAS_CPLEX
+	nSolver = new OsiCpxSolverInterface();
+#else
+	throw CoinError("CPLEX chosen as solver, but it has not been enabled",
+			"findLowerLevelSol", "MibsBilevel");
+#endif
+    }else{
+	throw CoinError("Unknown solver chosen",
+			"findLowerLevelSol", "MibsBilevel");
+    }
+
+    nSolver->loadProblem(*newMatrix, newColLb, newColUb,
+			 newObjCoeff, newRowLb, newRowUb);
+
+    nSolver->setInteger(integerVars, cntInt);
+    nSolver->setObjSense(1); //1 min; -1 max
+    nSolver->setHintParam(OsiDoReducePrint, true, OsiHintDo);
+
+    if(feasCheckSolver == "Cbc"){
+	dynamic_cast<OsiCbcSolverInterface *>
+	    (nSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
+    }else if (feasCheckSolver == "SYMPHONY"){
+#if COIN_HAS_SYMPHONY
+	sym_environment *env = dynamic_cast<OsiSymSolverInterface *>
+	    (nSolver)->getSymphonyEnvironment();
+	sym_set_int_param(env, "do_primal_heuristic", FALSE);
+        sym_set_int_param(env, "verbosity", -2);
+        sym_set_int_param(env, "prep_level", -1);
+        sym_set_int_param(env, "max_active_nodes", maxThreadsLL);
+        sym_set_int_param(env, "tighten_root_bounds", FALSE);
+        sym_set_int_param(env, "max_sp_size", 100);
+        sym_set_int_param(env, "do_reduced_cost_fixing", FALSE);
+	if (whichCutsLL == 0){
+	    sym_set_int_param(env, "generate_cgl_cuts", FALSE);
+	}else{
+	    sym_set_int_param(env, "generate_cgl_gomory_cuts", GENERATE_DEFAULT);
+	}
+	if(whichCutsLL == 1){
+	    sym_set_int_param(env, "generate_cgl_knapsack_cuts",
+			      DO_NOT_GENERATE);
+	    sym_set_int_param(env, "generate_cgl_probing_cuts",
+			      DO_NOT_GENERATE);
+	    sym_set_int_param(env, "generate_cgl_clique_cuts",
+			      DO_NOT_GENERATE);
+	    sym_set_int_param(env, "generate_cgl_twomir_cuts",
+			      DO_NOT_GENERATE);
+	    sym_set_int_param(env, "generate_cgl_flowcover_cuts",
+			      DO_NOT_GENERATE);
+	}
+#endif
+    }else if(feasCheckSolver == "CPLEX"){
+#ifdef COIN_HAS_CPLEX
+	nSolver->setHintParam(OsiDoReducePrint);
+	nSolver->messageHandler()->setLogLevel(0);
+	CPXENVptr cpxEnv =
+	    dynamic_cast<OsiCpxSolverInterface*>(nSolver)->getEnvironmentPtr();
+	assert(cpxEnv);
+	CPXsetintparam(cpxEnv, CPX_PARAM_SCRIND, CPX_OFF);
+	CPXsetintparam(cpxEnv, CPX_PARAM_THREADS, maxThreadsLL);
+#endif
+    }
+
+    nSolver->branchAndBound();
+
+    if(nSolver->isProvenOptimal()){
+	const double *optSol = nSolver->getColSolution();
+	CoinDisjointCopyN(optSol, lCols, lowerLevelSol);
+	CoinDisjointCopyN(optSol + lCols, numBinCols, uselessIneqs);
+    }
+    else{//this case should not happen when we use intersection cut for removing
+	//the optimal solution of relaxation which satisfies integrality requirements
+	assert(0);
+    }
+
+    delete [] multA2XOpt;
+    delete [] multA2XLb;
+    delete [] multA2XUb;
+    delete [] multA2XMax;
+    delete [] optUpperSol;
+    delete [] upperColLb;
+    delete [] upperColUb;
+    delete matrixA2;
+    delete matrixG2;
+    delete newMatrix;
+    delete [] newRowLb;
+    delete [] newRowUb;
+    delete [] newColLb;
+    delete [] newColUb;
+    delete [] newObjCoeff;
+    delete [] integerVars;
+    delete nSolver;
+    
+}
+    
+//#############################################################################
+void
+MibSCutGenerator::getAlphaIC(double** extRay, double* uselessIneqs,
+			     double* lowerSolution, int numStruct, int numNonBasic,
 			     const double* lpSol, std::vector<double> &alphaVec)
 {
 
@@ -651,24 +957,27 @@ MibSCutGenerator::getAlphaIC(double** extRay, double* optLowerSolution,
     double tmp(0.0);
 
     for(i = 0; i < lRows; i++){
-	index = lRowIndices[i];
-	for(j = 0; j < uCols; j++){
-	    index1 = uColIndices[j];
-	    tmp = matrix->getCoefficient(index, index1);
-	    if(tmp != 0){
-		rhsDiff[i] += tmp  * lpSol[index1];
+	if(((uselessIneqs) && (uselessIneqs[i] > 0.5)) ||
+	   (!uselessIneqs)){
+	    index = lRowIndices[i];
+	    for(j = 0; j < uCols; j++){
+		index1 = uColIndices[j];
+		tmp = matrix->getCoefficient(index, index1);
+		if(tmp != 0){
+		    rhsDiff[i] += tmp  * lpSol[index1];
+		}
 	    }
-	}
-	for(j = 0; j < lCols; j++){
-	    index1 = lColIndices[j];
-	    tmp = matrix->getCoefficient(index, index1);
-	    rhsDiff[i] += tmp  * optLowerSolution[j];
+	    for(j = 0; j < lCols; j++){
+		index1 = lColIndices[j];
+		tmp = matrix->getCoefficient(index, index1);
+		rhsDiff[i] += tmp  * lowerSolution[j];
+	    }
 	}
     }
 
     for(i = 0; i < lCols; i++){
 	index1 = lColIndices[i];
-	rowUb[lRows] += objSense * lObjCoeffs[i] * (lpSol[index1] - optLowerSolution[i]);
+	rowUb[lRows] += objSense * lObjCoeffs[i] * (lpSol[index1] - lowerSolution[i]);
     }
 
     for(i = 0; i < lRows; i++){
@@ -679,8 +988,8 @@ MibSCutGenerator::getAlphaIC(double** extRay, double* optLowerSolution,
     double out;
 
     for (i = 0; i < numNonBasic; i++){
-	out = solveModelIC(matrix, extRay, rowLb, rowUb,
-			   lRows, numRows, numNonBasic, i);
+	out = solveModelIC(matrix, uselessIneqs, extRay, rowLb,
+			   rowUb, lRows, numRows, numNonBasic, i);
 	alphaVec[i] = out;
     }
 
@@ -692,9 +1001,9 @@ MibSCutGenerator::getAlphaIC(double** extRay, double* optLowerSolution,
 
 //#############################################################################
 double
-MibSCutGenerator::solveModelIC(const CoinPackedMatrix* matrix, double** extRay,
-			       double* rowLb,double* rowUb, int lowerRows,
-			       int numRows, int numNonBasic, int cnt)
+MibSCutGenerator::solveModelIC(const CoinPackedMatrix* matrix, double* uselessIneqs,
+			       double** extRay, double* rowLb, double* rowUb,
+			       int lowerRows, int numRows, int numNonBasic, int cnt)
 {
 
     OsiSolverInterface * hSolver = localModel_->solver();
@@ -720,16 +1029,19 @@ MibSCutGenerator::solveModelIC(const CoinPackedMatrix* matrix, double** extRay,
     rowLb[lowerRows] = -1 * hSolver->getInfinity();
 
     for(i = 0; i < lowerRows; i++){
-	index = lRowIndices[i];
-	for(j = 0; j < uCols; j++){
-	    index1 = uColIndices[j];
-	    tmp = matrix->getCoefficient(index, index1);
-	    if(tmp != 0){
-		coeff[i] += tmp * extRay[cnt][index1];
+	if(((uselessIneqs) && (uselessIneqs[i] > 0.5)) ||
+	   (!uselessIneqs)){
+	    index = lRowIndices[i];
+	    for(j = 0; j < uCols; j++){
+		index1 = uColIndices[j];
+		tmp = matrix->getCoefficient(index, index1);
+		if(tmp != 0){
+		    coeff[i] += tmp * extRay[cnt][index1];
+		}
 	    }
 	}
     }
-
+    
     for(i = 0; i < lCols; i++){
 	index1 = lColIndices[i];
 	coeff[lowerRows] += -1 * objSense * lObjCoeffs[i] * extRay[cnt][index1];
@@ -740,34 +1052,37 @@ MibSCutGenerator::solveModelIC(const CoinPackedMatrix* matrix, double** extRay,
     bool isUnbounded(true);
 
     for (i = 0; i < numRows-1; i++){
-	index = lRowIndices[i];
-	switch(rowsense[index]){
-	case 'L':
-	    if(coeff[i] > etol){
-		if(alphaUb > (rowUb[i]/coeff[i])){
-		    alphaUb = rowUb[i]/coeff[i];
-		    isUnbounded = false;
+	if(((uselessIneqs) && (uselessIneqs[i] > 0.5)) ||
+	   (!uselessIneqs)){
+	    index = lRowIndices[i];
+	    switch(rowsense[index]){
+	    case 'L':
+		if(coeff[i] > etol){
+		    if(alphaUb > (rowUb[i]/coeff[i])){
+			alphaUb = rowUb[i]/coeff[i];
+			isUnbounded = false;
+		    }
 		}
-	    }
-	    break;
-	case 'G':
-	    if(coeff[i] < (-1 * etol)){
-		if(alphaUb > (rowLb[i]/coeff[i])){
-		    alphaUb = rowLb[i]/coeff[i];
-		    isUnbounded= false;
+		break;
+	    case 'G':
+		if(coeff[i] < (-1 * etol)){
+		    if(alphaUb > (rowLb[i]/coeff[i])){
+			alphaUb = rowLb[i]/coeff[i];
+			isUnbounded= false;
+		    }
 		}
+		break;
+	    case 'E':
+		std::cout
+		    << "MibS cannot currently handle equality constraints." << std::endl;
+		abort();
+		break;
+	    case 'R':
+		std::cout
+		    << "MibS cannot currently handle range constraints." << std::endl;
+		abort();
+		break;
 	    }
-	    break;
-	case 'E':
-	    std::cout
-		<< "MibS cannot currently handle equality constraints." << std::endl;
-	    abort();
-	    break;
-	case 'R':
-	    std::cout
-		<< "MibS cannot currently handle range constraints." << std::endl;
-	    abort();
-	    break;
 	}
     }
 
@@ -789,7 +1104,7 @@ MibSCutGenerator::solveModelIC(const CoinPackedMatrix* matrix, double** extRay,
 	alpha = -1;
     }
 
-    delete[] coeff;
+    delete [] coeff;
 
     return alpha;
 }

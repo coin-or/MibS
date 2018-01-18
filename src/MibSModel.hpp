@@ -410,6 +410,12 @@ public:
 
     /** Get pointer to the array of original row sense **/
     char * getOrigRowSense() const {return origRowSense_;}
+<<<<<<< HEAD
+=======
+    
+    /** get pointer to the original matrix of constraints coefficients **/
+    CoinPackedMatrix * getOrigConstCoefMatrix() const {return origConstCoefMatrix_;}
+>>>>>>> adding the second way of finding second-level sol for IC
 
     /** Get pointer to the LL objective coefficient array **/
     double * getLowerObjCoeffs() {return lowerObjCoeffs_;}
