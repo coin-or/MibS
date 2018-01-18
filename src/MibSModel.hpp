@@ -185,6 +185,9 @@ private:
     /** Original row upper bounds from Omega **/
     double * origRowUb_;
 
+    /** Original row sense **/
+    char * origRowSense_;
+
     /** Names of columns **/
     std::string * columnName_;
 
@@ -392,6 +395,12 @@ public:
 
     /** Get pointer to the array of original row upper bounds **/
     double * getOrigRowUb() const {return origRowUb_;}
+
+    /** Get pointer to the array of original row sense **/
+    char * getOrigRowSense() const {return origRowSense_;}
+    
+    /** get pointer to the original matrix of constraints coefficients **/
+    CoinPackedMatrix * getOrigConstCoefMatrix() const {return origConstCoefMatrix_;}
 
     /** Get pointer to the LL objective coefficient array **/
     double * getLowerObjCoeffs() {return lowerObjCoeffs_;}

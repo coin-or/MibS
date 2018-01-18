@@ -71,7 +71,15 @@ enum MibSIntersectionCutType{
     MibSIntersectionCutTypeHybridIC
 };
 
-//############################################################################# 
+//#############################################################################
+
+enum MibSBilevelFreeSetTypeIC{
+    MibSBilevelFreeSetTypeICNotSet = -1,
+    MibSBilevelFreeSetTypeICWithLLOptSol,
+    MibSBilevelFreeSetTypeICWithNewLLSol
+};
+
+//#############################################################################
 /*---------  which_active_con_method choices --------------------------------*/
 #define SIMPLE  0
 #define BASIS  1
