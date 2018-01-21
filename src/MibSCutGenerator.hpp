@@ -77,7 +77,7 @@ class MibSCutGenerator : public BlisConGenerator {
     int intersectionCuts(BcpsConstraintPool &conPool,
 			 double *optLowerSolution);
     /** Helper function for IC*/
-    void findLowerLevelSol(double *uselessIneqs, double *lowerLevelSol);
+    void findLowerLevelSol(double *uselessIneqs, double *lowerLevelSol, const double *sol);
 
     /** Helper function for IC*/
     void getAlphaIC(double** extRay, double *uselessIneqs, double* lowerSolution, int numStruct,
