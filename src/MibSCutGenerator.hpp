@@ -88,6 +88,10 @@ class MibSCutGenerator : public BlisConGenerator {
 			double** extRay, double* rowLb,double* rowUb,
 			int lRows, int numRows, int numNonBasic, int cnt);
 
+    /** Helper function for watermelon IC **/
+    void findLowerLevelSolWatermelonIC(double *uselessIneqs, double *lowerLevelSol,
+				       const double* lpSol);
+
     /** Helper function for hypercube IC*/
     void storeBestSolHypercubeIC(const double* lpSol, double optLowerObj);
 
