@@ -91,8 +91,15 @@ class MibSCutGenerator : public BlisConGenerator {
 			int lRows, int numRows, int numNonBasic, int cnt);
 
     /** Helper function for watermelon IC **/
-    void findLowerLevelSolWatermelonIC(double *uselessIneqs, double *lowerLevelSol,
-				       const double* lpSol);
+    void findLowerLevelSolWatermelonIC(CoinPackedMatrix *matrixA2G2, CoinPackedMatrix *matrixG2,
+				       double *uselessIneqs, double *lowerLevelSol,
+				       double* lpSol);
+
+    /** Helper function for watermelon IC*/
+    bool getAlphaWatermelonIC(double** extRay, double *uselessIneqs, double* lowerSolution,
+			      int numStruct, int numNonBasic, double* lpSol,
+			      CoinPackedMatrix *matrixA2G2, CoinPackedMatrix *matrixG2,
+			      std::vector<double> &alphaVec);
 
     /** Helper function for hypercube IC*/
     void storeBestSolHypercubeIC(const double* lpSol, double optLowerObj);
