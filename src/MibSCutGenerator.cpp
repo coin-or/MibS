@@ -501,13 +501,15 @@ MibSCutGenerator::intersectionCuts(BcpsConstraintPool &conPool,
 		    CoinZeroN(uselessIneqs, lRows);
 		    CoinZeroN(lowerLevelSol, lCols);
 		    findLowerLevelSol(uselessIneqs, lowerLevelSol, sol);
-		    getAlphaIC(extRay, uselessIneqs, lowerLevelSol, numStruct,
-			       numNonBasic, sol, alpha);
+		    intersectionFound = getAlphaIC(extRay, uselessIneqs, lowerLevelSol,
+						   numStruct, numNonBasic, sol, alpha);
 		    delete [] uselessIneqs;
 		    delete [] lowerLevelSol;
 		}
 		else{
-		    getAlphaIC(extRay, NULL, optLowerSolution, numStruct, numNonBasic, sol, alpha);
+		    intersectionFound = getAlphaIC(extRay, NULL, optLowerSolution,
+						   numStruct, numNonBasic, sol, alpha);
+		    intersectionFound = true;
 		}
 		break;
 	    }
@@ -958,7 +960,7 @@ MibSCutGenerator::findLowerLevelSol(double *uselessIneqs, double *lowerLevelSol,
 }
     
 //#############################################################################
-void
+bool
 MibSCutGenerator::getAlphaIC(double** extRay, double* uselessIneqs,
 			     double* lowerSolution, int numStruct, int numNonBasic,
 			     const double* lpSol, std::vector<double> &alphaVec)
@@ -973,7 +975,7 @@ MibSCutGenerator::getAlphaIC(double** extRay, double* uselessIneqs,
     int lRows(localModel_->getLowerRowNum());
     int numRows(lRows + 1);
     int i, j, index, index1;
-
+    bool intersectionFound(false);
     double * rowUb = new double[numRows];
     double * rowLb = new double[numRows];
     int uCols(localModel_->getUpperDim());
@@ -1031,11 +1033,16 @@ MibSCutGenerator::getAlphaIC(double** extRay, double* uselessIneqs,
 	out = solveModelIC(matrix, uselessIneqs, extRay, rowLb,
 			   rowUb, lRows, numRows, numNonBasic, i);
 	alphaVec[i] = out;
+	if(out > -1 * etol){
+	    intersectionFound = true;
+	}
     }
 
     delete[] rowUb;
     delete[] rowLb;
     delete[] rhsDiff;
+
+    return intersectionFound;
 
 }
 
