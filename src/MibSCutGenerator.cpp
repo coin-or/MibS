@@ -254,7 +254,7 @@ int
 MibSCutGenerator::intersectionCuts(BcpsConstraintPool &conPool,
 				   double *optLowerSolution)
 {
-
+    
         MibSIntersectionCutType ICType = static_cast<MibSIntersectionCutType>
 	    (localModel_->MibSPar_->entry(MibSParams::intersectionCutType));
 
@@ -279,12 +279,14 @@ MibSCutGenerator::intersectionCuts(BcpsConstraintPool &conPool,
 	int numStruct, numArtf;
 	int i,j,index;
 	int numCuts(0);
+	bool intersectionFound(true);
 	
 	numStruct = ws->getNumStructural();
 	
 	numArtf = ws->getNumArtificial();
 	
 	double etol(localModel_->etol_);
+	double value(0.0);
 	int numBasicOrig(numArtf);
 	int numNonBasicOrig(numStruct);
 	int numBasic(0);
@@ -297,7 +299,17 @@ MibSCutGenerator::intersectionCuts(BcpsConstraintPool &conPool,
 
 	const double * colLb = solver->getColLower();
 	const double * colUb = solver->getColUpper();
-	
+
+	double *lpSol = new double[numCols];
+	memcpy(lpSol, sol, sizeof(double) * numCols);
+
+	for(i = 0; i < numCols; i++){
+	    value = lpSol[i];
+	    if(fabs(floor(value + 0.5) - value) <= etol){
+		lpSol[i] = floor(value + 0.5);
+	    }
+	}
+		
 	int * rstat = new int[numArtf]();
 	int * cstat = new int[numStruct]();
 
@@ -505,9 +517,16 @@ MibSCutGenerator::intersectionCuts(BcpsConstraintPool &conPool,
 	        double *lowerLevelSol = new double[lCols];
 	        CoinZeroN(uselessIneqs, lRows);
 	        CoinZeroN(lowerLevelSol, lCols);
-	        findLowerLevelSolWatermelonIC(uselessIneqs, lowerLevelSol, sol);
+		CoinPackedMatrix *matrixA2G2 = new CoinPackedMatrix(false, 0, 0);
+		CoinPackedMatrix *matrixG2 = new CoinPackedMatrix(false, 0, 0); 
+	        findLowerLevelSolWatermelonIC(matrixA2G2, matrixG2,
+					      uselessIneqs, lowerLevelSol, lpSol);
+		intersectionFound = getAlphaWatermelonIC(extRay, uselessIneqs, lowerLevelSol, numStruct,
+				     numNonBasic, lpSol, matrixA2G2, matrixG2, alpha);
 	        delete [] uselessIneqs;
 	        delete [] lowerLevelSol;
+		delete matrixA2G2;
+		delete matrixG2;
 	        break;
 	    }
 	case MibSIntersectionCutTypeHypercubeIC:
@@ -530,118 +549,120 @@ MibSCutGenerator::intersectionCuts(BcpsConstraintPool &conPool,
 	    break;
 	}
 	
-	cnt = 0;
-	mult = 0;
+	if(intersectionFound){
+	    cnt = 0;
+	    mult = 0;
+
+	    double tmp(0.0);
+	    double cutUb(-1.0);
+	    double cutLb(-1 * solver->getInfinity());
+	    double rowRhs;
+	    int rowIndex;
 	
-	double tmp(0.0);
-	double cutUb(-1.0);
-	double cutLb(-1 * solver->getInfinity());
-	double rowRhs;
-	int rowIndex;
+	    double * tmpValsList = new double[numStruct];
+	    CoinFillN(tmpValsList, numStruct, 0.0);
 	
-	double * tmpValsList = new double[numStruct];
-	CoinFillN(tmpValsList, numStruct, 0.0);
+	    std::vector<int> indexList;
+	    std::vector<double> valsList;
 	
-	std::vector<int> indexList;
-	std::vector<double> valsList;
-	
-	for(i = 0; i < numCols; i++){
-	    if(isBasic[i] < 1){
-		if(alpha[cnt] >= 0){
-		    if (i < numStruct){
-			tmpValsList[i] += (1/alpha[cnt]);
-		    }
-		    else{
-			rowIndex = i - numStruct;
-			switch(rowsense[rowIndex]){
-			case 'L':
-			    mult = 1;
-			    break;
-			case 'G':
-			    mult = -1;
-			    break;
-			case 'E':
-			    std::cout
-				<< "MibS cannot currently handle equality constraints." << std::endl;
-			    abort();
-			    break;
-			case 'R':
-			    std::cout
-				<< "MibS cannot currently handle range constraints." << std::endl;
-			    abort();
-			    break;
+	    for(i = 0; i < numCols; i++){
+		if(isBasic[i] < 1){
+		    if(alpha[cnt] >= 0){
+			if (i < numStruct){
+			    tmpValsList[i] += (1/alpha[cnt]);
 			}
-			rowRhs = mult * solver->getRightHandSide()[rowIndex];
-			cutUb += rowRhs/alpha[cnt];
-			for(j = 0; j < numStruct; j++){
-			    tmp = mult * matrix->getCoefficient(rowIndex,j);
-			    tmpValsList[j] += -1 * (tmp/alpha[cnt]);
+			else{
+			    rowIndex = i - numStruct;
+			    switch(rowsense[rowIndex]){
+			    case 'L':
+				mult = 1;
+				break;
+			    case 'G':
+				mult = -1;
+				break;
+			    case 'E':
+				std::cout
+				    << "MibS cannot currently handle equality constraints." << std::endl;
+				abort();
+				break;
+			    case 'R':
+				std::cout
+				    << "MibS cannot currently handle range constraints." << std::endl;
+				abort();
+				break;
+			    }
+			    rowRhs = mult * solver->getRightHandSide()[rowIndex];
+			    cutUb += rowRhs/alpha[cnt];
+			    for(j = 0; j < numStruct; j++){
+				tmp = mult * matrix->getCoefficient(rowIndex,j);
+			        tmpValsList[j] += -1 * (tmp/alpha[cnt]);
+			    }
 			}
 		    }
+		    cnt ++;
 		}
-		cnt ++;
 	    }
-	}
-	
-	for (i = 0; i < numStruct; i++){
-	    if(cstat[i] == VAR_AT_LB){
-		if(fabs(colLb[i] - colUb[i]) < etol){
-		    if(colLb[i] > etol){
+
+	    for (i = 0; i < numStruct; i++){
+		if(cstat[i] == VAR_AT_LB){
+		    if(fabs(colLb[i] - colUb[i]) < etol){
+			if(colLb[i] > etol){
+			    if(alpha[cnt] >= 0){
+				cutUb += -1 * (colLb[i]/alpha[cnt]);
+				tmpValsList[i] += 1/alpha[cnt];
+			    }
+			}
+			else{
+			    if(alpha[cnt] >= 0){
+				tmpValsList[i] += -1 * (1/alpha[cnt]);
+			    }
+			}
+			cnt ++;
+		    }
+		    else if(colLb[i] > etol){
 			if(alpha[cnt] >= 0){
 			    cutUb += -1 * (colLb[i]/alpha[cnt]);
 			    tmpValsList[i] += 1/alpha[cnt];
 			}
+			cnt ++;
 		    }
-		    else{
-			if(alpha[cnt] >= 0){
-			    tmpValsList[i] += -1 * (1/alpha[cnt]);
-			}
-		    }
-		    cnt ++;
 		}
-		else if(colLb[i] > etol){
+		else if(cstat[i] == VAR_AT_UB){
 		    if(alpha[cnt] >= 0){
-			cutUb += -1 * (colLb[i]/alpha[cnt]);
-			tmpValsList[i] += 1/alpha[cnt];
+			cutUb += colUb[i]/alpha[cnt];
+			tmpValsList[i] += -1 * (1/alpha[cnt]);
 		    }
 		    cnt ++;
 		}
 	    }
-	    else if(cstat[i] == VAR_AT_UB){
-		if(alpha[cnt] >= 0){
-		    cutUb += colUb[i]/alpha[cnt];
-		    tmpValsList[i] += -1 * (1/alpha[cnt]);
+
+	    for(i = 0; i < numStruct; i++){
+		if(fabs(tmpValsList[i]) >= etol){
+		    indexList.push_back(i);
+		    valsList.push_back(-1*tmpValsList[i]);
 		}
-		cnt ++;
 	    }
+
+	    numCuts += addCut(conPool, cutLb, cutUb, indexList, valsList,
+			      false);
+	    delete [] tmpValsList;
+	    indexList.clear();
+	    valsList.clear();
 	}
-	
-	for(i = 0; i < numStruct; i++){
-	    if(fabs(tmpValsList[i]) >= etol){
-		indexList.push_back(i);
-		valsList.push_back(-1*tmpValsList[i]);
-	    }
-	}
-	
-	numCuts += addCut(conPool, cutLb, cutUb, indexList, valsList,
-			  false);
-	
 	solver->disableSimplexInterface();
 	
 	delete ws;
+	delete [] lpSol;
 	delete[] rstat;
 	delete[] cstat;
 	delete[] basicIndexTmp;
 	delete[] basicIndex;
 	delete[] isBasic;
 	delete[] coef;
-	delete[] tmpValsList;
 	for(i = 0; i < numNonBasic; ++i){
 	    delete[] extRay[i];
 	}
 	delete[] extRay;
-	indexList.clear();
-	valsList.clear();
 	
 	return numCuts;
 }
@@ -945,6 +966,7 @@ MibSCutGenerator::getAlphaIC(double** extRay, double* uselessIneqs,
 
     OsiSolverInterface * oSolver = localModel_->solver();
 
+    double etol(localModel_->etol_);
     const CoinPackedMatrix * matrix = oSolver->getMatrixByRow();
     double * lObjCoeffs = localModel_->getLowerObjCoeffs();
     double objSense(localModel_->getLowerObjSense());
@@ -1129,8 +1151,9 @@ MibSCutGenerator::solveModelIC(const CoinPackedMatrix* matrix, double* uselessIn
 
 //#############################################################################
 void
-MibSCutGenerator::findLowerLevelSolWatermelonIC(double *uselessIneqs,
-						double *lowerLevelSol, const double* lpSol)
+MibSCutGenerator::findLowerLevelSolWatermelonIC(CoinPackedMatrix *matrixA2G2,
+						CoinPackedMatrix *matrixG2, double *uselessIneqs,
+						double *lowerLevelSol, double* lpSol)
 {
     std::string feasCheckSolver(localModel_->MibSPar_->entry
 				(MibSParams::feasCheckSolver));
@@ -1169,8 +1192,9 @@ MibSCutGenerator::findLowerLevelSolWatermelonIC(double *uselessIneqs,
     double *lCoeffsTimesLpSol = new double[lRows];
 
     origMatrix.reverseOrdering();
-    CoinPackedMatrix *matrixA2G2 = new CoinPackedMatrix(false, 0, 0);
+    //CoinPackedMatrix *matrixA2G2 = new CoinPackedMatrix(false, 0, 0);
     matrixA2G2->setDimensions(0, numCols);
+    matrixG2->setDimensions(0, lCols);
     CoinPackedMatrix * newMatrix = new CoinPackedMatrix(false, 0, 0);
     newMatrix->setDimensions(0, newNumCols);
 
@@ -1213,6 +1237,7 @@ MibSCutGenerator::findLowerLevelSolWatermelonIC(double *uselessIneqs,
 		addedRow.insert(pos, elements[j]);
 	    }
 	}
+	matrixG2->appendRow(addedRow);
 	newMatrix->appendRow(addedRow);
 	addedRow.insert(i + lCols, -1.00);
 	newMatrix->appendRow(addedRow);
@@ -1359,7 +1384,7 @@ MibSCutGenerator::findLowerLevelSolWatermelonIC(double *uselessIneqs,
     }
 
     delete [] lCoeffsTimesLpSol;
-    delete matrixA2G2;
+    //delete matrixA2G2;
     delete [] newRowLb;
     delete [] newRowUb;
     delete [] newColLb;
@@ -1367,6 +1392,127 @@ MibSCutGenerator::findLowerLevelSolWatermelonIC(double *uselessIneqs,
     delete [] newObjCoeff;
     delete [] integerVars;
     delete nSolver;
+
+}
+
+//#############################################################################
+bool
+MibSCutGenerator::getAlphaWatermelonIC(double** extRay, double *uselessIneqs,
+				       double* lowerSolution, int numStruct,
+				       int numNonBasic, double* lpSol,
+				       CoinPackedMatrix *matrixA2G2,
+				       CoinPackedMatrix *matrixG2,
+				       std::vector<double> &alphaVec)
+{
+    int i, j;
+    int cntRows(0), rowIndex(0), colIndex(0);
+    double value(0.0);
+    double etol(localModel_->etol_);
+    double infinity(localModel_->solver()->getInfinity());
+    double alphaUb(infinity);
+    bool isUnbounded(true), intersectionFound(false);
+    int numCols(localModel_->getNumCols());
+    int lCols(localModel_->getLowerDim());
+    int lRows(localModel_->getLowerRowNum());
+    int sizeRhs(lRows + 2 * lCols);
+    int *lColInd(localModel_->getLowerColInd());
+    int *lRowInd(localModel_->getLowerRowInd());
+    double *origRowLb(localModel_->getOrigRowLb());
+    double *origRowUb(localModel_->getOrigRowUb());
+    double *origColLb(localModel_->getOrigColLb());
+    double *origColUb(localModel_->getOrigColUb());
+    char *origRowSense(localModel_->getOrigRowSense());
+    double *rhs = new double[sizeRhs];
+    CoinZeroN(rhs, sizeRhs);
+
+    double *ray= new double[numCols];
+    CoinZeroN(ray, numCols);
+
+    double * coeff = new double[sizeRhs];
+    CoinFillN(coeff, sizeRhs, 0.0);
+    
+    //store A^2*x + G^2*y((x,y) is the optimal solution of relaxation)
+    double *lCoeffsTimesLpSol = new double[lRows];
+
+    double *lCoeffsTimesRay = new double[lRows];
+    
+    //store G^2*deltaY
+    double *G2TimeslSol = new double[lRows];
+
+    matrixA2G2->times(lpSol, lCoeffsTimesLpSol);
+    matrixG2->times(lowerSolution, G2TimeslSol);
+
+    for(i = 0; i < lRows; i++){
+	rowIndex = lRowInd[i];
+	if(origRowSense[i] == 'L'){
+	    rhs[i] = origRowUb[rowIndex] + 1 - G2TimeslSol[i] -
+		lCoeffsTimesLpSol[i];
+	}
+	else if(origRowSense[i] == 'G'){
+	    rhs[i] = -1 * origRowLb[rowIndex] + 1 - G2TimeslSol[i] -
+		lCoeffsTimesLpSol[i];
+	}
+	else{
+	    assert(0);
+	}
+    }
+
+    cntRows = lRows;
+    for(i = 0; i < lCols; i++){
+	colIndex = lColInd[i];
+	value = lpSol[colIndex];
+	rhs[cntRows + i] = origColUb[colIndex] + 1 - lowerSolution[i] - value;
+	rhs[cntRows + lCols + i] = -1 * origColLb[colIndex] + 1 +
+	    lowerSolution[i] + value;
+    }
+
+    for(i = 0; i < sizeRhs - lCols; i++){
+	assert(rhs[i] > 0);
+    }
+	
+    for(i = 0; i < numNonBasic; i++){
+	memcpy(ray, extRay[i], sizeof(double) * numCols);
+	matrixA2G2->times(ray, lCoeffsTimesRay);
+	CoinDisjointCopyN(lCoeffsTimesRay, lRows, coeff);
+	for(j = 0; j < lCols; j++){
+	    value = ray[lColInd[j]];
+	    coeff[j + lRows] = value;
+	    coeff[j + lRows + lCols] = -1 * value;
+	}
+	alphaUb = infinity;
+	isUnbounded = true;
+	for(j = 0; j < sizeRhs; j++){
+	    //uselessIneqs[j] = 3;
+	    if((uselessIneqs[j] > etol) && (coeff[j] > etol)){
+		value = rhs[j]/coeff[j];
+		if(alphaUb - value > etol){
+		    alphaUb = value;
+		    isUnbounded = false;
+		}
+	    }
+	}
+	assert(alphaUb >= 0);
+	if(isUnbounded == false){
+	    alphaVec[i] = alphaUb;
+	    intersectionFound = true;
+	}
+	else{
+	    alphaVec[i] = -1;
+	}
+    }
+
+    if(intersectionFound == false){
+	localModel_->bS_->shouldPrune_ = true;
+    }
+	
+
+    delete [] rhs;
+    delete [] ray;
+    delete [] coeff;
+    delete [] lCoeffsTimesLpSol;
+    delete [] G2TimeslSol;
+
+    return intersectionFound;
 
 }
 

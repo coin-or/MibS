@@ -753,6 +753,13 @@ MibSTreeNode::process(bool isRoot, bool rampUp)
 					   MibSLPSolStatusInfeasible)) {
 		lpStatus = static_cast<BlisLpStatus> 
 		    (generateConstraints(model, newConPool));
+
+		if(bS->shouldPrune_){
+		    setStatus(AlpsNodeStatusFathomed);
+		    quality_ = -ALPS_OBJ_MAX;
+		    goto TERM_PROCESS;
+		}
+		    
             
 		if (lpStatus != BlisLpStatusOptimal) {
 		    setStatus(AlpsNodeStatusFathomed);
