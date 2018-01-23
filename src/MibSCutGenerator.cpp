@@ -1382,7 +1382,6 @@ MibSCutGenerator::findLowerLevelSolWatermelonIC(CoinPackedMatrix *matrixA2G2,
     }
 
     delete [] lCoeffsTimesLpSol;
-    //delete matrixA2G2;
     delete [] newRowLb;
     delete [] newRowUb;
     delete [] newColLb;
