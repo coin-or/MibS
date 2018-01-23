@@ -80,7 +80,7 @@ class MibSCutGenerator : public BlisConGenerator {
     void findLowerLevelSol(double *uselessIneqs, double *lowerLevelSol, const double *sol);
 
     /** Helper function for IC*/
-    void getAlphaIC(double** extRay, double *uselessIneqs, double* lowerSolution, int numStruct,
+    bool getAlphaIC(double** extRay, double *uselessIneqs, double* lowerSolution, int numStruct,
 		    int numNonBasic, const double* lpSol, std::vector<double> &alphaVec);
 
     /** Helper function for IC*/
