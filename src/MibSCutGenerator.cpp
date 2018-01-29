@@ -3650,9 +3650,9 @@ MibSCutGenerator::bendersInterdictionCuts(BcpsConstraintPool &conPool)
 
   /** Add specialized bilevel feasibility cuts, as appropriate **/
 
-  if (localModel_->boundingPass_ > 1){
+  /*if (localModel_->boundingPass_ > 1){
      return 0;
-  }
+     }*/
    
   OsiSolverInterface * solver = localModel_->solver();
 
@@ -3727,7 +3727,8 @@ MibSCutGenerator::bendersInterdictionCuts(BcpsConstraintPool &conPool)
 	if (sol[indexL] > etol){
 	   indexList.push_back(indexU);
 	   valsList.push_back(-lObjCoeffs[j]*sol[indexL]);
-	   lhs -= lObjCoeffs[j]*lpSol[indexU];
+	   //lhs -= lObjCoeffs[j]*lpSol[indexU];
+	   lhs -= lObjCoeffs[j]*sol[indexL]*lpSol[indexU];
 	}
      }
      assert(indexList.size() == valsList.size());
@@ -3738,7 +3739,7 @@ MibSCutGenerator::bendersInterdictionCuts(BcpsConstraintPool &conPool)
      indexList.clear();
      valsList.clear();
   }
-
+  
   return numCuts;
 
 }
