@@ -58,11 +58,13 @@ MibSCutGenerator::MibSCutGenerator(MibSModel *mibs)
   maximalCutCount_ = 0;
   isBigMIncObjSet_ = false;
   bigMIncObj_ = 0.0;
+  watermelonICSolver_ = 0;
 }
 
 //#############################################################################
 MibSCutGenerator::~MibSCutGenerator()
 {
+    if(watermelonICSolver_) delete watermelonICSolver_;
 
 }
 
@@ -300,10 +302,10 @@ MibSCutGenerator::intersectionCuts(BcpsConstraintPool &conPool,
 	const double * colLb = solver->getColLower();
 	const double * colUb = solver->getColUpper();
 
-	double *lpSol = new double[numCols];
-	memcpy(lpSol, sol, sizeof(double) * numCols);
+	double *lpSol = new double[numStruct];
+	memcpy(lpSol, sol, sizeof(double) * numStruct);
 
-	for(i = 0; i < numCols; i++){
+	for(i = 0; i < numStruct; i++){
 	    value = lpSol[i];
 	    if(fabs(floor(value + 0.5) - value) <= etol){
 		lpSol[i] = floor(value + 0.5);
@@ -719,8 +721,8 @@ MibSCutGenerator::findLowerLevelSol(double *uselessIneqs, double *lowerLevelSol,
     double *upperColLb = new double[uCols];
     double *upperColUb = new double[uCols];
     
-    CoinPackedMatrix * matrixA2;
-    CoinPackedMatrix * matrixG2;
+    CoinPackedMatrix * matrixA2 = 0;
+    CoinPackedMatrix * matrixG2 = 0;
     CoinPackedMatrix * newMatrix = new CoinPackedMatrix(false, 0, 0);
     newMatrix->setDimensions(0, newNumCols);
 
@@ -921,8 +923,6 @@ MibSCutGenerator::findLowerLevelSol(double *uselessIneqs, double *lowerLevelSol,
     delete [] optUpperSol;
     delete [] upperColLb;
     delete [] upperColUb;
-    delete matrixA2;
-    delete matrixG2;
     delete newMatrix;
     delete [] newRowLb;
     delete [] newRowUb;
@@ -1148,7 +1148,7 @@ MibSCutGenerator::findLowerLevelSolWatermelonIC(double *uselessIneqs, double *lo
     bool getA2G2Matrix(false), getG2Matrix(false);
     int i, j;
     int rowIndex(0), colIndex(0), numElements(0), pos(0), cntInt(0);
-    double rhs(0.0);
+    double rhs(0.0), value(0.0);
     int numCols(localModel_->getNumCols());
     int lCols(localModel_->getLowerDim());
     int lRows(localModel_->getLowerRowNum());
@@ -1289,6 +1289,7 @@ MibSCutGenerator::findLowerLevelSolWatermelonIC(double *uselessIneqs, double *lo
         watermelonICSolver_->setObjSense(1); //1 min; -1 max
         watermelonICSolver_->setHintParam(OsiDoReducePrint, true, OsiHintDo);
 
+	delete newMatrix;
 	delete [] newRowLb;
 	delete [] newRowUb;
 	delete [] newColLb;
@@ -1312,6 +1313,14 @@ MibSCutGenerator::findLowerLevelSolWatermelonIC(double *uselessIneqs, double *lo
 	    rhs = origRowUb[rowIndex];
 	}
 	nSolver->setRowUpper(2 * i + 1, rhs - lCoeffsTimesLpSol[i]);
+    }
+
+    //modifying col bounds
+    for(i = 0; i < lCols; i++){
+	colIndex = lColInd[i];
+	value = lpSol[colIndex];
+	nSolver->setColLower(i, origColLb[colIndex] - value);
+	nSolver->setColUpper(i, origColUb[colIndex] - value);
     }
 
     if(feasCheckSolver == "Cbc"){
@@ -1370,9 +1379,7 @@ MibSCutGenerator::findLowerLevelSolWatermelonIC(double *uselessIneqs, double *lo
 	//the optimal solution of relaxation which satisfies integrality requirements
 	assert(0);
     }
-
     delete [] lCoeffsTimesLpSol;
-    delete nSolver;
 
 }
 
@@ -1492,6 +1499,7 @@ MibSCutGenerator::getAlphaWatermelonIC(double** extRay, double *uselessIneqs,
     delete [] ray;
     delete [] coeff;
     delete [] lCoeffsTimesLpSol;
+    delete [] lCoeffsTimesRay;
     delete [] G2TimeslSol;
 
     return intersectionFound;
@@ -5252,6 +5260,7 @@ void
 MibSCutGenerator::getLowerMatrices(bool getLowerConstCoefMatrix,
 				   bool getA2Matrix, bool getG2Matrix)
 {
+    bool isLowerConstCoefMatrixSet(false), isMatrixA2Set(false), isMatrixG2Set(false);
     int i, j;
     int index(0), numElements(0), pos(0);
     int numCols(localModel_->getNumCols());
@@ -5268,14 +5277,35 @@ MibSCutGenerator::getLowerMatrices(bool getLowerConstCoefMatrix,
     CoinPackedVector row;
     CoinPackedVector rowA2;
     CoinPackedVector rowG2;
+    CoinPackedMatrix *matrixA2G2 = 0;
+    CoinPackedMatrix *matrixA2 = 0;
+    CoinPackedMatrix *matrixG2 = 0;
+
+    if(localModel_->getLowerConstCoefMatrix()){
+	isLowerConstCoefMatrixSet = true;
+    }
+
+    if(localModel_->getA2Matrix()){
+	isMatrixA2Set = true;
+    }
+
+    if(localModel_->getG2Matrix()){
+	isMatrixG2Set =true;
+    }
     
     origMatrix.reverseOrdering();
-    CoinPackedMatrix *matrixA2G2 = new CoinPackedMatrix(false, 0, 0);
-    matrixA2G2->setDimensions(0, numCols);
-    CoinPackedMatrix * matrixA2 = new CoinPackedMatrix(false, 0, 0);
-    matrixA2->setDimensions(0, uCols);
-    CoinPackedMatrix * matrixG2 = new CoinPackedMatrix(false, 0, 0);
-    matrixG2->setDimensions(0, lCols);
+    if((getLowerConstCoefMatrix) && (!isLowerConstCoefMatrixSet)){
+	matrixA2G2 = new CoinPackedMatrix(false, 0, 0);
+	matrixA2G2->setDimensions(0, numCols);
+    }
+    if((getA2Matrix) && (!isMatrixA2Set)){
+	matrixA2 = new CoinPackedMatrix(false, 0, 0);
+        matrixA2->setDimensions(0, uCols);
+    }
+    if((getG2Matrix) && (!isMatrixG2Set)){
+	matrixG2 = new CoinPackedMatrix(false, 0, 0);
+	matrixG2->setDimensions(0, lCols);
+    }
     
     //extracting matrices A2G2, A2 and G2
     for(i = 0; i < lRows; i++){
@@ -5287,7 +5317,9 @@ MibSCutGenerator::getLowerMatrices(bool getLowerConstCoefMatrix,
 	else{
 	    row = origRow;
 	}
-	matrixA2G2->appendRow(row);
+	if(matrixA2G2){
+	    matrixA2G2->appendRow(row);
+	}
 	numElements = row.getNumElements();
 	const int *indices = row.getIndices();
 	const double *elements = row.getElements();
@@ -5301,24 +5333,24 @@ MibSCutGenerator::getLowerMatrices(bool getLowerConstCoefMatrix,
 		rowG2.insert(pos, elements[j]);
 	    }
 	}
-	matrixA2->appendRow(rowA2);
-	matrixG2->appendRow(rowG2);
+	if(matrixA2){
+	    matrixA2->appendRow(rowA2);
+	}
+	if(matrixG2){
+	    matrixG2->appendRow(rowG2);
+	}
 	rowA2.clear();
 	rowG2.clear();
     }
 
-    if(getLowerConstCoefMatrix){
+    if((getLowerConstCoefMatrix) && (matrixA2G2)){
 	localModel_->setLowerConstCoefMatrix(matrixA2G2);
     }
-    if(getA2Matrix){
+    if((getA2Matrix) && (matrixA2)){
 	localModel_->setA2Matrix(matrixA2);
     }
-    if(getG2Matrix){
+    if((getG2Matrix) && (matrixG2)){
 	localModel_->setG2Matrix(matrixG2);
     }
-
-    delete matrixA2G2;
-    delete matrixA2;
-    delete matrixG2;
 
 }
