@@ -1633,20 +1633,20 @@ MibSCutGenerator::getAlphaHypercubeIC(double** extRay, int numStruct, int numNon
 	for(j = 0; j < numStruct; j++){
 	    if(fixedInd[j] == 1){
 		coeff = extRay[i][j];
-	    }
-	    if(coeff > etol){
-		mult = 1;
-	    }
-	    else if(coeff < -1*etol){
-		mult = -1;
-	    }
-	    if(fabs(coeff) > etol){
-		tmp = (mult/coeff);
-		if(alphaVec[i] < 0){
-		    alphaVec[i] = tmp;
+	        if(coeff > etol){
+		    mult = 1;
 		}
-		else if(alphaVec[i] > tmp){
-		    alphaVec[i] = tmp;
+	        else if(coeff < -1*etol){
+		    mult = -1;
+		}
+	        if(fabs(coeff) > etol){
+		    tmp = (mult/coeff);
+		    if(alphaVec[i] < 0){
+			alphaVec[i] = tmp;
+		    }
+		    else if(alphaVec[i] > tmp){
+			alphaVec[i] = tmp;
+		    }
 		}
 	    }
 	}
