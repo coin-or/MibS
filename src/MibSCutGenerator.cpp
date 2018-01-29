@@ -518,17 +518,12 @@ MibSCutGenerator::intersectionCuts(BcpsConstraintPool &conPool,
 		double *uselessIneqs = new double[lRows + 2 * lCols];
 	        double *lowerLevelSol = new double[lCols];
 	        CoinZeroN(uselessIneqs, lRows);
-	        CoinZeroN(lowerLevelSol, lCols);
-		CoinPackedMatrix *matrixA2G2 = new CoinPackedMatrix(false, 0, 0);
-		CoinPackedMatrix *matrixG2 = new CoinPackedMatrix(false, 0, 0); 
-	        findLowerLevelSolWatermelonIC(matrixA2G2, matrixG2,
-					      uselessIneqs, lowerLevelSol, lpSol);
-		intersectionFound = getAlphaWatermelonIC(extRay, uselessIneqs, lowerLevelSol, numStruct,
-				     numNonBasic, lpSol, matrixA2G2, matrixG2, alpha);
+	        CoinZeroN(lowerLevelSol, lCols); 
+	        findLowerLevelSolWatermelonIC(uselessIneqs, lowerLevelSol, lpSol);
+		intersectionFound = getAlphaWatermelonIC(extRay, uselessIneqs, lowerLevelSol,
+							 numStruct, numNonBasic, lpSol, alpha);
 	        delete [] uselessIneqs;
 	        delete [] lowerLevelSol;
-		delete matrixA2G2;
-		delete matrixG2;
 	        break;
 	    }
 	case MibSIntersectionCutTypeHypercubeIC:
@@ -681,11 +676,12 @@ MibSCutGenerator::findLowerLevelSol(double *uselessIneqs, double *lowerLevelSol,
 		     (MibSParams::maxThreadsLL));
     int whichCutsLL(localModel_->MibSPar_->entry
 		    (MibSParams::whichCutsLL));
-    
+
+    bool getA2Matrix(false), getG2Matrix(false);
     OsiSolverInterface * oSolver = localModel_->solver();
     double infinity(oSolver->getInfinity());
     int i, j;
-    int index(0), cntA2(0), cntG2(0), cntInt(0), numElements(0), pos(0);
+    int index(0), cntA2(0), cntG2(0), cntInt(0);
     double coef(0.0), lObjVal(0.0);
     int numCols(localModel_->getNumCols());
     int uCols(localModel_->getUpperDim());
@@ -706,12 +702,8 @@ MibSCutGenerator::findLowerLevelSol(double *uselessIneqs, double *lowerLevelSol,
     const double *colLb(oSolver->getColLower());
     const double *colUb(oSolver->getColUpper());
     char *rowSense = localModel_->getOrigRowSense();
-    CoinPackedMatrix origMatrix = *localModel_->getOrigConstCoefMatrix();
 
-    CoinShallowPackedVector origRow;
     CoinPackedVector row;
-    CoinPackedVector rowA2;
-    CoinPackedVector rowG2;
     CoinPackedVector addedRow;
 
     //stores A^2*x (x is the optimal first-level solution of relaxation)
@@ -726,12 +718,9 @@ MibSCutGenerator::findLowerLevelSol(double *uselessIneqs, double *lowerLevelSol,
     double *optUpperSol = new double[uCols];
     double *upperColLb = new double[uCols];
     double *upperColUb = new double[uCols];
-
-    origMatrix.reverseOrdering();
-    CoinPackedMatrix * matrixA2 = new CoinPackedMatrix(false, 0, 0);
-    matrixA2->setDimensions(0, uCols);
-    CoinPackedMatrix * matrixG2 = new CoinPackedMatrix(false, 0, 0);
-    matrixG2->setDimensions(0, lCols);
+    
+    CoinPackedMatrix * matrixA2;
+    CoinPackedMatrix * matrixG2;
     CoinPackedMatrix * newMatrix = new CoinPackedMatrix(false, 0, 0);
     newMatrix->setDimensions(0, newNumCols);
 
@@ -748,34 +737,17 @@ MibSCutGenerator::findLowerLevelSol(double *uselessIneqs, double *lowerLevelSol,
     int *integerVars = new int[newNumCols];
     CoinZeroN(integerVars, newNumCols);
 
-    //extracting matrices A2 and G2
-    for(i = 0; i < lRows; i++){
-	index = lRowInd[i];
-	origRow = origMatrix.getVector(index);
-	if(rowSense[index] == 'G'){
-	    row = -1 * origRow;
-	}
-	else{
-	    row = origRow;
-	}
-	numElements = row.getNumElements();
-	const int *indices = row.getIndices();
-	const double *elements = row.getElements();
-	for(j = 0; j < numElements; j++){
-	    pos = localModel_->binarySearch(0, uCols -1, indices[j], uColInd);
-	    if(pos >= 0){
-		rowA2.insert(pos, elements[j]);
-	    }
-	    else{
-		pos = localModel_->binarySearch(0, lCols -1, indices[j], lColInd);
-		rowG2.insert(pos, elements[j]);
-	    }
-	}
-	matrixA2->appendRow(rowA2);
-	matrixG2->appendRow(rowG2);
-	rowA2.clear();
-	rowG2.clear();
-	}   
+    if(!localModel_->getA2Matrix()){
+	getA2Matrix = true;
+    }
+
+    if(!localModel_->getG2Matrix()){
+	getG2Matrix = true;
+    }
+
+    if((getA2Matrix) || (getG2Matrix)){
+	getLowerMatrices(false, getA2Matrix, getG2Matrix);
+    }
 
     //extracting optimal first-level solution of the relaxation problem and
     // the original bounds
@@ -785,6 +757,9 @@ MibSCutGenerator::findLowerLevelSol(double *uselessIneqs, double *lowerLevelSol,
 	upperColLb[i] = colLb[index];
 	upperColUb[i] = colUb[index];
     }
+
+    matrixA2 = localModel_->getA2Matrix();
+    matrixG2 = localModel_->getG2Matrix();
 
     matrixA2->times(optUpperSol, multA2XOpt);
     matrixA2->times(upperColLb, multA2XLb);
@@ -1158,9 +1133,8 @@ MibSCutGenerator::solveModelIC(const CoinPackedMatrix* matrix, double* uselessIn
 
 //#############################################################################
 void
-MibSCutGenerator::findLowerLevelSolWatermelonIC(CoinPackedMatrix *matrixA2G2,
-						CoinPackedMatrix *matrixG2, double *uselessIneqs,
-						double *lowerLevelSol, double* lpSol)
+MibSCutGenerator::findLowerLevelSolWatermelonIC(double *uselessIneqs, double *lowerLevelSol,
+						double* lpSol)
 {
     std::string feasCheckSolver(localModel_->MibSPar_->entry
 				(MibSParams::feasCheckSolver));
@@ -1171,6 +1145,7 @@ MibSCutGenerator::findLowerLevelSolWatermelonIC(CoinPackedMatrix *matrixA2G2,
     
     OsiSolverInterface *oSolver = localModel_->solver();
     double infinity(oSolver->getInfinity());
+    bool getA2G2Matrix(false), getG2Matrix(false);
     int i, j;
     int rowIndex(0), colIndex(0), numElements(0), pos(0), cntInt(0);
     double rhs(0.0);
@@ -1199,139 +1174,145 @@ MibSCutGenerator::findLowerLevelSolWatermelonIC(CoinPackedMatrix *matrixA2G2,
     double *lCoeffsTimesLpSol = new double[lRows];
 
     origMatrix.reverseOrdering();
-    //CoinPackedMatrix *matrixA2G2 = new CoinPackedMatrix(false, 0, 0);
-    matrixA2G2->setDimensions(0, numCols);
-    matrixG2->setDimensions(0, lCols);
-    CoinPackedMatrix * newMatrix = new CoinPackedMatrix(false, 0, 0);
-    newMatrix->setDimensions(0, newNumCols);
-
-    double *newRowLb = new double[newNumRows];
-    double *newRowUb = new double[newNumRows];
-    CoinZeroN(newRowLb, newNumRows);
-    CoinZeroN(newRowUb, newNumRows);
-    double *newColLb = new double[newNumCols];
-    double *newColUb = new double[newNumCols];
-    CoinZeroN(newColLb, newNumCols);
-    CoinZeroN(newColUb, newNumCols);
-    double *newObjCoeff = new double[newNumCols];
-    CoinZeroN(newObjCoeff, newNumCols);
-    int *integerVars = new int[lCols];
-    CoinZeroN(integerVars, lCols);
     
-    //extracting matrix A2G2(lower level coeffs) and filling new matrix
-    for(i = 0; i < lCols; i++){
-	addedRow.insert(i, lObjCoeff[i] * lObjSense);
+    if(!localModel_->getLowerConstCoefMatrix()){
+	getA2G2Matrix = true;
     }
-    newMatrix->appendRow(addedRow);
-    addedRow.clear();
 
-    for(i = 0; i < lRows; i++){
-	rowIndex = lRowInd[i];
-	origRow = origMatrix.getVector(rowIndex);
-	if(origRowSense[rowIndex] == 'G'){
-	    row = -1 * origRow;
+    if(!localModel_->getG2Matrix()){
+	getG2Matrix = true;
+    }
+
+    if((getA2G2Matrix) || (getG2Matrix)){
+	getLowerMatrices(getA2G2Matrix, false, getG2Matrix);
+    }
+
+    CoinPackedMatrix *matrixA2G2 = localModel_->getLowerConstCoefMatrix();
+    
+    //filling watermelonICSolver_
+    if(!watermelonICSolver_){
+	CoinPackedMatrix * newMatrix = new CoinPackedMatrix(false, 0, 0);
+	newMatrix->setDimensions(0, newNumCols);
+	CoinPackedMatrix *matrixG2 = localModel_->getG2Matrix();
+	double *newRowLb = new double[newNumRows];
+	double *newRowUb = new double[newNumRows];
+	CoinZeroN(newRowLb, newNumRows);
+	CoinZeroN(newRowUb, newNumRows);
+	double *newColLb = new double[newNumCols];
+	double *newColUb = new double[newNumCols];
+	CoinZeroN(newColLb, newNumCols);
+	CoinZeroN(newColUb, newNumCols);
+	double *newObjCoeff = new double[newNumCols];
+	CoinZeroN(newObjCoeff, newNumCols);
+	int *integerVars = new int[lCols];
+	CoinZeroN(integerVars, lCols);
+	
+	for(i = 0; i < lCols; i++){
+	    addedRow.insert(i, lObjCoeff[i] * lObjSense);
 	}
-	else{
-	    row = origRow;
-	}
-	matrixA2G2->appendRow(row);
-	numElements = row.getNumElements();
-	const int *indices = row.getIndices();
-	const double *elements = row.getElements();
-	for(j = 0; j < numElements; j++){
-	    pos = localModel_->binarySearch(0, lCols -1, indices[j], lColInd);
-	    if(pos >= 0){
-		addedRow.insert(pos, elements[j]);
-	    }
-	}
-	matrixG2->appendRow(addedRow);
+	newMatrix->appendRow(addedRow);
+        addedRow.clear();
+
+	for(i = 0; i < lRows; i++){
+	origRow = matrixG2->getVector(i);
+	addedRow = origRow;
 	newMatrix->appendRow(addedRow);
 	addedRow.insert(i + lCols, -1.00);
 	newMatrix->appendRow(addedRow);
 	addedRow.clear();
+	}
+
+	colIndex = lCols + lRows;
+	for(i = 0; i < lCols; i++){
+	    addedRow.insert(i, 1.00);
+	    addedRow.insert(colIndex + i, -1.00);
+	    newMatrix->appendRow(addedRow);
+	    addedRow.clear();
+	}
+
+	colIndex = 2 * lCols + lRows;
+	for(i = 0; i < lCols; i++){
+	    addedRow.insert(i, -1.00);
+	    addedRow.insert(colIndex + i, -1.00);
+	    newMatrix->appendRow(addedRow);
+	    addedRow.clear();
+	}
+
+	//filling row bounds
+	CoinFillN(newRowLb, newNumRows, -1 * infinity);
+
+	//filling col bounds
+	CoinFillN(newColUb, newNumCols, infinity);
+        for(i = 0; i < lCols; i++){
+	    colIndex = lColInd[i];
+	    newColLb[i] = origColLb[colIndex] - lpSol[colIndex];
+	    newColUb[i] = origColUb[colIndex] - lpSol[colIndex];
+	}
+
+	//filling objective coeffs
+	CoinFillN(newObjCoeff + lCols, numContCols, 1.0);
+
+	//filling integer vars
+	for(i = 0; i < lCols; i++){
+	    colIndex = lColInd[i];
+	    if(oSolver->isInteger(colIndex)){
+		integerVars[cntInt] = i;
+		cntInt ++;
+	    }
+	}
+
+	if(feasCheckSolver == "Cbc"){
+	    watermelonICSolver_ = new OsiCbcSolverInterface();
+	}else if (feasCheckSolver == "SYMPHONY"){
+#ifdef COIN_HAS_SYMPHONY
+	    watermelonICSolver_ = new OsiSymSolverInterface();
+#else
+	    throw CoinError("SYMPHONY chosen as solver, but it has not been enabled",
+			    "findLowerLevelSolWatermelonIC", "MibSCutGenerator");
+#endif
+	}else if (feasCheckSolver == "CPLEX"){
+#ifdef COIN_HAS_CPLEX
+	    watermelonICSolver_ = new OsiCpxSolverInterface();
+#else
+	    throw CoinError("CPLEX chosen as solver, but it has not been enabled",
+			    "findLowerLevelSolWatermelonIC", "MibSCutGenerator");
+#endif
+	}else{
+	    throw CoinError("Unknown solver chosen",
+			    "findLowerLevelSolWatermelonIC", "MibSCutGenerator");
+	}
+
+	watermelonICSolver_->loadProblem(*newMatrix, newColLb, newColUb,
+					 newObjCoeff, newRowLb, newRowUb);
+
+	watermelonICSolver_->setInteger(integerVars, cntInt);
+        watermelonICSolver_->setObjSense(1); //1 min; -1 max
+        watermelonICSolver_->setHintParam(OsiDoReducePrint, true, OsiHintDo);
+
+	delete [] newRowLb;
+	delete [] newRowUb;
+	delete [] newColLb;
+	delete [] newColUb;
+	delete [] newObjCoeff;
+	delete [] integerVars;
     }
 
-    colIndex = lCols + lRows;
-    for(i = 0; i < lCols; i++){
-	addedRow.insert(i, 1.00);
-	addedRow.insert(colIndex + i, -1.00);
-	newMatrix->appendRow(addedRow);
-	addedRow.clear();
-    }
-
-    colIndex = 2 * lCols + lRows;
-    for(i = 0; i < lCols; i++){
-	addedRow.insert(i, -1.00);
-	addedRow.insert(colIndex + i, -1.00);
-	newMatrix->appendRow(addedRow);
-	addedRow.clear();
-    }
+    OsiSolverInterface *nSolver = watermelonICSolver_;
 
     matrixA2G2->times(lpSol, lCoeffsTimesLpSol);
-    
-    //filling row bounds
-    CoinFillN(newRowLb, newNumRows, -1 * infinity);
-    newRowUb[0] = -1;
+
+    //modifying row bounds
+    nSolver->setRowUpper(0, -1);
     for(i = 0; i < lRows; i++){
 	rowIndex = lRowInd[i];
 	if(origRowSense[rowIndex] == 'G'){
-	    rhs = -1 * origRowLb[rowIndex]; 
+	    rhs = -1 * origRowLb[rowIndex];
 	}
 	else{
 	    rhs = origRowUb[rowIndex];
 	}
-	newRowUb[2 * i + 1] = rhs - lCoeffsTimesLpSol[i];
+	nSolver->setRowUpper(2 * i + 1, rhs - lCoeffsTimesLpSol[i]);
     }
-
-    //filling col bounds
-    CoinFillN(newColUb, newNumCols, infinity);
-    for(i = 0; i < lCols; i++){
-	colIndex = lColInd[i];
-	newColLb[i] = origColLb[colIndex] - lpSol[colIndex];
-	newColUb[i] = origColUb[colIndex] - lpSol[colIndex];
-    }
-
-    //filling objective coeffs
-    CoinFillN(newObjCoeff + lCols, numContCols, 1.0);
-
-    //filling integer vars
-    for(i = 0; i < lCols; i++){
-	colIndex = lColInd[i];
-	if(oSolver->isInteger(colIndex)){
-	    integerVars[cntInt] = i;
-	    cntInt ++;
-	}
-    }
-
-    OsiSolverInterface * nSolver;
-
-    if(feasCheckSolver == "Cbc"){
-	nSolver = new OsiCbcSolverInterface();
-    }else if (feasCheckSolver == "SYMPHONY"){
-#ifdef COIN_HAS_SYMPHONY
-	nSolver = new OsiSymSolverInterface();
-#else
-	throw CoinError("SYMPHONY chosen as solver, but it has not been enabled",
-			"findLowerLevelSol", "MibSCutGenerator");
-#endif
-    }else if (feasCheckSolver == "CPLEX"){
-#ifdef COIN_HAS_CPLEX
-	nSolver = new OsiCpxSolverInterface();
-#else
-	throw CoinError("CPLEX chosen as solver, but it has not been enabled",
-			"findLowerLevelSol", "MibsBilevel");
-#endif
-    }else{
-	throw CoinError("Unknown solver chosen",
-			"findLowerLevelSol", "MibsBilevel");
-    }
-
-    nSolver->loadProblem(*newMatrix, newColLb, newColUb,
-			 newObjCoeff, newRowLb, newRowUb);
-
-    nSolver->setInteger(integerVars, cntInt);
-    nSolver->setObjSense(1); //1 min; -1 max
-    nSolver->setHintParam(OsiDoReducePrint, true, OsiHintDo);
 
     if(feasCheckSolver == "Cbc"){
 	        dynamic_cast<OsiCbcSolverInterface *>
@@ -1367,7 +1348,7 @@ MibSCutGenerator::findLowerLevelSolWatermelonIC(CoinPackedMatrix *matrixA2G2,
 #endif
 
     }else if(feasCheckSolver == "CPLEX"){
-	#ifdef COIN_HAS_CPLEX
+#ifdef COIN_HAS_CPLEX
 	nSolver->setHintParam(OsiDoReducePrint);
 	nSolver->messageHandler()->setLogLevel(0);
 	        CPXENVptr cpxEnv =
@@ -1375,7 +1356,7 @@ MibSCutGenerator::findLowerLevelSolWatermelonIC(CoinPackedMatrix *matrixA2G2,
 		assert(cpxEnv);
 		CPXsetintparam(cpxEnv, CPX_PARAM_SCRIND, CPX_OFF);
 		CPXsetintparam(cpxEnv, CPX_PARAM_THREADS, maxThreadsLL);
-		#endif
+#endif
     }
 
     nSolver->branchAndBound();
@@ -1391,12 +1372,6 @@ MibSCutGenerator::findLowerLevelSolWatermelonIC(CoinPackedMatrix *matrixA2G2,
     }
 
     delete [] lCoeffsTimesLpSol;
-    delete [] newRowLb;
-    delete [] newRowUb;
-    delete [] newColLb;
-    delete [] newColUb;
-    delete [] newObjCoeff;
-    delete [] integerVars;
     delete nSolver;
 
 }
@@ -1406,8 +1381,6 @@ bool
 MibSCutGenerator::getAlphaWatermelonIC(double** extRay, double *uselessIneqs,
 				       double* lowerSolution, int numStruct,
 				       int numNonBasic, double* lpSol,
-				       CoinPackedMatrix *matrixA2G2,
-				       CoinPackedMatrix *matrixG2,
 				       std::vector<double> &alphaVec)
 {
     int i, j;
@@ -1444,6 +1417,9 @@ MibSCutGenerator::getAlphaWatermelonIC(double** extRay, double *uselessIneqs,
     
     //store G^2*deltaY
     double *G2TimeslSol = new double[lRows];
+
+    CoinPackedMatrix *matrixA2G2 = localModel_->getLowerConstCoefMatrix();
+    CoinPackedMatrix *matrixG2 = localModel_->getG2Matrix();
 
     matrixA2G2->times(lpSol, lCoeffsTimesLpSol);
     matrixG2->times(lowerSolution, G2TimeslSol);
@@ -5268,5 +5244,81 @@ MibSCutGenerator::getBindingConsBasis()
   setCutUpperBound(upper);
   
   return binding;
+
+}
+
+//#############################################################################
+void
+MibSCutGenerator::getLowerMatrices(bool getLowerConstCoefMatrix,
+				   bool getA2Matrix, bool getG2Matrix)
+{
+    int i, j;
+    int index(0), numElements(0), pos(0);
+    int numCols(localModel_->getNumCols());
+    int uCols(localModel_->getUpperDim());
+    int lCols(localModel_->getLowerDim());
+    int lRows(localModel_->getLowerRowNum());
+    int *uColInd(localModel_->getUpperColInd());
+    int *lColInd(localModel_->getLowerColInd());
+    int *lRowInd(localModel_->getLowerRowInd());
+    char *rowSense = localModel_->getOrigRowSense();
+    CoinPackedMatrix origMatrix = *localModel_->getOrigConstCoefMatrix();
+
+    CoinShallowPackedVector origRow;
+    CoinPackedVector row;
+    CoinPackedVector rowA2;
+    CoinPackedVector rowG2;
+    
+    origMatrix.reverseOrdering();
+    CoinPackedMatrix *matrixA2G2 = new CoinPackedMatrix(false, 0, 0);
+    matrixA2G2->setDimensions(0, numCols);
+    CoinPackedMatrix * matrixA2 = new CoinPackedMatrix(false, 0, 0);
+    matrixA2->setDimensions(0, uCols);
+    CoinPackedMatrix * matrixG2 = new CoinPackedMatrix(false, 0, 0);
+    matrixG2->setDimensions(0, lCols);
+    
+    //extracting matrices A2G2, A2 and G2
+    for(i = 0; i < lRows; i++){
+	index = lRowInd[i];
+	origRow = origMatrix.getVector(index);
+	if(rowSense[index] == 'G'){
+	    row = -1 * origRow;
+	}
+	else{
+	    row = origRow;
+	}
+	matrixA2G2->appendRow(row);
+	numElements = row.getNumElements();
+	const int *indices = row.getIndices();
+	const double *elements = row.getElements();
+	for(j = 0; j < numElements; j++){
+	    pos = localModel_->binarySearch(0, uCols -1, indices[j], uColInd);
+	    if(pos >= 0){
+		rowA2.insert(pos, elements[j]);
+	    }
+	    else{
+		pos = localModel_->binarySearch(0, lCols -1, indices[j], lColInd);
+		rowG2.insert(pos, elements[j]);
+	    }
+	}
+	matrixA2->appendRow(rowA2);
+	matrixG2->appendRow(rowG2);
+	rowA2.clear();
+	rowG2.clear();
+    }
+
+    if(getLowerConstCoefMatrix){
+	localModel_->setLowerConstCoefMatrix(matrixA2G2);
+    }
+    if(getA2Matrix){
+	localModel_->setA2Matrix(matrixA2);
+    }
+    if(getG2Matrix){
+	localModel_->setG2Matrix(matrixG2);
+    }
+
+    delete matrixA2G2;
+    delete matrixA2;
+    delete matrixG2;
 
 }
