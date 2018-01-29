@@ -940,82 +940,77 @@ MibSCutGenerator::getAlphaIC(double** extRay, double* uselessIneqs,
 			     double* lowerSolution, int numStruct, int numNonBasic,
 			     const double* lpSol, std::vector<double> &alphaVec)
 {
-
-    OsiSolverInterface * oSolver = localModel_->solver();
-
+    bool intersectionFound(false);
+    int i;
+    int colIndex(0), rowIndex(0);
+    double alpha(0.0), value(0.0);
     double etol(localModel_->etol_);
-    const CoinPackedMatrix * matrix = oSolver->getMatrixByRow();
-    double * lObjCoeffs = localModel_->getLowerObjCoeffs();
-    double objSense(localModel_->getLowerObjSense());
     int lRows(localModel_->getLowerRowNum());
     int numRows(lRows + 1);
-    int i, j, index, index1;
-    bool intersectionFound(false);
-    double * rowUb = new double[numRows];
-    double * rowLb = new double[numRows];
+    int numCols(localModel_->getNumCols());
     int uCols(localModel_->getUpperDim());
     int lCols(localModel_->getLowerDim());
-    int * uColIndices = localModel_->getUpperColInd();
-    int * lColIndices = localModel_->getLowerColInd();
-    int * lRowIndices = localModel_->getLowerRowInd();
+    int *uColInd(localModel_->getUpperColInd());
+    int *lColInd(localModel_->getLowerColInd());
+    int *lRowInd(localModel_->getLowerRowInd());
+    double *origRowLb(localModel_->getOrigRowLb());
+    double *origRowUb(localModel_->getOrigRowUb());
+    char *rowSense = localModel_->getOrigRowSense();
+    double *lObjCoeffs(localModel_->getLowerObjCoeffs());
+    double objSense(localModel_->getLowerObjSense());
+    CoinPackedMatrix *matrixA2 = localModel_->getA2Matrix();
+    CoinPackedMatrix *matrixG2 = localModel_->getG2Matrix();
 
-    for(i = 0; i < lRows; i++){
-	index = lRowIndices[i];
-	rowLb[i] = oSolver->getRowLower()[index] - 1;
-	rowUb[i] = oSolver->getRowUpper()[index] + 1;
+    double *ray= new double[numCols];
+    CoinZeroN(ray, numCols);
+    double *rhs = new double[numRows];
+    CoinZeroN(rhs, numRows);
+    double *optUpperSol = new double[uCols];
+    CoinZeroN(optUpperSol, uCols);
+    //stores A^2*x (x is the optimal first-level solution of relaxation)
+    double *multA2XOpt = new double[lRows];
+    //Stores G^2*lowerSolution
+    double *multG2LSol = new double[lRows];
+
+    //extracting optimal first-level solution of the relaxation problem
+    for(i = 0; i < uCols; i++){
+	colIndex = uColInd[i];
+	optUpperSol[i] = lpSol[colIndex];
     }
 
-    rowUb[lRows] = 0;
-    rowLb[lRows] = 0;
-
-    double * rhsDiff = new double[numRows];
-    CoinFillN(rhsDiff, numRows, 0.0);
-
-    double tmp(0.0);
+    matrixA2->times(optUpperSol, multA2XOpt);
+    matrixG2->times(lowerSolution, multG2LSol);
 
     for(i = 0; i < lRows; i++){
-	if(((uselessIneqs) && (uselessIneqs[i] > 0.5)) ||
-	   (!uselessIneqs)){
-	    index = lRowIndices[i];
-	    for(j = 0; j < uCols; j++){
-		index1 = uColIndices[j];
-		tmp = matrix->getCoefficient(index, index1);
-		if(tmp != 0){
-		    rhsDiff[i] += tmp  * lpSol[index1];
-		}
-	    }
-	    for(j = 0; j < lCols; j++){
-		index1 = lColIndices[j];
-		tmp = matrix->getCoefficient(index, index1);
-		rhsDiff[i] += tmp  * lowerSolution[j];
-	    }
+	rowIndex = lRowInd[i];
+	if(rowSense[rowIndex] == 'L'){
+	    value = origRowUb[rowIndex];
 	}
+	else{
+	    value = -1 * origRowLb[rowIndex];
+	}
+	rhs[i] = value + 1 - multG2LSol[i] - multA2XOpt[i];
     }
 
     for(i = 0; i < lCols; i++){
-	index1 = lColIndices[i];
-	rowUb[lRows] += objSense * lObjCoeffs[i] * (lpSol[index1] - lowerSolution[i]);
+	colIndex = lColInd[i];
+	rhs[lRows] += objSense * lObjCoeffs[i] * (lpSol[colIndex] - lowerSolution[i]);
     }
-
-    for(i = 0; i < lRows; i++){
-	rowLb[i] += -1 * rhsDiff[i];
-	rowUb[i] += -1 * rhsDiff[i];
-    }
-
-    double out;
 
     for (i = 0; i < numNonBasic; i++){
-	out = solveModelIC(matrix, uselessIneqs, extRay, rowLb,
-			   rowUb, lRows, numRows, numNonBasic, i);
-	alphaVec[i] = out;
-	if(out > -1 * etol){
+	memcpy(ray, extRay[i], sizeof(double) * numCols);
+	alpha = solveModelIC(uselessIneqs, ray, rhs, numNonBasic);
+	alphaVec[i] = alpha;
+	if(alpha > -1 * etol){
 	    intersectionFound = true;
 	}
     }
 
-    delete[] rowUb;
-    delete[] rowLb;
-    delete[] rhsDiff;
+    delete [] ray;
+    delete [] rhs;
+    delete [] optUpperSol;
+    delete [] multA2XOpt;
+    delete [] multG2LSol;
 
     return intersectionFound;
 
@@ -1023,99 +1018,59 @@ MibSCutGenerator::getAlphaIC(double** extRay, double* uselessIneqs,
 
 //#############################################################################
 double
-MibSCutGenerator::solveModelIC(const CoinPackedMatrix* matrix, double* uselessIneqs,
-			       double** extRay, double* rowLb, double* rowUb,
-			       int lowerRows, int numRows, int numNonBasic, int cnt)
+MibSCutGenerator::solveModelIC(double *uselessIneqs, double *ray, double *rhs,
+			       int numNonBasic)
 {
-
-    OsiSolverInterface * hSolver = localModel_->solver();
-
-    CoinPackedMatrix * newMat = new CoinPackedMatrix(false, 0, 0);
-    newMat->setDimensions(0, 1);
-
-    double objSense(localModel_->getLowerObjSense());
-    double * lObjCoeffs = localModel_->getLowerObjCoeffs();
+    bool isUnbounded(true);
+    int i;
+    double value(0.0);
+    double alphaUb(localModel_->solver()->getInfinity()), alpha(0.0);
+    double etol(localModel_->etol_);
     int uCols(localModel_->getUpperDim());
     int lCols(localModel_->getLowerDim());
-    int * uColIndices = localModel_->getUpperColInd();
-    int * lColIndices = localModel_->getLowerColInd();
-    int * lRowIndices = localModel_->getLowerRowInd();
-    double alphaUb(hSolver->getInfinity());
-    double etol(localModel_->etol_);
-    int i, j, index, index1;
-    double tmp(0.0);
-
+    int lRows(localModel_->getLowerRowNum());
+    int numRows(lRows + 1);
+    int *uColInd(localModel_->getUpperColInd());
+    int *lColInd(localModel_->getLowerColInd());
+    double *lObjCoeffs(localModel_->getLowerObjCoeffs());
+    double objSense(localModel_->getLowerObjSense());
+    CoinPackedMatrix *matrixA2 = localModel_->getA2Matrix();
+    
     double * coeff = new double[numRows];
     CoinFillN(coeff, numRows, 0.0);
+    double *upperRay = new double[uCols];
 
-    rowLb[lowerRows] = -1 * hSolver->getInfinity();
-
-    for(i = 0; i < lowerRows; i++){
-	if(((uselessIneqs) && (uselessIneqs[i] > 0.5)) ||
-	   (!uselessIneqs)){
-	    index = lRowIndices[i];
-	    for(j = 0; j < uCols; j++){
-		index1 = uColIndices[j];
-		tmp = matrix->getCoefficient(index, index1);
-		if(tmp != 0){
-		    coeff[i] += tmp * extRay[cnt][index1];
-		}
-	    }
-	}
+    //extract the upper component of ray
+    for(i = 0; i < uCols; i++){
+	upperRay[i] = ray[uColInd[i]];
     }
-    
+
+    matrixA2->times(upperRay, coeff);
+
     for(i = 0; i < lCols; i++){
-	index1 = lColIndices[i];
-	coeff[lowerRows] += -1 * objSense * lObjCoeffs[i] * extRay[cnt][index1];
+	coeff[lRows] += -1 * objSense * lObjCoeffs[i] * ray[lColInd[i]];
     }
 
-    const char * rowsense = hSolver->getRowSense();
-
-    bool isUnbounded(true);
-
-    for (i = 0; i < numRows-1; i++){
+    for(i = 0; i < numRows-1; i++){
 	if(((uselessIneqs) && (uselessIneqs[i] > 0.5)) ||
 	   (!uselessIneqs)){
-	    index = lRowIndices[i];
-	    switch(rowsense[index]){
-	    case 'L':
-		if(coeff[i] > etol){
-		    if(alphaUb > (rowUb[i]/coeff[i])){
-			alphaUb = rowUb[i]/coeff[i];
-			isUnbounded = false;
-		    }
+	    if(coeff[i] > etol){
+		value = rhs[i]/coeff[i];
+		if(alphaUb - value > etol){
+		    alphaUb = value;
+		    isUnbounded = false;
 		}
-		break;
-	    case 'G':
-		if(coeff[i] < (-1 * etol)){
-		    if(alphaUb > (rowLb[i]/coeff[i])){
-			alphaUb = rowLb[i]/coeff[i];
-			isUnbounded= false;
-		    }
-		}
-		break;
-	    case 'E':
-		std::cout
-		    << "MibS cannot currently handle equality constraints." << std::endl;
-		abort();
-		break;
-	    case 'R':
-		std::cout
-		    << "MibS cannot currently handle range constraints." << std::endl;
-		abort();
-		break;
 	    }
 	}
     }
 
-    if(coeff[lowerRows] > etol){
-	if(alphaUb > (rowUb[lowerRows]/coeff[lowerRows])){
-	    alphaUb = rowUb[lowerRows]/coeff[lowerRows];
-	    isUnbounded= false;
+    if(coeff[lRows] > etol){
+	value = rhs[lRows]/coeff[lRows];
+	if(alphaUb - value > etol){
+	    alphaUb = value;
+	    isUnbounded = false;
 	}
     }
-
-    double alpha(0);
 
     assert(alphaUb >= 0);
 
@@ -1127,6 +1082,7 @@ MibSCutGenerator::solveModelIC(const CoinPackedMatrix* matrix, double* uselessIn
     }
 
     delete [] coeff;
+    delete [] upperRay;
 
     return alpha;
 }
