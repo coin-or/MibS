@@ -30,6 +30,7 @@ class MibSCutGenerator : public BlisConGenerator {
    int maximalCutCount_;
    bool isBigMIncObjSet_;
    double bigMIncObj_;
+   OsiSolverInterface * watermelonICSolver_;
     
  public:
    
@@ -91,14 +92,12 @@ class MibSCutGenerator : public BlisConGenerator {
 			int lRows, int numRows, int numNonBasic, int cnt);
 
     /** Helper function for watermelon IC **/
-    void findLowerLevelSolWatermelonIC(CoinPackedMatrix *matrixA2G2, CoinPackedMatrix *matrixG2,
-				       double *uselessIneqs, double *lowerLevelSol,
+    void findLowerLevelSolWatermelonIC(double *uselessIneqs, double *lowerLevelSol,
 				       double* lpSol);
 
     /** Helper function for watermelon IC*/
     bool getAlphaWatermelonIC(double** extRay, double *uselessIneqs, double* lowerSolution,
 			      int numStruct, int numNonBasic, double* lpSol,
-			      CoinPackedMatrix *matrixA2G2, CoinPackedMatrix *matrixG2,
 			      std::vector<double> &alphaVec);
 
     /** Helper function for hypercube IC*/
@@ -151,6 +150,9 @@ class MibSCutGenerator : public BlisConGenerator {
 
    /** old function, delete eventually **/
    double * findDeepestLandPCut1();//stable (but maybe wrong)
+
+   /** Store the matrices A2, G2 and lower-level coeffs (all constraints are 'L') **/
+   void getLowerMatrices(bool getLowerConstCoefMatrix, bool getA2Matrix, bool getG2Matrix);
    
  private:
 

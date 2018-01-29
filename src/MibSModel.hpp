@@ -202,6 +202,17 @@ private:
 
     /** Original matrix of constraints coefficients **/
     CoinPackedMatrix *origConstCoefMatrix_;
+    
+    //we only fill next three matrices if they are required.
+    //For now, we only need them for generating IC and watermelon IC.
+    /** matrix of lower-level coefficients(all constraints are 'L') **/
+    CoinPackedMatrix *lowerConstCoefMatrix_;
+
+    /** matrix of upper-level vars in lower-level problem(all constraints are 'L') **/
+    CoinPackedMatrix *A2Matrix_;
+
+    /** matrix of lower-level vars in lower-level problem(all constraints are 'L') **/
+    CoinPackedMatrix *G2Matrix_;
 
     /** MibSBilevel object **/
     MibSBilevel *bS_;
@@ -335,6 +346,15 @@ public:
 
     /** Set pointer to upper bounds for lower-level variables in lower-level problem **/
     void setLColUbInLProb(double *ptr) {lColUbInLProb_ = ptr;}
+    
+    /** Set pointer to the matrix of LL coefficients(all constraints are 'L') **/
+    void setLowerConstCoefMatrix(CoinPackedMatrix *ptr) {lowerConstCoefMatrix_ = ptr;}
+
+    /** Set pointer to the matrix of UL vars in LL problem(all constraints are 'L') **/
+    void setA2Matrix(CoinPackedMatrix *ptr) {A2Matrix_ = ptr;}
+
+    /** Set pointer to the matrix of LL vars in LL problem(all constraints are 'L') **/
+    void setG2Matrix(CoinPackedMatrix *ptr) {G2Matrix_ = ptr;}
   
     /** Get the upper-level file **/
     std::string getUpperFile() {return ulDataFile_;}
@@ -410,12 +430,18 @@ public:
 
     /** Get pointer to the array of original row sense **/
     char * getOrigRowSense() const {return origRowSense_;}
-<<<<<<< HEAD
-=======
     
-    /** get pointer to the original matrix of constraints coefficients **/
+    /** Get pointer to the original matrix of constraints coefficients **/
     CoinPackedMatrix * getOrigConstCoefMatrix() const {return origConstCoefMatrix_;}
->>>>>>> adding the second way of finding second-level sol for IC
+
+    /** Get pointer to the matrix of LL coefficients(all constraints are 'L') **/
+    CoinPackedMatrix * getLowerConstCoefMatrix() const {return lowerConstCoefMatrix_;}
+
+    /** Get pointer to the matrix of UL vars in LL problem(all constraints are 'L') **/
+    CoinPackedMatrix * getA2Matrix() const {return A2Matrix_;}
+
+    /** Get pointer to the matrix of LL vars in LL problem(all constraints are 'L') **/
+    CoinPackedMatrix * getG2Matrix() const {return G2Matrix_;}
 
     /** Get pointer to the LL objective coefficient array **/
     double * getLowerObjCoeffs() {return lowerObjCoeffs_;}

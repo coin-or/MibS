@@ -84,6 +84,9 @@ MibSModel::~MibSModel()
   if(columnName_) delete [] columnName_;
   if(rowName_) delete [] rowName_;
   if(MibSPar_) delete MibSPar_;
+  if(lowerConstCoefMatrix_) delete lowerConstCoefMatrix_;
+  if(A2Matrix_) delete A2Matrix_;
+  if(G2Matrix_) delete G2Matrix_;
   if(bS_) delete bS_;
     
 }
@@ -146,6 +149,9 @@ MibSModel::initialize()
   rowName_ = NULL;
   interdictCost_ = NULL;
   origConstCoefMatrix_ = NULL;
+  lowerConstCoefMatrix_ = NULL;
+  A2Matrix_ = NULL;
+  G2Matrix_ = NULL;
   bS_ = new MibSBilevel();
   //simpleCutOnly_ = true; //FIXME: should make this a parameter
   //bindingMethod_ = "BLAND"; //FIXME: should make this a parameter
