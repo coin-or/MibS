@@ -119,6 +119,7 @@ MibSModel::initialize()
   isLowerCoeffInt_ = true;
   allUpperBin_ = true;
   allLowerBin_ = true;
+  allLinkingBin_ = true;
   positiveA1_ = true;
   positiveA2_ = true;
   positiveG1_ = true;
@@ -3025,26 +3026,28 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix, const double* ro
     }
 
     //Checks type of variables
-    for(i = 0; i < numCols; i++){
-	if(colType_[i] == 'C'){
-	    isPureInteger_ = false;
-	    break;
-	}
-    }
-
-    for(i = 0; i < numCols; i++){
-	if (colType_[i] != 'B'){
-	    if(binarySearch(0, lCols - 1, i, lColIndices) < 0){
-		if(fixedInd_[i] == 1){
-		    allLinkingBin_ = false;
-		}
-		allUpperBin_ = false;
-	    }
-	    else{
-		allLowerBin_ = false;
-	    }
-	    if((!allUpperBin_) && (!allLowerBin_) && (!allLinkingBin_)){
+    if(isInterdict_ == false){
+	for(i = 0; i < numCols; i++){
+	    if(colType_[i] == 'C'){
+		isPureInteger_ = false;
 		break;
+	    }
+	}
+
+	for(i = 0; i < numCols; i++){
+	    if (colType_[i] != 'B'){
+		if(binarySearch(0, lCols - 1, i, lColIndices) < 0){
+		    if(fixedInd_[i] == 1){
+			allLinkingBin_ = false;
+		    }
+		    allUpperBin_ = false;
+		}
+		else{
+		    allLowerBin_ = false;
+		}
+		if((!allUpperBin_) && (!allLowerBin_) && (!allLinkingBin_)){
+		    break;
+		}
 	    }
 	}
     }
