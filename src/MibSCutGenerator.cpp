@@ -3649,10 +3649,16 @@ MibSCutGenerator::bendersInterdictionCuts(BcpsConstraintPool &conPool)
 {
 
   /** Add specialized bilevel feasibility cuts, as appropriate **/
+  MibSBranchingStrategy branchPar = static_cast<MibSBranchingStrategy>
+      (localModel_->MibSPar_->entry(MibSParams::branchStrategy));
 
-  /*if (localModel_->boundingPass_ > 1){
-     return 0;
-     }*/
+  //when the branching strategy is fractional and the optimal
+  //solution of relaxation is integer, we are forced to generate cut.
+  if(branchPar != MibSBranchingStrategyFractional){
+      if (localModel_->boundingPass_ > 1){
+	  return 0;
+      }
+  }
    
   OsiSolverInterface * solver = localModel_->solver();
 
