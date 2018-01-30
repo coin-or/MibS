@@ -1521,8 +1521,8 @@ MibSCutGenerator::generalNoGoodCut(BcpsConstraintPool &conPool)
     }
 
     for(i = 0; i < uN; i++){
-	if(fixedInd[i] == 1){
-	    index = upperColInd[i];
+	index = upperColInd[i];
+	if(fixedInd[index] == 1){
 	    indexList.push_back(index);
 	    if(sol[index] > etol){
 		valsList.push_back(1.0);
