@@ -2987,7 +2987,7 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix, const double* ro
     std::cout<<"Number of UL Rows: "<<upperRowNum_<<std::endl;                                                                                         
     std::cout<<"Number of LL Rows: "<<lowerRowNum_<<std::endl;
     
-    int i(0),j(0),index(0);                                                                                                                                
+    int i(0),j(0),index(0), mult(0);
     int numCols(numVars_);
     int numRows(numCons_);
     int uCols(upperDim_);
@@ -3086,12 +3086,19 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix, const double* ro
     const double * matElements = newMatrix->getElements();
     const int * matIndices = newMatrix->getIndices();           
     const int * matStarts = newMatrix->getVectorStarts();
-    
+    //Signs of matrices A1, A2, G1 and G2 are determined
+    //based on converting the row senses to 'L'.  
     for(i = 0; i < numCols; i++){
         counterStart = matStarts[i];
         counterEnd = matStarts[i+1];
         for(j = counterStart; j < counterEnd; j++){                                                                  
 	    rowIndex = matIndices[j];
+	    if(newRowSense[rowIndex] == 'L'){
+		mult = 1;
+	    }
+	    else{
+		mult = -1;
+	    }
 	    posRow = binarySearch(0, lRows - 1, rowIndex, lRowIndices);       
 	    posCol = binarySearch(0, lCols - 1, i, lColIndices);
 	    if((fabs(matElements[j] - floor(matElements[j])) > etol_) &&
@@ -3103,7 +3110,7 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix, const double* ro
 		    isLowerCoeffInt_ = false;
 		}
 	    }
-	    if(matElements[j] < 0){
+	    if(mult * matElements[j] < -etol_){
 		if(posRow < 0){
 		    if(posCol < 0){
 			positiveA1_ = false;
@@ -3231,7 +3238,7 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix, const double* ro
     if(paramValue == PARAM_NOTSET)
 	MibSPar()->setEntry(MibSParams::useIncObjCut, PARAM_OFF);
     else if(paramValue == PARAM_ON){
-	if((allUpperBin_ == false) || (positiveA2_ == false)){
+	if((allLinkingBin_ == false) || (positiveA2_ == false)){
 	    std::cout << "The increasing objective cut is not valid for this problem. Automatically disabling this cut." << std::endl;
 	    MibSPar()->setEntry(MibSParams::useIncObjCut, PARAM_OFF);
 	}

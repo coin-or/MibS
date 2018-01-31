@@ -113,6 +113,8 @@ class MibSCutGenerator : public BlisConGenerator {
    /** Add disjunctive cuts for binary upper-level variables (maximal sol) **/
    int incObjCutMaximal(BcpsConstraintPool &conPool);
 
+   int generalWeakIncObjCutCurrent(BcpsConstraintPool &conPool);
+
    /** Add disjunctive cuts for binary upper-level variables (current sol)**/
    int weakIncObjCutCurrent(BcpsConstraintPool &conPool);
 
