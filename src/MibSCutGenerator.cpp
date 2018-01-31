@@ -3091,6 +3091,55 @@ MibSCutGenerator::interdictionCuts(BcpsConstraintPool &conPool)
 
 //#############################################################################
 int
+MibSCutGenerator::generalWeakIncObjCutCurrent(BcpsConstraintPool &conPool)
+{
+    OsiSolverInterface *solver = localModel_->solver();
+    int i;
+    int index(0);
+    int numCuts(0);
+    double cutub(0.0), cutlb(-solver->getInfinity());
+    //sahar: ask about the value of bigM
+    double bigM(10000);
+    double etol(localModel_->etol_);
+    int uN(localModel_->getUpperDim());
+    int lN(localModel_->getLowerDim());
+    int *fixedInd(localModel_->getFixedInd());
+    int *upperColInd(localModel_->getUpperColInd());
+    int *lowerColInd(localModel_->getLowerColInd());
+    double *lObjCoeffs(localModel_->getLowerObjCoeffs());
+    double lowerObjSense(localModel_->getLowerObjSense());
+    const double *sol(solver->getColSolution());
+
+    std::vector<int> indexList;
+    std::vector<double> valsList;
+
+    for(i = 0; i < uN; i++){
+	index = upperColInd[i];
+	if((fixedInd[index] == 1) && (sol[index] < etol)){
+	    indexList.push_back(index);
+	    valsList.push_back(-bigM);
+	}
+    }
+
+    for(i = 0; i < lN; i++){
+	index = lowerColInd[i];
+	if(fabs(lObjCoeffs[i]) > etol){
+	    indexList.push_back(index);
+	    valsList.push_back(lowerObjSense * lObjCoeffs[i]);
+	}
+    }
+
+    cutub = localModel_->bS_->objVal_;
+
+    assert(indexList.size() == valsList.size());
+    numCuts += addCut(conPool, cutlb, cutub, indexList, valsList, false);
+
+    return numCuts;
+
+}
+
+//#############################################################################
+int
 MibSCutGenerator::weakIncObjCutCurrent(BcpsConstraintPool &conPool)
 {
 
@@ -3901,8 +3950,9 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
 	  if (useBendersCut == PARAM_ON){
 	      numCuts += bendersInterdictionCuts(conPool);
 	  }
+	  
 	  if (useIncObjCut == true){
-	      numCuts += weakIncObjCutCurrent(conPool);
+	      numCuts += generalWeakIncObjCutCurrent(conPool);
 	  }
 	 numCuts += feasibilityCuts(conPool) ? true : false;
          if (useBoundCut){
