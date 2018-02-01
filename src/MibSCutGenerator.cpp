@@ -3810,7 +3810,7 @@ MibSCutGenerator::bendersInterdictionCuts(BcpsConstraintPool &conPool)
 	}
      }
      assert(indexList.size() == valsList.size());
-     if (lhs < objval){
+     if (lhs - objval < -etol){
 	numCuts += addCut(conPool, objval, cutub, indexList, valsList, 
 			  false);
      }
