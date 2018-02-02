@@ -135,6 +135,7 @@ MibSModel::initialize()
   origColUb_ = NULL;
   origRowLb_ = NULL;
   origRowUb_ = NULL;
+  origRowSense_ = NULL;
   lowerObjCoeffs_ = NULL;
   columnName_ = NULL;
   rowName_ = NULL;
