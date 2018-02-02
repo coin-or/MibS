@@ -77,6 +77,7 @@ MibSModel::~MibSModel()
   if(origColUb_) delete [] origColUb_;
   if(origRowLb_) delete [] origRowLb_;
   if(origRowUb_) delete [] origRowUb_;
+  if(origRowSense_) delete [] origRowSense_;
   if(lowerObjCoeffs_) delete [] lowerObjCoeffs_;
   if(columnName_) delete [] columnName_;
   if(rowName_) delete [] rowName_;
@@ -687,6 +688,9 @@ MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
       CoinDisjointCopyN(obj, numCols, objCoef);
       memcpy(colType, types, numCols);
 
+      origRowSense_ = new char[numRows];
+      memcpy(origRowSense_, rowSense, numRows);
+
       break;
       
     case 1:
@@ -829,6 +833,12 @@ MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
       int *upperRowInd = new int[1];      
       CoinIotaN(upperColInd, numCols, 0);
       upperRowInd[0] = 0;
+
+      origRowSense_ = new char[numTotalRows];
+      CoinDisjointCopyN(rowSense, numRows, origRowSense_ + auxULRows);
+      CoinFillN(origRowSense_, auxULRows, 'L');
+      CoinFillN(origRowSense_ + (numTotalRows - interdictRows),
+		interdictRows, 'L');
 
       setUpperColInd(upperColInd);
       setUpperRowInd(upperRowInd);
