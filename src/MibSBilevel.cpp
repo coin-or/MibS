@@ -1028,6 +1028,7 @@ MibSBilevel::setUpModel(OsiSolverInterface * oSolver, bool newOsi,
 	     index1 = lRowIndices[i];
 	     if(origRowSense[index1] == 'G'){
 		     signsChanged = true;
+		     break;
 	     }
 	 }
      }
