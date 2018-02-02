@@ -71,7 +71,7 @@ private:
    
     MibSModel *model_;
     MibSHeuristic *heuristic_;
-    OsiSolverInterface * solver_; 
+    OsiSolverInterface * lSolver_; 
     CoinWarmStart * ws_;
    
 public:
@@ -90,7 +90,7 @@ public:
 	optLowerSolutionOrd_ = 0;
 	model_ = 0;
 	heuristic_= 0;
-	solver_ = 0;
+	lSolver_ = 0;
 	ws_ = 0;
     }
    
