@@ -862,8 +862,10 @@ MibSBilevel::setUpModel(OsiSolverInterface * oSolver, bool newOsi,
 
   OsiSolverInterface * nSolver;
 
+  bool signsChanged(false);
   double etol(model_->etol_);
   int i(0), j(0), index1(0), index2(0);
+  double mult(0.0);
   int uCols(model_->getUpperDim());
   int lRows(model_->getLowerRowNum());
   int lCols(model_->getLowerDim());
@@ -883,6 +885,7 @@ MibSBilevel::setUpModel(OsiSolverInterface * oSolver, bool newOsi,
   const double * origRowUb = model_->getOrigRowUb();
   const double * origColLb = model_->getOrigColLb();
   const double * origColUb = model_->getOrigColUb();
+  const char *origRowSense = model_->getOrigRowSense();
   double * rowUb = new double[lRows];
   double * rowLb = new double[lRows];
   //CoinZeroN(rowUb, lRows);
@@ -890,14 +893,15 @@ MibSBilevel::setUpModel(OsiSolverInterface * oSolver, bool newOsi,
   //CoinZeroN(colUb, lCols);
   //CoinZeroN(colLb, lCols);
 
-  /** Set the row bounds **/
-  for(i = 0; i < lRows; i++){
-      index1 = lRowIndices[i];
-      rowLb[i] = origRowLb[index1];
-      rowUb[i] = origRowUb[index1];
-  }
   
   if (newOsi){
+      /** Set the row bounds **/
+      for(i = 0; i < lRows; i++){
+	  index1 = lRowIndices[i];
+	  rowLb[i] = origRowLb[index1];
+	  rowUb[i] = origRowUb[index1];
+      }
+      
      if (feasCheckSolver == "Cbc"){
 	nSolver = new OsiCbcSolverInterface();
      }else if (feasCheckSolver == "SYMPHONY"){
@@ -1017,6 +1021,38 @@ MibSBilevel::setUpModel(OsiSolverInterface * oSolver, bool newOsi,
 
   }else{
      nSolver = lSolver_;
+     
+     signsChanged = false;
+     if(feasCheckSolver == "SYMPHONY"){
+	 for(i = 0; i < lRows; i++){
+	     index1 = lRowIndices[i];
+	     if(origRowSense[index1] == 'G'){
+		     signsChanged = true;
+	     }
+	 }
+     }
+
+     if(!signsChanged){
+	 for(i = 0; i < lRows; i++){
+	     index1 = lRowIndices[i];
+	     rowLb[i] = origRowLb[index1];
+	     rowUb[i] = origRowUb[index1];
+	 }
+     }
+     else{
+	 for(i = 0; i < lRows; i++){
+	     index1 = lRowIndices[i];
+	     if(origRowSense[index1] == 'G'){
+		 rowLb[i] = -origRowUb[index1];
+		 rowUb[i] = -origRowLb[index1];
+	     }
+	     else{
+		 rowLb[i] = origRowLb[index1];
+		 rowUb[i] = origRowUb[index1];
+	     }
+	 }
+     }
+     
   }
   
 #define SYM_VERSION_IS_WS strcmp(SYMPHONY_VERSION, "WS")  
@@ -1132,20 +1168,23 @@ MibSBilevel::setUpModel(OsiSolverInterface * oSolver, bool newOsi,
      //FIXME: NEED TO GET ROW SENSE HERE
      
      /** Get contribution of upper-level columns **/
-     
-     double * upComp = new double[lRows];
-     CoinFillN(upComp, lRows, 0.0);
-     
-     for(i = 0; i < lRows; i++){
-	index1 = lRowIndices[i];
-	for(j = 0; j < uCols; j++){
-	   index2 = uColIndices[j];
-	   coeff = matrix->getCoefficient(index1, index2);
-	   if (coeff != 0){
-	      upComp[i] += coeff * lpSol[index2];
-	   }
-	}
-     }
+      double * upComp = new double[lRows];
+      CoinFillN(upComp, lRows, 0.0);
+
+      for(i = 0; i < lRows; i++){
+	  index1 = lRowIndices[i];
+	  mult = 1;
+	  if((signsChanged) && (origRowSense[index1] == 'G')){
+	      mult = -1;
+	  }
+	  for(j = 0; j < uCols; j++){
+	      index2 = uColIndices[j];
+	      coeff = matrix->getCoefficient(index1, index2);
+	      if (coeff != 0){
+		  upComp[i] += mult * coeff * lpSol[index2];
+	      }
+	  }
+      }
      
      /** Correct the row bounds to account for fixed upper-level vars **/
      
