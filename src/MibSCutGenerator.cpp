@@ -797,18 +797,15 @@ void
 MibSCutGenerator::storeBestSolHypercubeIC(const double* lpSol, double optLowerObj)
 {
 
-    bool warmStartLL(localModel_->MibSPar_->entry
-		     (MibSParams::warmStartLL));
     int maxThreadsLL(localModel_->MibSPar_->entry
 		     (MibSParams::maxThreadsLL));
     int whichCutsLL(localModel_->MibSPar_->entry
 		    (MibSParams::whichCutsLL));
-    int probType(localModel_->MibSPar_->entry
-		 (MibSParams::bilevelProblemType));
     std::string feasCheckSolver(localModel_->MibSPar_->entry
 				(MibSParams::feasCheckSolver));
     
     OsiSolverInterface * oSolver = localModel_->solver();
+    MibSBilevel *bS = localModel_->bS_;
     int i(0);
     int numCols(oSolver->getNumCols());
     int uN(localModel_->getUpperDim());
@@ -826,24 +823,16 @@ MibSCutGenerator::storeBestSolHypercubeIC(const double* lpSol, double optLowerOb
 	}
     }
     
-    OsiSolverInterface *UBSolver = 0;
-    if(UBSolver){
-	delete UBSolver;
+    OsiSolverInterface *UBSolver;
+    
+    if(bS->UBSolver_){
+	bS->UBSolver_ = bS->setUpUBModel(localModel_->getSolver(), optLowerObj, false);
     }
-    UBSolver = localModel_->bS_->setUpUBModel(localModel_->getSolver(), optLowerObj, true);
-    /*#ifndef COIN_HAS_SYMPHONY
-    dynamic_cast<OsiCbcSolverInterface *>
-	(UBSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
-#else
-    dynamic_cast<OsiSymSolverInterface *>
-	(UBSolver)->setSymParam("prep_level", -1);
-    
-    dynamic_cast<OsiSymSolverInterface *>
-	(UBSolver)->setSymParam("verbosity", -2);
-    
-    dynamic_cast<OsiSymSolverInterface *>
-	(UBSolver)->setSymParam("max_active_nodes", 1);
-	#endif*/
+    else{
+	bS->UBSolver_ = bS->setUpUBModel(localModel_->getSolver(), optLowerObj, true);
+    }
+
+    UBSolver = bS->UBSolver_;
 
     if (feasCheckSolver == "Cbc"){
 	dynamic_cast<OsiCbcSolverInterface *>
@@ -855,17 +844,6 @@ MibSCutGenerator::storeBestSolHypercubeIC(const double* lpSol, double optLowerOb
 	
 	sym_environment *env = dynamic_cast<OsiSymSolverInterface *>
 	    (UBSolver)->getSymphonyEnvironment();
-	if (warmStartLL){
-	    sym_set_int_param(env, "keep_warm_start", TRUE);
-	    if (probType == 1){ //Interdiction
-		sym_set_int_param(env, "should_use_rel_br", FALSE);
-		sym_set_int_param(env, "use_hot_starts", FALSE);
-		sym_set_int_param(env, "should_warmstart_node", TRUE);
-		sym_set_int_param(env, "sensitivity_analysis", TRUE);
-		sym_set_int_param(env, "sensitivity_bounds", TRUE);
-		sym_set_int_param(env, "set_obj_upper_lim", FALSE);
-	    }
-	}
 	//Always uncomment for debugging!!
 	sym_set_int_param(env, "do_primal_heuristic", FALSE);
 	sym_set_int_param(env, "verbosity", -2);
@@ -939,7 +917,6 @@ MibSCutGenerator::storeBestSolHypercubeIC(const double* lpSol, double optLowerOb
 	    }
 	}
     }
-    delete UBSolver;
 }
 
 //#############################################################################
