@@ -28,7 +28,9 @@ class MibSCutGenerator : public BlisConGenerator {
    double upper_;
    int auxCount_;
    int maximalCutCount_;
-   
+   bool isBigMIncObjSet_;
+   double bigMIncObj_;
+    
  public:
    
    /** Default Constructor **/
@@ -114,6 +116,8 @@ class MibSCutGenerator : public BlisConGenerator {
    int incObjCutMaximal(BcpsConstraintPool &conPool);
 
    int generalWeakIncObjCutCurrent(BcpsConstraintPool &conPool);
+
+   double findBigMIncObjCut();
 
    /** Add disjunctive cuts for binary upper-level variables (current sol)**/
    int weakIncObjCutCurrent(BcpsConstraintPool &conPool);
