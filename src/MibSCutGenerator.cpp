@@ -56,6 +56,8 @@ MibSCutGenerator::MibSCutGenerator(MibSModel *mibs)
   auxCount_ = 0;
   upper_ = 0.0;
   maximalCutCount_ = 0;
+  isBigMIncObjSet_ = false;
+  bigMIncObj_ = 0.0;
 }
 
 //#############################################################################
@@ -3074,9 +3076,9 @@ MibSCutGenerator::generalWeakIncObjCutCurrent(BcpsConstraintPool &conPool)
     int i;
     int index(0);
     int numCuts(0);
-    double cutub(0.0), cutlb(-solver->getInfinity());
-    //sahar: ask about the value of bigM
-    double bigM(10000);
+    double cutub(0.0), cutlb(-solver->getInfinity()), bigM(0.0);
+    double lObjVal(localModel_->bS_->objVal_);
+    //double bigM(10000);
     double etol(localModel_->etol_);
     int uN(localModel_->getUpperDim());
     int lN(localModel_->getLowerDim());
@@ -3089,6 +3091,13 @@ MibSCutGenerator::generalWeakIncObjCutCurrent(BcpsConstraintPool &conPool)
 
     std::vector<int> indexList;
     std::vector<double> valsList;
+
+    if(!isBigMIncObjSet_){
+    bigMIncObj_ = findBigMIncObjCut();
+    isBigMIncObjSet_ = true;
+    }
+
+    bigM = bigMIncObj_ - lObjVal + 1;
 
     for(i = 0; i < uN; i++){
 	index = upperColInd[i];
@@ -3106,13 +3115,152 @@ MibSCutGenerator::generalWeakIncObjCutCurrent(BcpsConstraintPool &conPool)
 	}
     }
 
-    cutub = localModel_->bS_->objVal_;
+    cutub = lObjVal;
 
     assert(indexList.size() == valsList.size());
     numCuts += addCut(conPool, cutlb, cutub, indexList, valsList, false);
 
     return numCuts;
 
+}
+
+//#############################################################################
+double
+MibSCutGenerator::findBigMIncObjCut()
+{
+
+    std::string feasCheckSolver =
+	localModel_->MibSPar_->entry(MibSParams::feasCheckSolver);
+
+    int maxThreadsLL = localModel_->MibSPar_->entry
+	(MibSParams::maxThreadsLL);
+
+    int whichCutsLL = localModel_->MibSPar_->entry
+		    (MibSParams::whichCutsLL);
+    
+    OsiSolverInterface *oSolver = localModel_->solver();
+
+    int i(0);
+    int intCnt(0), colIndex(0);
+    double bigM(0.0);
+    int colNum(localModel_->getNumOrigVars());
+    int lCols(localModel_->getLowerDim());
+    double lObjSense(localModel_->getLowerObjSense());
+    int *lowerColInd(localModel_->getLowerColInd());
+    double *lObjCoeffs(localModel_->getLowerObjCoeffs());
+    
+    OsiSolverInterface * nSolver;
+    double *objCoeffs = new double[colNum];
+    int *integerVars = new int[colNum];
+    CoinFillN(objCoeffs, colNum, 0.0);
+    CoinFillN(integerVars, colNum, 0);
+
+    if (feasCheckSolver == "Cbc"){
+	nSolver = new OsiCbcSolverInterface();
+    }else if (feasCheckSolver == "SYMPHONY"){
+#ifdef COIN_HAS_SYMPHONY
+	nSolver = new OsiSymSolverInterface();
+#else
+	throw CoinError("SYMPHONY chosen as solver, but it has not been enabled",
+			"findBigMIncObjCut", "MibSCutGenerator");
+#endif
+    }else if (feasCheckSolver == "CPLEX"){
+#ifdef COIN_HAS_CPLEX
+	nSolver = new OsiCpxSolverInterface();
+#else
+	throw CoinError("CPLEX chosen as solver, but it has not been enabled",
+			"findBigMIncObjCut", "MibSCutGenerator");
+#endif
+    }else{
+	throw CoinError("Unknown solver chosen",
+			"findBigMIncObjCut", "MibSCutGenerator");
+    }
+
+    CoinPackedMatrix matrix = *localModel_->origConstCoefMatrix_;
+
+    for(i = 0; i < colNum; i++){
+	if(oSolver->isInteger(i)){
+	    integerVars[intCnt] = i;
+	    intCnt ++;
+	}
+    }
+
+    for(i = 0; i < lCols; i++){
+	colIndex = lowerColInd[i];
+	objCoeffs[colIndex] = lObjCoeffs[i] * lObjSense;
+    }
+	
+
+    nSolver->loadProblem(matrix, localModel_->getOrigColLb(), localModel_->getOrigColUb(),
+			 objCoeffs, localModel_->getOrigRowLb(), localModel_->getOrigRowUb());
+
+    for(i = 0; i < intCnt; i++){
+	nSolver->setInteger(integerVars[i]);
+    }
+
+    nSolver->setObjSense(-1); //1 min; -1 max
+
+    nSolver->setHintParam(OsiDoReducePrint, true, OsiHintDo);
+
+    if (feasCheckSolver == "Cbc"){
+	    dynamic_cast<OsiCbcSolverInterface *>
+		(nSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
+    }else if (feasCheckSolver == "SYMPHONY"){
+#if COIN_HAS_SYMPHONY
+	    sym_environment *env = dynamic_cast<OsiSymSolverInterface *>
+		(nSolver)->getSymphonyEnvironment();
+	    //Always uncomment for debugging!!
+	    sym_set_int_param(env, "do_primal_heuristic", FALSE);
+	    sym_set_int_param(env, "verbosity", -2);
+	    sym_set_int_param(env, "prep_level", -1);
+	    sym_set_int_param(env, "max_active_nodes", maxThreadsLL);
+	    sym_set_int_param(env, "tighten_root_bounds", FALSE);
+	    sym_set_int_param(env, "max_sp_size", 100);
+	    sym_set_int_param(env, "do_reduced_cost_fixing", FALSE);
+	    if (whichCutsLL == 0){
+		sym_set_int_param(env, "generate_cgl_cuts", FALSE);
+	    }else{
+		sym_set_int_param(env, "generate_cgl_gomory_cuts", GENERATE_DEFAULT);
+	    }
+	    if (whichCutsLL == 1){
+		sym_set_int_param(env, "generate_cgl_knapsack_cuts",
+				  DO_NOT_GENERATE);
+		sym_set_int_param(env, "generate_cgl_probing_cuts",
+				  DO_NOT_GENERATE);
+		sym_set_int_param(env, "generate_cgl_clique_cuts",
+				  DO_NOT_GENERATE);
+		sym_set_int_param(env, "generate_cgl_twomir_cuts",
+				  DO_NOT_GENERATE);
+		sym_set_int_param(env, "generate_cgl_flowcover_cuts",
+				  DO_NOT_GENERATE);
+	    }
+#endif
+    }else if (feasCheckSolver == "CPLEX"){
+#ifdef COIN_HAS_CPLEX
+	nSolver->setHintParam(OsiDoReducePrint);
+	nSolver->messageHandler()->setLogLevel(0);
+	    CPXENVptr cpxEnv =
+		dynamic_cast<OsiCpxSolverInterface*>(nSolver)->getEnvironmentPtr();
+	    assert(cpxEnv);
+	    CPXsetintparam(cpxEnv, CPX_PARAM_SCRIND, CPX_OFF);
+	    CPXsetintparam(cpxEnv, CPX_PARAM_THREADS, maxThreadsLL);
+#endif
+    }
+
+    nSolver->branchAndBound();
+    
+    if (nSolver->isProvenOptimal()){
+	bigM = nSolver->getObjValue();
+    }
+    else{
+	assert(0);
+    }
+
+    delete nSolver;
+    delete [] objCoeffs;
+    delete [] integerVars;
+
+    return bigM;
 }
 
 //#############################################################################
