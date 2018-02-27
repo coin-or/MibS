@@ -70,7 +70,10 @@ class MibSCutGenerator : public BlisConGenerator {
    int generalNoGoodCut(BcpsConstraintPool &conPool);
 
    /** Add Benders-type cuts for interdiction problems **/
-   int bendersInterdictionCuts(BcpsConstraintPool &conPool);
+   int bendersInterdictionOneCut(BcpsConstraintPool &conPool,
+				   double *lSolution);
+
+   int bendersInterdictionMultipleCuts(BcpsConstraintPool &conPool);
 
    /** Add Benders-type cuts for zero sum problems **/
    int bendersZeroSumCuts(BcpsConstraintPool &conPool);
