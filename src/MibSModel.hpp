@@ -178,6 +178,12 @@ private:
 
     /** Original column upper bounds from Omega **/
     double * origColUb_;
+
+    /** Lower bounds for lower-level variables in lower-level problem **/
+    double * lColLbInLProb_;
+
+    /** Upper bounds for lower-level variables in lower-level problem **/
+    double * lColUbInLProb_;
   
     /** Original row lower bounds from Omega **/
     double * origRowLb_;
@@ -310,8 +316,8 @@ public:
     void setStructRowInd(int *ptr) {structRowInd_ = ptr;} 
 
     /** Set pointer to array of LL objective coefficients **/
-    void setLowerObjCoeffs(double *ptr) {lowerObjCoeffs_ = ptr;} 
-
+    void setLowerObjCoeffs(double *ptr) {lowerObjCoeffs_ = ptr;}
+    
     /** Set objective sense of LL problem **/
     void setLowerObjSense(double os) {lowerObjSense_ = os;}
 
@@ -323,6 +329,12 @@ public:
   
     /** set the slopes of the lower-level value function **/
     void setValFuncSlopes();
+
+    /** Set pointer to lower bounds for lower-level variables in lower-level problem **/
+    void setLColLbInLProb(double *ptr) {lColLbInLProb_ = ptr;}
+
+    /** Set pointer to upper bounds for lower-level variables in lower-level problem **/
+    void setLColUbInLProb(double *ptr) {lColUbInLProb_ = ptr;}
   
     /** Get the upper-level file **/
     std::string getUpperFile() {return ulDataFile_;}
@@ -414,6 +426,12 @@ public:
     /** Get the interdiction budget **/
     double getInterdictBudget() {return interdictBudget_;}
 
+    /** Get the lower bounds for lower-level variables in lower-level problem **/
+    double * getLColLbInLProb() {return lColLbInLProb_;}
+
+    /** Get the upper bounds for lower-level variables in lower-level problem **/
+    double * getLColUbInLProb() {return lColUbInLProb_;}
+
     /** Get the pointer to MibsBilevel **/
     inline MibSBilevel *getMibSBilevel() {return bS_;}
 
@@ -438,7 +456,9 @@ public:
 			   int structRowNum, 
 			   const int *structRowInd,
 			   double interdictBudget, 
-			   const double *interdictCost);
+			   const double *interdictCost,
+			   const double *lColLbInLProb,
+			   const double *lColUbInLProb);
 
     /** Read problem description file **/
     void readProblemData();

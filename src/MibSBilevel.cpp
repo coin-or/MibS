@@ -856,6 +856,8 @@ MibSBilevel::setUpModel(OsiSolverInterface * oSolver, bool newOsi,
   const double * origRowUb = model_->getOrigRowUb();
   const double * origColLb = model_->getOrigColLb();
   const double * origColUb = model_->getOrigColUb();
+  const double * lColLbInLProb = model_->getLColLbInLProb();
+  const double * lColUbInLProb = model_->getLColUbInLProb();
   const char *origRowSense = model_->getOrigRowSense();
   double * rowUb = new double[lRows];
   double * rowLb = new double[lRows];
@@ -903,9 +905,23 @@ MibSBilevel::setUpModel(OsiSolverInterface * oSolver, bool newOsi,
      //CoinZeroN(objCoeffs, lCols);
 
      // set the col bounds
-     for(i = 0; i < lCols; i++){
-	 colLb[i] = origColLb[lColIndices[i]];
-	 colUb[i] = origColUb[lColIndices[i]];
+     if(lColLbInLProb == NULL){
+	 for(i = 0; i < lCols; i++){
+	     colLb[i] = origColLb[lColIndices[i]];
+	     //colUb[i] = origColUb[lColIndices[i]];
+	 }
+     }
+     else{
+	 memcpy(colLb, lColLbInLProb, sizeof(double) * lCols);
+     }
+
+     if(lColUbInLProb == NULL){
+	 for(i = 0; i < lCols; i++){
+	     colUb[i] = origColUb[lColIndices[i]];
+	 }
+     }
+     else{
+	 memcpy(colUb, lColUbInLProb, sizeof(double) * lCols);
      }
      
      int intCnt(0);

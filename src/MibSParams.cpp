@@ -57,6 +57,9 @@ MibSParams::createKeywordList() {
    keys_.push_back(make_pair(std::string("MibS_turnOffOtherCuts"),
 			     AlpsParameter(AlpsBoolPar, turnOffOtherCuts)));
 
+   keys_.push_back(make_pair(std::string("MibS_printProblemInfo"),
+			     AlpsParameter(AlpsBoolPar, printProblemInfo)));
+
    //--------------------------------------------------------
    // BoolArrayPar
    //--------------------------------------------------------
@@ -209,6 +212,8 @@ MibSParams::setDefaultEntries() {
    setEntry(doDualFixing, false);
 
    setEntry(turnOffOtherCuts, false);
+
+   setEntry(printProblemInfo, true);
 
    //-------------------------------------------------------------
    // Int Parameters.

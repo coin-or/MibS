@@ -1230,6 +1230,9 @@ MibSCutGenerator::boundCuts(BcpsConstraintPool &conPool)
    std::string feasCheckSolver
       = localModel_->MibSPar_->entry(MibSParams::feasCheckSolver);
 
+   int problemType
+      = localModel_->MibSPar_->entry(MibSParams::bilevelProblemType);
+   
    if (localModel_->boundingPass_ > 1){
       return 0;
    }
@@ -1244,6 +1247,8 @@ MibSCutGenerator::boundCuts(BcpsConstraintPool &conPool)
    int * lColIndices = localModel_->getLowerColInd();
    int uCols(localModel_->getUpperDim());
    int * uColIndices = localModel_->getUpperColInd();
+   double * origColLb = localModel_->getOrigColLb();
+   double * origColUb = localModel_->getOrigColUb();
    int i(0), index(0);
    
    OsiSolverInterface * oSolver = localModel_->getSolver();
@@ -1255,7 +1260,7 @@ MibSCutGenerator::boundCuts(BcpsConstraintPool &conPool)
    CoinIotaN(indDel, auxCols,numCols);
    matrix.deleteCols(auxCols, indDel);
 
-   int tCols(oSolver->getNumCols());
+   int tCols(numCols);
    double * nObjCoeffs = new double[tCols];
    
    CoinZeroN(nObjCoeffs, tCols);
@@ -1268,6 +1273,7 @@ MibSCutGenerator::boundCuts(BcpsConstraintPool &conPool)
    int numCuts(0);
    double objval = -oSolver->getInfinity();
    double lower_objval = -oSolver->getInfinity();
+   char * colType = new char[tCols];
 
    if (boundCutOptimal){
 
@@ -1276,23 +1282,29 @@ MibSCutGenerator::boundCuts(BcpsConstraintPool &conPool)
       boundModel->setSolver(&lpSolver);
       boundModel->AlpsPar()->setEntry(AlpsParams::msgLevel, -1);
       boundModel->AlpsPar()->setEntry(AlpsParams::timeLimit, 10);
-      char * colType;
-      if (boundCutRelaxUpper){
-	 colType = new char[tCols];
-	 memcpy(colType, localModel_->colType_, tCols);
-	 for (i = 0; i < uCols; i++){
-	    colType[uColIndices[i]] = 'C';
-	 }
-      }else{
-	 colType = localModel_->colType_;
-      }
+      boundModel->BlisPar()->setEntry(BlisParams::heurStrategy, 0);
+      boundModel->MibSPar()->setEntry(MibSParams::feasCheckSolver, feasCheckSolver.c_str());
+      boundModel->MibSPar()->setEntry(MibSParams::bilevelCutTypes, 0);
+      boundModel->MibSPar()->setEntry(MibSParams::printProblemInfo, false);
 
-      boundModel->loadProblemData(matrix,
-				  oSolver->getColLower(), oSolver->getColUpper(),
-				  nObjCoeffs,
-				  oSolver->getRowLower(), oSolver->getRowUpper(),
-				  colType, 1.0, oSolver->getInfinity(),
-				  oSolver->getRowSense());
+      double *colUpper = new double[tCols];
+      double *colLower = new double[tCols];
+      memcpy(colLower, oSolver->getColLower(), sizeof(double) * tCols);
+      memcpy(colUpper, oSolver->getColUpper(), sizeof(double) * tCols);
+      memcpy(colType, localModel_->colType_, tCols);
+
+      double *lColLbInLProb = new double[lCols];
+      double *lColUbInLProb = new double[lCols];
+      for(i = 0; i < lCols; i++){
+	  index = lColIndices[i];
+	  lColLbInLProb[i] = origColLb[index];
+	  lColUbInLProb[i] = origColUb[index];
+      }
+      
+      //interdiction problems
+      if(problemType == 1){
+	  boundModel->isInterdict_ = true;
+      }
       
       boundModel->loadAuxiliaryData(localModel_->getLowerDim(),
 				    localModel_->getLowerRowNum(),
@@ -1306,7 +1318,12 @@ MibSCutGenerator::boundCuts(BcpsConstraintPool &conPool)
 				    localModel_->getUpperRowInd(),
 				    localModel_->structRowNum_,
 				    localModel_->structRowInd_,
-				    0, NULL);
+				    0, NULL, lColLbInLProb, lColUbInLProb);
+
+      boundModel->loadProblemData(matrix, colLower, colUpper, nObjCoeffs,
+				  oSolver->getRowLower(), oSolver->getRowUpper(),
+				  colType, 1.0, oSolver->getInfinity(),
+				  oSolver->getRowSense());
       
       delete[] indDel;
       
@@ -1320,18 +1337,6 @@ MibSCutGenerator::boundCuts(BcpsConstraintPool &conPool)
       AlpsKnowledgeBrokerSerial broker(argc, argv, *boundModel);
 #endif
       
-      boundModel->MibSPar()->setEntry(MibSParams::bilevelCutTypes, 0);
-      if (boundCutRelaxUpper){
-	 boundModel->MibSPar()->setEntry(MibSParams::usePureIntegerCut, false);
-      }
-      boundModel->MibSPar()->setEntry(MibSParams::feasCheckSolver, feasCheckSolver.c_str());
-      //boundModel->MibSPar()->setEntry(MibSParams::useBendersCut, true);
-      
-      boundModel->MibSPar()->setEntry(MibSParams::useLowerObjHeuristic, false);
-      boundModel->MibSPar()->setEntry(MibSParams::useObjCutHeuristic, false);
-      boundModel->MibSPar()->setEntry(MibSParams::useWSHeuristic, false);
-      boundModel->MibSPar()->setEntry(MibSParams::useGreedyHeuristic, false);
-      
       broker.search(boundModel);
       
       if (boundModel->getNumSolutions() > 0){
@@ -1341,16 +1346,27 @@ MibSCutGenerator::boundCuts(BcpsConstraintPool &conPool)
       broker.printBestSolution();
       objval = boundModel->getKnowledgeBroker()->getBestQuality();
       if (broker.getBestNode()){
-	 lower_objval = broker.getBestNode()->getQuality();
+	  lower_objval = broker.getBestNode()->getQuality();
       }else{
-	 lower_objval = objval;
+	  lower_objval = objval;
       }
-      //delete boundModel;
+
+      delete [] colLower;
+      delete [] colUpper;
+      delete [] lColLbInLProb;
+      delete [] lColUbInLProb;
+      delete boundModel;
+      
    }else if (localModel_->getNumSolutions() > 0){
       //Change this when we actually add a cut
       //double objval;
       //double objval(boundModel.getKnowledgeBroker()->getBestQuality());
-      
+       
+       memcpy(colType, localModel_->colType_, tCols);
+       for (i = 0; i < uCols; i++){
+	   colType[uColIndices[i]] = 'C';
+       }
+	   
       //Create new upperbound for lower level variables (to fix them) 
       BlisSolution* blisSol = dynamic_cast<BlisSolution*>(
 	  localModel_->getKnowledgeBroker()->getBestKnowledge(
@@ -1392,7 +1408,7 @@ MibSCutGenerator::boundCuts(BcpsConstraintPool &conPool)
 				      localModel_->getUpperRowInd(),
 				      localModel_->structRowNum_,
 				      localModel_->structRowInd_,
-				      0, NULL);
+				      0, NULL, NULL, NULL);
       NewboundModel.loadProblemData(matrix,
 				    oSolver->getColLower(), NewColUpper,
 				    nObjCoeffs,
@@ -1450,6 +1466,9 @@ MibSCutGenerator::boundCuts(BcpsConstraintPool &conPool)
       indexList.clear();
       valsList.clear();
    }
+
+   delete [] colType;
+   delete [] nObjCoeffs;
 
    return numCuts;
 }

@@ -342,7 +342,7 @@ MibSTreeNode::process(bool isRoot, bool rampUp)
 
 	if (0)
 	   model->solver()->writeLp("treenode");
-
+	
         lpStatus = static_cast<BlisLpStatus> (bound(model));
 
 	if (model->boundingPass_ == 1) {
