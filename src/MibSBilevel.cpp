@@ -289,7 +289,8 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
     double *lowerSol = new double[lN];
     CoinFillN(lowerSol, lN, 0.0);
 
-    std::vector<double> shouldStoreValues;
+    std::vector<double> shouldStoreValuesLowerSol(lN);
+    std::vector<double> shouldStoreValuesUBSol(lN + uN);
 
     const double * sol = model_->solver()->getColSolution();
     
@@ -406,7 +407,7 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 	    //step 10
 	    //Adding x_L to set E
 		addSolutionToSeenLinkingSolutionPool
-		    (MibSLinkingPoolTagLowerIsInfeasible, shouldStoreValues, 0.0);
+		    (MibSLinkingPoolTagLowerIsInfeasible, shouldStoreValuesLowerSol, 0.0);
 	    }
 	}
 	else{
@@ -418,20 +419,16 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 	    const double * values = lSolver->getColSolution();
 	    
 	    if(useLinkingSolutionPool){
-		for(i = 0; i < lN; i++){
-		    shouldStoreValues.push_back(values[i]);
-		}
+		std::copy(values, values + lN, shouldStoreValuesLowerSol.begin());
 		
 		//step 12
 		//Adding x_L to set E  
 		addSolutionToSeenLinkingSolutionPool
-		    (MibSLinkingPoolTagLowerIsFeasible, shouldStoreValues, objVal_);
-		shouldStoreValues.clear();
+		    (MibSLinkingPoolTagLowerIsFeasible, shouldStoreValuesLowerSol, objVal_);
+		shouldStoreValuesLowerSol.clear();
 	    }
 	    else{
-		for(i = 0; i < lN; i++){
-		    lowerSol[i] = values[i];
-		}
+		memcpy(lowerSol, values, sizeof(double) * lN);
 	    }
 	    
 	    MibSTreeNode * node = static_cast<MibSTreeNode *>(model_->activeNode_);
@@ -472,9 +469,8 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 	    objVal = model_->seenLinkingSolutions[linkSol].lowerObjValue; 
 	    //objVal = seenLinkingSolutions.find(linkSol).
 	    objVal_ = objVal;
-	    for(i = 0; i < lN; i++){
-		lowerSol[i] = model_->seenLinkingSolutions[linkSol].lowerSolution[i];
-	    }  
+	    std::copy(model_->seenLinkingSolutions[linkSol].lowerSolution.begin(),
+		      model_->seenLinkingSolutions[linkSol].lowerSolution.end(), lowerSol);
 	}
 	lowerObj = getLowerObj(sol, model_->getLowerObjSense());
 	
@@ -563,8 +559,8 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 		if (UBSolver->isProvenOptimal()){
 		    isProvenOptimal_ = true;
 		    const double * valuesUB = UBSolver->getColSolution();
+		    std::copy(valuesUB, valuesUB + uN + lN, shouldStoreValuesUBSol.begin());
 		    for (i = 0; i < uN + lN; i++){
-			shouldStoreValues.push_back(valuesUB[i]);
 			pos = binarySearch(0, uN - 1, i, upperColInd);
 			if (pos >= 0){
 			    if ((UBSolver->isInteger(i)) &&
@@ -594,9 +590,9 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 		//Adding x_L to set E
 		if(useLinkingSolutionPool){
 		    addSolutionToSeenLinkingSolutionPool
-			(MibSLinkingPoolTagUBIsSolved, shouldStoreValues, objVal);
+			(MibSLinkingPoolTagUBIsSolved, shouldStoreValuesUBSol, objVal);
 		}
-		shouldStoreValues.clear();
+		shouldStoreValuesUBSol.clear();
 	    
 		//step 23
 		if(isLinkVarsFixed_){
@@ -1334,9 +1330,7 @@ void
 	    linkingSolution.tag = solType;
 	    linkingSolution.lowerObjValue = objValue;
 	    linkingSolution.UBObjValue = 0.0;
-	    for(i = 0; i < lN; i++){
-		linkingSolution.lowerSolution.push_back(shouldStoreValues[i]);
-	    }
+	    linkingSolution.lowerSolution = shouldStoreValues;
 	    linkingSolution.UBSolution.push_back(0);
 	    model_->seenLinkingSolutions[linkSol] = linkingSolution;
 	    break;
@@ -1347,9 +1341,7 @@ void
 	    model_->seenLinkingSolutions[linkSol].UBObjValue = objValue;
 	    if(isProvenOptimal_){
 		model_->seenLinkingSolutions[linkSol].UBSolution.clear();
-		for(i = 0; i < uN + lN; i++){
-		    model_->seenLinkingSolutions[linkSol].UBSolution.push_back(shouldStoreValues[i]);
-		}
+		model_->seenLinkingSolutions[linkSol].UBSolution = shouldStoreValues;
 	    }
 	    break;
 	}
