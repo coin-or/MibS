@@ -326,9 +326,6 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 	    
 	OsiSolverInterface *lSolver = lSolver_;
 	
-	if(1)
-	    lSolver->writeLp("lowerlevel");
-	
 	if (feasCheckSolver == "Cbc"){
 	    dynamic_cast<OsiCbcSolverInterface *> 
 		(lSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
