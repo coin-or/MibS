@@ -65,6 +65,7 @@ class MibSParams : public AlpsParameterSet {
      useGeneralNoGoodCut,
      useIncObjCut,
      useBendersCut,
+     bendersCutType,
      useIntersectionCut,
      intersectionCutType,
      bilevelFreeSetTypeIC,

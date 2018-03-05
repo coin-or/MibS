@@ -63,6 +63,13 @@ enum MibSLinkingPoolTag{
 
 //#############################################################################
 
+enum MibSBendersCutType{
+    MibSBendersCutTypeJustOneCut = 0,
+    MibSBendersCutTypeMultipleCuts
+};
+
+//#############################################################################
+
 enum MibSIntersectionCutType{
     MibSIntersectionCutTypeNotSet = 0,
     MibSIntersectionCutTypeIC,
