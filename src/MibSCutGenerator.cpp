@@ -4815,9 +4815,15 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
 	      generalNoGoodCut(conPool);
 			}
 	  if (useBendersCut == PARAM_ON){
-	      //numCuts += bendersInterdictionMultipleCuts(conPool);
-	      numCuts += bendersInterdictionOneCut(conPool,
-						   bS->optLowerSolutionOrd_); 
+	      int bendersCutType =
+		  localModel_->MibSPar_->entry(MibSParams::bendersCutType);
+	      if(bendersCutType == MibSBendersCutTypeJustOneCut){
+		  numCuts += bendersInterdictionOneCut(conPool,
+						       bS->optLowerSolutionOrd_);
+	      }
+	      else{
+		  numCuts += bendersInterdictionMultipleCuts(conPool);
+	      }		  
 	  }
 	  
 	  if (useIncObjCut == true){

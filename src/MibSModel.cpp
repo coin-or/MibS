@@ -3330,6 +3330,7 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix, const double* ro
 	    MibSPar()->setEntry(MibSParams::useBendersCut, PARAM_OFF);
 	}else{
 	    MibSPar()->setEntry(MibSParams::useBendersCut, PARAM_ON);
+	    MibSPar()->setEntry(MibSParams::bendersCutType, MibSBendersCutTypeJustOneCut);
 	}
     }
     else if(paramValue == PARAM_ON){
@@ -3439,7 +3440,13 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix, const double* ro
 	}
 
 	if(MibSPar_->entry(MibSParams::useBendersCut) == PARAM_ON){
-	    std::cout << "'Benders cut' genertor is on." << std::endl;
+	    if(MibSPar_->entry(MibSParams::bendersCutType) ==
+	       MibSBendersCutTypeJustOneCut){
+		std::cout << "'Benders cut' genertor (just one cut) is on." << std::endl;
+	    }
+	    else{
+		std::cout << "'Benders cut' genertor (multiple cuts) is on." << std::endl;
+	    }
 	}
 
         if(MibSPar_->entry(MibSParams::usePureIntegerCut) == PARAM_ON){
