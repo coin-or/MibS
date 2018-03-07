@@ -4559,11 +4559,11 @@ MibSCutGenerator::bendersInterdictionOneCut(BcpsConstraintPool &conPool, double 
 
   //when the branching strategy is fractional and the optimal
   //solution of relaxation is integer, we are forced to generate cut.
-  if(branchPar != MibSBranchingStrategyFractional){
+  /*if(branchPar != MibSBranchingStrategyFractional){
       if (localModel_->boundingPass_ > 1){
 	  return 0;
       }
-  }
+  }*/
 
   int i;
   int indexU(0), indexL(0);
