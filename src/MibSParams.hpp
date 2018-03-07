@@ -37,6 +37,7 @@ class MibSParams : public AlpsParameterSet {
      doDualFixing,
      turnOffOtherCuts,
      printProblemInfo,
+     allowRemoveCut,
      endOfBoolParams
   };
   

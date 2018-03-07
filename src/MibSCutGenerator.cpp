@@ -75,6 +75,9 @@ MibSCutGenerator::bilevelFeasCut1(BcpsConstraintPool &conPool)
 
   /** Add bilevel feasibility cut **/
 
+  bool allowRemoveCut(localModel_->MibSPar_->entry
+		      (MibSParams::allowRemoveCut));
+
   OsiSolverInterface * solver = localModel_->solver();
 
   const int numCols = solver->getNumCols();
@@ -148,7 +151,7 @@ MibSCutGenerator::bilevelFeasCut1(BcpsConstraintPool &conPool)
 
   assert(indexList.size() == valsList.size());
 
-  numCuts += addCut(conPool, cutlb, cutub, indexList, valsList, true);
+  numCuts += addCut(conPool, cutlb, cutub, indexList, valsList, allowRemoveCut);
 
   delete [] binding;
   delete [] tempVals;
@@ -266,6 +269,8 @@ MibSCutGenerator::intersectionCuts(BcpsConstraintPool &conPool,
 	
 	int useLinkingSolutionPool(localModel_->MibSPar_->entry
 		       (MibSParams::useLinkingSolutionPool));
+
+	bool allowRemoveCut(localModel_->MibSPar_->entry(MibSParams::allowRemoveCut));
 
 	OsiSolverInterface * solver = localModel_->solver();
 
@@ -649,7 +654,7 @@ MibSCutGenerator::intersectionCuts(BcpsConstraintPool &conPool,
 	    }
 
 	    numCuts += addCut(conPool, cutLb, cutUb, indexList, valsList,
-			      false);
+			      allowRemoveCut);
 	    delete [] tmpValsList;
 	    indexList.clear();
 	    valsList.clear();
@@ -1906,6 +1911,9 @@ MibSCutGenerator::boundCuts(BcpsConstraintPool &conPool)
 
    int problemType
       = localModel_->MibSPar_->entry(MibSParams::bilevelProblemType);
+
+   bool allowRemoveCut(localModel_->MibSPar_->entry
+		       (MibSParams::allowRemoveCut));
    
    if (localModel_->boundingPass_ > 1){
       return 0;
@@ -2136,7 +2144,7 @@ MibSCutGenerator::boundCuts(BcpsConstraintPool &conPool)
 	 valsList.push_back(-lObjSense *lObjCoeffs[i]);
       }
       numCuts += addCut(conPool, lower_objval, cutub, indexList, valsList,
-			false);
+			allowRemoveCut);
       indexList.clear();
       valsList.clear();
    }
@@ -2157,6 +2165,9 @@ MibSCutGenerator::generalNoGoodCut(BcpsConstraintPool &conPool)
     //std::cout << "Generating No-Good Cuts." << std::endl;
     int useLinkingSolutionPool(localModel_->MibSPar_->entry
 		   (MibSParams::useLinkingSolutionPool));
+
+    bool allowRemoveCut(localModel_->MibSPar_->entry
+			(MibSParams::allowRemoveCut));
     
     OsiSolverInterface * solver = localModel_->solver();
 
@@ -2208,7 +2219,7 @@ MibSCutGenerator::generalNoGoodCut(BcpsConstraintPool &conPool)
 
     assert(indexList.size() == valsList.size());
 
-    numCuts += addCut(conPool, cutlb, cutub, indexList, valsList, false);
+    numCuts += addCut(conPool, cutlb, cutub, indexList, valsList, allowRemoveCut);
 
     return numCuts;
 
@@ -3765,6 +3776,9 @@ MibSCutGenerator::interdictionCuts(BcpsConstraintPool &conPool)
 int
 MibSCutGenerator::generalWeakIncObjCutCurrent(BcpsConstraintPool &conPool)
 {
+    bool allowRemoveCut(localModel_->MibSPar_->entry
+			(MibSParams::allowRemoveCut));
+    
     OsiSolverInterface *solver = localModel_->solver();
     int i;
     int index(0);
@@ -3811,7 +3825,7 @@ MibSCutGenerator::generalWeakIncObjCutCurrent(BcpsConstraintPool &conPool)
     cutub = lObjVal;
 
     assert(indexList.size() == valsList.size());
-    numCuts += addCut(conPool, cutlb, cutub, indexList, valsList, false);
+    numCuts += addCut(conPool, cutlb, cutub, indexList, valsList, allowRemoveCut);
 
     return numCuts;
 
@@ -4541,6 +4555,8 @@ MibSCutGenerator::bendersInterdictionOneCut(BcpsConstraintPool &conPool, double 
   MibSBranchingStrategy branchPar = static_cast<MibSBranchingStrategy>
       (localModel_->MibSPar_->entry(MibSParams::branchStrategy));
 
+  bool allowRemoveCut(localModel_->MibSPar_->entry(MibSParams::allowRemoveCut));
+
   //when the branching strategy is fractional and the optimal
   //solution of relaxation is integer, we are forced to generate cut.
   if(branchPar != MibSBranchingStrategyFractional){
@@ -4574,7 +4590,7 @@ MibSCutGenerator::bendersInterdictionOneCut(BcpsConstraintPool &conPool, double 
       }
   }
   assert(indexList.size() == valsList.size());
-  numCuts += addCut(conPool, cutlb, cutub, indexList, valsList, false);
+  numCuts += addCut(conPool, cutlb, cutub, indexList, valsList, allowRemoveCut);
 
   indexList.clear();
   valsList.clear();
@@ -4590,6 +4606,8 @@ MibSCutGenerator::bendersInterdictionMultipleCuts(BcpsConstraintPool &conPool)
   /** Add specialized bilevel feasibility cuts, as appropriate **/
   MibSBranchingStrategy branchPar = static_cast<MibSBranchingStrategy>
       (localModel_->MibSPar_->entry(MibSParams::branchStrategy));
+
+  bool allowRemoveCut(localModel_->MibSPar_->entry(MibSParams::allowRemoveCut));
 
   //when the branching strategy is fractional and the optimal
   //solution of relaxation is integer, we are forced to generate cut.
@@ -4678,8 +4696,8 @@ MibSCutGenerator::bendersInterdictionMultipleCuts(BcpsConstraintPool &conPool)
      }
      assert(indexList.size() == valsList.size());
      if (lhs - objval < -etol){
-	numCuts += addCut(conPool, objval, cutub, indexList, valsList, 
-			  false);
+	 numCuts += addCut(conPool, objval, cutub, indexList, valsList,
+			   allowRemoveCut);
      }
      indexList.clear();
      valsList.clear();
@@ -4813,7 +4831,8 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
 
 	  if (useGeneralNoGoodCut == PARAM_ON){
 	      generalNoGoodCut(conPool);
-			}
+	  }
+	  
 	  if (useBendersCut == PARAM_ON){
 	      int bendersCutType =
 		  localModel_->MibSPar_->entry(MibSParams::bendersCutType);
@@ -4829,7 +4848,9 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
 	  if (useIncObjCut == true){
 	      numCuts += generalWeakIncObjCutCurrent(conPool);
 	  }
+	  
 	 numCuts += feasibilityCuts(conPool) ? true : false;
+	 
          if (useBoundCut){
 	     boundCuts(conPool);
 	 }
