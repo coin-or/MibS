@@ -1018,8 +1018,8 @@ MibSModel::setUpperRowData()
    upperRowNum_ = numCons_ - lowerRowNum_;
    int * lowerRowInd = getLowerRowInd();
 
-   if(!upperRowInd_){
-       delete[] upperRowInd_;
+   if(upperRowInd_ != NULL){
+       delete [] upperRowInd_;
    }
 
    if(upperRowNum_ > 0){
