@@ -969,6 +969,20 @@ MibSCutGenerator::getAlphaIC(double** extRay, double* uselessIneqs,
     char *rowSense = localModel_->getOrigRowSense();
     double *lObjCoeffs(localModel_->getLowerObjCoeffs());
     double objSense(localModel_->getLowerObjSense());
+    bool getA2Matrix(false), getG2Matrix(false);
+    
+    if(localModel_->getA2Matrix() == NULL){
+	getA2Matrix = true;
+    }
+
+    if(localModel_->getG2Matrix() == NULL){
+	getG2Matrix = true;
+    }
+
+    if((getA2Matrix) || (getG2Matrix)){
+	getLowerMatrices(false, getA2Matrix, getG2Matrix);
+    }
+    
     CoinPackedMatrix *matrixA2 = localModel_->getA2Matrix();
     CoinPackedMatrix *matrixG2 = localModel_->getG2Matrix();
 
