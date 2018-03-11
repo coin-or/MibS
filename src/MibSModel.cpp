@@ -3467,6 +3467,10 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix, const double* ro
 		std::cout << "'Intersection cut IC' generator is on." << std::endl;
 	    }
 	    if(MibSPar_->entry(MibSParams::intersectionCutType) ==
+	       MibSIntersectionCutTypeWatermelon){
+		std::cout << "'watermelon IC' generator is on." << std::endl;
+	    }
+	    if(MibSPar_->entry(MibSParams::intersectionCutType) ==
 	       MibSIntersectionCutTypeHypercubeIC){
 		std::cout << "'hypercube IC' generator is on." << std::endl;
 	    }
