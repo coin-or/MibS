@@ -568,12 +568,6 @@ MibSCutGenerator::intersectionCuts(BcpsConstraintPool &conPool,
 	
 	    std::vector<int> indexList;
 	    std::vector<double> valsList;
-
-	    for(i = 0; i < numStruct; i++){
-		if((solver->isInteger(i)) && ((1/alpha[i]) - 1 > etol)){
-		    alpha[i] = 1.0;
-		}
-	    }
 		    
 	    for(i = 0; i < numCols; i++){
 		if(isBasic[i] < 1){
