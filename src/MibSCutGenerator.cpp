@@ -579,6 +579,9 @@ MibSCutGenerator::intersectionCuts(BcpsConstraintPool &conPool,
 		if(isBasic[i] < 1){
 		    if(alpha[cnt] >= 0){
 			if (i < numStruct){
+			    if((solver->isInteger(i)) && ((1/alpha[cnt]) - 1 > etol)){
+				alpha[cnt] = 1.0;
+			    }
 			    tmpValsList[i] += (1/alpha[cnt]);
 			}
 			else{
