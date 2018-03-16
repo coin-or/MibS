@@ -1020,6 +1020,7 @@ MibSModel::setUpperRowData()
 
    if(upperRowInd_ != NULL){
        delete [] upperRowInd_;
+       upperRowInd_ = NULL;
    }
 
    if(upperRowNum_ > 0){
