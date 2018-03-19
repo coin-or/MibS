@@ -485,6 +485,10 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 	    shouldPrune_ = true;
 	    storeSol = MibSRelaxationSol;
 	}
+	else{
+	    memcpy(optLowerSolutionOrd_, lowerSol, sizeof(double) * lN);
+	}
+	
 	if(!shouldPrune_){	
 	    //step 18
 	    if((tagInSeenLinkingPool_ != MibSLinkingPoolTagUBIsSolved) &&
