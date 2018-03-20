@@ -510,6 +510,11 @@ MibSCutGenerator::intersectionCuts(BcpsConstraintPool &conPool,
 		    findLowerLevelSol(uselessIneqs, lowerLevelSol, sol);
 		    intersectionFound = getAlphaIC(extRay, uselessIneqs, lowerLevelSol,
 						   numStruct, numNonBasic, sol, alpha);
+
+		    if(intersectionFound == false){
+			localModel_->bS_->shouldPrune_ = true;
+		    }
+		    
 		    delete [] uselessIneqs;
 		    delete [] lowerLevelSol;
 		}
