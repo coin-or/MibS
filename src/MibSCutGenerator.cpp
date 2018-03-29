@@ -304,6 +304,8 @@ MibSCutGenerator::intersectionCuts(BcpsConstraintPool &conPool,
 	int lCols(localModel_->getLowerDim());
 	int lRows(localModel_->getLowerRowNum());
 
+	bool isTimeLimReached(false);
+
 	const double * colLb = solver->getColLower();
 	const double * colUb = solver->getColUpper();
 
@@ -507,7 +509,11 @@ MibSCutGenerator::intersectionCuts(BcpsConstraintPool &conPool,
 		    double *lowerLevelSol = new double[lCols];
 		    CoinZeroN(uselessIneqs, lRows);
 		    CoinZeroN(lowerLevelSol, lCols);
-		    findLowerLevelSol(uselessIneqs, lowerLevelSol, sol);
+		    isTimeLimReached = false;
+		    findLowerLevelSol(uselessIneqs, lowerLevelSol, sol, isTimeLimReached);
+		    if(isTimeLimReached == true){
+			goto TREM_INTERSECTIONCUT;
+		    }
 		    intersectionFound = getAlphaIC(extRay, uselessIneqs, lowerLevelSol,
 						   numStruct, numNonBasic, sol, alpha);
 
@@ -530,8 +536,12 @@ MibSCutGenerator::intersectionCuts(BcpsConstraintPool &conPool,
 		double *uselessIneqs = new double[lRows + 2 * lCols];
 	        double *lowerLevelSol = new double[lCols];
 	        CoinZeroN(uselessIneqs, lRows);
-	        CoinZeroN(lowerLevelSol, lCols); 
-	        findLowerLevelSolWatermelonIC(uselessIneqs, lowerLevelSol, lpSol);
+	        CoinZeroN(lowerLevelSol, lCols);
+		isTimeLimReached = false;
+	        findLowerLevelSolWatermelonIC(uselessIneqs, lowerLevelSol, lpSol, isTimeLimReached);
+		if(isTimeLimReached == true){
+		    goto TREM_INTERSECTIONCUT;
+		}
 		intersectionFound = getAlphaWatermelonIC(extRay, uselessIneqs, lowerLevelSol,
 							 numStruct, numNonBasic, lpSol, alpha);
 	        delete [] uselessIneqs;
@@ -539,8 +549,12 @@ MibSCutGenerator::intersectionCuts(BcpsConstraintPool &conPool,
 	        break;
 	    }
 	case MibSIntersectionCutTypeHypercubeIC:
-	    if(shouldFindBestSol == true){ 
-		storeBestSolHypercubeIC(sol, bS->objVal_);
+	    if(shouldFindBestSol == true){
+		isTimeLimReached = false;
+		storeBestSolHypercubeIC(sol, bS->objVal_, isTimeLimReached);
+		if(isTimeLimReached == true){
+		    goto TREM_INTERSECTIONCUT;
+		}
 	    }
 	    getAlphaHypercubeIC(extRay, numStruct, numNonBasic, alpha);
 	    break;
@@ -661,8 +675,10 @@ MibSCutGenerator::intersectionCuts(BcpsConstraintPool &conPool,
 	    indexList.clear();
 	    valsList.clear();
 	}
+
+ TREM_INTERSECTIONCUT:
 	solver->disableSimplexInterface();
-	
+
 	delete ws;
 	delete [] lpSol;
 	delete[] rstat;
@@ -682,7 +698,7 @@ MibSCutGenerator::intersectionCuts(BcpsConstraintPool &conPool,
 //#############################################################################
 void
 MibSCutGenerator::findLowerLevelSol(double *uselessIneqs, double *lowerLevelSol,
-				    const double *sol)
+				    const double *sol, bool &isTimeLimReached)
 {
     
     std::string feasCheckSolver(localModel_->MibSPar_->entry
@@ -691,6 +707,9 @@ MibSCutGenerator::findLowerLevelSol(double *uselessIneqs, double *lowerLevelSol,
 		     (MibSParams::maxThreadsLL));
     int whichCutsLL(localModel_->MibSPar_->entry
 		    (MibSParams::whichCutsLL));
+
+    double timeLimit(localModel_->AlpsPar()->entry(AlpsParams::timeLimit));
+    double remainingTime(0.0);
 
     bool getA2Matrix(false), getG2Matrix(false);
     OsiSolverInterface * oSolver = localModel_->solver();
@@ -873,6 +892,9 @@ MibSCutGenerator::findLowerLevelSol(double *uselessIneqs, double *lowerLevelSol,
     nSolver->setObjSense(1); //1 min; -1 max
     nSolver->setHintParam(OsiDoReducePrint, true, OsiHintDo);
 
+    remainingTime = timeLimit - localModel_->broker_->subTreeTimer().getTime();
+    remainingTime = CoinMax(remainingTime, 0.00);
+    
     if(feasCheckSolver == "Cbc"){
 	dynamic_cast<OsiCbcSolverInterface *>
 	    (nSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
@@ -880,6 +902,7 @@ MibSCutGenerator::findLowerLevelSol(double *uselessIneqs, double *lowerLevelSol,
 #if COIN_HAS_SYMPHONY
 	sym_environment *env = dynamic_cast<OsiSymSolverInterface *>
 	    (nSolver)->getSymphonyEnvironment();
+	sym_set_dbl_param(env, "time_limit", remainingTime);
 	sym_set_int_param(env, "do_primal_heuristic", FALSE);
         sym_set_int_param(env, "verbosity", -2);
         sym_set_int_param(env, "prep_level", -1);
@@ -919,7 +942,13 @@ MibSCutGenerator::findLowerLevelSol(double *uselessIneqs, double *lowerLevelSol,
 
     nSolver->branchAndBound();
 
-    if(nSolver->isProvenOptimal()){
+    if((feasCheckSolver == "SYMPHONY") && (sym_is_time_limit_reached
+					   (dynamic_cast<OsiSymSolverInterface *>
+					    (nSolver)->getSymphonyEnvironment()))){
+	isTimeLimReached = true;
+	localModel_->bS_->shouldPrune_ = true;
+    }
+    else if(nSolver->isProvenOptimal()){
 	const double *optSol = nSolver->getColSolution();
 	CoinDisjointCopyN(optSol, lCols, lowerLevelSol);
 	CoinDisjointCopyN(optSol + lCols, numBinCols, uselessIneqs);
@@ -1117,7 +1146,7 @@ MibSCutGenerator::solveModelIC(double *uselessIneqs, double *ray, double *rhs,
 //#############################################################################
 void
 MibSCutGenerator::findLowerLevelSolWatermelonIC(double *uselessIneqs, double *lowerLevelSol,
-						double* lpSol)
+						double* lpSol, bool &isTimeLimReached)
 {
     std::string feasCheckSolver(localModel_->MibSPar_->entry
 				(MibSParams::feasCheckSolver));
@@ -1125,6 +1154,8 @@ MibSCutGenerator::findLowerLevelSolWatermelonIC(double *uselessIneqs, double *lo
 		     (MibSParams::maxThreadsLL));
     int whichCutsLL(localModel_->MibSPar_->entry
 		    (MibSParams::whichCutsLL));
+    double timeLimit(localModel_->AlpsPar()->entry(AlpsParams::timeLimit));
+    double remainingTime(0.0);
     
     OsiSolverInterface *oSolver = localModel_->solver();
     double infinity(oSolver->getInfinity());
@@ -1306,6 +1337,9 @@ MibSCutGenerator::findLowerLevelSolWatermelonIC(double *uselessIneqs, double *lo
 	nSolver->setColUpper(i, origColUb[colIndex] - value);
     }
 
+    remainingTime = timeLimit - localModel_->broker_->subTreeTimer().getTime();
+    remainingTime = CoinMax(remainingTime, 0.00);
+
     if(feasCheckSolver == "Cbc"){
 	        dynamic_cast<OsiCbcSolverInterface *>
 		    (nSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
@@ -1313,6 +1347,7 @@ MibSCutGenerator::findLowerLevelSolWatermelonIC(double *uselessIneqs, double *lo
 #if COIN_HAS_SYMPHONY
 	        sym_environment *env = dynamic_cast<OsiSymSolverInterface *>
 		    (nSolver)->getSymphonyEnvironment();
+		sym_set_dbl_param(env, "time_limit", remainingTime);
 		sym_set_int_param(env, "do_primal_heuristic", FALSE);
 		sym_set_int_param(env, "verbosity", -2);
 		sym_set_int_param(env, "prep_level", -1);
@@ -1353,7 +1388,13 @@ MibSCutGenerator::findLowerLevelSolWatermelonIC(double *uselessIneqs, double *lo
 
     nSolver->branchAndBound();
 
-    if(nSolver->isProvenOptimal()){
+    if((feasCheckSolver == "SYMPHONY") && (sym_is_time_limit_reached
+					   (dynamic_cast<OsiSymSolverInterface *>
+					    (nSolver)->getSymphonyEnvironment()))){
+	isTimeLimReached = true;
+	localModel_->bS_->shouldPrune_ = true;
+    }
+    else if(nSolver->isProvenOptimal()){
 	const double *optSol = nSolver->getColSolution();
 	CoinDisjointCopyN(optSol, lCols, lowerLevelSol);
 	CoinDisjointCopyN(optSol + lCols, numContCols, uselessIneqs);
@@ -1491,7 +1532,8 @@ MibSCutGenerator::getAlphaWatermelonIC(double** extRay, double *uselessIneqs,
 
 //#############################################################################
 void
-MibSCutGenerator::storeBestSolHypercubeIC(const double* lpSol, double optLowerObj)
+MibSCutGenerator::storeBestSolHypercubeIC(const double* lpSol, double optLowerObj,
+					  bool &isTimeLimReached)
 {
 
     int maxThreadsLL(localModel_->MibSPar_->entry
@@ -1500,6 +1542,8 @@ MibSCutGenerator::storeBestSolHypercubeIC(const double* lpSol, double optLowerOb
 		    (MibSParams::whichCutsLL));
     std::string feasCheckSolver(localModel_->MibSPar_->entry
 				(MibSParams::feasCheckSolver));
+    double timeLimit(localModel_->AlpsPar()->entry(AlpsParams::timeLimit));
+    double remainingTime(0.0);
     
     OsiSolverInterface * oSolver = localModel_->solver();
     MibSBilevel *bS = localModel_->bS_;
@@ -1531,6 +1575,9 @@ MibSCutGenerator::storeBestSolHypercubeIC(const double* lpSol, double optLowerOb
 
     UBSolver = bS->UBSolver_;
 
+    remainingTime = timeLimit - localModel_->broker_->subTreeTimer().getTime();
+    remainingTime = CoinMax(remainingTime, 0.00);
+    
     if (feasCheckSolver == "Cbc"){
 	dynamic_cast<OsiCbcSolverInterface *>
 	    (UBSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
@@ -1542,6 +1589,7 @@ MibSCutGenerator::storeBestSolHypercubeIC(const double* lpSol, double optLowerOb
 	sym_environment *env = dynamic_cast<OsiSymSolverInterface *>
 	    (UBSolver)->getSymphonyEnvironment();
 	//Always uncomment for debugging!!
+	sym_set_dbl_param(env, "time_limit", remainingTime);
 	sym_set_int_param(env, "do_primal_heuristic", FALSE);
 	sym_set_int_param(env, "verbosity", -2);
 	sym_set_int_param(env, "prep_level", -1);
@@ -1581,8 +1629,14 @@ MibSCutGenerator::storeBestSolHypercubeIC(const double* lpSol, double optLowerOb
 
     UBSolver->branchAndBound();
     localModel_->counterUB_ ++;
-    
-    if(UBSolver->isProvenOptimal()){
+
+    if((feasCheckSolver == "SYMPHONY") && (sym_is_time_limit_reached
+					   (dynamic_cast<OsiSymSolverInterface *>
+					    (UBSolver)->getSymphonyEnvironment()))){
+	isTimeLimReached = true;
+	bS->shouldPrune_ = true;
+    }
+    else if(UBSolver->isProvenOptimal()){
 	MibSSolution *mibsSol = new MibSSolution(numCols,
 						 UBSolver->getColSolution(),
 						 UBSolver->getObjValue(),
@@ -1596,7 +1650,7 @@ MibSCutGenerator::storeBestSolHypercubeIC(const double* lpSol, double optLowerOb
 	    objVal = 10000000;
 	}
 
-    if(useLinkingSolutionPool){
+    if((useLinkingSolutionPool) && (isTimeLimReached == false)){
 	//Add to linking solution pool
 	//localModel_->it = localModel_->seenLinkingSolutions.find(linkSol);
 	//localModel_->it->second.tag = MibSSetETagUBIsSolved;
@@ -2187,6 +2241,7 @@ MibSCutGenerator::generalNoGoodCut(BcpsConstraintPool &conPool)
     
     OsiSolverInterface * solver = localModel_->solver();
 
+    bool isTimeLimReached(false);
     int numCuts(0);
     double etol(localModel_->etol_);
     const double * sol = solver->getColSolution();
@@ -2216,8 +2271,12 @@ MibSCutGenerator::generalNoGoodCut(BcpsConstraintPool &conPool)
 
     
     if(shouldFindBestSol == true){
-	storeBestSolHypercubeIC(sol, bS->objVal_);
+	storeBestSolHypercubeIC(sol, bS->objVal_, isTimeLimReached);
     }
+
+    if(isTimeLimReached == true){
+	goto TERM_GENERALNOGOOD;
+    }	
 
     for(i = 0; i < uN; i++){
 	index = upperColInd[i];
@@ -2236,6 +2295,8 @@ MibSCutGenerator::generalNoGoodCut(BcpsConstraintPool &conPool)
     assert(indexList.size() == valsList.size());
 
     numCuts += addCut(conPool, cutlb, cutub, indexList, valsList, allowRemoveCut);
+
+    TERM_GENERALNOGOOD:
 
     return numCuts;
 
