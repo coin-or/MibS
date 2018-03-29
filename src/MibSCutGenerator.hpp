@@ -83,7 +83,8 @@ class MibSCutGenerator : public BlisConGenerator {
     int intersectionCuts(BcpsConstraintPool &conPool,
 			 double *optLowerSolution);
     /** Helper function for IC*/
-    void findLowerLevelSol(double *uselessIneqs, double *lowerLevelSol, const double *sol);
+    void findLowerLevelSol(double *uselessIneqs, double *lowerLevelSol, const double *sol,
+			   bool &isTimeLimReached);
 
     /** Helper function for IC*/
     bool getAlphaIC(double** extRay, double *uselessIneqs, double* lowerSolution, int numStruct,
@@ -94,7 +95,7 @@ class MibSCutGenerator : public BlisConGenerator {
 
     /** Helper function for watermelon IC **/
     void findLowerLevelSolWatermelonIC(double *uselessIneqs, double *lowerLevelSol,
-				       double* lpSol);
+				       double* lpSol, bool &isTimeLimReached);
 
     /** Helper function for watermelon IC*/
     bool getAlphaWatermelonIC(double** extRay, double *uselessIneqs, double* lowerSolution,
@@ -102,7 +103,7 @@ class MibSCutGenerator : public BlisConGenerator {
 			      std::vector<double> &alphaVec);
 
     /** Helper function for hypercube IC*/
-    void storeBestSolHypercubeIC(const double* lpSol, double optLowerObj);
+    void storeBestSolHypercubeIC(const double* lpSol, double optLowerObj, bool &isTimeLimReached);
 
     /** Helper function for hypercube IC*/
     void getAlphaHypercubeIC(double** extRay, int numStruct, int numNonBasic,

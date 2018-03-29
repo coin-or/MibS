@@ -277,6 +277,8 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 				    (MibSParams::computeBestUBWhenLVarsFixed));
     int useLinkingSolutionPool(model_->MibSPar_->entry
 			    (MibSParams::useLinkingSolutionPool));
+    double timeLimit(model_->AlpsPar()->entry(AlpsParams::timeLimit));
+    double remainingTime(0.0);
     MibSSolType storeSol(MibSNoSol);
     int lN(model_->lowerDim_); // lower-level dimension
     int uN(model_->upperDim_); // lower-level dimension
@@ -325,6 +327,9 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 	}
 	    
 	OsiSolverInterface *lSolver = lSolver_;
+
+	remainingTime = timeLimit - model_->broker_->subTreeTimer().getTime();
+	remainingTime = CoinMax(remainingTime, 0.00);
 	
 	if (feasCheckSolver == "Cbc"){
 	    dynamic_cast<OsiCbcSolverInterface *> 
@@ -349,6 +354,7 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 		}
 	    }
 	    //Always uncomment for debugging!!
+	    sym_set_dbl_param(env, "time_limit", remainingTime);
 	    sym_set_int_param(env, "do_primal_heuristic", FALSE);
 	    sym_set_int_param(env, "verbosity", -2);
 	    sym_set_int_param(env, "prep_level", -1);
@@ -396,8 +402,15 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
   
 	model_->counterVF_ ++;
 	isLowerSolved_ = true;
-  
-	if(!lSolver->isProvenOptimal()){
+	
+	if((feasCheckSolver == "SYMPHONY") && (sym_is_time_limit_reached
+					       (dynamic_cast<OsiSymSolverInterface *>
+						(lSolver)->getSymphonyEnvironment()))){
+	    shouldPrune_ = true;
+	    storeSol = MibSNoSol;
+	    goto TERM_CHECKBILEVELFEAS;
+	}
+	else if(!lSolver->isProvenOptimal()){
 	    LPSolStatus_ = MibSLPSolStatusInfeasible;
 	    isProvenOptimal_ = false;
 	    if(useLinkingSolutionPool){
@@ -506,6 +519,9 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 
 		UBSolver = UBSolver_;
 
+		remainingTime = timeLimit - model_->broker_->subTreeTimer().getTime();
+		remainingTime = CoinMax(remainingTime, 0.00);
+
                 if (feasCheckSolver == "Cbc"){
 		    dynamic_cast<OsiCbcSolverInterface *>
 			(UBSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
@@ -516,6 +532,7 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 		    sym_environment *env = dynamic_cast<OsiSymSolverInterface *>
 			(UBSolver)->getSymphonyEnvironment();
 		    //Always uncomment for debugging!!
+		    sym_set_dbl_param(env, "time_limit", remainingTime);
 		    sym_set_int_param(env, "do_primal_heuristic", FALSE);
 		    sym_set_int_param(env, "verbosity", -2);
 		    sym_set_int_param(env, "prep_level", -1);
@@ -557,7 +574,14 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 		UBSolver->branchAndBound();
 		model_->counterUB_ ++;
 		isUBSolved_ = true;
-		if (UBSolver->isProvenOptimal()){
+		if((feasCheckSolver == "SYMPHONY") && (sym_is_time_limit_reached
+						       (dynamic_cast<OsiSymSolverInterface *>
+							(UBSolver)->getSymphonyEnvironment()))){
+		    shouldPrune_ = true;
+		    storeSol = MibSNoSol;
+		    goto TERM_CHECKBILEVELFEAS;
+		}
+		else if (UBSolver->isProvenOptimal()){
 		    isProvenOptimal_ = true;
 		    const double * valuesUB = UBSolver->getColSolution();
 		    std::copy(valuesUB, valuesUB + uN + lN, shouldStoreValuesUBSol.begin());
@@ -620,6 +644,9 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 	    }
 	}
     }
+
+ TERM_CHECKBILEVELFEAS:
+    
     delete [] lowerSol;
 
     return storeSol;
