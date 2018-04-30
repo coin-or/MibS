@@ -419,6 +419,10 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 		addSolutionToSeenLinkingSolutionPool
 		    (MibSLinkingPoolTagLowerIsInfeasible, shouldStoreValuesLowerSol, 0.0);
 	    }
+	    if(isLinkVarsFixed_){
+	      useBilevelBranching_ = false;
+	      shouldPrune_ = true;
+	    }
 	}
 	else{
 	    //const double * sol = model_->solver()->getColSolution();
