@@ -118,6 +118,8 @@ MibSModel::initialize()
   sizeFixedInd_ = 0;
   counterVF_ = 0;
   counterUB_ = 0;
+  timerVF_ = 0.0;
+  timerUB_ = 0.0;
   countIteration_ = 0;
   isInterdict_ = false;
   isPureInteger_ = true;

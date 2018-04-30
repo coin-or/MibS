@@ -278,7 +278,7 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
     int useLinkingSolutionPool(model_->MibSPar_->entry
 			    (MibSParams::useLinkingSolutionPool));
     double timeLimit(model_->AlpsPar()->entry(AlpsParams::timeLimit));
-    double remainingTime(0.0);
+    double remainingTime(0.0), startTimeVF(0.0), startTimeUB(0.0);
     MibSSolType storeSol(MibSNoSol);
     int lN(model_->lowerDim_); // lower-level dimension
     int uN(model_->upperDim_); // lower-level dimension
@@ -397,7 +397,9 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 	    lSolver->resolve();
 	    setWarmStart(lSolver->getWarmStart());
 	}else{
-	    lSolver->branchAndBound();
+	  startTimeVF = model_->broker_->subTreeTimer().getTime();
+	  lSolver->branchAndBound();
+	  model_->timerVF_ += model_->broker_->subTreeTimer().getTime() - startTimeVF;
 	}
   
 	model_->counterVF_ ++;
@@ -575,7 +577,9 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 		}
 
 		//step 19
+		startTimeUB = model_->broker_->subTreeTimer().getTime(); 
 		UBSolver->branchAndBound();
+		model_->timerUB_ += model_->broker_->subTreeTimer().getTime() - startTimeUB;
 		model_->counterUB_ ++;
 		isUBSolved_ = true;
 		if((feasCheckSolver == "SYMPHONY") && (sym_is_time_limit_reached
