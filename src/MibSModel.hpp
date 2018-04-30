@@ -102,6 +102,12 @@ private:
     /** Number of (UB) solved **/
     int counterUB_;
 
+    /** Time for solving (VF) **/
+    double timerVF_;
+
+    /** Time for solving (UB) **/
+    double timerUB_;
+
     /** Determines type of problem(general or interdiction) **/
     bool isInterdict_;
 
