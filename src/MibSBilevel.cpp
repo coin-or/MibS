@@ -903,8 +903,8 @@ MibSBilevel::setUpModel(OsiSolverInterface * oSolver, bool newOsi,
       /** Set the row bounds **/
       for(i = 0; i < lRows; i++){
 	  index1 = lRowIndices[i];
-	  rowLb[i] = origRowLb[index1];
-	  rowUb[i] = origRowUb[index1];
+	  rowLb[i] = round(origRowLb[index1]);
+	  rowUb[i] = round(origRowUb[index1]);
       }
       
      if (feasCheckSolver == "Cbc"){
@@ -1209,8 +1209,8 @@ MibSBilevel::setUpModel(OsiSolverInterface * oSolver, bool newOsi,
      /** Correct the row bounds to account for fixed upper-level vars **/
      
      for(i = 0; i < lRows; i++){
-	nSolver->setRowLower(i, rowLb[i] - upComp[i]);
-	nSolver->setRowUpper(i, rowUb[i] - upComp[i]);
+	 nSolver->setRowLower(i, round(rowLb[i] - upComp[i]));
+	 nSolver->setRowUpper(i, round(rowUb[i] - upComp[i]));
      }
      
      delete [] upComp;
