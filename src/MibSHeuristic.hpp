@@ -70,8 +70,13 @@ class MibSHeuristic {
 
   double getLowerObj(const double * sol, double objSense);
 
+  void addSolutionToSeenLinkingSolutionPoolHeur(std::vector<double> &linkSol,
+						std::vector<double> &shouldStoreValues,
+						double objValue);
+
   bfSol * getBilevelSolution(const double * sol, double origLower);
   bfSol * getBilevelSolution1(const double * sol);
+
 
 };
 
