@@ -605,9 +605,7 @@ MibSHeuristic::objCutHeuristic()
     }
 
     startTimeVF = model->broker_->subTreeTimer().getTime();
-    lSolver->writeLp("lSolver1Before");
     lSolver->branchAndBound();
-    lSolver->writeLp("lSolver1After");
     model->timerVF_ += model->broker_->subTreeTimer().getTime() - startTimeVF;
     model->counterVF_ ++;
 
@@ -736,9 +734,7 @@ MibSHeuristic::objCutHeuristic()
 #endif
   }
 
-  hSolver->writeLp("hSolverBefore");
   hSolver->branchAndBound();
-  hSolver->writeLp("hSolverAfter");
 
   if((feasCheckSolver == "SYMPHONY") && (sym_is_time_limit_reached
 					 (dynamic_cast<OsiSymSolverInterface *>
@@ -855,9 +851,7 @@ MibSHeuristic::objCutHeuristic()
       }
 
       startTimeVF = model->broker_->subTreeTimer().getTime();
-      lSolver->writeLp("lSolver2Before");
       lSolver->branchAndBound();
-      lSolver->writeLp("lSolver2After");
       model->timerVF_ += model->broker_->subTreeTimer().getTime() - startTimeVF;
       model->counterVF_ ++;
 
