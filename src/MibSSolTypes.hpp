@@ -25,36 +25,51 @@ class mcSol{
   std::pair<double, double> objPair_;
 
   /** the column solution that corresponds to the obj pair **/
-  const double * colSol_;
+  double * colSol_;
+
+  int len_;
 
  public:
   
   mcSol()
-    : objPair_(0.0, 0.0), colSol_(0) {
+    : objPair_(0.0, 0.0), colSol_(NULL), len_(0){
   }
 
- mcSol(std::pair<double, double> objpair, const double * colsol)
-   : objPair_(objpair), colSol_(colsol) {
+  mcSol(std::pair<double, double> objpair, double * colsol, int len)
+    : objPair_(objpair), colSol_(colsol), len_(len) {
 
+  }
+
+  mcSol(const mcSol &copyObj) { 
+    objPair_ = copyObj.objPair_;
+    len_ = copyObj.len_;
+    if(len_ > 0){
+      colSol_ = new double[len_];
+      memcpy(colSol_, copyObj.colSol_, sizeof(double) * len_);
+    }
   }
 
   ~mcSol()
     {
-      //if(colSol_) delete [] colSol_;
+      if(colSol_) delete [] colSol_;
     }
 
   std::pair<double, double> getObjPair() {return objPair_;}
-  const double * getColumnSol() {return colSol_;}
+  double * getColumnSol() {return colSol_;}
 
-  /*
-  mcSol * operator=(mcSol * sol)
-    {
+  
+  mcSol &operator=(mcSol &sol)
+  {
       mcSol tmp;
-      tmp.objPair_ = sol->getObjPair();
-      tmp.colSol_ = sol>getColumnSol();
-
-    }
-  */
+      if(len_ > 0){
+	delete [] colSol_;
+	colSol_ = new double[len_];
+	memcpy(colSol_, tmp.colSol_, sizeof(double) * len_);
+      }
+      tmp.objPair_ = sol.objPair_;
+      tmp.len_ = sol.len_;
+  }
+  
 };
 
 //#############################################################################
@@ -66,29 +81,52 @@ class bfSol{
   double objVal_;
 
   /** the column solution that corresponds to the obj value **/
-  const double * colSol_;
+  double * colSol_;
+
+  int len_;
 
  public:
   
  bfSol()
-   : objVal_(0.0), colSol_(0) {
+   : objVal_(0.0), colSol_(NULL), len_(0){
   }
 
- bfSol(double objval, const double * colsol)
-   : objVal_(objval), colSol_(colsol) {
+  bfSol(double objval, double * colsol, int len)
+   : objVal_(objval), colSol_(colsol), len_(len){
     
+  }
+
+  bfSol(const bfSol &copyObj) {
+    objVal_ = copyObj.objVal_;
+    len_ = copyObj.len_;
+    if(len_ > 0){
+      colSol_ = new double[len_];
+      memcpy(colSol_, copyObj.colSol_, sizeof(double) * len_);
+    }
   }
   
   ~bfSol()
     {
-      //if(colSol_) delete [] colSol_;
+      if(colSol_) delete [] colSol_;
     }
 
   double getObjVal() {return objVal_;}
-  const double * getColumnSol() {return colSol_;}
+  double * getColumnSol() {return colSol_;}
 
   void setObjVal(double val) {objVal_ = val;}
   void setColumnSol(double * sol) {colSol_ = sol;}
+
+  bfSol &operator=(bfSol &sol)
+  {
+    bfSol tmp;
+    if(len_ > 0){
+      delete [] colSol_;
+      colSol_ = new double[len_];
+      memcpy(colSol_, tmp.colSol_, sizeof(double) * len_);
+    }
+    tmp.objVal_ = sol.objVal_;
+    tmp.len_ = sol.len_;
+  }
 
 
 };
