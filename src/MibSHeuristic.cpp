@@ -1056,10 +1056,10 @@ MibSHeuristic::greedyHeuristic()
     iter++;
   }
   
-  /*
-    now we find a feasible solution by fixing upper-level vars
-    and solving the lower-level problem
-  */
+  
+   // now we find a feasible solution by fixing upper-level vars
+  //  and solving the lower-level problem
+  
   
   double * incumbentSol = new double[tCols];
   double * colsol = new double[tCols];
@@ -1073,11 +1073,14 @@ MibSHeuristic::greedyHeuristic()
 	std::cout << "fixed " << i << std::endl;
   }
 
-  bfSol * sol = getBilevelSolution(colsol, lObjSense * oSolver->getInfinity());
+  bool isTimeLimReached(false);
 
-  if(sol){
-    double incumbentObjVal = sol->getObjVal();
-    CoinCopyN(sol->getColumnSol(), tCols, incumbentSol);
+  bfSol sol = getBilevelSolution(colsol, lObjSense * oSolver->getInfinity(),
+				   isTimeLimReached);
+
+  if(sol.getColumnSol()){
+    double incumbentObjVal = sol.getObjVal();
+    CoinCopyN(sol.getColumnSol(), tCols, incumbentSol);
     
     MibSSolution * mibSol = new MibSSolution(tCols,
 					     incumbentSol,
@@ -1105,24 +1108,30 @@ MibSHeuristic::weightedSumsHeuristic()
   std::queue< SolPair > probQueue;
   std::list< double > BETAS;
   std::map<double, mcSol> mcSolutions;
-  mcSol sol0 = mcSol();
-  mcSol sol1 = mcSol();
-  mcSol sol = mcSol();
+  //mcSol sol0 = mcSol();
+  //mcSol sol1 = mcSol();
+  //mcSol sol = mcSol();
   double beta(0.0);
   double slope(0.0);
-  double etol(etol_);   
+  double etol(etol_);
+  bool foundSolution(true);
 
   BETAS.push_back(1.0);
   BETAS.push_back(0.0);
 
   /** First solve the subproblem for beta = 1 and beta = 0 **/
   
-  sol1 = solveSubproblem(1.0); // beta = 1
+  mcSol sol1 = solveSubproblem(1.0, foundSolution); // beta = 1
   numProblems_++;
+  if(foundSolution == false){
+    return;
+  }
   mcSolutions.insert(std::make_pair(1.0, sol1));
 
   int i(0);
-  int tCols(MibSModel_->getLowerDim() + MibSModel_->getUpperDim());
+  //int tCols(MibSModel_->getLowerDim() + MibSModel_->getUpperDim());
+  int tCols(MibSModel_->getSolver()->getNumCols());
+  
   if(0){
     std::cout << "supported solution added." << std::endl;
     std::cout << "support obj value: " 
@@ -1135,8 +1144,11 @@ MibSHeuristic::weightedSumsHeuristic()
     }
   }
   
-  sol0 = solveSubproblem(0.0);// beta = 0
+  mcSol sol0 = solveSubproblem(0.0, foundSolution);// beta = 0
   numProblems_++;
+  if(foundSolution == false){
+    return;
+  } 
   mcSolutions.insert(std::make_pair(0.0, sol0));
 
   if(0){
@@ -1177,7 +1189,10 @@ MibSHeuristic::weightedSumsHeuristic()
 	  //std::cout << "Solving with beta = " << beta << std::endl;
 	
 	BETAS.push_back(beta);
-	sol = solveSubproblem(beta);
+	mcSol sol = solveSubproblem(beta, foundSolution);
+	if(foundSolution == false){
+	 return;
+	} 
 	numProblems_++;
       
 	/*******************************************/ 
@@ -1230,16 +1245,19 @@ MibSHeuristic::createBilevelSolutions(std::map<double, mcSol> mcSolutions)
 {
 
   MibSModel * model = MibSModel_;
-  double uObjSense(model->getSolver()->getObjSense());
+  OsiSolverInterface * oSolver = model->getSolver(); 
+  double uObjSense(oSolver->getObjSense());
   int lCols(model->getLowerDim());
   int uCols(model->getUpperDim());
 
-  int tCols(uCols + lCols); 
+  //int tCols(uCols + lCols);
+  int tCols(oSolver->getNumCols());
 
   double incumbentObjVal(model->getSolver()->getInfinity() * uObjSense);
   double * incumbentSol = new double[tCols];
 
   int i(0);
+  bool shouldStoreSol(false), isTimeLimReached(false);
 
   if(!bestSol_)
     bestSol_ = new double[tCols];
@@ -1255,58 +1273,34 @@ MibSHeuristic::createBilevelSolutions(std::map<double, mcSol> mcSolutions)
     mcSol tmpsol = iter->second;
     const double * colsol = tmpsol.getColumnSol();
     double origLower = tmpsol.getObjPair().second;
-    if(0){
-      std::cout << "Candidate solution value: " << origLower << std::endl;
-      for(i = 0; i < tCols; i++){
-	std::cout << "colsol[" << i << "] :" 
-		  << colsol[i] << std::endl;
-      }
-    }
     
-    bfSol * sol = getBilevelSolution(colsol, origLower);
+    bfSol sol = getBilevelSolution(colsol, origLower, isTimeLimReached);
 
-    if(sol){
-      
-
-      if(0){
-	std::cout << "Returned solution: " << std::endl;
-	for(i = 0; i < tCols; i++){
-	  std::cout << "sol->getColumnSol[" << i << "]" 
-		    << sol->getColumnSol()[i] << std::endl;
-	}
-	std::cout << "sol->getObjVal: " << sol->getObjVal() << std::endl;
-      }
-      
-      if(sol->getObjVal() < incumbentObjVal){
-
-	incumbentObjVal = sol->getObjVal();
-	CoinCopyN(sol->getColumnSol(), tCols, incumbentSol);
-
-	if(0){
-	  std::cout << "New incumbent found." << std::endl;
-	  for(i = 0; i < tCols; i++){
-	    std::cout << "incumbentSol[" << i 
-		      << "]: " << incumbentSol[i] << std::endl;
-	  }
-	  std::cout << "incumbentObjVal: " << incumbentObjVal << std::endl;
-	}
-	
-      }
+    if(isTimeLimReached == true){
+      break;
     }
 
+    if(isTimeLimReached == false){
+      if(sol.getObjVal() < incumbentObjVal){
+	incumbentObjVal = sol.getObjVal();
+	if(sol.getColumnSol()){
+	  shouldStoreSol = true;
+	  CoinCopyN(sol.getColumnSol(), tCols, incumbentSol);
+	}
+	else{
+	  shouldStoreSol = false;
+	}
+      }
+    }
   }
-
-
- 
-  if(0){
-    std::cout << "This solution comes from MibSHeuristic.cpp:742" << std::endl;
-  }
-  MibSSolution * mibSol = new MibSSolution(tCols,
-					   incumbentSol,
-					   incumbentObjVal,
-					   model);
   
-  model->storeSolution(BlisSolutionTypeHeuristic, mibSol);
+  if(shouldStoreSol == true){
+    MibSSolution * mibSol = new MibSSolution(tCols,
+					     incumbentSol,
+					     incumbentObjVal,
+					     model);
+    model->storeSolution(BlisSolutionTypeHeuristic, mibSol);
+  }
 
   //need to add this solution to mibssolutions instead
   //bestObjVal_ = incumbentObjVal;
@@ -1422,108 +1416,205 @@ MibSHeuristic::checkLowerFeasibility(OsiSolverInterface * si,
 
 
 //#############################################################################
-bfSol*
-MibSHeuristic::getBilevelSolution(const double * sol, double origLower)
+bfSol
+MibSHeuristic::getBilevelSolution(const double * sol, double origLower,
+				  bool &isTimeLimReached)
 {
 
-  /* 
-     Find a bilevel feasible solution by solving the LL problem
-     for a fixed UL solution, given by the UL portion of sol
-  */
+  //Find a bilevel feasible solution by solving the LL problem
+  //for a fixed UL solution, given by the UL portion of sol
 
   MibSModel * model = MibSModel_;
+  MibSBilevel *bS = model->bS_;
   OsiSolverInterface * oSolver = model->getSolver();
-  OsiSolverInterface * lSolver = model->bS_->setUpModel(oSolver, true, sol);
-  
-  //double uObjSense(model->getSolver()->getObjSense());
-  int lCols(model->getLowerDim());
-  int uCols(model->getUpperDim());
-  int * lColIndices = model->getLowerColInd();
-  int * uColIndices = model->getUpperColInd();
-  double etol(etol_);
 
-  int tCols(uCols + lCols); 
+  std::string feasCheckSolver(model->MibSPar_->entry
+			      (MibSParams::feasCheckSolver));
+
+  int maxThreadsLL(model->MibSPar_->entry
+		   (MibSParams::maxThreadsLL));
+
+  int whichCutsLL(model->MibSPar_->entry
+		  (MibSParams::whichCutsLL));
+
+  double timeLimit(model->AlpsPar()->entry(AlpsParams::timeLimit));
+
+  int useLinkingSolutionPool(model->MibSPar_->entry
+			     (MibSParams::useLinkingSolutionPool));
+
   int i(0);
+  int index(0), solType(0);
+  double value(0.0), roundedValue(0.0);
+  double remainingTime(0.0), startTimeVF(0.0);
+  double objVal(0.0), lowerObj(0.0);
+  bool isContainedInLinkingPool(false);
+  MibSLinkingPoolTag tagInSeenLinkingPool(MibSLinkingPoolTagIsNotSet);
+  double etol(etol_);
+  int uCols(model->getUpperDim());
+  int lCols(model->getLowerDim());
+  int tCols(oSolver->getNumCols());
+  int *uColIndices = model->getUpperColInd();
+  int *lColIndices = model->getLowerColInd();
+  int *fixedInd = model->fixedInd_;
+  const double *uObjCoeff = oSolver->getObjCoefficients();
 
-  if(0){
-     lSolver->writeLp("bilevelsolver");
-     std::cout 
-       << "Original Lower-level Solution Value: " << origLower << std::endl;
-     for(i = 0; i < lCols; i++){
-       std::cout << "lowsol[" << i << "]: " << sol[lColIndices[i]] << std::endl;
-     }
-  }
-  
-#ifndef COIN_HAS_SYMPHONY
-     dynamic_cast<OsiCbcSolverInterface *> 
-	(lSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
-#else
-     dynamic_cast<OsiSymSolverInterface *> 
-	(lSolver)->setSymParam("prep_level", -1);
-     
-     dynamic_cast<OsiSymSolverInterface *> 
-	(lSolver)->setSymParam("verbosity", -2);
-     
-     dynamic_cast<OsiSymSolverInterface *> 
-	(lSolver)->setSymParam("max_active_nodes", 1);
-#endif
+  double * colSol = new double[tCols];
+  double *lSol = new double[lCols];
+  std::vector<double> linkSol; 
+  //bfSol * bfsol;
 
-  lSolver->branchAndBound();
-
-  if(lSolver->isProvenOptimal()){
-
-    double objVal(0.0);
-    double lowerObj(lSolver->getObjValue());
-    double * colsol = new double[tCols];
-
+  if(useLinkingSolutionPool){
     for(i = 0; i < uCols; i++){
-      colsol[uColIndices[i]] = sol[uColIndices[i]];
+      index = uColIndices[i];
+      if(fixedInd[index] == 1){
+	value = sol[index];
+	if((oSolver->isInteger(index)) &&
+	   (((value - floor(value)) < etol) ||
+	    ((ceil(value) - value) < etol))){
+	  roundedValue = (double) floor(value + 0.5);
+	}
+	else{
+	  roundedValue = value;
+	}
+	linkSol.push_back(roundedValue);
+      }
+    }
+    
+    if(model->seenLinkingSolutions.find(linkSol) !=
+       model->seenLinkingSolutions.end()){
+      isContainedInLinkingPool = true;
+      solType = model->seenLinkingSolutions.find(linkSol)->second.tag;
     }
 
-    if(0){
-      std::cout << "candidate lower solution value: " << origLower << std::endl;
-      std::cout << "actual lower solution value: " << lowerObj << std::endl;
+    if(isContainedInLinkingPool == true){
+      tagInSeenLinkingPool = static_cast<MibSLinkingPoolTag>(solType);
     }
 
-    if(fabs(origLower - lowerObj) < etol){
-      //original solution was bilevel feasible
-      if(0)
-	std::cout << "Original solution was bilevel feasible:" << std::endl;
-      for(i = 0; i < lCols; i++){
-	if(0){
-	  std::cout << "lowerportion[" 
-		    << i << "]: " << sol[lColIndices[i]] << std::endl; 
-	}	
-	colsol[lColIndices[i]] = sol[lColIndices[i]];
+    if(tagInSeenLinkingPool == MibSLinkingPoolTagUBIsSolved){
+      objVal = model->seenLinkingSolutions[linkSol].UBObjValue;
+      delete [] colSol;
+      delete [] lSol;
+      return bfSol(objVal, NULL, 0);
+    }
+  //tag cannot be MibSLinkingPoolTagLowerIsInfeasible because all
+  //integrality constraints are included.
+  }
+
+  if(!isContainedInLinkingPool){
+    if(bS->lSolver_){
+      bS->lSolver_ = bS->setUpModel(oSolver, false, sol);
+    }
+    else{
+      bS->lSolver_ = bS->setUpModel(oSolver, true, sol);
+    }
+
+    OsiSolverInterface *lSolver = bS->lSolver_;
+
+    remainingTime = timeLimit - model->broker_->subTreeTimer().getTime();
+    remainingTime = CoinMax(remainingTime, 0.00);
+
+    if (feasCheckSolver == "Cbc"){
+      dynamic_cast<OsiCbcSolverInterface *>
+	(lSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
+    }else if (feasCheckSolver == "SYMPHONY"){
+      #if COIN_HAS_SYMPHONY
+      sym_environment *env = dynamic_cast<OsiSymSolverInterface *>
+	(lSolver)->getSymphonyEnvironment();
+      //Always uncomment for debugging!!
+      sym_set_dbl_param(env, "time_limit", remainingTime);
+      sym_set_int_param(env, "do_primal_heuristic", FALSE);
+      sym_set_int_param(env, "verbosity", -2);
+      sym_set_int_param(env, "prep_level", -1);
+      sym_set_int_param(env, "max_active_nodes", maxThreadsLL);
+      sym_set_int_param(env, "tighten_root_bounds", FALSE);
+      sym_set_int_param(env, "max_sp_size", 100);
+      sym_set_int_param(env, "do_reduced_cost_fixing", FALSE);
+      if (whichCutsLL == 0){
+	sym_set_int_param(env, "generate_cgl_cuts", FALSE);
+      }else{
+	sym_set_int_param(env, "generate_cgl_gomory_cuts", GENERATE_DEFAULT);
+      }
+      if (whichCutsLL == 1){
+	sym_set_int_param(env, "generate_cgl_knapsack_cuts",
+			  DO_NOT_GENERATE);
+	sym_set_int_param(env, "generate_cgl_probing_cuts",
+			  DO_NOT_GENERATE);
+	sym_set_int_param(env, "generate_cgl_clique_cuts",
+			  DO_NOT_GENERATE);
+	sym_set_int_param(env, "generate_cgl_twomir_cuts",
+			  DO_NOT_GENERATE);
+	sym_set_int_param(env, "generate_cgl_flowcover_cuts",
+			  DO_NOT_GENERATE);
+      }
+      #endif
+    }else if (feasCheckSolver == "CPLEX"){
+      #ifdef COIN_HAS_CPLEX
+      lSolver->setHintParam(OsiDoReducePrint);
+      lSolver->messageHandler()->setLogLevel(0);
+      CPXENVptr cpxEnv =
+	dynamic_cast<OsiCpxSolverInterface*>(lSolver)->getEnvironmentPtr();
+      assert(cpxEnv);
+      CPXsetintparam(cpxEnv, CPX_PARAM_SCRIND, CPX_OFF);
+      CPXsetintparam(cpxEnv, CPX_PARAM_THREADS, maxThreadsLL);
+      #endif
+    }
+
+    startTimeVF = model->broker_->subTreeTimer().getTime();
+    lSolver->branchAndBound();
+    model->timerVF_ += model->broker_->subTreeTimer().getTime() - startTimeVF;
+    model->counterVF_ ++;
+
+    if((feasCheckSolver == "SYMPHONY") && (sym_is_time_limit_reached
+					   (dynamic_cast<OsiSymSolverInterface *>
+					    (lSolver)->getSymphonyEnvironment()))){
+      delete [] colSol;
+      delete [] lSol;
+      isTimeLimReached = true;
+      return bfSol(objVal, NULL, 0);
+    }
+
+    if(lSolver->isProvenOptimal()){
+      lowerObj = lSolver->getObjValue();
+      const double * lSolTmp = lSolver->getColSolution();
+      memcpy(lSol, lSolTmp, sizeof(double) * lCols);
+      if(useLinkingSolutionPool){
+	//Adding x_L to set E
+	std::vector<double> shouldStoreValuesLowerSol(lCols);
+	std::copy(lSol, lSol + lCols, shouldStoreValuesLowerSol.begin());
+	addSolutionToSeenLinkingSolutionPoolHeur
+	  (linkSol, shouldStoreValuesLowerSol, lowerObj);
       }
     }
     else{
-      if(0){
-	std::cout << "Not bilevel feasible." << std::endl;
-      }
-      for(i = 0; i < lCols; i++){
-	if(0){
-	  std::cout << "newportion[" 
-		    << i << "]: " << lSolver->getColSolution()[i] << std::endl; 
-	}
-	colsol[lColIndices[i]] = lSolver->getColSolution()[i];
-      }
+      std::cout << "lSolver cannnot be infeasible! MibSHeuristic, WSHeuristic" << std::endl;
+      abort();
     }
+  }
+  //sahar:else means that linkingSol is in pool and tag is
+  //MibSLinkingPoolTagLowerIsFeasible
+  else{
+    lowerObj = model->seenLinkingSolutions[linkSol].lowerObjValue;
+    std::copy(model->seenLinkingSolutions[linkSol].lowerSolution.begin(),
+	      model->seenLinkingSolutions[linkSol].lowerSolution.end(), lSol);
+  }
 
-
-    for(i = 0; i < tCols; i++)
-      objVal += colsol[i] * oSolver->getObjCoefficients()[i];
-
-    bfSol * bfsol = 
-      new bfSol(objVal, colsol);
-    delete lSolver;
-    return bfsol;
+  if(fabs(origLower - lowerObj) < etol){
+    memcpy(colSol, sol, sizeof(double) * tCols);
   }
   else{
-    delete lSolver;
-    return NULL;
+    memcpy(colSol, sol, sizeof(double) * tCols);
+    for(i = 0; i < lCols; i++){
+      index = lColIndices[i];
+      colSol[index] = lSol[i];
+    }
   }
 
+  for(i = 0; i < tCols; i++){
+    objVal += colSol[i] * uObjCoeff[i];
+  }
+
+  delete [] lSol;
+  return bfSol(objVal, colSol, tCols);
 }
 
 //#############################################################################
@@ -1531,10 +1622,10 @@ bfSol*
 MibSHeuristic::getBilevelSolution1(const double * sol)
 {
 
-  /* 
-     Find a bilevel feasible solution by solving the LL problem
-     for a fixed UL solution, given by the UL portion of sol
-  */
+  //
+  // Find a bilevel feasible solution by solving the LL problem
+  // for a fixed UL solution, given by the UL portion of sol
+  
 
 
   MibSModel * model = MibSModel_;
@@ -1556,10 +1647,10 @@ MibSHeuristic::getBilevelSolution1(const double * sol)
   int tCols(uCols + lCols); 
   int i(0), index(0);
 
-  /* delete the UL rows */
+  // delete the UL rows 
   lSolver->deleteRows(uRowNum, uRowIndices);
 
-  /* Fix the UL variables to their current value in sol */
+  // Fix the UL variables to their current value in sol 
 
   for(i = 0; i < uCols; i++){
     index = uColIndices[i];
@@ -1567,7 +1658,7 @@ MibSHeuristic::getBilevelSolution1(const double * sol)
     lSolver->setColUpper(index, sol[index]);
   }
 
-  /* Set the objective to the LL objective coefficients */
+  // Set the objective to the LL objective coefficients 
 
   double * nObjCoeffs = new double[tCols];
   CoinZeroN(nObjCoeffs, tCols);
@@ -1605,8 +1696,7 @@ MibSHeuristic::getBilevelSolution1(const double * sol)
     double * colsol = new double[tCols];
     CoinCopyN(lSolver->getColSolution(), tCols, colsol);
  
-    bfSol * bfsol = 
-      new bfSol(objVal, colsol);
+    bfSol *bfsol = new bfSol(objVal, colsol, tCols);
     delete lSolver;
     return bfsol;
   }
@@ -1614,327 +1704,277 @@ MibSHeuristic::getBilevelSolution1(const double * sol)
     delete lSolver;
     return NULL;
   }
-
 }
 
 //#############################################################################
 mcSol 
-MibSHeuristic::solveSubproblem(double beta)
+MibSHeuristic::solveSubproblem(double beta, bool &foundSolution)
 {
-
-  /* 
-     optimize wrt to weighted upper-level objective 
-     over current feasible lp feasible region 
-  */
+  //optimize wrt to weighted upper-level objective
+  //over current feasible lp feasible region 
 
   MibSModel * model = MibSModel_;
   OsiSolverInterface * oSolver = model->getSolver();
-#ifndef COIN_HAS_SYMPHONY
-  OsiSolverInterface * sSolver = new OsiCbcSolverInterface();
+
+  std::string feasCheckSolver(model->MibSPar_->entry
+			      (MibSParams::feasCheckSolver));
+
+  int maxThreadsLL(model->MibSPar_->entry
+		   (MibSParams::maxThreadsLL));
+
+  int whichCutsLL(model->MibSPar_->entry
+		  (MibSParams::whichCutsLL));
+
+  double timeLimit(model->AlpsPar()->entry(AlpsParams::timeLimit));
+
+  OsiSolverInterface * sSolver = 0;
+
+  foundSolution = true;
+
+  if (feasCheckSolver == "Cbc"){
+    sSolver = new OsiCbcSolverInterface();
+  }else if (feasCheckSolver == "SYMPHONY"){
+#ifdef COIN_HAS_SYMPHONY
+    sSolver = new OsiSymSolverInterface();
 #else
-  OsiSolverInterface* sSolver = new OsiSymSolverInterface();
-  //sSolver = oSolver->clone();
-  //OsiSolverInterface * sSolver = tmpSolver;
-  //OsiSolverInterface * tmpSolver = new OsiSolverInterface(oSolver);
+    throw CoinError("SYMPHONY chosen as solver, but it has not been enabled",
+		    "solveSubproblem", "MibSHeuristic");
 #endif
-  
+  }else if (feasCheckSolver == "CPLEX"){
+#ifdef COIN_HAS_CPLEX
+    sSolver = new OsiCpxSolverInterface();
+#else
+    throw CoinError("CPLEX chosen as solver, but it has not been enabled",
+		    "solveSubproblem", "MibSHeuristic");
+#endif
+  }else{
+    throw CoinError("Unknown solver chosen",
+		    "solveSubproblem", "MibSHeuristic");
+  }
+
+  int i(0);
+  int index(0);
+  double remainingTime(0.0);
+  double upperObjVal(0.0), lowerObjVal(0.0); 
+  double etol(etol_);
+  int tCols(oSolver->getNumCols());
   double uObjSense(oSolver->getObjSense());
-  double lObjSense(model->getLowerObjSense());  
+  double lObjSense(model->getLowerObjSense());
   int lCols(model->getLowerDim());
   int uCols(model->getUpperDim());
-  int * lColIndices = model->getLowerColInd();
-  int * uColIndices = model->getUpperColInd();
-  double * lObjCoeffs = model->getLowerObjCoeffs();
-  const double * uObjCoeffs = oSolver->getObjCoefficients();
+  int *lColIndices = model->getLowerColInd();
+  int *uColIndices = model->getUpperColInd();
+  const double *uObjCoeffs = oSolver->getObjCoefficients();
+  double *lObjCoeffs = model->getLowerObjCoeffs();
 
-  double etol(etol_);
-  //int tCols(uCols + lCols);
-  int tCols(oSolver->getNumCols());
+  double *nObjCoeffs = new double[tCols];
 
-  //assert(tCols == oSolver->getNumCols());
-
+  double *colSol = new double[tCols]();
 
   sSolver->loadProblem(*oSolver->getMatrixByCol(),
 		       oSolver->getColLower(), oSolver->getColUpper(),
-		       oSolver->getObjCoefficients(),
-		       oSolver->getRowLower(), oSolver->getRowUpper());
+		       uObjCoeffs, oSolver->getRowLower(),
+		       oSolver->getRowUpper());
 
-  int j(0);
-  for(j = 0; j < tCols; j++){
-    if(oSolver->isInteger(j))
-      sSolver->setInteger(j);
+  for(i = 0; i < tCols; i++){
+    if(oSolver->isInteger(i))
+      sSolver->setInteger(i);
   }
 
-
-  double * nObjCoeffs = new double[tCols];
-  int i(0), index(0);
-  
-  CoinZeroN(nObjCoeffs, tCols);
-  
-  /* Multiply the UL columns of the UL objective by beta */
-  for(i = 0; i < uCols; i++){
-    index = uColIndices[i];
-    if(fabs(uObjCoeffs[index]) > etol)
-      nObjCoeffs[index] = beta * uObjCoeffs[index] * uObjSense;
-    else 
-      nObjCoeffs[index] = 0.0;
+  //Multiply all columns of the UL objective by beta
+  for(i = 0; i < tCols; i++){
+    if(fabs(uObjCoeffs[i]) > etol){
+      nObjCoeffs[i] = beta * uObjCoeffs[i] * uObjSense;
+    }
+    else{
+      nObjCoeffs[i] = 0.0;
+    }
   }
-    
-  /* Multiply the LL columns of the UL objective by beta */
+
+  //Add the LL columns of the LL objective multiplied by (1 - beta)
   for(i = 0; i < lCols; i++){
     index = lColIndices[i];
-    if(fabs(uObjCoeffs[index]) > etol)
-      nObjCoeffs[index] = beta* uObjCoeffs[index] * uObjSense;
-    else
-      nObjCoeffs[index] = 0.0;
-  }
-  
-  /* Add the LL columns of the LL objective multiplied by (1 - beta) */
-  for(i = 0; i < lCols; i++){
-    index = lColIndices[i];
-    if(fabs(lObjCoeffs[i]) > etol)
+    if(fabs(lObjCoeffs[i]) > etol){
       nObjCoeffs[index] += (1 - beta) * lObjCoeffs[i] * lObjSense;
+    }
   }
-  
+
   sSolver->setObjective(nObjCoeffs);
 
-  //int i(0);
-  if(0){
-    for(i = 0; i < sSolver->getNumCols(); i++){
-      std::cout << "betaobj " << sSolver->getObjCoefficients()[i] << std::endl;
-    }
-  }
+  remainingTime = timeLimit - model->broker_->subTreeTimer().getTime();
+  remainingTime = CoinMax(remainingTime, 0.00);
 
-  if(0){
-     sSolver->writeLp("afterbeta");
-     //sSolver->writeMps("afterbeta");
-  }
-  
-  if(0){  
-    for(i = 0; i < sSolver->getNumCols(); i++){
-      std::cout << "obj " << sSolver->getObjCoefficients()[i] << std::endl;
-      std::cout << "upper " << sSolver->getColUpper()[i] << std::endl;
-      std::cout << "lower " << sSolver->getColLower()[i] << std::endl;
-    }
-  }
-
-#ifndef COIN_HAS_SYMPHONY
-  dynamic_cast<OsiCbcSolverInterface *> 
-     (sSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
-#else
-  dynamic_cast<OsiSymSolverInterface *> 
-     (sSolver)->setSymParam("prep_level", -1);
-  
-  dynamic_cast<OsiSymSolverInterface *> 
-     (sSolver)->setSymParam("verbosity", -2);
-  
-  dynamic_cast<OsiSymSolverInterface *> 
-     (sSolver)->setSymParam("max_active_nodes", 1);
+  if (feasCheckSolver == "Cbc"){
+        dynamic_cast<OsiCbcSolverInterface *>
+	  (sSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
+  }else if (feasCheckSolver == "SYMPHONY"){
+#if COIN_HAS_SYMPHONY
+        sym_environment *env = dynamic_cast<OsiSymSolverInterface *>
+	  (sSolver)->getSymphonyEnvironment();
+	//Always uncomment for debugging!!
+	sym_set_dbl_param(env, "time_limit", remainingTime);
+	sym_set_int_param(env, "do_primal_heuristic", FALSE);
+	sym_set_int_param(env, "verbosity", -2);
+	sym_set_int_param(env, "prep_level", -1);
+	sym_set_int_param(env, "max_active_nodes", maxThreadsLL);
+	sym_set_int_param(env, "tighten_root_bounds", FALSE);
+	sym_set_int_param(env, "max_sp_size", 100);
+	sym_set_int_param(env, "do_reduced_cost_fixing", FALSE);
+	if (whichCutsLL == 0){
+	  sym_set_int_param(env, "generate_cgl_cuts", FALSE);
+	}else{
+	  sym_set_int_param(env, "generate_cgl_gomory_cuts", GENERATE_DEFAULT);
+	}
+	if (whichCutsLL == 1){
+	  sym_set_int_param(env, "generate_cgl_knapsack_cuts",
+			    DO_NOT_GENERATE);
+	  sym_set_int_param(env, "generate_cgl_probing_cuts",
+			    DO_NOT_GENERATE);
+	  sym_set_int_param(env, "generate_cgl_clique_cuts",
+			    DO_NOT_GENERATE);
+	  sym_set_int_param(env, "generate_cgl_twomir_cuts",
+			    DO_NOT_GENERATE);
+	  sym_set_int_param(env, "generate_cgl_flowcover_cuts",
+			    DO_NOT_GENERATE);
+	}
 #endif
-
-  //dynamic_cast<OsiSymSolverInterface *> (sSolver)->branchAndBound();
+  }else if (feasCheckSolver == "CPLEX"){
+#ifdef COIN_HAS_CPLEX
+    sSolver->setHintParam(OsiDoReducePrint);
+    sSolver->messageHandler()->setLogLevel(0);
+    CPXENVptr cpxEnv =
+      dynamic_cast<OsiCpxSolverInterface*>(sSolver)->getEnvironmentPtr();
+    assert(cpxEnv);
+    CPXsetintparam(cpxEnv, CPX_PARAM_SCRIND, CPX_OFF);
+    CPXsetintparam(cpxEnv, CPX_PARAM_THREADS, maxThreadsLL);
+#endif
+  }
 
   sSolver->branchAndBound();
 
+  if((feasCheckSolver == "SYMPHONY") && (sym_is_time_limit_reached
+					 (dynamic_cast<OsiSymSolverInterface *>
+					  (sSolver)->getSymphonyEnvironment()))){
+    foundSolution = false;
+    //delete [] colSol;
+    goto TERM_SOLVESUBPROBLEM;
+  }
+
   if(sSolver->isProvenOptimal()){
+    CoinCopyN(sSolver->getColSolution(), tCols, colSol);
+    upperObjVal = sSolver->getObjValue();
+    lowerObjVal = getLowerObj(colSol, lObjSense);
 
-    if(0){
-      std::cout << "writing lp file." << std::endl;
-      sSolver->writeLp("afterbeta");
-      //sSolver->writeMps("afterbeta");
-    }
-    
-    double upperObjVal(0.0);
-    double lowerObjVal(0.0);
-    
+    CoinPackedVector objCon;
 
-    for(i = 0; i < tCols; i++){
-      upperObjVal += 
-	sSolver->getColSolution()[i] * oSolver->getObjCoefficients()[i];
-      if(0){
-	std::cout << "sSolver->getColSolution()[" << i << "] :"
-		  << sSolver->getColSolution()[i] << std::endl;
-      }
-    }
-    lowerObjVal = getLowerObj(sSolver->getColSolution(), lObjSense);
-    
     if(beta == 1.0){
-      
-      /*
-	fix upper-level objective to current value and 
-	reoptimize wrt to lower-level objective
-      */
-      
-#ifndef COIN_HAS_SYMPHONY
-       OsiSolverInterface * nSolver = new OsiCbcSolverInterface();
-#else
-       OsiSolverInterface * nSolver = new OsiSymSolverInterface();
-#endif
-
-       nSolver->loadProblem(*oSolver->getMatrixByCol(),
-			    oSolver->getColLower(), oSolver->getColUpper(),
-			    oSolver->getObjCoefficients(),
-			    oSolver->getRowLower(), oSolver->getRowUpper());
-       for(j = 0; j < tCols; j++){
-	  if(oSolver->isInteger(j))
-	     nSolver->setInteger(j);
-       }
-       
+      //modify sSolver to fix upper-level objective to current value and
+      //reoptimize wrt to lower-level objective
 
       CoinZeroN(nObjCoeffs, tCols);
-      
       for(i = 0; i < lCols; i++){
 	index = lColIndices[i];
-	nObjCoeffs[index] = lObjCoeffs[i] * lObjSense;
+        nObjCoeffs[index] = lObjCoeffs[i] * lObjSense;
       }
-      
-      nSolver->setObjective(nObjCoeffs);
-      
-      CoinPackedVector objCon;
-      
+
+      sSolver->setObjective(nObjCoeffs);
+
       for(i = 0; i < tCols; i++){
 	objCon.insert(i, uObjCoeffs[i] * uObjSense);
       }
-      
-      nSolver->addRow(objCon, upperObjVal, upperObjVal);
-      nSolver->writeLp("beta1");
 
-#ifndef COIN_HAS_SYMPHONY
-      dynamic_cast<OsiCbcSolverInterface *> 
-	 (nSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
-#else
-      dynamic_cast<OsiSymSolverInterface *> 
-	 (nSolver)->setSymParam("prep_level", -1);
-      
-      dynamic_cast<OsiSymSolverInterface *> 
-	 (nSolver)->setSymParam("verbosity", -2);
-      
-      dynamic_cast<OsiSymSolverInterface *> 
-	 (nSolver)->setSymParam("max_active_nodes", 1);
-#endif
+      sSolver->addRow(objCon, upperObjVal, upperObjVal);
+      objCon.clear();
 
-      nSolver->branchAndBound();
-     
+      remainingTime = timeLimit - model->broker_->subTreeTimer().getTime();
+      remainingTime = CoinMax(remainingTime, 0.00);
+      if(feasCheckSolver == "SYMPHONY"){
+	sym_environment *env = dynamic_cast<OsiSymSolverInterface *>
+	  (sSolver)->getSymphonyEnvironment();
+	sym_set_dbl_param(env, "time_limit", remainingTime);
+      }
 
-      double * colsol = new double[tCols];
+      sSolver->branchAndBound();
 
-      if(nSolver->isProvenOptimal()){
-	lowerObjVal = nSolver->getObjValue();
-	CoinCopyN(nSolver->getColSolution(), tCols, colsol);
+      if((feasCheckSolver == "SYMPHONY") && (sym_is_time_limit_reached
+					     (dynamic_cast<OsiSymSolverInterface *>
+					      (sSolver)->getSymphonyEnvironment()))){
+	foundSolution = false;
+	//delete [] colSol;
+	goto TERM_SOLVESUBPROBLEM;
+      }
+
+      if(sSolver->isProvenOptimal()){
+	lowerObjVal = sSolver->getObjValue();
+	CoinCopyN(sSolver->getColSolution(), tCols, colSol);
       }
       else{
-	//just take the current solution
-	lowerObjVal = sSolver->getObjValue();
-	CoinCopyN(sSolver->getColSolution(), tCols, colsol);
+	std::cout << "sSolver cannnot be infeasible! MibSHeuristic, solveSubProblem" << std::endl;
+	abort();
       }
-
-      delete[] nObjCoeffs;
-      nObjCoeffs = 0;
-      delete sSolver;
-      delete nSolver;
-      return mcSol(std::make_pair(upperObjVal, lowerObjVal), colsol);
     }
     else if(beta == 0.0){
-      
-      /*
-	fix lower-level objective to current value and 
-	reoptimize wrt to upper-level objective
-      */
-      
-#ifndef COIN_HAS_SYMPHONY
-      OsiSolverInterface * nSolver = new OsiCbcSolverInterface();
-#else
-      OsiSolverInterface * nSolver = new OsiSymSolverInterface();
-#endif
+      //modify sSolver to fix lower-level objective to current value and
+      //reoptimize wrt to upper-level objective
 
-      nSolver->loadProblem(*oSolver->getMatrixByCol(),
-			   oSolver->getColLower(), oSolver->getColUpper(),
-			   oSolver->getObjCoefficients(),
-			   oSolver->getRowLower(), oSolver->getRowUpper());
-      for(j = 0; j < tCols; j++){
-	if(oSolver->isInteger(j))
-	  nSolver->setInteger(j);
-      }
-      
       CoinZeroN(nObjCoeffs, tCols);
-	
-      for(i = 0; i < tCols; i++)
+      for(i = 0; i < tCols; i++){
 	nObjCoeffs[i] = uObjCoeffs[i] * uObjSense;
-      
-      nSolver->setObjective(nObjCoeffs);
-	
-      CoinPackedVector objCon;
-	
+      }
+      sSolver->setObjective(nObjCoeffs);
+
       for(i = 0; i < lCols; i++){
 	index = lColIndices[i];
-	objCon.insert(index, lObjCoeffs[i] * lObjSense);  
+	objCon.insert(index, lObjCoeffs[i] * lObjSense);
       }
-      
-      nSolver->addRow(objCon, lowerObjVal, lowerObjVal);
-      
-#ifndef COIN_HAS_SYMPHONY
-      dynamic_cast<OsiCbcSolverInterface *> 
-	 (nSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
-#else
-      dynamic_cast<OsiSymSolverInterface *> 
-	 (nSolver)->setSymParam("prep_level", -1);
-      
-      dynamic_cast<OsiSymSolverInterface *> 
-	 (nSolver)->setSymParam("verbosity", -2);
-      
-      dynamic_cast<OsiSymSolverInterface *> 
-	 (nSolver)->setSymParam("max_active_nodes", 1);
-#endif
+      sSolver->addRow(objCon, lowerObjVal, lowerObjVal);
 
-      if(0)      
-	nSolver->writeLp("nSolver");
-      
+      remainingTime = timeLimit - model->broker_->subTreeTimer().getTime();
+      remainingTime = CoinMax(remainingTime, 0.00);
+      if(feasCheckSolver == "SYMPHONY"){
+	        sym_environment *env = dynamic_cast<OsiSymSolverInterface *>
+		  (sSolver)->getSymphonyEnvironment();
+		sym_set_dbl_param(env, "time_limit", remainingTime);
+      }
 
-      nSolver->branchAndBound();
-	
-      double * colsol = new double[tCols];
-	
-      if(nSolver->isProvenOptimal()){
-	upperObjVal = nSolver->getObjValue();
-	CoinCopyN(nSolver->getColSolution(), tCols, colsol);
+      sSolver->branchAndBound();
+
+      if((feasCheckSolver == "SYMPHONY") && (sym_is_time_limit_reached
+					     (dynamic_cast<OsiSymSolverInterface *>
+					      (sSolver)->getSymphonyEnvironment()))){
+	foundSolution = false;
+	//delete [] colSol;
+	goto TERM_SOLVESUBPROBLEM;
+      }
+
+      if(sSolver->isProvenOptimal()){
+	upperObjVal = sSolver->getObjValue();
+	CoinCopyN(sSolver->getColSolution(), tCols, colSol);
       }
       else{
-	upperObjVal = nSolver->getObjValue();
-	CoinCopyN(nSolver->getColSolution(), tCols, colsol);
+	std::cout << "sSolver cannnot be infeasible! MibSHeuristic, solveSubProblem" << std::endl;
+	abort();
       }
-
-      delete[] nObjCoeffs;
-      nObjCoeffs = 0;
-      delete sSolver;
-      delete nSolver;
-      return mcSol(std::make_pair(upperObjVal, lowerObjVal), colsol);
-	
     }
-    else{
-      
-      //no optimality cut needed here.  all solutions are supported.
-      
-      double * colsol = new double[tCols];
-      CoinCopyN(sSolver->getColSolution(), tCols, colsol);	
-      
-      delete[] nObjCoeffs;
-      nObjCoeffs = 0;
-      delete sSolver;
-      return mcSol(std::make_pair(upperObjVal, lowerObjVal), colsol);
-      
-    }
-    
   }
   else{
-    //FIXME:SHOULD JUST TAKE THIS OUT.  DELETE sSolver and remove it from above
-    
-    nObjCoeffs = 0;
-    delete[] nObjCoeffs;
-    delete sSolver;
-    std::cout << "Subproblem is not proven optimal." << std::endl;
-    //return NULL;
-    //abort();
+    //delete [] colSol;
+    foundSolution = false;
   }
+
+ TERM_SOLVESUBPROBLEM:
+  //if(foundSolution == true){
+  //mcSol foundSol = mcSol(std::make_pair(upperObjVal, lowerObjVal), colSol, tCols);
+    //foundSol.setObjPair(std::make_pair(upperObjVal, lowerObjVal));
+    //foundSol.setColSol(colSol);
+    //foundSol.setLen(tCols);
+    //}
+  
+  delete sSolver;
+  delete [] nObjCoeffs;
+  //delete [] colSol;
+
+  return mcSol(std::make_pair(upperObjVal, lowerObjVal), colSol, tCols);
 }
 
 //#############################################################################
@@ -1961,7 +2001,7 @@ MibSHeuristic::getLowerObj(const double * sol, double objSense)
    }
 
    return (objVal * objSense);
-
+   
 }
 
 //#############################################################################

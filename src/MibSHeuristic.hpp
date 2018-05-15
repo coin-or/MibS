@@ -57,7 +57,7 @@ class MibSHeuristic {
   void lowerObjHeuristic();
 
   /** Solve the mip subproblem for a given value of beta **/
-  mcSol solveSubproblem(double beta);
+  mcSol solveSubproblem(double beta, bool &foundSolution);
   mcSol solveSubproblem1(double beta);
 
   void createBilevelSolutions(std::map<double, mcSol>);
@@ -74,7 +74,8 @@ class MibSHeuristic {
 						std::vector<double> &shouldStoreValues,
 						double objValue);
 
-  bfSol * getBilevelSolution(const double * sol, double origLower);
+  bfSol getBilevelSolution(const double * sol, double origLower,
+			     bool &isTimeLimReached);
   bfSol * getBilevelSolution1(const double * sol);
 
 
