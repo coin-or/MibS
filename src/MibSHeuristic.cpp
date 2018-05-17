@@ -1862,7 +1862,9 @@ MibSHeuristic::solveSubproblem(double beta, bool &foundSolution)
 
   if(sSolver->isProvenOptimal()){
     CoinCopyN(sSolver->getColSolution(), tCols, colSol);
-    upperObjVal = sSolver->getObjValue();
+    for(i = 0; i < tCols; i++){
+      upperObjVal += colSol[i] * uObjCoeffs[i];
+    }
     lowerObjVal = getLowerObj(colSol, lObjSense);
 
     CoinPackedVector objCon;
