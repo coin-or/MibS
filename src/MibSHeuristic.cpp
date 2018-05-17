@@ -71,6 +71,8 @@ MibSHeuristic::findHeuristicSolutions()
 
   MibSModel * model = MibSModel_;
 
+  int msgLevel(model->AlpsPar_->entry(AlpsParams::msgLevel));
+
   bool useLowerObjHeuristic
     = model->MibSPar_->entry(MibSParams::useLowerObjHeuristic);
 
@@ -83,18 +85,38 @@ MibSHeuristic::findHeuristicSolutions()
   bool useGreedyHeuristic
     = model->MibSPar_->entry(MibSParams::useGreedyHeuristic);
 
-  if(useLowerObjHeuristic)
-    lowerObjHeuristic();
-  
-  if(useObjCutHeuristic)
-    objCutHeuristic();
+  int heurFrequency(1);
+  int numCallsHeur(model->countIteration_ - 1);
 
-  if(useWSHeuristic)
-    weightedSumsHeuristic();
+  if(numCallsHeur%heurFrequency == 0){
+    if(msgLevel > 100){
+      if(useLowerObjHeuristic == true){
+	std::cout << "lowerObj heuristic is on." << std::endl;
+      }
+      if(useObjCutHeuristic == true){
+	std::cout << "objCut heuristic is on." << std::endl;
+      }
+      if(useWSHeuristic == true){
+	std::cout << "ws heuristic is on." << std::endl;
+      }
+      if(useGreedyHeuristic == true){
+	std::cout << "greedy heuristic is on." << std::endl;
+      }
+      std::cout << "Heuristic frequency = " << heurFrequency << std::endl;
+    }
 
-  if(useGreedyHeuristic)
-    greedyHeuristic();
+    if(useLowerObjHeuristic)
+      lowerObjHeuristic();
 
+    if(useObjCutHeuristic)
+      objCutHeuristic();
+
+    if(useWSHeuristic)
+      weightedSumsHeuristic();
+
+    if(useGreedyHeuristic)
+      greedyHeuristic();
+  }
 }
 
 //#############################################################################
