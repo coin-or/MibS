@@ -1885,7 +1885,10 @@ MibSHeuristic::solveSubproblem(double beta, bool &foundSolution)
   if(sSolver->isProvenOptimal()){
     CoinCopyN(sSolver->getColSolution(), tCols, colSol);
     for(i = 0; i < tCols; i++){
-      upperObjVal += colSol[i] * uObjCoeffs[i];
+	if(sSolver->isInteger(i)){
+	    colSol[i] = (double) floor(colSol[i] + 0.5);
+	}
+	upperObjVal += colSol[i] * uObjCoeffs[i];
     }
     lowerObjVal = getLowerObj(colSol, lObjSense);
 
