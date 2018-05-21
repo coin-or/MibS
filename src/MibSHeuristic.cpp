@@ -1894,7 +1894,7 @@ MibSHeuristic::solveSubproblem(double beta, bool &foundSolution)
 
     CoinPackedVector objCon;
 
-    if(beta == 1.0){
+    if(fabs(beta - 1.0) < etol){
       //modify sSolver to fix upper-level objective to current value and
       //reoptimize wrt to lower-level objective
 
@@ -1935,12 +1935,8 @@ MibSHeuristic::solveSubproblem(double beta, bool &foundSolution)
 	lowerObjVal = sSolver->getObjValue();
 	CoinCopyN(sSolver->getColSolution(), tCols, colSol);
       }
-      else{
-	std::cout << "sSolver cannnot be infeasible! MibSHeuristic, solveSubProblem" << std::endl;
-	abort();
-      }
     }
-    else if(beta == 0.0){
+    else if(fabs(beta) < etol){
       //modify sSolver to fix lower-level objective to current value and
       //reoptimize wrt to upper-level objective
 
@@ -1977,10 +1973,6 @@ MibSHeuristic::solveSubproblem(double beta, bool &foundSolution)
       if(sSolver->isProvenOptimal()){
 	upperObjVal = sSolver->getObjValue();
 	CoinCopyN(sSolver->getColSolution(), tCols, colSol);
-      }
-      else{
-	std::cout << "sSolver cannnot be infeasible! MibSHeuristic, solveSubProblem" << std::endl;
-	abort();
       }
     }
   }
