@@ -75,7 +75,7 @@ class MibSHeuristic {
 						double objValue);
 
   bfSol getBilevelSolution(const double * sol, double origLower,
-			     bool &isTimeLimReached);
+			   bool &isTimeLimReached, bool &foundFeasible);
   bfSol * getBilevelSolution1(const double * sol);
 
 

@@ -1096,9 +1096,10 @@ MibSHeuristic::greedyHeuristic()
   }
 
   bool isTimeLimReached(false);
+  bool foundFeasible(true);
 
   bfSol sol = getBilevelSolution(colsol, lObjSense * oSolver->getInfinity(),
-				   isTimeLimReached);
+				 isTimeLimReached, foundFeasible);
 
   if(sol.getColumnSol()){
     double incumbentObjVal = sol.getObjVal();
@@ -1295,14 +1296,16 @@ MibSHeuristic::createBilevelSolutions(std::map<double, mcSol> mcSolutions)
     mcSol tmpsol = iter->second;
     const double * colsol = tmpsol.getColumnSol();
     double origLower = tmpsol.getObjPair().second;
+    bool foundFeasible(true);
     
-    bfSol sol = getBilevelSolution(colsol, origLower, isTimeLimReached);
+    bfSol sol = getBilevelSolution(colsol, origLower, isTimeLimReached,
+				   foundFeasible);
 
     if(isTimeLimReached == true){
       break;
     }
 
-    if(isTimeLimReached == false){
+    if(foundFeasible == true){
       if(sol.getObjVal() < incumbentObjVal){
 	incumbentObjVal = sol.getObjVal();
 	if(sol.getColumnSol()){
@@ -1317,11 +1320,14 @@ MibSHeuristic::createBilevelSolutions(std::map<double, mcSol> mcSolutions)
   }
   
   if(shouldStoreSol == true){
-    MibSSolution * mibSol = new MibSSolution(tCols,
-					     incumbentSol,
-					     incumbentObjVal,
-					     model);
-    model->storeSolution(BlisSolutionTypeHeuristic, mibSol);
+      //double cutOff = model->getKnowledgeBroker()->getIncumbentValue();
+      //if(incumbentObjVal < cutOff){
+	  MibSSolution * mibSol = new MibSSolution(tCols,
+						   incumbentSol,
+						   incumbentObjVal,
+						   model);
+	  model->storeSolution(BlisSolutionTypeHeuristic, mibSol);
+	  //}
   }
 
   //need to add this solution to mibssolutions instead
@@ -1440,7 +1446,7 @@ MibSHeuristic::checkLowerFeasibility(OsiSolverInterface * si,
 //#############################################################################
 bfSol
 MibSHeuristic::getBilevelSolution(const double * sol, double origLower,
-				  bool &isTimeLimReached)
+				  bool &isTimeLimReached, bool &foundFeasible)
 {
 
   //Find a bilevel feasible solution by solving the LL problem
@@ -1629,10 +1635,13 @@ MibSHeuristic::getBilevelSolution(const double * sol, double origLower,
       index = lColIndices[i];
       colSol[index] = lSol[i];
     }
+    foundFeasible = model->checkUpperFeasibility(colSol);
   }
 
-  for(i = 0; i < tCols; i++){
-    objVal += colSol[i] * uObjCoeff[i];
+  if(foundFeasible == true){
+      for(i = 0; i < tCols; i++){
+	  objVal += colSol[i] * uObjCoeff[i];
+      }
   }
 
   delete [] lSol;
