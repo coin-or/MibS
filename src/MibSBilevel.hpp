@@ -62,6 +62,7 @@ private:
 
     /** Optimal value of LL objective **/
     double objVal_;
+    int linkIntegralCount_;
 
     double *upperSolutionOrd_;
     double *lowerSolutionOrd_;
@@ -83,7 +84,8 @@ public:
 		    isLowerSolved_(false), isUBSolved_(false),
 		    shouldPrune_(false), isContainedInLinkingPool_(false),
 		    tagInSeenLinkingPool_(MibSLinkingPoolTagIsNotSet),
-		    LPSolStatus_(MibSLPSolStatusUnknown), objVal_(0.0){
+		    LPSolStatus_(MibSLPSolStatusUnknown), objVal_(0.0),
+		    linkIntegralCount_(0){
 	upperSolutionOrd_ = 0;
 	lowerSolutionOrd_ = 0;
 	//optLowerSolution_ = 0;
