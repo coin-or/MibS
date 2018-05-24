@@ -85,16 +85,17 @@ MibSHeuristic::findHeuristicSolutions()
   bool useGreedyHeuristic
     = model->MibSPar_->entry(MibSParams::useGreedyHeuristic);
 
-  int heurFrequency(1);
+  int heurFrequency(100);
   int numCallsHeur(model->countIteration_ - 1);
+  int numCallObjCutHeur(model->bS_->linkIntegralCount_);
+  if(model->bS_->isLinkVarsIntegral_ == true){
+      model->bS_->linkIntegralCount_ ++;
+  }
 
   if(numCallsHeur%heurFrequency == 0){
     if(msgLevel > 100){
       if(useLowerObjHeuristic == true){
 	std::cout << "lowerObj heuristic is on." << std::endl;
-      }
-      if(useObjCutHeuristic == true){
-	std::cout << "objCut heuristic is on." << std::endl;
       }
       if(useWSHeuristic == true){
 	std::cout << "ws heuristic is on." << std::endl;
@@ -108,15 +109,23 @@ MibSHeuristic::findHeuristicSolutions()
     if(useLowerObjHeuristic)
       lowerObjHeuristic();
 
-    if(useObjCutHeuristic)
-      objCutHeuristic();
-
     if(useWSHeuristic)
       weightedSumsHeuristic();
 
     if(useGreedyHeuristic)
       greedyHeuristic();
   }
+
+  if((numCallObjCutHeur%heurFrequency == 0) && (useObjCutHeuristic == true) &&
+     (model->bS_->isLinkVarsIntegral_ == true)){
+      objCutHeuristic();
+      if(msgLevel > 100){
+	  std::cout << "objCut heuristic is on." << std::endl;
+	  std::cout << "Heuristic frequency = " << heurFrequency << std::endl;
+      }
+  }
+	  
+      
 }
 
 //#############################################################################
