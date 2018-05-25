@@ -1552,6 +1552,7 @@ MibSCutGenerator::storeBestSolHypercubeIC(const double* lpSol, double optLowerOb
     int uN(localModel_->getUpperDim());
     int lN(localModel_->getLowerDim());
     double objVal(0.0);
+    double startTimeUB(0.0);
     int * fixedInd = localModel_->getFixedInd();
     
     int useLinkingSolutionPool(localModel_->MibSPar_->entry
@@ -1627,7 +1628,9 @@ MibSCutGenerator::storeBestSolHypercubeIC(const double* lpSol, double optLowerOb
 #endif
     }
 
+    startTimeUB = localModel_->broker_->subTreeTimer().getTime(); 
     UBSolver->branchAndBound();
+    localModel_->timerUB_ += localModel_->broker_->subTreeTimer().getTime() - startTimeUB;
     localModel_->counterUB_ ++;
 
     if((feasCheckSolver == "SYMPHONY") && (sym_is_time_limit_reached
