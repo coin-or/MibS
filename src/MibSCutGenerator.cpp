@@ -669,8 +669,43 @@ MibSCutGenerator::intersectionCuts(BcpsConstraintPool &conPool,
 		}
 	    }
 
+	    if(valsList.size() == 0){
+		throw CoinError("An invalid intersection cut is generated (length = 0)",
+				"intersectionCuts", "MibSCutGenerator");
+	    }
+
 	    numCuts += addCut(conPool, cutLb, cutUb, indexList, valsList,
 			      allowRemoveCut);
+
+	    if(numCuts == 0){
+		MibSBranchingStrategy branchPar = static_cast<MibSBranchingStrategy>
+		    (localModel_->MibSPar_->entry(MibSParams::branchStrategy));
+		if(branchPar == MibSBranchingStrategyFractional){
+		    double scaleConFactor = localModel_->BlisPar()->entry
+			(BlisParams::scaleConFactor);
+		    double maxElem = 0.0;
+		    double minElem = ALPS_DBL_MAX;
+		    double scaleFactor;
+		    for(i = 0; i < valsList.size(); i++){
+			if(fabs(valsList[i]) > maxElem){
+			    maxElem = fabs(valsList[i]);
+			}
+			if(fabs(valsList[i]) < minElem){
+			    minElem = fabs(valsList[i]);
+			}
+			if(minElem != 0.0){
+			    scaleFactor = maxElem/minElem;
+			}
+			if(scaleFactor > scaleConFactor){
+			    std::cout << "scaleFactor = " << scaleFactor << std::endl;
+			    throw CoinError("Bad scaling", "intersectionCuts",
+					    "MibSCutGenerator");
+			}
+		    }
+		}
+	    }
+
+	    
 	    delete [] tmpValsList;
 	    indexList.clear();
 	    valsList.clear();
@@ -955,7 +990,8 @@ MibSCutGenerator::findLowerLevelSol(double *uselessIneqs, double *lowerLevelSol,
     }
     else{//this case should not happen when we use intersection cut for removing
 	//the optimal solution of relaxation which satisfies integrality requirements
-	assert(0);
+	throw CoinError("The MIP which gives the best lower-level sol, cannot be infeasible!",
+			"findLowerLevelSol", "MibSCutGenerator");
     }
 
     delete [] multA2XOpt;
@@ -1401,7 +1437,8 @@ MibSCutGenerator::findLowerLevelSolWatermelonIC(double *uselessIneqs, double *lo
     }
     else{//this case should not happen when we use intersection cut for removing
 	//the optimal solution of relaxation which satisfies integrality requirements
-	assert(0);
+	throw CoinError("The MIP which is solved for watermelon IC, cannot be infeasible!",
+			"findLowerLevelSolWatermelonIC", "MibSCutGenerator");
     }
     delete [] lCoeffsTimesLpSol;
 
