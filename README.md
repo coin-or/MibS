@@ -209,7 +209,7 @@ to your `DYLD_LIBRARY_PATH` if you want to link to COIN libraries.
 
 To solve a bilevel program, you must provide both an MPS file and an auxiliary
 information file that specifies which variables and constraints are associated
-with the each level. Then call `mibs` like this:
+with the each level (see [here](http://coral.ise.lehigh.edu/wp-content/uploads/2016/02/MibS_inputFile.pdf)). Then call `mibs` like this:
 ```
 <build_or_install_dir>/bin/mibs -Alps_instance file.mps -MibS_auxiliaryInfoFile aux_file.txt
 ```
