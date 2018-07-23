@@ -25,7 +25,10 @@ experiments as follows:
 # Conducting the experiments
 
 All described problems in previous section should be solved by all 11
-methods used in our analyses.
+methods described in Sections 4.1, 4.2 and 4.3. Then the instances that
+can be solved by at least one of these 11 methods in 3600 seconds and
+whose solution time exceeds 5 seconds for at least one method should be
+solved by the methods explained in Section 4.4.
 
 If the directory `build` is placed inside of the directory `MibS`
 (i.e., `<build-dir>=<mibs-dir>/build`), to solve all instances with all
