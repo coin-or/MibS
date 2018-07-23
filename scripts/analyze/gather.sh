@@ -10,8 +10,54 @@ SCRIPTPATH=$PWD/scripts
 
 cd $SCRIPTPATH/analyze
 
+rm -r -f usefulFiles
+mkdir usefulFiles
+USEFULPATH=$PWD/scripts/analyze/usefulFiles
+
 rm -f $SCRIPTPATH/analyze/performance/figure*
 rm -r -f tmp
+
+i=1
+for testSet in dataMIBLP-XU dataIBLP-DEN dataIBLP-FIS
+do
+    mkdir tmp
+    name=$RESULTSPATH'/method'$i'Output/'$testSet
+    cp $name'/'*'.out' tmp
+
+    cd tmp
+
+    cat *.out > outMethod$i
+
+    cd ..
+
+    cp tmp/outMethod$i parse
+
+    rm -r -f tmp
+
+    cd parse
+
+    awk -f InstanceSeparator-mibs.awk outMethod$i
+
+    rm -f outMethod$i
+
+    if [ $testSet == dataMIBLP-XU ]
+    then
+	appendix=MiblpXu
+    elif [ $testSet == dataIBLP-DEN ]
+    then
+	appendix=IblpDen
+    else
+	appendix=IblpFis
+    fi
+    name=r1LeqR2List$appendix
+    mv r1LeqR2List.summary $name
+    cp $name $USEFULPATH
+    rm -f r1LeqR2List.summary
+    name=r1GeR2List$appendix
+    mv r1GeR2List.summary $name
+    cp $name $USEFULPATH
+    rm -f r1GeR2List.summary
+done
 
 for figNum in '2a' '2b' '3a' '3b' '4a' '4b'
 do
@@ -335,5 +381,65 @@ do
         cd ..
     fi
 done
+
+#gathering results to see which instances should be solved for
+# investigation of the impact of heuristics
+for i in {1..11}
+do
+    mkdir tmp
+    name=$RESULTSPATH'/method'$i'Output/dataIBLP-DEN'
+    cp $name'/'*'.out' tmp
+
+    name=$RESULTSPATH'/method'$i'Output/dataIBLP-FIS'
+    cp $name'/'*'.out' tmp
+
+    name=$RESULTSPATH'/method'$i'Output/dataMIBLP-XU'
+    cp $name'/'*'.out' tmp
+
+    cd tmp
+
+    cat *.out > outMethod$i
+
+    cd ..
+
+    cp tmp/outMethod$i parse
+
+    rm -r -f tmp
+
+    cd parse
+
+    awk -f Timeparse-mibs.awk outMethod$i
+
+    if [ i == 11 ]
+    then
+	awk -f Instanceparse_mibs.awk outMethod$i
+	cp instanceList.summary ../refinement
+	rm instanceList.summary
+    fi
+    
+    mv time.summary timeMethod$i.summary
+
+    cp timeMethod$i.summary ../refinement
+
+    rm timeMethod$i.summary
+
+    rm outMethod$i
+
+    cd ..
+done
+
+cd refinement
+
+python refine.py 171 instanceList.summary
+
+for i in {1..11}
+do
+    rm instanceList.summary
+    rm timeMethod$i.summary
+    rm finalTimeMethod$i
+done
+
+
+
 
 

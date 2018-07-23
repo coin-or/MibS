@@ -2,6 +2,13 @@ import sys
 
 setSize = int(sys.argv[1])
 
+shouldRefineInstList = 0
+if len(sys.argv) == 3:
+  shouldRefineInstList = 1
+  instanceFile = open(sys.argv[2],"r")
+  finalInstanceFile = open("finalInstanceList","w+")
+  
+
 methodNum = 11
 
 file1 = open("timeMethod1.summary","r")
@@ -74,6 +81,10 @@ mat[9] = file10.read().split()
 
 mat[10] = file11.read().split()
 
+if shouldRefineInstList == 1:
+  indList = instanceFile.read().split()
+  
+
 
 accepted = []
 cnt = 0
@@ -105,6 +116,8 @@ for i in range(cnt):
   finalFile9.write(mat[8][index] + '\n')
   finalFile10.write(mat[9][index] + '\n')
   finalFile11.write(mat[10][index] + '\n')
+  if shouldRefineInstList == 1:
+    finalInstanceFile.write(indList[index] + '\n')
 
 file1.close()
 file2.close()
@@ -129,4 +142,8 @@ finalFile8.close()
 finalFile9.close()
 finalFile10.close()
 finalFile11.close()
+
+if shouldRefineInstList == 1:
+  instanceFile.close()
+  finalInstanceFile.close()
 

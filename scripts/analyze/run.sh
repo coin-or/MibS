@@ -103,6 +103,14 @@ do
     mkdir -p $name
 done
 
+for i in {12..14}
+do
+    cd $RESULTSPATH
+    
+    name=method${i}Output
+    mkdir -p $name
+done
+    
 #storing the test sets
 cd $MibSPATH
 mkdir -p testSets
@@ -124,7 +132,7 @@ do
     for file in ${CURRENTINSTPATH}/*.mps
     do
 	instance_name=`basename ${file%.*}`
-	./mibs -param mibs.par -Alps_instance $CURRENTINSTPATH/${instance_name}.mps -MibS_auxiliaryInfoFile $CURRENTINSTPATH/${instance_name}.aux -MibS_useIntersectionCut 1 -MibS_intersectionCutType 2 | tee $RESULTSPATH/method${i}Output/dataMIBLP-XU/${instance_name}.out
+	./mibs -param mibs.par -Alps_instance $CURRENTINSTPATH/${instance_name}.mps -MibS_auxiliaryInfoFile $CURRENTINSTPATH/${instance_name}.aux -MibS_useIntersectionCut 1 -MibS_intersectionCutType 3 | tee $RESULTSPATH/method${i}Output/dataMIBLP-XU/${instance_name}.out
     done
 
     #running the instances in IBLP-DEN
@@ -148,3 +156,55 @@ done
 cd $SCRIPTPATH/analyze
 
 $SCRIPTPATH/analyze/gather.sh
+
+#experiments for impact of the heuristics
+cd $EXECUTABLE
+
+instanceListDir=$SCRIPTPATH/analyze/refinement/finalInstanceList
+
+for i in {12..14}
+do
+    rm -f mibs.par
+
+    name=$SCRIPTPATH/parameters/method${i}/mibs.par
+    cp $name $EXECUTABLE
+
+    #running the instances in MIBLP-XU
+    CURRENTINSTPATH=$INSTPATH/MIBLP-XU
+
+    for file in ${CURRENTINSTPATH}/*.mps
+    do
+	instance_name=`basename ${file%.*}`
+	if grep -r "${instance_name}.aux" "$instanceListDir" > /dev/null
+	then
+	    ./mibs -param mibs.par -Alps_instance $CURRENTINSTPATH/${instance_name}.mps -MibS_auxiliaryInfoFile $CURRENTINSTPATH/${instance_name}.aux -MibS_useIntersectionCut 1 -MibS_intersectionCutType 3 | tee $RESULTSPATH/method${i}Output/dataMIBLP-XU/${instance_name}.out
+	fi
+    done
+
+    #running the instances in IBLP-DEN
+    CURRENTINSTPATH=$INSTPATH/RANDOM/RAND_BILEVEL
+
+    for file in ${CURRENTINSTPATH}/*.mps
+    do
+	instance_name=`basename ${file%.*}`
+	if grep -r "${instance_name}.aux" "$instanceListDir" > /dev/null
+	then
+	    ./mibs -param mibs.par -Alps_instance $CURRENTINSTPATH/${instance_name}.mps -MibS_auxiliaryInfoFile $CURRENTINSTPATH/${instance_name}.aux | tee $RESULTSPATH/method${i}Output/dataIBLP-DEN/${instance_name}.out
+	fi
+    done
+
+    #running the instances in IBLP-FIS
+    CURRENTINSTPATH=$INSTPATH/IBLP-FIS
+
+    for instance_name in lseu-0.100000 lseu-0.900000 p0033-0.100000 p0033-0.500000 p0033-0.900000 p0201-0.900000 p0548-0.100000 p0548-0.500000 p0548-0.900000 p2756-0.100000 p2756-0.500000 p2756-0.900000 seymour-0.100000 seymour-0.500000 seymour-0.900000 stein27-0.100000 stein27-0.500000 stein27-0.900000 stein45-0.100000 stein45-0.500000 stein45-0.900000
+    do
+	if grep -r "${instance_name}.aux" "$instanceListDir" > /dev/null
+	then	    
+	    ./mibs -param mibs.par -Alps_instance $CURRENTINSTPATH/${instance_name}.mps -MibS_auxiliaryInfoFile $CURRENTINSTPATH/${instance_name}.aux | tee $RESULTSPATH/method${i}Output/dataIBLP-FIS/${instance_name}.out
+	fi
+    done
+done
+
+cd $SCRIPTPATH/analyze
+
+$SCRIPTPATH/analyze/gatherHeuristic.sh
