@@ -12,7 +12,7 @@ cd $SCRIPTPATH/analyze
 
 rm -r -f usefulFiles
 mkdir usefulFiles
-USEFULPATH=$PWD/scripts/analyze/usefulFiles
+USEFULPATH=$SCRIPTPATH/analyze/usefulFiles
 
 rm -f $SCRIPTPATH/analyze/performance/figure*
 rm -r -f tmp
@@ -43,6 +43,7 @@ do
     if [ $testSet == dataMIBLP-XU ]
     then
 	appendix=MiblpXu
+	touch r1LeqR2List.summary
     elif [ $testSet == dataIBLP-DEN ]
     then
 	appendix=IblpDen
@@ -52,11 +53,12 @@ do
     name=r1LeqR2List$appendix
     mv r1LeqR2List.summary $name
     cp $name $USEFULPATH
-    rm -f r1LeqR2List.summary
+    rm -f $name
     name=r1GeR2List$appendix
     mv r1GeR2List.summary $name
     cp $name $USEFULPATH
-    rm -f r1GeR2List.summary
+    rm -f $name
+    cd ..
 done
 
 for figNum in '2a' '2b' '3a' '3b' '4a' '4b'
@@ -275,7 +277,7 @@ do
 
         if [ $figNum == '3a' ]
 	then
-	    python perf.py -c 1 --legend --x-limit=35 fractionalBranchingStrategy linkingBranchingStrategy > figure3a.eps
+	    python perf.py -c 1 --legend --x-limit=25 fractionalBranchingStrategy linkingBranchingStrategy > figure3a.eps
 	fi
 
         if [ $figNum == '3b' ]
@@ -410,7 +412,7 @@ do
 
     awk -f Timeparse-mibs.awk outMethod$i
 
-    if [ i == 11 ]
+    if [ $i == 11 ]
     then
 	awk -f Instanceparse_mibs.awk outMethod$i
 	cp instanceList.summary ../refinement
@@ -432,13 +434,19 @@ cd refinement
 
 python refine.py 171 instanceList.summary
 
+rm instanceList.summary
+
 for i in {1..11}
 do
-    rm instanceList.summary
     rm timeMethod$i.summary
     rm finalTimeMethod$i
 done
 
+cp finalInstanceList ../usefulFiles
+
+rm -f finalInstanceList
+
+cd ..
 
 
 

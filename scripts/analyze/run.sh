@@ -160,6 +160,9 @@ $SCRIPTPATH/analyze/gather.sh
 #experiments for impact of the heuristics
 cd $EXECUTABLE
 
+USEFULPATH=$SCRIPTPATH/analyze/usefulFiles
+instanceListDir=$USEFULPATH/finalInstanceList
+
 instanceListDir=$SCRIPTPATH/analyze/refinement/finalInstanceList
 
 for i in {12..14}
