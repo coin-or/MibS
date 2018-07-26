@@ -1,14 +1,13 @@
-# MibS (Mixed Integer Bilevel Solver) 0.95
+# MibS (Mixed Integer Bilevel Solver) 1.0
 
 ## Build Status
 
-[![Build Status](https://travis-ci.org/tkralphs/MibS.svg?branch=master)](https://travis-ci.org/tkralphs/MibS)
+[![Build Status](https://travis-ci.org/coin-or/MibS.svg?branch=master)](https://travis-ci.org/coin-or/MibS)
 
-[![Build status](https://ci.appveyor.com/api/projects/status/fa7egaj3n4kcq101/branch/master?svg=true)](https://ci.appveyor.com/project/tkralphs/mibs/branch/master)
-
+[![Build status](https://ci.appveyor.com/api/projects/status/aqxs9wcp2tjgpffd?svg=true)](https://ci.appveyor.com/project/tkralphs/mibs/branch/master)
 ## Download
 
-[ ![Download](https://api.bintray.com/packages/coin-or/download/MibS/images/download.svg?version=0.9) ](https://bintray.com/coin-or/download/MibS/0.9/link)
+[ ![Download](https://api.bintray.com/packages/coin-or/download/MibS/images/download.svg?version=1.0.0) ](https://bintray.com/coin-or/download/MibS/1.0.0/link)
 
 Binary packages are available for some platforms from [Bintray](https://bintray.com/coin-or/download/MibS).
 
@@ -241,6 +240,6 @@ MibS was developed with support from
 Laboratories" funded by the German Federal Ministry of Education and Research
 (BMBF Grant 05M14ZAM) and by the DFG SFB/Transregio 154
 
-http://github.com/tkralphs/MibS
+http://github.com/coin-or/MibS
 
 Enjoy!
