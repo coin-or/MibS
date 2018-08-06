@@ -85,7 +85,7 @@ mkdir -p output
 
 cd $RESULTSPATH
 
-for i in {1..11}
+for i in {1..14}
 do
     cd $RESULTSPATH
     
@@ -100,14 +100,6 @@ do
     mkdir -p $name
 
     name=dataMIBLP-XU
-    mkdir -p $name
-done
-
-for i in {12..14}
-do
-    cd $RESULTSPATH
-    
-    name=method${i}Output
     mkdir -p $name
 done
     
@@ -162,8 +154,6 @@ cd $EXECUTABLE
 
 USEFULPATH=$SCRIPTPATH/analyze/usefulFiles
 instanceListDir=$USEFULPATH/finalInstanceList
-
-instanceListDir=$SCRIPTPATH/analyze/refinement/finalInstanceList
 
 for i in {12..14}
 do
