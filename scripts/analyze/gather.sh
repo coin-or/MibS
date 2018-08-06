@@ -7,6 +7,7 @@ PWD=`pwd`
 MibSPATH=$PWD
 RESULTSPATH=$PWD/output
 SCRIPTPATH=$PWD/scripts
+INSTPATH=$mibs_dir/testSets/BilevelLib/general
 
 cd $SCRIPTPATH/analyze
 
@@ -447,6 +448,73 @@ cp finalInstanceList ../usefulFiles
 rm -f finalInstanceList
 
 cd ..
+
+#Table 2
+rm -r -f tmp
+
+for i in 4 7 8 9
+do
+    echo method$i
+    mkdir tmp
+    name=$RESULTSPATH'/method'$i'Output/dataIBLP-DEN'
+    cp $name'/'*'.out' tmp
+
+    name=$RESULTSPATH'/method'$i'Output/dataIBLP-FIS'
+    cp $name'/'*'.out' tmp
+
+    name=$RESULTSPATH'/method'$i'Output/dataMIBLP-XU'
+    cp $name'/'*'.out' tmp
+
+    cd tmp
+
+    cat *.out > outMethod$i
+
+    cd ..
+
+    cp tmp/outMethod$i parse
+
+    rm -r -f tmp
+
+    cd parse
+
+    awk -f Timeparse-mibs.awk outMethod$i
+    awk -f Instanceparse_mibs.awk outMethod$i
+    awk -f VFNumparse_mibs.awk outMethod$i
+    awk -f UBNumparse_mibs.awk outMethod$i
+    awk -f VFTimeparse_mibs.awk outMethod$i
+    awk -f UBTimeparse_mibs.awk outMethod$i
+
+    cp time.summary ../table
+    cp instanceList.summary ../table
+    cp VFNum.summary ../table
+    cp VFTime.summary ../table
+    cp UBNum.summary ../table
+    cp UBTime.summary ../table
+
+    rm -f outMethod$i
+    rm -f time.summary
+    rm -f instanceList.summary
+    rm -f VFNum.summary
+    rm -f VFTime.summary
+    rm -f UBNum.summary
+    rm -f UBTime.summary
+
+    cd ../table
+
+    echo run python
+
+    python mipTime.py 171 $i $USEFULPATH
+
+    cd ..
+
+done
+
+cd table
+
+python makeTable2.py
+    
+    
+
 
 
 
