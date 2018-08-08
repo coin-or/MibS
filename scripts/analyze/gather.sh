@@ -513,8 +513,9 @@ cd table
 
 python makeTable2.py
     
-    
+rm -f *.summary
 
+rm -f tmpOutputMethod*
 
 
 
