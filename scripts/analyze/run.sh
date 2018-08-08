@@ -201,3 +201,7 @@ done
 cd $SCRIPTPATH/analyze
 
 $SCRIPTPATH/analyze/gatherHeuristic.sh
+
+cd $SCRIPTPATH/analyze
+
+$SCRIPTPATH/analyze/table/displayRawData.sh

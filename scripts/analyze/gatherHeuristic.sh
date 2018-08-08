@@ -43,7 +43,7 @@ do
 	then
 	    if grep -r "${instance_name}.aux" "$solvedInstDir" > /dev/null
 	    then
-		cp $CURRENTINSTPATH/${instance_name}.out tmp
+		cp $CURRENTOUTPUTPATH/${instance_name}.out tmp
 	    fi
 	fi
     done
@@ -58,7 +58,7 @@ do
 	then
 	    if grep -r "${instance_name}.aux" "$solvedInstDir" > /dev/null
 	    then
-		cp $CURRENTINSTPATH/${instance_name}.out tmp
+		cp $CURRENTOUTPUTPATH/${instance_name}.out tmp
 	    fi
 	fi
     done
