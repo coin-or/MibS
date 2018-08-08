@@ -44,3 +44,5 @@ Otherwise, run the below command
 ```
 <scripts-dir>/analyze/run.sh --build-dir=<build-dir> --mibs-dir=<mibs-dir>
 ```
+All generated plots and tables can be found in the directories
+<scripts-dir>/analyze/performance and <scripts-dir>/analyze/table respectively.
