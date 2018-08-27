@@ -751,7 +751,7 @@ MibSCutGenerator::findLowerLevelSol(double *uselessIneqs, double *lowerLevelSol,
     double infinity(oSolver->getInfinity());
     int i, j;
     int index(0), cntA2(0), cntG2(0), cntInt(0);
-    double coef(0.0), lObjVal(0.0);
+    double coef(0.0), lObjVal(0.0), value(0.0);
     int numCols(localModel_->getNumCols());
     int uCols(localModel_->getUpperDim());
     int lCols(localModel_->getLowerDim());
@@ -848,7 +848,10 @@ MibSCutGenerator::findLowerLevelSol(double *uselessIneqs, double *lowerLevelSol,
     for(i = 0; i < lRows; i++){
 	row = matrixG2->getVector(i);
 	addedRow.append(row);
-	addedRow.insert(i + lCols, multA2XOpt[i] - multA2XMax[i]);
+	//since linking vars are int, we are sure that multA2XOpt
+	//is integer.
+	value = floor(multA2XOpt[i] + 0.5);
+	addedRow.insert(i + lCols, value - multA2XMax[i]);
 	newMatrix->appendRow(addedRow);
 	addedRow.clear();
     }
