@@ -3242,6 +3242,14 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix, const double* ro
 	}
     }
 
+    //set the default value of time limit if it is not set by user
+    //Alps sets the default value of this parameter to a very large value
+    //but it is very large and creats memory issues for setting the time limit
+    //when an extra mip should be solved. So, we set it to a smaller large value.
+    if(AlpsPar()->entry(AlpsParams::timeLimit) > 1.0e200){
+	AlpsPar()->setEntry(AlpsParams::timeLimit, 1.0e200);
+    }
+    
     int paramValue(0);
     MibSIntersectionCutType cutType(MibSIntersectionCutTypeNotSet);
     //bool isHypercubeOn(false);
