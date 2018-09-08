@@ -1377,7 +1377,7 @@ MibSCutGenerator::findLowerLevelSolWatermelonIC(double *uselessIneqs, double *lo
     }
 
     remainingTime = timeLimit - localModel_->broker_->subTreeTimer().getTime();
-    remainingTime = CoinMax(remainingTime, 0.00);
+    remainingTime = CoinMax(remainingTime, 5.00);
 
     if(feasCheckSolver == "Cbc"){
 	        dynamic_cast<OsiCbcSolverInterface *>
@@ -1386,6 +1386,7 @@ MibSCutGenerator::findLowerLevelSolWatermelonIC(double *uselessIneqs, double *lo
 #if COIN_HAS_SYMPHONY
 	        sym_environment *env = dynamic_cast<OsiSymSolverInterface *>
 		    (nSolver)->getSymphonyEnvironment();
+		sym_set_int_param(env, "use_hot_starts", FALSE);
 		sym_set_dbl_param(env, "time_limit", remainingTime);
 		sym_set_int_param(env, "do_primal_heuristic", FALSE);
 		sym_set_int_param(env, "verbosity", -2);
@@ -1427,9 +1428,10 @@ MibSCutGenerator::findLowerLevelSolWatermelonIC(double *uselessIneqs, double *lo
 
     nSolver->branchAndBound();
 
-    if((feasCheckSolver == "SYMPHONY") && (sym_is_time_limit_reached
+    if(((feasCheckSolver == "SYMPHONY") && (sym_is_time_limit_reached
 					   (dynamic_cast<OsiSymSolverInterface *>
-					    (nSolver)->getSymphonyEnvironment()))){
+					    (nSolver)->getSymphonyEnvironment())))
+       || (timeLimit - localModel_->broker_->subTreeTimer().getTime() < 3)){
 	isTimeLimReached = true;
 	localModel_->bS_->shouldPrune_ = true;
     }
@@ -1440,6 +1442,9 @@ MibSCutGenerator::findLowerLevelSolWatermelonIC(double *uselessIneqs, double *lo
     }
     else{//this case should not happen when we use intersection cut for removing
 	//the optimal solution of relaxation which satisfies integrality requirements
+	std::cout << "iteration = " << localModel_->countIteration_ << std::endl;
+	std::cout << "remaining time = " << remainingTime << std::endl;
+	std::cout << "current time = " << timeLimit - localModel_->broker_->subTreeTimer().getTime() << std::endl;
 	throw CoinError("The MIP which is solved for watermelon IC, cannot be infeasible!",
 			"findLowerLevelSolWatermelonIC", "MibSCutGenerator");
     }
