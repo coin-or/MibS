@@ -1300,6 +1300,9 @@ MibSCutGenerator::findLowerLevelSolWatermelonIC(double *uselessIneqs, double *lo
 	    colIndex = lColInd[i];
 	    newColLb[i] = origColLb[colIndex] - lpSol[colIndex];
 	    newColUb[i] = origColUb[colIndex] - lpSol[colIndex];
+	    if(origColUb[colIndex] >  (infinity/10)){
+	      newColUb[i] = infinity;
+	    }
 	}
 
 	//filling objective coeffs
@@ -1520,6 +1523,9 @@ MibSCutGenerator::getAlphaWatermelonIC(double** extRay, double *uselessIneqs,
 	colIndex = lColInd[i];
 	value = lpSol[colIndex];
 	rhs[cntRows + i] = origColUb[colIndex] + 1 - lowerSolution[i] - value;
+	if(origColUb[colIndex] > (infinity/10)){
+	  rhs[cntRows + i] = infinity;
+	}
 	rhs[cntRows + lCols + i] = -1 * origColLb[colIndex] + 1 +
 	    lowerSolution[i] + value;
     }
@@ -1543,7 +1549,7 @@ MibSCutGenerator::getAlphaWatermelonIC(double** extRay, double *uselessIneqs,
 	    //uselessIneqs[j] = 3;
 	    if((uselessIneqs[j] > etol) && (coeff[j] > etol)){
 		value = rhs[j]/coeff[j];
-		if(alphaUb - value > etol){
+		if((alphaUb - value > etol) && (rhs[j] < (infinity/10))){
 		    alphaUb = value;
 		    isUnbounded = false;
 		}
