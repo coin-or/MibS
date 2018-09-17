@@ -527,7 +527,9 @@ MibSCutGenerator::intersectionCuts(BcpsConstraintPool &conPool,
 		else{
 		    intersectionFound = getAlphaIC(extRay, NULL, optLowerSolution,
 						   numStruct, numNonBasic, sol, alpha);
-		    intersectionFound = true;
+		    if(intersectionFound == false){
+			localModel_->bS_->shouldPrune_ = true;
+		    }
 		}
 		break;
 	    }
