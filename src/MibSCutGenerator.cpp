@@ -257,11 +257,13 @@ MibSCutGenerator::feasibilityCuts(BcpsConstraintPool &conPool)
 //#############################################################################
 int
 MibSCutGenerator::intersectionCuts(BcpsConstraintPool &conPool,
-				   double *optLowerSolution)
+				   double *optLowerSolution, MibSIntersectionCutType ICType)
 {
     
-        MibSIntersectionCutType ICType = static_cast<MibSIntersectionCutType>
-	    (localModel_->MibSPar_->entry(MibSParams::intersectionCutType));
+    //MibSIntersectionCutType ICType = static_cast<MibSIntersectionCutType>
+    //	    (localModel_->MibSPar_->entry(MibSParams::intersectionCutType));
+
+    //std::cout << "ICType = " << ICType << std::endl;
 
 	MibSBilevelFreeSetTypeIC bilevelFreeSetType =
 	    static_cast<MibSBilevelFreeSetTypeIC>
@@ -4943,8 +4945,25 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
     int useBendersCut = 
        localModel_->MibSPar_->entry(MibSParams::useBendersCut);
 
-    int useIntersectionCut =
-	localModel_->MibSPar_->entry(MibSParams::useIntersectionCut);
+    //int useIntersectionCut =
+    //localModel_->MibSPar_->entry(MibSParams::useIntersectionCut);
+
+    MibSIntersectionCutType cutType(MibSIntersectionCutTypeNotSet);
+    
+    int useIntersectionCutTypeIC =
+	localModel_->MibSPar_->entry(MibSParams::useTypeIC);
+
+    int useIntersectionCutTypeWatermelon =
+	localModel_->MibSPar_->entry(MibSParams::useTypeWatermelon);
+
+    int useIntersectionCutTypeHypercubeIC =
+	localModel_->MibSPar_->entry(MibSParams::useTypeHypercubeIC);
+
+    int useIntersectionCutTypeTenderIC =
+	localModel_->MibSPar_->entry(MibSParams::useTypeTenderIC);
+
+    int useIntersectionCutTypeHybridIC =
+	localModel_->MibSPar_->entry(MibSParams::useTypeHybridIC);
 
     int useGeneralNoGoodCut = 
 	localModel_->MibSPar_->entry(MibSParams::useGeneralNoGoodCut);
@@ -4958,8 +4977,32 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
       //general type of problem, no specialized cuts
       delete sol;
       if (bS->isIntegral_){
-	  if (useIntersectionCut == PARAM_ON){
-	      intersectionCuts(conPool, bS->optLowerSolutionOrd_);
+	  //if (useIntersectionCut == PARAM_ON){
+	  //  intersectionCuts(conPool, bS->optLowerSolutionOrd_);
+	  //}
+	  if (useIntersectionCutTypeIC == PARAM_ON){
+	      cutType = MibSIntersectionCutTypeIC;
+	      intersectionCuts(conPool, bS->optLowerSolutionOrd_, cutType);
+	  }
+
+	  if (useIntersectionCutTypeWatermelon == PARAM_ON){
+	      cutType = MibSIntersectionCutTypeWatermelon;
+	      intersectionCuts(conPool, bS->optLowerSolutionOrd_, cutType);
+	  }
+
+	  if (useIntersectionCutTypeHypercubeIC == PARAM_ON){
+	      cutType = MibSIntersectionCutTypeHypercubeIC;
+	      intersectionCuts(conPool, bS->optLowerSolutionOrd_, cutType);
+	  }
+
+	  if (useIntersectionCutTypeTenderIC == PARAM_ON){
+	      cutType = MibSIntersectionCutTypeTenderIC;
+	      intersectionCuts(conPool, bS->optLowerSolutionOrd_, cutType);
+	  }
+
+	  if (useIntersectionCutTypeHybridIC == PARAM_ON){
+	      cutType = MibSIntersectionCutTypeHybridIC;
+	      intersectionCuts(conPool, bS->optLowerSolutionOrd_, cutType);
 	  }
 
 	  if (useGeneralNoGoodCut == PARAM_ON){
