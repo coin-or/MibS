@@ -148,8 +148,23 @@ MibSParams::createKeywordList() {
    keys_.push_back(make_pair(std::string("MibS_useIntersectionCut"),
                              AlpsParameter(AlpsIntPar, useIntersectionCut)));
 
-   keys_.push_back(make_pair(std::string("MibS_intersectionCutType"),
-			     AlpsParameter(AlpsIntPar, intersectionCutType)));
+   //keys_.push_back(make_pair(std::string("MibS_intersectionCutType"),
+   //			     AlpsParameter(AlpsIntPar, intersectionCutType)));
+
+   keys_.push_back(make_pair(std::string("MibS_useTypeIC"),
+			     AlpsParameter(AlpsIntPar, useTypeIC)));
+
+   keys_.push_back(make_pair(std::string("MibS_useTypeWatermelon"),
+			     AlpsParameter(AlpsIntPar, useTypeWatermelon)));
+
+   keys_.push_back(make_pair(std::string("MibS_useTypeHypercubeIC"),
+			     AlpsParameter(AlpsIntPar, useTypeHypercubeIC)));
+
+   keys_.push_back(make_pair(std::string("MibS_useTypeTenderIC"),
+			     AlpsParameter(AlpsIntPar, useTypeTenderIC)));
+
+   keys_.push_back(make_pair(std::string("MibS_useTypeHybridIC"),
+			     AlpsParameter(AlpsIntPar, useTypeHybridIC)));
 
    keys_.push_back(make_pair(std::string("MibS_bilevelFreeSetTypeIC"),
 			     AlpsParameter(AlpsIntPar, bilevelFreeSetTypeIC)));
@@ -280,7 +295,17 @@ MibSParams::setDefaultEntries() {
 
    setEntry(useIntersectionCut, PARAM_NOTSET);
 
-   setEntry(intersectionCutType, MibSIntersectionCutTypeNotSet);
+   //setEntry(intersectionCutType, MibSIntersectionCutTypeNotSet);
+
+   setEntry(useTypeIC, PARAM_NOTSET);
+
+   setEntry(useTypeWatermelon, PARAM_NOTSET);
+
+   setEntry(useTypeHypercubeIC, PARAM_NOTSET);
+
+   setEntry(useTypeTenderIC, PARAM_NOTSET);
+
+   setEntry(useTypeHybridIC, PARAM_NOTSET);
 
    setEntry(bilevelFreeSetTypeIC, MibSBilevelFreeSetTypeICNotSet);
 
