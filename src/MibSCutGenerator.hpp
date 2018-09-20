@@ -81,7 +81,7 @@ class MibSCutGenerator : public BlisConGenerator {
 
     /** Add intersection cuts for general problems (IC: discrete, hypercube, tender: general) **/
     int intersectionCuts(BcpsConstraintPool &conPool,
-			 double *optLowerSolution);
+			 double *optLowerSolution, MibSIntersectionCutType ICType);
     /** Helper function for IC*/
     void findLowerLevelSol(double *uselessIneqs, double *lowerLevelSol, const double *sol,
 			   bool &isTimeLimReached);
