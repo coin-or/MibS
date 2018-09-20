@@ -3251,7 +3251,7 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix, const double* ro
     }
     
     int paramValue(0);
-    MibSIntersectionCutType cutType(MibSIntersectionCutTypeNotSet);
+    //MibSIntersectionCutType cutType(MibSIntersectionCutTypeNotSet);
     //bool isHypercubeOn(false);
 
     bool turnOffOtherCuts(MibSPar_->entry(MibSParams::turnOffOtherCuts));
@@ -3305,17 +3305,26 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix, const double* ro
     }
 
     //Param: "MibS_useInterSectionCut" (MibSIntersectionCutTypeIC)
-    paramValue = MibSPar_->entry(MibSParams::useIntersectionCut);
-    cutType = static_cast<MibSIntersectionCutType>
-	(MibSPar_->entry(MibSParams::intersectionCutType));
+    paramValue = MibSPar_->entry(MibSParams::useTypeIC);
+    //cutType = static_cast<MibSIntersectionCutType>
+    //	(MibSPar_->entry(MibSParams::intersectionCutType));
 
-    if((paramValue == PARAM_ON) && (cutType == MibSIntersectionCutTypeIC)){
+    if(paramValue == PARAM_NOTSET)
+	MibSPar()->setEntry(MibSParams::useTypeIC, PARAM_OFF);
+    else if(paramValue == PARAM_ON){
+	if((isPureInteger_ == false) || (isLowerCoeffInt_ == false)){
+	    std::cout << "The intersection cut IC is not valid problem.  Automatically disabling this cut."
+		      << std::endl;
+	    MibSPar()->setEntry(MibSParams::useTypeIC, PARAM_OFF);
+	}
+    }
+    /*if((paramValue == PARAM_ON) && (cutType == MibSIntersectionCutTypeIC)){
 	if((isPureInteger_ == false) || (isLowerCoeffInt_ == false)){
 	    std::cout << "The intersection cut IC is not valid problem.  Automatically disabling this cut."
 		      << std::endl;
 	    MibSPar()->setEntry(MibSParams::useIntersectionCut, PARAM_NOTSET);
 	}
-    }    
+    }*/    
 
     //Param: "MibS_useNoGoodCut"
     paramValue = MibSPar_->entry(MibSParams::useNoGoodCut);
@@ -3406,17 +3415,17 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix, const double* ro
 
     //Param: "MibS_useInterSectionCut" (MibSIntersectionCutTypeHypercubeIC) 
     if((turnOffOtherCuts == true) &&
-       (MibSPar_->entry(MibSParams::useIntersectionCut) == PARAM_NOTSET)){
-	MibSPar()->setEntry(MibSParams::useIntersectionCut, PARAM_OFF);
+       (MibSPar_->entry(MibSParams::useTypeHypercubeIC) == PARAM_NOTSET)){
+	MibSPar()->setEntry(MibSParams::useTypeHypercubeIC, PARAM_OFF);
     }
     
-    paramValue = MibSPar_->entry(MibSParams::useIntersectionCut);
+    paramValue = MibSPar_->entry(MibSParams::useTypeHypercubeIC);
 
     if(paramValue == PARAM_NOTSET){
 	if(defaultCutIsOn == false){
-	    MibSPar()->setEntry(MibSParams::useIntersectionCut, PARAM_ON);
-	    MibSPar()->setEntry(MibSParams::intersectionCutType,
-				MibSIntersectionCutTypeHypercubeIC);
+	    MibSPar()->setEntry(MibSParams::useTypeHypercubeIC, PARAM_ON);
+	    /*MibSPar()->setEntry(MibSParams::intersectionCutType,
+				MibSIntersectionCutTypeHypercubeIC);*/
 	}
     }
     
@@ -3472,20 +3481,17 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix, const double* ro
 	    std::cout << "'Generalized no-good cut' genertor is on."<< std::endl;
 	}
 
-        if(MibSPar_->entry(MibSParams::useIntersectionCut) == PARAM_ON){
-	    if(MibSPar_->entry(MibSParams::intersectionCutType) ==
-	       MibSIntersectionCutTypeIC){
-		std::cout << "'Intersection cut IC' generator is on." << std::endl;
-	    }
-	    if(MibSPar_->entry(MibSParams::intersectionCutType) ==
-	       MibSIntersectionCutTypeWatermelon){
-		std::cout << "'watermelon IC' generator is on." << std::endl;
-	    }
-	    if(MibSPar_->entry(MibSParams::intersectionCutType) ==
-	       MibSIntersectionCutTypeHypercubeIC){
-		std::cout << "'hypercube IC' generator is on." << std::endl;
-	    }
+        //if(MibSPar_->entry(MibSParams::useIntersectionCut) == PARAM_ON){
+	if(MibSPar_->entry(MibSParams::useTypeIC) == PARAM_ON){
+	    std::cout << "'Intersection cut IC' generator is on." << std::endl;
 	}
+	if(MibSPar_->entry(MibSParams::useTypeWatermelon) == PARAM_ON){
+	    std::cout << "'watermelon IC' generator is on." << std::endl;
+	}
+	if(MibSPar_->entry(MibSParams::useTypeHypercubeIC) == PARAM_ON){
+	    std::cout << "'hypercube IC' generator is on." << std::endl;
+	}
+	    //}
 
         if(MibSPar_->entry(MibSParams::branchStrategy) ==
 	   MibSBranchingStrategyLinking){
