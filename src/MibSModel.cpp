@@ -1932,7 +1932,7 @@ MibSModel::checkUpperFeasibility(double * solution)
   const int * matIndices = matrix->getIndices();
   const int * matStarts = matrix->getVectorStarts();
 
-  double lhs(0.0);
+  double lhs(0.0), value(0.0);
   int i(0), j(0), index1(0), index2(0), start(0), end(0);
 
   if(!bS_->isUpperIntegral_){
@@ -1952,6 +1952,21 @@ MibSModel::checkUpperFeasibility(double * solution)
 	      upperFeasible = false;
 	  }
 	  lhs = 0.0;
+      }
+      if((getLColLbInLProb() != NULL) || (getLColUbInLProb() != NULL)){
+	  int lCols(getLowerDim());
+	  int * lColIndices(getLowerColInd());
+	  const double * origColLb(getOrigColLb());
+	  const double * origColUb(getOrigColUb());
+	  for(i = 0; i < lCols; i++){
+	      index1 = lColIndices[i];
+	      value = solution[index1];
+	      if(((origColLb[index1] - value) > etol_)
+		 || ((value - origColUb[index1]) > etol_)){
+		  upperFeasible = false;
+		  break;
+	      }
+	  }
       }
   }
   

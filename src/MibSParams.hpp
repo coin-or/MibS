@@ -38,6 +38,7 @@ class MibSParams : public AlpsParameterSet {
      turnOffOtherCuts,
      printProblemInfo,
      allowRemoveCut,
+     useNewPureIntCut,
      endOfBoolParams
   };
   
@@ -83,12 +84,14 @@ class MibSParams : public AlpsParameterSet {
      computeBestUBWhenLVarsInt,
      computeBestUBWhenLVarsFixed,
      useLinkingSolutionPool,
+     newPureIntCutDepthLb,
+     newPureIntCutDepthUb,
      endOfIntParams
   };
 
   /** Double parameters. */
   enum dblParams{
-      ///
+      boundCutTimeLim,
       endOfDblParams
   };
 
