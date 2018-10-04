@@ -63,6 +63,9 @@ MibSParams::createKeywordList() {
    keys_.push_back(make_pair(std::string("MibS_allowRemoveCut"),
 			     AlpsParameter(AlpsBoolPar, allowRemoveCut)));
 
+   keys_.push_back(make_pair(std::string("MibS_useNewPureIntCut"),
+			     AlpsParameter(AlpsBoolPar, useNewPureIntCut)));
+
    //--------------------------------------------------------
    // BoolArrayPar
    //--------------------------------------------------------
@@ -195,6 +198,12 @@ MibSParams::createKeywordList() {
    keys_.push_back(make_pair(std::string("MibS_useLinkingSolutionPool"),
 			     AlpsParameter(AlpsIntPar, useLinkingSolutionPool)));
 
+   keys_.push_back(make_pair(std::string("MibS_newPureIntCutDepthLb"),
+			     AlpsParameter(AlpsIntPar, newPureIntCutDepthLb)));
+
+   keys_.push_back(make_pair(std::string("MibS_newPureIntCutDepthUb"),
+			     AlpsParameter(AlpsIntPar, newPureIntCutDepthUb)));
+
    //--------------------------------------------------------
    // String Parameters.
    //--------------------------------------------------------
@@ -207,6 +216,13 @@ MibSParams::createKeywordList() {
 
    keys_.push_back(make_pair(std::string("MibS_inputFormat"),
 			     AlpsParameter(AlpsStringPar, inputFormat)));
+
+   //--------------------------------------------------------
+   // Double Parameters.
+   //--------------------------------------------------------
+
+   keys_.push_back(make_pair(std::string("MibS_boundCutTimeLim"),
+			     AlpsParameter(AlpsDoublePar, boundCutTimeLim)));
 
 }
 
@@ -240,6 +256,8 @@ MibSParams::setDefaultEntries() {
    setEntry(printProblemInfo, true);
 
    setEntry(allowRemoveCut, false);
+
+   setEntry(useNewPureIntCut, false);
 
    //-------------------------------------------------------------
    // Int Parameters.
@@ -325,9 +343,15 @@ MibSParams::setDefaultEntries() {
 
    setEntry(useLinkingSolutionPool, PARAM_NOTSET);
 
+   setEntry(newPureIntCutDepthLb, -1);
+
+   setEntry(newPureIntCutDepthUb, -1);
+
    //-------------------------------------------------------------
    // Double Parameters
    //-------------------------------------------------------------
+
+   setEntry(boundCutTimeLim, 3600);
    
    //-------------------------------------------------------------
    // String Parameters
