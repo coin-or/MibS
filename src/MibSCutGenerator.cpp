@@ -1466,6 +1466,8 @@ MibSCutGenerator::findLowerLevelSolWatermelonIC(double *uselessIneqs, double *lo
 		    sym_set_int_param(env, "generate_cgl_cuts", FALSE);
 		}else{
 		    sym_set_int_param(env, "generate_cgl_gomory_cuts", GENERATE_DEFAULT);
+		    sym_set_int_param(env, "generate_cgl_twomir_cuts",
+				      DO_NOT_GENERATE);
 		}
 		if(whichCutsLL == 1){
 		    sym_set_int_param(env, "generate_cgl_knapsack_cuts",
