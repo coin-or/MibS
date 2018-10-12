@@ -56,6 +56,7 @@ MibSCutGenerator::MibSCutGenerator(MibSModel *mibs)
   auxCount_ = 0;
   upper_ = 0.0;
   maximalCutCount_ = 0;
+  numCalledBoundCut_ = 0;
   isBigMIncObjSet_ = false;
   bigMIncObj_ = 0.0;
   watermelonICSolver_ = 0;
@@ -2180,7 +2181,20 @@ MibSCutGenerator::boundCuts(BcpsConstraintPool &conPool, double *passedObjCoeffs
 	    boundModel->MibSPar()->setEntry(MibSParams::usePureIntegerCut, PARAM_OFF);
 	    boundModel->MibSPar()->setEntry(MibSParams::useNewPureIntCut, false);
 	}
-
+	else{
+	    boundModel->MibSPar()->setEntry(MibSParams::branchStrategy, MibSBranchingStrategyFractional);
+	    boundModel->MibSPar()->setEntry(MibSParams::useBendersCut, PARAM_OFF);
+	    boundModel->MibSPar()->setEntry(MibSParams::useGeneralNoGoodCut, PARAM_OFF);
+	    boundModel->MibSPar()->setEntry(MibSParams::useTypeIC, PARAM_OFF);
+	    boundModel->MibSPar()->setEntry(MibSParams::useTypeWatermelon, PARAM_OFF);
+	    boundModel->MibSPar()->setEntry(MibSParams::useTypeHypercubeIC, PARAM_ON);
+	    boundModel->MibSPar()->setEntry(MibSParams::useTypeTenderIC, PARAM_OFF);
+	    boundModel->MibSPar()->setEntry(MibSParams::useTypeHybridIC, PARAM_OFF);
+	    boundModel->MibSPar()->setEntry(MibSParams::useIncObjCut, PARAM_OFF);
+	    boundModel->MibSPar()->setEntry(MibSParams::usePureIntegerCut, PARAM_OFF);
+	    boundModel->MibSPar()->setEntry(MibSParams::useNewPureIntCut, false);
+	}
+	    
 	double *colUpper = new double[tCols];
 	double *colLower = new double[tCols];
 	memcpy(colLower, oSolver->getColLower(), sizeof(double) * tCols);
@@ -2355,6 +2369,9 @@ MibSCutGenerator::boundCuts(BcpsConstraintPool &conPool, double *passedObjCoeffs
 
     if(passedObjCoeffs != NULL){
 	passedRhs = -1 * lower_objval;
+    }
+    else if(isInfeasible == true){
+	localModel_->bS_->shouldPrune_ = true;
     }
     else{
 	if (lower_objval > -oSolver->getInfinity()){
@@ -5075,6 +5092,14 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
     if(cutTypes == 0){
       //general type of problem, no specialized cuts
       delete sol;
+      if ((useBoundCut) && (localModel_->boundingPass_ <= 1)){
+	  if ((numCalledBoundCut_%500) == 0){
+	      double tmpArg1 = 0;
+	      bool tmpArg2 = false;
+	      boundCuts(conPool, NULL, tmpArg1, tmpArg2);
+	  }
+	  numCalledBoundCut_ ++;
+      }
       if (bS->isIntegral_){
 	  //if (useIntersectionCut == PARAM_ON){
 	  //  intersectionCuts(conPool, bS->optLowerSolutionOrd_);
@@ -5126,11 +5151,11 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
 	  
 	 numCuts += feasibilityCuts(conPool) ? true : false;
 	 
-         if (useBoundCut){
+         /*if (useBoundCut){
 	     double tmpArg1 = 0;
 	     bool tmpArg2 = false;
 	     boundCuts(conPool, NULL, tmpArg1, tmpArg2);
-	 }
+	     }*/
       }
       return (numCuts ? true : false);
     }
