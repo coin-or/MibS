@@ -329,6 +329,12 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 	OsiSolverInterface *lSolver = lSolver_;
 
 	remainingTime = timeLimit - model_->broker_->subTreeTimer().getTime();
+	if(remainingTime <= etol){
+	    shouldPrune_ = true;
+	    storeSol = MibSNoSol;
+	    goto TERM_CHECKBILEVELFEAS;
+	}
+	
 	remainingTime = CoinMax(remainingTime, 0.00);
 	
 	if (feasCheckSolver == "Cbc"){
@@ -526,6 +532,13 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 		UBSolver = UBSolver_;
 
 		remainingTime = timeLimit - model_->broker_->subTreeTimer().getTime();
+
+		if(remainingTime <= etol){
+		    shouldPrune_ = true;
+		    storeSol = MibSNoSol;
+		    goto TERM_CHECKBILEVELFEAS;
+		}
+		
 		remainingTime = CoinMax(remainingTime, 0.00);
 
                 if (feasCheckSolver == "Cbc"){
