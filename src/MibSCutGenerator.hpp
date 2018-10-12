@@ -28,6 +28,7 @@ class MibSCutGenerator : public BlisConGenerator {
    double upper_;
    int auxCount_;
    int maximalCutCount_;
+   int numCalledBoundCut_;
    bool isBigMIncObjSet_;
    double bigMIncObj_;
    OsiSolverInterface * watermelonICSolver_;
