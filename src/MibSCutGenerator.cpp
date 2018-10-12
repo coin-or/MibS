@@ -996,70 +996,77 @@ MibSCutGenerator::findLowerLevelSol(double *uselessIneqs, double *lowerLevelSol,
     nSolver->setHintParam(OsiDoReducePrint, true, OsiHintDo);
 
     remainingTime = timeLimit - localModel_->broker_->subTreeTimer().getTime();
-    remainingTime = CoinMax(remainingTime, 0.00);
-    
-    if(feasCheckSolver == "Cbc"){
-	dynamic_cast<OsiCbcSolverInterface *>
-	    (nSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
-    }else if (feasCheckSolver == "SYMPHONY"){
-#if COIN_HAS_SYMPHONY
-	sym_environment *env = dynamic_cast<OsiSymSolverInterface *>
-	    (nSolver)->getSymphonyEnvironment();
-	sym_set_dbl_param(env, "time_limit", remainingTime);
-	sym_set_int_param(env, "do_primal_heuristic", FALSE);
-        sym_set_int_param(env, "verbosity", -2);
-        sym_set_int_param(env, "prep_level", -1);
-        sym_set_int_param(env, "max_active_nodes", maxThreadsLL);
-        sym_set_int_param(env, "tighten_root_bounds", FALSE);
-        sym_set_int_param(env, "max_sp_size", 100);
-        sym_set_int_param(env, "do_reduced_cost_fixing", FALSE);
-	if (whichCutsLL == 0){
-	    sym_set_int_param(env, "generate_cgl_cuts", FALSE);
-	}else{
-	    sym_set_int_param(env, "generate_cgl_gomory_cuts", GENERATE_DEFAULT);
-	}
-	if(whichCutsLL == 1){
-	    sym_set_int_param(env, "generate_cgl_knapsack_cuts",
-			      DO_NOT_GENERATE);
-	    sym_set_int_param(env, "generate_cgl_probing_cuts",
-			      DO_NOT_GENERATE);
-	    sym_set_int_param(env, "generate_cgl_clique_cuts",
-			      DO_NOT_GENERATE);
-	    sym_set_int_param(env, "generate_cgl_twomir_cuts",
-			      DO_NOT_GENERATE);
-	    sym_set_int_param(env, "generate_cgl_flowcover_cuts",
-			      DO_NOT_GENERATE);
-	}
-#endif
-    }else if(feasCheckSolver == "CPLEX"){
-#ifdef COIN_HAS_CPLEX
-	nSolver->setHintParam(OsiDoReducePrint);
-	nSolver->messageHandler()->setLogLevel(0);
-	CPXENVptr cpxEnv =
-	    dynamic_cast<OsiCpxSolverInterface*>(nSolver)->getEnvironmentPtr();
-	assert(cpxEnv);
-	CPXsetintparam(cpxEnv, CPX_PARAM_SCRIND, CPX_OFF);
-	CPXsetintparam(cpxEnv, CPX_PARAM_THREADS, maxThreadsLL);
-#endif
-    }
 
-    nSolver->branchAndBound();
-
-    if((feasCheckSolver == "SYMPHONY") && (sym_is_time_limit_reached
-					   (dynamic_cast<OsiSymSolverInterface *>
-					    (nSolver)->getSymphonyEnvironment()))){
+    if(remainingTime <= localModel_->etol_){
 	isTimeLimReached = true;
 	localModel_->bS_->shouldPrune_ = true;
     }
-    else if(nSolver->isProvenOptimal()){
-	const double *optSol = nSolver->getColSolution();
-	CoinDisjointCopyN(optSol, lCols, lowerLevelSol);
-	CoinDisjointCopyN(optSol + lCols, numBinCols, uselessIneqs);
-    }
-    else{//this case should not happen when we use intersection cut for removing
-	//the optimal solution of relaxation which satisfies integrality requirements
-	throw CoinError("The MIP which gives the best lower-level sol, cannot be infeasible!",
-			"findLowerLevelSol", "MibSCutGenerator");
+    else{
+	remainingTime = CoinMax(remainingTime, 0.00);
+
+	if(feasCheckSolver == "Cbc"){
+	    dynamic_cast<OsiCbcSolverInterface *>
+		(nSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
+	}else if (feasCheckSolver == "SYMPHONY"){
+#if COIN_HAS_SYMPHONY
+	    sym_environment *env = dynamic_cast<OsiSymSolverInterface *>
+		(nSolver)->getSymphonyEnvironment();
+	    sym_set_dbl_param(env, "time_limit", remainingTime);
+	    sym_set_int_param(env, "do_primal_heuristic", FALSE);
+            sym_set_int_param(env, "verbosity", -2);
+            sym_set_int_param(env, "prep_level", -1);
+            sym_set_int_param(env, "max_active_nodes", maxThreadsLL);
+            sym_set_int_param(env, "tighten_root_bounds", FALSE);
+            sym_set_int_param(env, "max_sp_size", 100);
+            sym_set_int_param(env, "do_reduced_cost_fixing", FALSE);
+	    if (whichCutsLL == 0){
+		sym_set_int_param(env, "generate_cgl_cuts", FALSE);
+	    }else{
+		sym_set_int_param(env, "generate_cgl_gomory_cuts", GENERATE_DEFAULT);
+	    }
+	    if(whichCutsLL == 1){
+		sym_set_int_param(env, "generate_cgl_knapsack_cuts",
+				  DO_NOT_GENERATE);
+	        sym_set_int_param(env, "generate_cgl_probing_cuts",
+				  DO_NOT_GENERATE);
+	        sym_set_int_param(env, "generate_cgl_clique_cuts",
+				  DO_NOT_GENERATE);
+		sym_set_int_param(env, "generate_cgl_twomir_cuts",
+				  DO_NOT_GENERATE);
+		sym_set_int_param(env, "generate_cgl_flowcover_cuts",
+				  DO_NOT_GENERATE);
+	    }
+#endif
+	}else if(feasCheckSolver == "CPLEX"){
+#ifdef COIN_HAS_CPLEX
+	    nSolver->setHintParam(OsiDoReducePrint);
+	    nSolver->messageHandler()->setLogLevel(0);
+	    CPXENVptr cpxEnv =
+		dynamic_cast<OsiCpxSolverInterface*>(nSolver)->getEnvironmentPtr();
+	    assert(cpxEnv);
+	    CPXsetintparam(cpxEnv, CPX_PARAM_SCRIND, CPX_OFF);
+	    CPXsetintparam(cpxEnv, CPX_PARAM_THREADS, maxThreadsLL);
+#endif
+	}
+
+	nSolver->branchAndBound();
+
+        if((feasCheckSolver == "SYMPHONY") && (sym_is_time_limit_reached
+					       (dynamic_cast<OsiSymSolverInterface *>
+						(nSolver)->getSymphonyEnvironment()))){
+	    isTimeLimReached = true;
+	    localModel_->bS_->shouldPrune_ = true;
+	}
+	else if(nSolver->isProvenOptimal()){
+	    const double *optSol = nSolver->getColSolution();
+	    CoinDisjointCopyN(optSol, lCols, lowerLevelSol);
+	    CoinDisjointCopyN(optSol + lCols, numBinCols, uselessIneqs);
+	}
+	else{//this case should not happen when we use intersection cut for removing
+	    //the optimal solution of relaxation which satisfies integrality requirements
+	    throw CoinError("The MIP which gives the best lower-level sol, cannot be infeasible!",
+			    "findLowerLevelSol", "MibSCutGenerator");
+	}
     }
 
     delete [] multA2XOpt;
@@ -1695,81 +1702,88 @@ MibSCutGenerator::storeBestSolHypercubeIC(const double* lpSol, double optLowerOb
     UBSolver = bS->UBSolver_;
 
     remainingTime = timeLimit - localModel_->broker_->subTreeTimer().getTime();
-    remainingTime = CoinMax(remainingTime, 0.00);
-    
-    if (feasCheckSolver == "Cbc"){
-	dynamic_cast<OsiCbcSolverInterface *>
-	    (UBSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
-    }else if (feasCheckSolver == "SYMPHONY"){
-#if COIN_HAS_SYMPHONY
-	//dynamic_cast<OsiSymSolverInterface *>
-	// (lSolver)->setSymParam("prep_level", -1);
-	
-	sym_environment *env = dynamic_cast<OsiSymSolverInterface *>
-	    (UBSolver)->getSymphonyEnvironment();
-	//Always uncomment for debugging!!
-	sym_set_dbl_param(env, "time_limit", remainingTime);
-	sym_set_int_param(env, "do_primal_heuristic", FALSE);
-	sym_set_int_param(env, "verbosity", -2);
-	sym_set_int_param(env, "prep_level", -1);
-	sym_set_int_param(env, "max_active_nodes", maxThreadsLL);
-	sym_set_int_param(env, "tighten_root_bounds", FALSE);
-	sym_set_int_param(env, "max_sp_size", 100);
-	sym_set_int_param(env, "do_reduced_cost_fixing", FALSE);
-	if (whichCutsLL == 0){
-	    sym_set_int_param(env, "generate_cgl_cuts", FALSE);
-	}else{
-	    sym_set_int_param(env, "generate_cgl_gomory_cuts", GENERATE_DEFAULT);
-	}
-	if (whichCutsLL == 1){
-	    sym_set_int_param(env, "generate_cgl_knapsack_cuts",
-			      DO_NOT_GENERATE);
-	    sym_set_int_param(env, "generate_cgl_probing_cuts",
-			      DO_NOT_GENERATE);
-	    sym_set_int_param(env, "generate_cgl_clique_cuts",
-			      DO_NOT_GENERATE);
-	    sym_set_int_param(env, "generate_cgl_twomir_cuts",
-			      DO_NOT_GENERATE);
-	    sym_set_int_param(env, "generate_cgl_flowcover_cuts",
-			      DO_NOT_GENERATE);
-	}
-#endif
-    }else if (feasCheckSolver == "CPLEX"){
-#ifdef COIN_HAS_CPLEX
-	UBSolver->setHintParam(OsiDoReducePrint);
-	UBSolver->messageHandler()->setLogLevel(0);
-	CPXENVptr cpxEnv =
-	    dynamic_cast<OsiCpxSolverInterface*>(UBSolver)->getEnvironmentPtr();
-	assert(cpxEnv);
-	CPXsetintparam(cpxEnv, CPX_PARAM_SCRIND, CPX_OFF);
-	CPXsetintparam(cpxEnv, CPX_PARAM_THREADS, maxThreadsLL);
-#endif
-    }
 
-    startTimeUB = localModel_->broker_->subTreeTimer().getTime(); 
-    UBSolver->branchAndBound();
-    localModel_->timerUB_ += localModel_->broker_->subTreeTimer().getTime() - startTimeUB;
-    localModel_->counterUB_ ++;
-
-    if((feasCheckSolver == "SYMPHONY") && (sym_is_time_limit_reached
-					   (dynamic_cast<OsiSymSolverInterface *>
-					    (UBSolver)->getSymphonyEnvironment()))){
+    if(remainingTime <= localModel_->etol_){
 	isTimeLimReached = true;
 	bS->shouldPrune_ = true;
     }
-    else if(UBSolver->isProvenOptimal()){
-	MibSSolution *mibsSol = new MibSSolution(numCols,
-						 UBSolver->getColSolution(),
-						 UBSolver->getObjValue(),
-						 localModel_);
-
-	localModel_->storeSolution(BlisSolutionTypeHeuristic, mibsSol);
-	
-	objVal = UBSolver->getObjValue() * localModel_->solver()->getObjSense();
-    }
     else{
+	remainingTime = CoinMax(remainingTime, 0.00);
+
+	if (feasCheckSolver == "Cbc"){
+	    dynamic_cast<OsiCbcSolverInterface *>
+		(UBSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
+	}else if (feasCheckSolver == "SYMPHONY"){
+#if COIN_HAS_SYMPHONY
+	    //dynamic_cast<OsiSymSolverInterface *>
+	    // (lSolver)->setSymParam("prep_level", -1);
+
+	    sym_environment *env = dynamic_cast<OsiSymSolverInterface *>
+		(UBSolver)->getSymphonyEnvironment();
+	    //Always uncomment for debugging!!
+	    sym_set_dbl_param(env, "time_limit", remainingTime);
+	    sym_set_int_param(env, "do_primal_heuristic", FALSE);
+	    sym_set_int_param(env, "verbosity", -2);
+	    sym_set_int_param(env, "prep_level", -1);
+	    sym_set_int_param(env, "max_active_nodes", maxThreadsLL);
+	    sym_set_int_param(env, "tighten_root_bounds", FALSE);
+	    sym_set_int_param(env, "max_sp_size", 100);
+	    sym_set_int_param(env, "do_reduced_cost_fixing", FALSE);
+	    if (whichCutsLL == 0){
+		sym_set_int_param(env, "generate_cgl_cuts", FALSE);
+	    }else{
+		sym_set_int_param(env, "generate_cgl_gomory_cuts", GENERATE_DEFAULT);
+	    }
+	    if (whichCutsLL == 1){
+		sym_set_int_param(env, "generate_cgl_knapsack_cuts",
+				  DO_NOT_GENERATE);
+		sym_set_int_param(env, "generate_cgl_probing_cuts",
+				  DO_NOT_GENERATE);
+	        sym_set_int_param(env, "generate_cgl_clique_cuts",
+			          DO_NOT_GENERATE);
+	        sym_set_int_param(env, "generate_cgl_twomir_cuts",
+			          DO_NOT_GENERATE);
+	        sym_set_int_param(env, "generate_cgl_flowcover_cuts",
+			          DO_NOT_GENERATE);
+	    }
+#endif
+	}else if (feasCheckSolver == "CPLEX"){
+#ifdef COIN_HAS_CPLEX
+	    UBSolver->setHintParam(OsiDoReducePrint);
+	    UBSolver->messageHandler()->setLogLevel(0);
+	    CPXENVptr cpxEnv =
+		dynamic_cast<OsiCpxSolverInterface*>(UBSolver)->getEnvironmentPtr();
+	    assert(cpxEnv);
+	    CPXsetintparam(cpxEnv, CPX_PARAM_SCRIND, CPX_OFF);
+	    CPXsetintparam(cpxEnv, CPX_PARAM_THREADS, maxThreadsLL);
+#endif
+	}
+
+	startTimeUB = localModel_->broker_->subTreeTimer().getTime(); 
+        UBSolver->branchAndBound();
+        localModel_->timerUB_ += localModel_->broker_->subTreeTimer().getTime() - startTimeUB;
+        localModel_->counterUB_ ++;
+
+        if((feasCheckSolver == "SYMPHONY") && (sym_is_time_limit_reached
+					       (dynamic_cast<OsiSymSolverInterface *>
+						(UBSolver)->getSymphonyEnvironment()))){
+	    isTimeLimReached = true;
+	    bS->shouldPrune_ = true;
+	}
+	else if(UBSolver->isProvenOptimal()){
+	    MibSSolution *mibsSol = new MibSSolution(numCols,
+						     UBSolver->getColSolution(),
+						     UBSolver->getObjValue(),
+						     localModel_);
+
+	    localModel_->storeSolution(BlisSolutionTypeHeuristic, mibsSol);
+	
+	    objVal = UBSolver->getObjValue() * localModel_->solver()->getObjSense();
+	}
+	else{
 	    objVal = 10000000;
 	}
+    }
 
     if((useLinkingSolutionPool) && (isTimeLimReached == false)){
 	//Add to linking solution pool
@@ -2161,7 +2175,7 @@ MibSCutGenerator::boundCuts(BcpsConstraintPool &conPool, double *passedObjCoeffs
 	/** Create new MibS model to solve bilevel **/
 	MibSModel *boundModel = new MibSModel();
 	boundModel->setSolver(&lpSolver);
-	boundModel->AlpsPar()->setEntry(AlpsParams::msgLevel, -1);
+	boundModel->AlpsPar()->setEntry(AlpsParams::msgLevel, -1);  
 	boundModel->AlpsPar()->setEntry(AlpsParams::timeLimit, boundCutTimeLim);
 	boundModel->BlisPar()->setEntry(BlisParams::heurStrategy, 0);
 	boundModel->MibSPar()->setEntry(MibSParams::feasCheckSolver, feasCheckSolver.c_str());
