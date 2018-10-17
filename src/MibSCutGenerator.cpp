@@ -5130,6 +5130,9 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
 		      useBoundCut = true;
 		  }
 	      }
+	      else{
+		  useBoundCut = true;
+	      }
 
 	      if(useBoundCut == true){
 		  double tmpArg1 = 0;
