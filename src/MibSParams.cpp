@@ -204,6 +204,15 @@ MibSParams::createKeywordList() {
    keys_.push_back(make_pair(std::string("MibS_newPureIntCutDepthUb"),
 			     AlpsParameter(AlpsIntPar, newPureIntCutDepthUb)));
 
+   keys_.push_back(make_pair(std::string("MibS_boundCutDepthLb"),
+			     AlpsParameter(AlpsIntPar, boundCutDepthLb)));
+
+   keys_.push_back(make_pair(std::string("MibS_boundCutDepthUb"),
+			     AlpsParameter(AlpsIntPar, boundCutDepthUb)));
+
+   keys_.push_back(make_pair(std::string("MibS_boundCutFreq"),
+			     AlpsParameter(AlpsIntPar, boundCutFreq)));
+
    //--------------------------------------------------------
    // String Parameters.
    //--------------------------------------------------------
@@ -346,6 +355,12 @@ MibSParams::setDefaultEntries() {
    setEntry(newPureIntCutDepthLb, -1);
 
    setEntry(newPureIntCutDepthUb, -1);
+
+   setEntry(boundCutDepthLb, -1);
+
+   setEntry(boundCutDepthUb, -1);
+
+   setEntry(boundCutFreq, 1);
 
    //-------------------------------------------------------------
    // Double Parameters
