@@ -35,7 +35,7 @@ before_script:
   - bash ./coin.install.sh fetch --no-prompt --main-proj=$PROJECT > /dev/null
 
 script:
-  - bash ./coin.install.sh build --no-prompt --main-proj=$PROJECT --verbosity=3 --test
+  - bash ./coin.install.sh build --no-prompt --main-proj=$PROJECT --verbosity=2
   - cd $TRAVIS_BUILD_DIR/COIN/build/bin && ./mibs \ 
     -Alps_instance ../../data/interdiction/MCDM/NO_CORR/10_ITEMS_1000/K5010W03.KNP.mps \
     -MibS_auxiliaryInfoFile ../../data/interdiction/MCDM/NO_CORR/10_ITEMS_1000/K5010W03.KNP.txt
@@ -45,5 +45,5 @@ after_script:
   - export PROJECT=`echo $TRAVIS_REPO_SLUG | cut -d "/" -f 2`
   - export TGZ_FILE=$PROJECT-$VERSION-$PLATFORM.tgz
   - echo $TGZ_FILE
-  - tar -czvf $TGZ_FILE build/lib/* build/bin/* build/include/* build/share/* build/README.md build/INSTALL build/LICENSE build/SYMPHONY/AUTHORS
+  - tar -czvf $TGZ_FILE build/lib/* build/bin/* build/include/* build/share/* $PROJECT/README.md $PROJECT/INSTALL $PROJECT/LICENSE $PROJECT/AUTHORS
   - curl -T $TGZ_FILE -utkralphs:$BINTRAY_API -H "X-Bintray-Publish:1" -H "X-Bintray-Override:1" https://api.bintray.com/content/coin-or/download/$PROJECT/$VERSION/$TGZ_FILE
