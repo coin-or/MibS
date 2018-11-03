@@ -35,7 +35,7 @@ before_script:
   - bash ./coin.install.sh fetch --no-prompt --main-proj=$PROJECT > /dev/null
 
 script:
-  - bash ./coin.install.sh build --no-prompt --main-proj=$PROJECT --verbosity=2 --test
+  - bash ./coin.install.sh build --no-prompt --main-proj=$PROJECT --verbosity=3 --test
   - cd $TRAVIS_BUILD_DIR/COIN/build/bin && ./mibs \ 
     -Alps_instance ../../data/interdiction/MCDM/NO_CORR/10_ITEMS_1000/K5010W03.KNP.mps \
     -MibS_auxiliaryInfoFile ../../data/interdiction/MCDM/NO_CORR/10_ITEMS_1000/K5010W03.KNP.txt
