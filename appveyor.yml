@@ -37,9 +37,9 @@ install:
   - C:\msys64\usr\bin\bash -lc ""
 
 build_script:
-  - C:\msys64\usr\bin\bash -lc "cd $APPVEYOR_BUILD_FOLDER; git clone https://github.com/coin-or-tools/BuildTools"
-  - C:\msys64\usr\bin\bash -lc "cd $APPVEYOR_BUILD_FOLDER; BuildTools/get.dependencies.sh fetch --no-third-party"
-  - C:\msys64\usr\bin\bash -lc "cd $APPVEYOR_BUILD_FOLDER; export PATH=$ADD_PATH:$PATH; BuildTools/get.dependencies.sh build --build=x86_64-w64-mingw32 $HOST_ARCH_ARG --disable-openmp --verbosity=2"
+  - C:\msys64\usr\bin\bash -lc "cd $APPVEYOR_BUILD_FOLDER; git clone https://github.com/coin-or/COIN-OR-OptimizationSuite COIN"
+  - C:\msys64\usr\bin\bash -lc "cd $APPVEYOR_BUILD_FOLDER/COIN; ./coin.install.sh --no-prompt --main-proj=%APPVEYOR_PROJECT_NAME% fetch --no-third-party"
+  - C:\msys64\usr\bin\bash -lc "cd $APPVEYOR_BUILD_FOLDER/COIN; export PATH=$ADD_PATH:$PATH; ./coin.install.sh build --build=x86_64-w64-mingw32 $HOST_ARCH_ARG --disable-openmp --verbosity=2"
 
 after_build:
   - 7z a %APPVEYOR_PROJECT_NAME%-%VERSION%-%ARCH%.zip %APPVEYOR_BUILD_FOLDER%\COIN\build\bin
