@@ -130,17 +130,17 @@ class MibSCutGenerator : public BlisConGenerator {
    double getRhsParamBoundCut(bool *isTimeLimReached);
 
    /** Find the leaf nodes of bounding problem **/
-  void findLeafNodes(AlpsTreeNode *node, bool *isTimeLimReached,
-		     int *numStoredCuts, int *numLeafNodes,
-		     std::vector<int> &cutStarts,
-		     std::vector<int> &cutIndices,
-		     std::vector<double> &cutValues,
-		     std::vector<double> &cutBounds,
-		     std::vector<int> &sourceNode,
-		     std::vector<int> &leafNodeCutInf,
-		     std::vector<int> &leafNodeCutStatrs,
-		     std::vector<double> &leafNodeLBs,
-		     std::vector<double> &leafNodeUBs);
+    void findLeafNodes(AlpsTreeNode *node, int *numStoredCuts,
+		       int *numLeafNodes,
+		       std::vector<int> &cutStarts,
+		       std::vector<int> &cutIndices,
+		       std::vector<double> &cutValues,
+		       std::vector<double> &cutBounds,
+		       std::vector<int> &sourceNode,
+		       std::vector<int> &leafNodeCutInf,
+		       std::vector<int> &leafNodeCutStatrs,
+		       std::vector<double> &leafNodeLBs,
+		       std::vector<double> &leafNodeUBs);
 
    /** Solve the leaf nodes of bounding problem **/
   double solveLeafNode(int leafNodeIndex, bool *isTimeLimReached);
