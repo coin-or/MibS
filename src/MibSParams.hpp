@@ -86,9 +86,11 @@ class MibSParams : public AlpsParameterSet {
      useLinkingSolutionPool,
      newPureIntCutDepthLb,
      newPureIntCutDepthUb,
+     boundCutOptimalType,
      boundCutDepthLb,
      boundCutDepthUb,
      boundCutFreq,
+     relaxTypeParamBoundCut,
      endOfIntParams
   };
 
