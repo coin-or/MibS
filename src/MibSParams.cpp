@@ -216,6 +216,9 @@ MibSParams::createKeywordList() {
    keys_.push_back(make_pair(std::string("MibS_boundCutFreq"),
 			     AlpsParameter(AlpsIntPar, boundCutFreq)));
 
+   keys_.push_back(make_pair(std::string("MibS_boundCutNodeLim"),
+			     AlpsParameter(AlpsIntPar, boundCutNodeLim)));
+
    keys_.push_back(make_pair(std::string("MibS_relaxTypeParamBoundCut"),
    			     AlpsParameter(AlpsIntPar, relaxTypeParamBoundCut)));
 
@@ -369,6 +372,8 @@ MibSParams::setDefaultEntries() {
    setEntry(boundCutDepthUb, -1);
 
    setEntry(boundCutFreq, 1);
+
+   setEntry(boundCutNodeLim, 1000000000000000);
 
    setEntry(relaxTypeParamBoundCut, MibSRelaxTypeParamBoundCutLP);
 
