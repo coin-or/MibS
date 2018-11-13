@@ -90,6 +90,7 @@ class MibSParams : public AlpsParameterSet {
      boundCutDepthLb,
      boundCutDepthUb,
      boundCutFreq,
+     boundCutNodeLim,
      relaxTypeParamBoundCut,
      endOfIntParams
   };
