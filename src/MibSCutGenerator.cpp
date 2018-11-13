@@ -2106,10 +2106,14 @@ MibSCutGenerator::boundCuts(BcpsConstraintPool &conPool, double *passedObjCoeffs
 {
     /* Derive a bound on the lower level objective function value */
     bool boundCutOptimal
-	= localModel_->MibSPar_->entry(MibSParams::boundCutOptimal);
+      = localModel_->MibSPar_->entry(MibSParams::boundCutOptimal);
 
     bool boundCutRelaxUpper
-	= localModel_->MibSPar_->entry(MibSParams::boundCutRelaxUpper);
+      = localModel_->MibSPar_->entry(MibSParams::boundCutRelaxUpper);
+
+      //parametric or non-parametric
+    int boundCutOptimalType =
+      localModel_->MibSPar_->entry(MibSParams::boundCutOptimalType);
 
     std::string feasCheckSolver
 	= localModel_->MibSPar_->entry(MibSParams::feasCheckSolver);
@@ -2122,6 +2126,14 @@ MibSCutGenerator::boundCuts(BcpsConstraintPool &conPool, double *passedObjCoeffs
 
     double boundCutTimeLim
 	= localModel_->MibSPar_->entry(MibSParams::boundCutTimeLim);
+
+    MibSTreeNode * node =
+      dynamic_cast<MibSTreeNode *>(localModel_->activeNode_);
+
+    if(passedObjCoeffs != NULL){
+      boundCutOptimal = true;
+      boundCutOptimalType = MibSBoundCutOptimalTypeNonParametric;
+    }
 
     if ((localModel_->boundingPass_ > 1) && (passedObjCoeffs == NULL)){
 	return 0;
@@ -2140,8 +2152,11 @@ MibSCutGenerator::boundCuts(BcpsConstraintPool &conPool, double *passedObjCoeffs
     double * origColLb = localModel_->getOrigColLb();
     double * origColUb = localModel_->getOrigColUb();
     int i(0), index(0);
+    double etol(localModel_->etol_);
 
     OsiSolverInterface * oSolver = localModel_->getSolver();
+    double infinity(oSolver->getInfinity());
+    bool isTimeLimReached(false);
 
     CoinPackedMatrix matrix = *oSolver->getMatrixByCol();
     int numCols = localModel_->getLowerDim() + localModel_->getUpperDim();
@@ -2166,21 +2181,28 @@ MibSCutGenerator::boundCuts(BcpsConstraintPool &conPool, double *passedObjCoeffs
     }
 
     int numCuts(0);
-    double objval = -oSolver->getInfinity();
-    double lower_objval = -oSolver->getInfinity();
+    double objval = -1 * infinity;
+    double lower_objval = -1 * infinity;
     char * colType = new char[tCols];
 
-    if (boundCutOptimal){
+    if(boundCutOptimal){
+      if(((boundCutOptimalType == MibSBoundCutOptimalTypeParametric) &&
+	  (node->getIndex() == 0)) ||
+	 (boundCutOptimalType == MibSBoundCutOptimalTypeNonParametric) ||
+	 (passedObjCoeffs != NULL)){
 
 	/** Create new MibS model to solve bilevel **/
 	MibSModel *boundModel = new MibSModel();
 	boundModel->setSolver(&lpSolver);
-	boundModel->AlpsPar()->setEntry(AlpsParams::msgLevel, -1);  
+	//boundModel->AlpsPar()->setEntry(AlpsParams::msgLevel, -1);
+	boundModel->AlpsPar()->setEntry(AlpsParams::msgLevel, 1000);
+	//boundModel->AlpsPar()->setEntry(AlpsParams::nodeLimit, 10);
 	boundModel->AlpsPar()->setEntry(AlpsParams::timeLimit, boundCutTimeLim);
 	boundModel->BlisPar()->setEntry(BlisParams::heurStrategy, 0);
 	boundModel->MibSPar()->setEntry(MibSParams::feasCheckSolver, feasCheckSolver.c_str());
 	boundModel->MibSPar()->setEntry(MibSParams::bilevelCutTypes, 0);
 	boundModel->MibSPar()->setEntry(MibSParams::printProblemInfo, false);
+	boundModel->MibSPar()->setEntry(MibSParams::useBoundCut, false);
 	if(passedObjCoeffs != NULL){
 	    boundModel->MibSPar()->setEntry(MibSParams::branchStrategy, MibSBranchingStrategyLinking);
 	    boundModel->MibSPar()->setEntry(MibSParams::useBendersCut, PARAM_OFF);
@@ -2196,17 +2218,23 @@ MibSCutGenerator::boundCuts(BcpsConstraintPool &conPool, double *passedObjCoeffs
 	    boundModel->MibSPar()->setEntry(MibSParams::useNewPureIntCut, false);
 	}
 	else{
-	    boundModel->MibSPar()->setEntry(MibSParams::branchStrategy, MibSBranchingStrategyFractional);
-	    boundModel->MibSPar()->setEntry(MibSParams::useBendersCut, PARAM_OFF);
+	  //sahar: these ones should be modified
+	    boundModel->MibSPar()->setEntry(MibSParams::branchStrategy, MibSBranchingStrategyLinking);
+	    boundModel->MibSPar()->setEntry(MibSParams::useBendersCut, PARAM_ON);
 	    boundModel->MibSPar()->setEntry(MibSParams::useGeneralNoGoodCut, PARAM_OFF);
 	    boundModel->MibSPar()->setEntry(MibSParams::useTypeIC, PARAM_OFF);
 	    boundModel->MibSPar()->setEntry(MibSParams::useTypeWatermelon, PARAM_OFF);
-	    boundModel->MibSPar()->setEntry(MibSParams::useTypeHypercubeIC, PARAM_ON);
+	    boundModel->MibSPar()->setEntry(MibSParams::useTypeHypercubeIC, PARAM_OFF);
 	    boundModel->MibSPar()->setEntry(MibSParams::useTypeTenderIC, PARAM_OFF);
 	    boundModel->MibSPar()->setEntry(MibSParams::useTypeHybridIC, PARAM_OFF);
 	    boundModel->MibSPar()->setEntry(MibSParams::useIncObjCut, PARAM_OFF);
 	    boundModel->MibSPar()->setEntry(MibSParams::usePureIntegerCut, PARAM_OFF);
 	    boundModel->MibSPar()->setEntry(MibSParams::useNewPureIntCut, false);
+	    if(boundCutOptimalType == MibSBoundCutOptimalTypeParametric){
+	      boundModel->AlpsPar()->setEntry(AlpsParams::warmStart, true);
+	      boundModel->AlpsPar()->setEntry(AlpsParams::deleteDeadNode, false);
+	      boundModel->BlisPar()->setEntry(BlisParams::difference, -2);  
+	    }
 	}
 	    
 	double *colUpper = new double[tCols];
@@ -2278,22 +2306,40 @@ MibSCutGenerator::boundCuts(BcpsConstraintPool &conPool, double *passedObjCoeffs
 		    lower_objval = boundModel->getKnowledgeBroker()->getBestQuality();
 		}
 		else{
-		    lower_objval = -oSolver->getInfinity();
+		    lower_objval = -1 * infinity;
 		}
 	    }
 	}
 
+	if(boundCutOptimalType == MibSBoundCutOptimalTypeParametric){
+	  AlpsSubTree *boundProbTree = broker.getWorkingSubTree();
+	  localModel_->setBoundProbRoot(boundProbTree->getRoot());
+	  localModel_->setBoundProbLinkingPool(boundModel->seenLinkingSolutions);
+	  int numStoredCuts(0);
+	  findLeafNodes(localModel_->getBoundProbRoot(), &isTimeLimReached,
+			&numStoredCuts, &localModel_->boundProbLeafNum_,
+			localModel_->boundProbCutPoolStarts_,
+			localModel_->boundProbCutPoolIndices_,
+			localModel_->boundProbCutPoolValues_,
+			localModel_->boundProbCutPoolBounds_,
+			localModel_->boundProbCutPoolSource_,
+			localModel_->boundProbLeafNodeCutInf_,
+			localModel_->boundProbLeafNodeCutStarts_,
+			localModel_->boundProbLeafLb_,
+			localModel_->boundProbLeafUb_);
+
+	  if(isTimeLimReached == true){
+	    goto TERM_BOUNDCUT;
+	  }
+	}
+	
 	delete [] colLower;
         delete [] colUpper;
 	delete [] lColLbInLProb;
 	delete [] lColUbInLProb;
 	delete boundModel;
-
+      }
     }else if (localModel_->getNumSolutions() > 0){
-	//Change this when we actually add a cut
-	//double objval;
-	//double objval(boundModel.getKnowledgeBroker()->getBestQuality());
-
 	memcpy(colType, localModel_->colType_, tCols);
 	for (i = 0; i < uCols; i++){
 	    colType[uColIndices[i]] = 'C';
@@ -2305,7 +2351,6 @@ MibSCutGenerator::boundCuts(BcpsConstraintPool &conPool, double *passedObjCoeffs
 			       AlpsKnowledgeTypeSolution).first);
 	   const double * sol;
 	   sol = blisSol->getValues();
-	   double etol(localModel_->etol_);
 	   int lN(localModel_->getLowerDim());
 	   int * lowerColInd = localModel_->getLowerColInd();
 	   int LowZero(0);
@@ -2381,6 +2426,19 @@ MibSCutGenerator::boundCuts(BcpsConstraintPool &conPool, double *passedObjCoeffs
 	   zeroList.clear();
     }
 
+    if((boundCutOptimalType == MibSBoundCutOptimalTypeParametric) &&
+       (node->getIndex() > 0)){
+      double cutLb(0.0);
+      cutLb = getRhsParamBoundCut(&isTimeLimReached);
+      if(isTimeLimReached == true){
+	goto TERM_BOUNDCUT;
+      }
+      if(cutLb + etol >= infinity){
+	isInfeasible = true;
+      }
+      lower_objval = cutLb;
+    }
+
     if(passedObjCoeffs != NULL){
 	passedRhs = -1 * lower_objval;
     }
@@ -2388,8 +2446,8 @@ MibSCutGenerator::boundCuts(BcpsConstraintPool &conPool, double *passedObjCoeffs
 	localModel_->bS_->shouldPrune_ = true;
     }
     else{
-	if (lower_objval > -oSolver->getInfinity()){
-	    double cutub(oSolver->getInfinity());
+	if (lower_objval > -1 * infinity){
+	    double cutub(infinity);
 	    std::vector<int> indexList;
 	    std::vector<double> valsList;
 	    for(i = 0; i < lCols; i++){
@@ -2407,12 +2465,697 @@ MibSCutGenerator::boundCuts(BcpsConstraintPool &conPool, double *passedObjCoeffs
 	}
     }
 
+ TERM_BOUNDCUT:
     delete [] colType;
     delete [] nObjCoeffs;
 
     return numCuts;
 }
 
+//############################################################################# 
+void
+MibSCutGenerator::findLeafNodes(AlpsTreeNode *node, bool *isTimeLimReached,
+				int *numStoredCuts, int *numLeafNodes,
+				std::vector<int> &cutStarts,
+				std::vector<int> &cutIndices,
+				std::vector<double> &cutValues,
+				std::vector<double> &cutBounds,
+				std::vector<int> &sourceNode,
+				std::vector<int> &leafNodeCutInf,
+				std::vector<int> &leafNodeCutStatrs,
+				std::vector<double> &leafNodeLBs,
+				std::vector<double> &leafNodeUBs)
+{
+
+  assert(node);
+
+  BlisTreeNode *blisNode = dynamic_cast<BlisTreeNode*>(node);
+  BlisModel *blisModel = dynamic_cast<BlisModel *>(blisNode->getDesc()->getModel());
+  MibSTreeNode *mibsNode = dynamic_cast<MibSTreeNode*>(node);
+  MibSModel *mibsModel = dynamic_cast<MibSModel *>(mibsNode->getDesc()->getModel());
+ 
+  int i(0), j(0), k(0);
+  int pos(0), tmp(0), numSeenChildren(0);
+  double etol(localModel_->etol_);
+  int numChildren = node->getNumChildren();
+
+
+  if(node->getIndex() == 0){
+    cutStarts.push_back(0);
+    leafNodeCutStatrs.push_back(0);
+  }
+    
+  if(*isTimeLimReached == true){
+    return;
+  }
+
+  if(numChildren == 0){
+    *numLeafNodes = *numLeafNodes + 1;
+    int numModify(0), index(0), nodeIndex(0), tmpInt(0);
+    int numAllGenCut(0), pos(0), tmpStart(0), constSize(0);
+    int tmpNumCuts(0);   
+    double value(0.0);
+    int numCoreVars(localModel_->getUpperDim() +
+		    localModel_->getLowerDim());
+    BlisNodeDesc* pathDesc = NULL;
+    BlisConstraint *aCon = NULL;
+    double *varHardLB = NULL;
+    double *varHardUB = NULL;
+    MibSTreeNode *tmpMibsNode = NULL;
+    std::vector<AlpsTreeNode *> leafToRootPath;
+    double *startColLB = new double[numCoreVars];
+    double *startColUB = new double[numCoreVars];
+    CoinFillN(startColLB, numCoreVars, -ALPS_DBL_MAX);
+    CoinFillN(startColUB, numCoreVars, ALPS_DBL_MAX);
+    AlpsTreeNode *parent = node->getParent();
+    leafToRootPath.push_back(node);
+    //note: in bounding problem the only explicit node is the root node.
+    while(parent){
+      leafToRootPath.push_back(parent);
+      if(parent->getIndex() > 0){
+	parent = parent->getParent();
+      }
+      else{
+	break;
+      }
+    }
+    for(i = static_cast<int> (leafToRootPath.size() - 1); i > -1; --i){
+      pathDesc = dynamic_cast<BlisNodeDesc*>((leafToRootPath.at(i))->getDesc());
+
+      varHardLB = pathDesc->getVars()->lbHard.entries;
+      varHardUB = pathDesc->getVars()->ubHard.entries;
+      numModify = pathDesc->getVars()->lbHard.numModify;
+      for(k = 0; k < numModify; ++k){
+	index = pathDesc->getVars()->lbHard.posModify[k];
+	value = pathDesc->getVars()->lbHard.entries[k];
+	startColLB[index] = CoinMax(startColLB[index], value);
+      }
+      
+      numModify = pathDesc->getVars()->ubHard.numModify;
+      for(k = 0; k < numModify; ++k){
+	index = pathDesc->getVars()->ubHard.posModify[k];
+	value = pathDesc->getVars()->ubHard.entries[k];
+	startColUB[index] = CoinMin(startColUB[index], value);
+      }
+      
+      numModify = pathDesc->getVars()->lbSoft.numModify;
+      for(k = 0; k < numModify; ++k){
+	index = pathDesc->getVars()->lbSoft.posModify[k];
+	value = pathDesc->getVars()->lbSoft.entries[k];
+	startColLB[index] = CoinMax(startColLB[index], value);
+      }
+      
+      numModify = pathDesc->getVars()->ubSoft.numModify;
+      for(k = 0; k < numModify; ++k){
+	index = pathDesc->getVars()->ubSoft.posModify[k];
+	value = pathDesc->getVars()->ubSoft.entries[k];
+	startColUB[index] = CoinMin(startColUB[index], value);
+      }
+
+      tmpInt = pathDesc->getCons()->numAdd;
+      tmpMibsNode = dynamic_cast<MibSTreeNode*>(leafToRootPath.at(i));
+      nodeIndex = tmpMibsNode->getIndex();
+      if(tmpMibsNode->getIsCutStored() == true){ 
+	if(tmpInt > 0){
+	  numAllGenCut = sourceNode.size();
+	  for(k = 0; k < numAllGenCut; k++){
+	    if(sourceNode[k] == nodeIndex){
+	      pos = k;
+	      break;
+	    }
+	  }
+	  for(k = pos; k < pos + tmpInt; k++){
+	    leafNodeCutInf.push_back(k);
+	    tmpNumCuts ++;
+	  }
+	}
+      }
+      else{
+	tmpMibsNode->setIsCutStored(true);
+	for(k = 0; k < tmpInt; ++k){
+	  leafNodeCutInf.push_back(*numStoredCuts);
+	  tmpNumCuts ++;    
+	  *numStoredCuts = *numStoredCuts + 1;
+	  aCon = dynamic_cast<BlisConstraint *>
+	    (pathDesc->getCons()->objects[k]);
+	  cutBounds.push_back(aCon->getLbSoft());
+	  cutBounds.push_back(aCon->getUbSoft());
+	  constSize = aCon->getSize();
+	  cutIndices.insert(cutIndices.end(), aCon->getIndices(),
+			    aCon->getIndices() + constSize);
+	  cutValues.insert(cutValues.end(), aCon->getValues(),
+			   aCon->getValues() + constSize);
+	  tmpStart = cutStarts.at(cutStarts.size() - 1);
+	  cutStarts.push_back(tmpStart + constSize);
+	  sourceNode.push_back(nodeIndex);
+	}
+      }
+    }
+    tmpStart = leafNodeCutStatrs.at(leafNodeCutStatrs.size() - 1);
+    leafNodeCutStatrs.push_back(tmpStart + tmpNumCuts);
+    leafNodeLBs.insert(leafNodeLBs.end(), startColLB,
+		       startColLB + numCoreVars);
+    leafNodeUBs.insert(leafNodeUBs.end(), startColUB,
+		       startColUB + numCoreVars);
+
+    leafToRootPath.clear();
+    delete [] startColLB;
+    delete [] startColUB;
+  }
+  else{
+    for(j = 0; j < numChildren; j++){
+      findLeafNodes(node->getChild(j), isTimeLimReached,
+		    numStoredCuts, numLeafNodes, cutStarts, cutIndices,
+		    cutValues, cutBounds, sourceNode,
+		    leafNodeCutInf, leafNodeCutStatrs, leafNodeLBs, leafNodeUBs);
+    }
+  }
+}
+
+//#############################################################################
+double
+MibSCutGenerator::getRhsParamBoundCut(bool *isTimeLimReached)
+{
+  int i(0);
+  double etol(localModel_->etol_);
+  double cutLb(localModel_->getSolver()->getInfinity());
+  int leafNum(localModel_->boundProbLeafNum_);
+  double leafNodeLB(0.0);
+
+  for(i = 0; i < leafNum; i++){
+    leafNodeLB = solveLeafNode(i, isTimeLimReached);
+    if(leafNodeLB < cutLb - etol){
+      cutLb = leafNodeLB;
+    } 
+  }
+
+  return cutLb;
+} 
+//#############################################################################
+double
+MibSCutGenerator::solveLeafNode(int leafNodeIndex, bool *isTimeLimReached)
+{
+
+  std::string feasCheckSolver =
+    localModel_->MibSPar_->entry(MibSParams::feasCheckSolver);
+  
+  OsiSolverInterface * hSolver = localModel_->getSolver();
+
+  int i;
+  int seenUCols(-1);
+  double bound(0.0), value(0.0), lowerObjValue(0.0);
+  double etol(localModel_->etol_);
+  double infinity(hSolver->getInfinity());
+  int uCols(localModel_->getUpperDim());
+  int lCols(localModel_->getLowerDim());
+  int numCols(uCols + lCols);
+  int numOrigRows(localModel_->getNumOrigCons());
+  double *origRowLb(localModel_->getOrigRowLb());
+  double *origRowUb(localModel_->getOrigRowUb());
+
+  int numRows(0);
+  double lObjSense(localModel_->getLowerObjSense());
+
+  bool isLinkFixed(true), isBoundChanged(false);
+  std::vector<double> linkSol;
+
+  double *lObjCoeffs = localModel_->getLowerObjCoeffs();
+  int *uColInd = localModel_->getUpperColInd();
+  int *lColInd = localModel_->getLowerColInd();
+  int *fixedInd = localModel_->getFixedInd();
+
+  double *leafColLb = new double[numCols];
+  double *leafColUb = new double[numCols];
+  CoinZeroN(leafColLb, numCols);
+  CoinZeroN(leafColUb, numCols);
+  std::copy(localModel_->boundProbLeafLb_.begin() + leafNodeIndex * numCols,
+	    localModel_->boundProbLeafLb_.begin() + (leafNodeIndex + 1) * numCols,
+	    leafColLb);
+
+  std::copy(localModel_->boundProbLeafUb_.begin() + leafNodeIndex * numCols,
+	    localModel_->boundProbLeafUb_.begin() + (leafNodeIndex + 1) * numCols,
+	    leafColUb);
+  
+  const double *colLb = hSolver->getColLower();
+  const double *colUb = hSolver->getColUpper();
+
+  double *newColLb = new double[numCols];
+  double *newColUb = new double[numCols];
+  //CoinZeroN(newColLb, numCols);
+  //CoinZeroN(newColUb, numCols);
+  //CoinCopyN(leafColLb, numCols, newColLb);
+  //CoinCopyN(leafColUb, numCols, newColUb);
+  memcpy(newColLb, leafColLb, sizeof(double) * numCols);
+  memcpy(newColUb, leafColUb, sizeof(double) * numCols);
+
+  double *upperSol = new double[uCols];
+  CoinZeroN(upperSol, uCols);
+
+  std::map<std::vector<double>, LINKING_SOLUTION> linkingPool
+    = localModel_->getBoundProbLinkingPool();
+
+  for(i = 0; i < numCols; i++){
+    if(colLb[i] - leafColLb[i] > etol){
+      newColLb[i] = colLb[i];
+      isBoundChanged = true;
+    }
+    if(leafColUb[i] - colUb[i] > etol){
+      newColUb[i] = colUb[i];
+      isBoundChanged = true;
+    }
+    if(newColLb[i] - newColUb[i] > etol){
+      bound = infinity;
+      goto TERM_SOLVELEAFNODE;
+    }
+
+    if(isLinkFixed == true){
+      if(localModel_->binarySearch(0, uCols - 1, i, uColInd) >= 0){
+	seenUCols ++;
+      }
+      if(fixedInd[i] == 1){
+	if(fabs(newColLb[i] - newColUb[i]) <= etol){
+	  value = floor(newColLb[i] + 0.5);
+	  linkSol.push_back(floor(value));
+	  upperSol[seenUCols] = value;
+	}
+	else{
+	  isLinkFixed = false;
+	}
+      }
+    }
+  }
+
+  if(isLinkFixed == true){
+    //should solve UB with new bounds
+    //first, if the bounds are not changed, we check the linking
+    //pool of bounding problem to see if the corresponding UB problem
+    //is solved or not.
+    //If not, we check to see if there is linkSol in the linking pool
+    //of either bounding problem or main problem. If so, we can get
+    //the optimal objective of second-level problem from the pool.
+    if(linkingPool.find(linkSol) != linkingPool.end()){
+      if(linkingPool[linkSol].tag == MibSLinkingPoolTagUBIsSolved){
+	if(linkingPool[linkSol].UBSolution.size() <= 1){
+	  bound = infinity;
+	  goto TERM_SOLVELEAFNODE; 
+	}
+	else{
+	  if(isBoundChanged == false){
+	    bound = linkingPool[linkSol].UBObjValue;
+	    goto TERM_SOLVELEAFNODE; 
+	  }
+	  //lowerObjValue = linkingPool[linkSol].lowerObjValue;
+	}
+      }  
+      else if(linkingPool[linkSol].tag == MibSLinkingPoolTagLowerIsFeasible){
+	lowerObjValue = linkingPool[linkSol].lowerObjValue;
+      }
+      else{
+	bound = infinity;
+	goto TERM_SOLVELEAFNODE;
+      }
+    }
+    else if(localModel_->seenLinkingSolutions.find(linkSol) !=
+	    localModel_->seenLinkingSolutions.end()){
+      if(localModel_->seenLinkingSolutions[linkSol].tag ==
+	 MibSLinkingPoolTagUBIsSolved){
+	if(linkingPool[linkSol].UBSolution.size() <= 1){
+	  bound = infinity;
+	  goto TERM_SOLVELEAFNODE;
+	}
+	else{
+	  lowerObjValue = localModel_->seenLinkingSolutions[linkSol].lowerObjValue;
+	}
+      }
+      else if(localModel_->seenLinkingSolutions[linkSol].tag ==
+	      MibSLinkingPoolTagLowerIsFeasible){
+	lowerObjValue = localModel_->seenLinkingSolutions[linkSol].lowerObjValue;
+      }
+      else{
+	bound = infinity;
+	goto TERM_SOLVELEAFNODE;
+      }
+    }
+    else{
+      //we should solve second-level problem
+      //sahar: we can add the result of solving second-level problem to
+      //the linking pool of main problem to use it later, but the current
+      //format of addSolutionToSeenLinkingSolutionPool does not allow it.
+      //the current implementation does not get the linkSol as an argument.
+      //change the format later.
+      MibSBilevel *bS = localModel_->getMibSBilevel();
+      if(bS->lSolver_){
+	bS->lSolver_ = bS->setUpModel(hSolver, false, upperSol);
+      }
+      else{
+	bS->lSolver_ = bS->setUpModel(hSolver, true, upperSol);
+      }
+      OsiSolverInterface *lSolver = bS->lSolver_;
+      solveMips(lSolver);
+
+      if((feasCheckSolver == "SYMPHONY") && (sym_is_time_limit_reached
+					     (dynamic_cast<OsiSymSolverInterface *>
+					      (lSolver)->getSymphonyEnvironment()))){
+	*isTimeLimReached = true;
+	goto TERM_SOLVELEAFNODE;
+      }
+
+      if(lSolver->isProvenOptimal()){
+	lowerObjValue = lSolver->getObjValue() * lObjSense;
+	
+      }
+      else{
+	bound = infinity;
+	goto TERM_SOLVELEAFNODE;
+      }
+    }
+    //setting up UB
+    std::vector<double> rowLbUBVec;
+    std::vector<double> rowUbUBVec;
+    CoinPackedMatrix *newMatrix = getLeafConst(leafNodeIndex, numRows, rowLbUBVec, rowUbUBVec);
+    int numRowsUB(numRows + 1);
+    double *rowLbUB = new double[numRowsUB];
+    double *rowUbUB = new double[numRowsUB];
+    CoinDisjointCopyN(origRowLb, numOrigRows, rowLbUB);
+    CoinDisjointCopyN(origRowUb, numOrigRows, rowUbUB);
+    std::copy(rowLbUBVec.begin(), rowLbUBVec.end(), rowLbUB + numOrigRows);
+    std::copy(rowUbUBVec.begin(), rowUbUBVec.end(), rowUbUB + numOrigRows);
+    
+    OsiSolverInterface *UBSolver;
+    if (feasCheckSolver == "Cbc"){
+      UBSolver = new OsiCbcSolverInterface();
+    }else if (feasCheckSolver == "SYMPHONY"){
+#ifdef COIN_HAS_SYMPHONY
+      UBSolver = new OsiSymSolverInterface();
+#else
+      throw CoinError("SYMPHONY chosen as solver, but it has not been enabled",
+		      "solveLeafNode", "MibSCutGenerator");
+#endif
+    }else if (feasCheckSolver == "CPLEX"){
+#ifdef COIN_HAS_CPLEX
+      UBSolver = new OsiCpxSolverInterface();
+#else
+      throw CoinError("CPLEX chosen as solver, but it has not been enabled",
+		      "solveLeafNode", "MibSCutGenerator");
+#endif
+    }else{
+      throw CoinError("Unknown solver chosen",
+		      "solveLeafNode", "MibSCutGenerator");
+    }
+    
+    CoinPackedVector row;
+    double *objCoeffs = new double[numCols];
+    CoinZeroN(objCoeffs, numCols);
+    for(i = 0; i < lCols; i++){
+      value = lObjCoeffs[i] * lObjSense;
+      row.insert(lColInd[i], value);
+      objCoeffs[lColInd[i]] = -1 * value;
+    }
+
+    newMatrix->appendRow(row);
+
+    row.clear();
+    
+    rowLbUB[numRows] = -1 * infinity;
+    rowUbUB[numRows] = lowerObjValue;
+
+    UBSolver->loadProblem(*newMatrix, newColLb, newColUb,
+			  objCoeffs, rowLbUB, rowUbUB);
+
+    for(i = 0; i < numCols; i++){
+      if(hSolver->isInteger(i)){
+	UBSolver->setInteger(i);
+      }
+    }
+
+    UBSolver->setObjSense(1);
+
+    UBSolver->setHintParam(OsiDoReducePrint, true, OsiHintDo);
+
+    solveMips(UBSolver);
+
+    if((feasCheckSolver == "SYMPHONY") && (sym_is_time_limit_reached
+					   (dynamic_cast<OsiSymSolverInterface *>
+					    (UBSolver)->getSymphonyEnvironment()))){
+      *isTimeLimReached = true;
+    }
+
+    if(UBSolver->isProvenOptimal()){
+      bound = UBSolver->getObjValue() * UBSolver->getObjSense();
+
+    }
+    else{
+      bound = infinity;
+    }
+
+    delete [] rowLbUB;
+    delete [] rowUbUB;
+    delete [] objCoeffs;
+    delete newMatrix;
+    delete UBSolver;
+  }
+  else{
+    std::vector<double> rowLbVec;
+    std::vector<double> rowUbVec;
+    CoinPackedMatrix *newMatrix = getLeafConst(leafNodeIndex, numRows, rowLbVec, rowUbVec);
+    double *rowLb = new double[numRows];
+    double *rowUb = new double[numRows];
+    CoinDisjointCopyN(origRowLb, numOrigRows, rowLb);
+    CoinDisjointCopyN(origRowUb, numOrigRows, rowUb);
+    std::copy(rowLbVec.begin(), rowLbVec.end(), rowLb + numOrigRows);
+    std::copy(rowUbVec.begin(), rowUbVec.end(), rowUb + numOrigRows);
+    double *objCoeffs = new double[numCols];
+    CoinZeroN(objCoeffs, numCols);
+    for(i = 0; i < lCols; i++){
+      value = lObjCoeffs[i] * lObjSense;
+      objCoeffs[lColInd[i]] = -1 * value;
+    }
+    
+    //based on value of relaxTypeParamBoundCut, we solve
+    //problem S or P of leaf node with new bounds
+    int relaxType(localModel_->MibSPar_->entry
+		  (MibSParams::relaxTypeParamBoundCut));
+    
+    if(relaxType == MibSRelaxTypeParamBoundCutMIP){
+
+      OsiSolverInterface *relaxSolver;
+      if (feasCheckSolver == "Cbc"){
+	relaxSolver = new OsiCbcSolverInterface();
+      }else if (feasCheckSolver == "SYMPHONY"){
+#ifdef COIN_HAS_SYMPHONY
+	relaxSolver = new OsiSymSolverInterface();
+#else
+	throw CoinError("SYMPHONY chosen as solver, but it has not been enabled",
+			"solveLeafNode", "MibSCutGenerator");
+#endif
+      }else if (feasCheckSolver == "CPLEX"){
+	#ifdef COIN_HAS_CPLEX
+	relaxSolver = new OsiCpxSolverInterface();
+#else
+	throw CoinError("CPLEX chosen as solver, but it has not been enabled",
+			"solveLeafNode", "MibSCutGenerator");
+#endif
+      }else{
+	throw CoinError("Unknown solver chosen",
+			"solveLeafNode", "MibSCutGenerator");
+      }
+
+      relaxSolver->loadProblem(*newMatrix, newColLb, newColUb,
+			       objCoeffs, rowLb, rowUb);
+
+      for(i = 0; i < numCols; i++){
+	if(hSolver->isInteger(i)){
+	  relaxSolver->setInteger(i);
+	}
+      }
+
+      relaxSolver->setObjSense(1);
+
+      relaxSolver->setHintParam(OsiDoReducePrint, true, OsiHintDo);
+
+      solveMips(relaxSolver);
+
+      if((feasCheckSolver == "SYMPHONY") && (sym_is_time_limit_reached
+					     (dynamic_cast<OsiSymSolverInterface *>
+					      (relaxSolver)->getSymphonyEnvironment()))){
+	*isTimeLimReached = true;
+      }
+      
+      if(relaxSolver->isProvenOptimal()){
+	bound = relaxSolver->getObjValue() * relaxSolver->getObjSense();
+      }
+      else{
+	bound = infinity;
+      }
+
+      delete relaxSolver;
+    }
+    else if(relaxType == MibSRelaxTypeParamBoundCutLP){
+      double timeLimit(localModel_->AlpsPar()->entry(AlpsParams::timeLimit));
+
+      double remainingTime(0.0);
+
+      remainingTime = timeLimit - localModel_->broker_->subTreeTimer().getTime();
+
+      //sahar:Fix this by setting the time limit for relax solver
+      if(remainingTime < etol){
+	*isTimeLimReached = true; 
+	goto TERM_SOLVELEAFNODE;
+      }
+      
+      OsiSolverInterface *relaxSolver = new OsiClpSolverInterface();
+      relaxSolver->loadProblem(*newMatrix, newColLb, newColUb,
+			       objCoeffs, rowLb, rowUb);
+
+      relaxSolver->setObjSense(1);
+
+      relaxSolver->messageHandler()->setLogLevel(0);
+
+      relaxSolver->initialSolve();
+
+      remainingTime = timeLimit - localModel_->broker_->subTreeTimer().getTime();
+
+      //sahar:Fix this by setting the time limit for relax solver
+      if(remainingTime < etol){
+	*isTimeLimReached = true;
+      }
+      else{
+	if(relaxSolver->isProvenOptimal()){
+	  bound = relaxSolver->getObjValue() * relaxSolver->getObjSense();
+	}
+	else{
+	  bound = infinity;
+	}
+      }
+      delete relaxSolver;
+    }
+    delete newMatrix;
+    delete [] rowLb;
+    delete [] rowUb;
+  }
+
+ TERM_SOLVELEAFNODE:
+  delete [] newColLb;
+  delete [] newColUb;
+  delete [] upperSol;
+  linkSol.clear();
+
+  return bound;
+}
+
+//#############################################################################
+CoinPackedMatrix*
+MibSCutGenerator::getLeafConst(int nodeIndex,int &numRows, std::vector<double> &rowLb,
+			       std::vector<double> &rowUb)
+{
+  
+  OsiSolverInterface *hSolver = localModel_->getSolver();    
+
+  int i(0), j(0);
+  int rowIndex(0), rowStart(0), rowEnd(0);
+  int numCols(localModel_->getUpperDim() + localModel_->getLowerDim());
+  int numOrigRows(localModel_->getNumOrigCons());
+  int start(localModel_->boundProbLeafNodeCutStarts_[nodeIndex]);
+  int numAddedRows(localModel_->boundProbLeafNodeCutStarts_[nodeIndex + 1] - start);
+  CoinPackedMatrix origMatrix = *localModel_->origConstCoefMatrix_;
+  origMatrix.reverseOrdering(); 
+
+  CoinPackedMatrix *leafConst = new CoinPackedMatrix(false, 0, 0);
+  leafConst->setDimensions(0, numCols);
+  
+  CoinPackedVector row;
+
+  numRows = numOrigRows + numAddedRows;
+  for(i = 0; i < numOrigRows; i++){
+    leafConst->appendRow(origMatrix.getVector(i));  
+  }
+  
+  for(i = start; i < start + numAddedRows; i++){
+    rowIndex = localModel_->boundProbLeafNodeCutInf_[i];
+    rowStart = localModel_->boundProbCutPoolStarts_[rowIndex];
+    rowEnd = localModel_->boundProbCutPoolStarts_[rowIndex + 1];
+    for(j = rowStart; j < rowEnd; j++){
+      row.insert(localModel_->boundProbCutPoolIndices_[j], localModel_->boundProbCutPoolValues_[j]);
+    }
+    leafConst->appendRow(row);
+    row.clear();
+    rowLb.push_back(localModel_->boundProbCutPoolBounds_[2 * rowIndex]);
+    rowUb.push_back(localModel_->boundProbCutPoolBounds_[2 * rowIndex + 1]);   
+  }
+
+  return leafConst;
+
+}
+
+//#############################################################################
+void
+MibSCutGenerator::solveMips(OsiSolverInterface * mipSolver)
+{
+
+  std::string feasCheckSolver =
+    localModel_->MibSPar_->entry(MibSParams::feasCheckSolver);
+
+  int maxThreadsLL(localModel_->MibSPar_->entry
+		   (MibSParams::maxThreadsLL));
+
+  int whichCutsLL(localModel_->MibSPar_->entry
+		  (MibSParams::whichCutsLL));
+
+  double timeLimit(localModel_->AlpsPar()->entry(AlpsParams::timeLimit));
+
+  double remainingTime(0.0);
+
+  remainingTime = timeLimit - localModel_->broker_->subTreeTimer().getTime();
+  remainingTime = CoinMax(remainingTime, 0.00);
+
+  if (feasCheckSolver == "Cbc"){
+        dynamic_cast<OsiCbcSolverInterface *>
+	  (mipSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
+  }else if (feasCheckSolver == "SYMPHONY"){
+#if COIN_HAS_SYMPHONY
+        sym_environment *env = dynamic_cast<OsiSymSolverInterface *>
+	  (mipSolver)->getSymphonyEnvironment();
+	sym_set_dbl_param(env, "time_limit", remainingTime);
+	sym_set_int_param(env, "do_primal_heuristic", FALSE);
+	sym_set_int_param(env, "verbosity", -2);
+	sym_set_int_param(env, "prep_level", -1);
+	sym_set_int_param(env, "max_active_nodes", maxThreadsLL);
+	sym_set_int_param(env, "tighten_root_bounds", FALSE);
+	sym_set_int_param(env, "max_sp_size", 100);
+	sym_set_int_param(env, "do_reduced_cost_fixing", FALSE);
+	if (whichCutsLL == 0){
+	  sym_set_int_param(env, "generate_cgl_cuts", FALSE);
+	}else{
+	  sym_set_int_param(env, "generate_cgl_gomory_cuts", GENERATE_DEFAULT);
+	}
+	if (whichCutsLL == 1){
+	  sym_set_int_param(env, "generate_cgl_knapsack_cuts",
+			    DO_NOT_GENERATE);
+	  sym_set_int_param(env, "generate_cgl_probing_cuts",
+			    DO_NOT_GENERATE);
+	  sym_set_int_param(env, "generate_cgl_clique_cuts",
+			    DO_NOT_GENERATE);
+	  sym_set_int_param(env, "generate_cgl_twomir_cuts",
+			    DO_NOT_GENERATE);
+	  sym_set_int_param(env, "generate_cgl_flowcover_cuts",
+			    DO_NOT_GENERATE);
+	}
+#endif
+  }else if (feasCheckSolver == "CPLEX"){
+#ifdef COIN_HAS_CPLEX
+    mipSolver->setHintParam(OsiDoReducePrint);
+    mipSolver->messageHandler()->setLogLevel(0);
+        CPXENVptr cpxEnv =
+	  dynamic_cast<OsiCpxSolverInterface*>(mipSolver)->getEnvironmentPtr();
+	assert(cpxEnv);
+	CPXsetintparam(cpxEnv, CPX_PARAM_SCRIND, CPX_OFF);
+	CPXsetintparam(cpxEnv, CPX_PARAM_THREADS, maxThreadsLL);
+#endif
+  }
+
+  mipSolver->branchAndBound();
+}
+  
 //#############################################################################
 int
 MibSCutGenerator::generalNoGoodCut(BcpsConstraintPool &conPool)

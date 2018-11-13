@@ -88,6 +88,20 @@ enum MibSBilevelFreeSetTypeIC{
 };
 
 //#############################################################################
+
+enum MibSRelaxTypeParamBoundCut{
+  MibSRelaxTypeParamBoundCutLP = 0,
+  MibSRelaxTypeParamBoundCutMIP
+};
+
+//#############################################################################
+
+enum MibSBoundCutOptimalType{
+  MibSBoundCutOptimalTypeParametric = 0,
+  MibSBoundCutOptimalTypeNonParametric
+};
+
+//############################################################################# 
 /*---------  which_active_con_method choices --------------------------------*/
 #define SIMPLE  0
 #define BASIS  1
