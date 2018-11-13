@@ -204,8 +204,8 @@ MibSParams::createKeywordList() {
    keys_.push_back(make_pair(std::string("MibS_newPureIntCutDepthUb"),
 			     AlpsParameter(AlpsIntPar, newPureIntCutDepthUb)));
 
-   //keys_.push_back(make_pair(std::string("MibS_boundCutOptimalType"),
-   //			     AlpsParameter(AlpsIntPar, boundCutOptimalType)));
+   keys_.push_back(make_pair(std::string("MibS_boundCutOptimalType"),
+			     AlpsParameter(AlpsIntPar, boundCutOptimalType)));
 
    keys_.push_back(make_pair(std::string("MibS_boundCutDepthLb"),
 			     AlpsParameter(AlpsIntPar, boundCutDepthLb)));
@@ -216,8 +216,8 @@ MibSParams::createKeywordList() {
    keys_.push_back(make_pair(std::string("MibS_boundCutFreq"),
 			     AlpsParameter(AlpsIntPar, boundCutFreq)));
 
-   //keys_.push_back(make_pair(std::string("MibS_relaxTypeParamBoundCut"),
-   //			     AlpsParameter(AlpsIntPar, relaxTypeParamBoundCut)));
+   keys_.push_back(make_pair(std::string("MibS_relaxTypeParamBoundCut"),
+   			     AlpsParameter(AlpsIntPar, relaxTypeParamBoundCut)));
 
    //--------------------------------------------------------
    // String Parameters.
