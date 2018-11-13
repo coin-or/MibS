@@ -2127,6 +2127,9 @@ MibSCutGenerator::boundCuts(BcpsConstraintPool &conPool, double *passedObjCoeffs
     double boundCutTimeLim
 	= localModel_->MibSPar_->entry(MibSParams::boundCutTimeLim);
 
+    int boundCutNodeLim
+	= localModel_->MibSPar_->entry(MibSParams::boundCutNodeLim);
+
     MibSTreeNode * node =
       dynamic_cast<MibSTreeNode *>(localModel_->activeNode_);
 
@@ -2196,7 +2199,7 @@ MibSCutGenerator::boundCuts(BcpsConstraintPool &conPool, double *passedObjCoeffs
 	boundModel->setSolver(&lpSolver);
 	boundModel->AlpsPar()->setEntry(AlpsParams::msgLevel, -1);
 	//boundModel->AlpsPar()->setEntry(AlpsParams::msgLevel, 1000);
-	//boundModel->AlpsPar()->setEntry(AlpsParams::nodeLimit, 10);
+	boundModel->AlpsPar()->setEntry(AlpsParams::nodeLimit, boundCutNodeLim);
 	boundModel->AlpsPar()->setEntry(AlpsParams::timeLimit, boundCutTimeLim);
 	boundModel->BlisPar()->setEntry(BlisParams::heurStrategy, 0);
 	boundModel->MibSPar()->setEntry(MibSParams::feasCheckSolver, feasCheckSolver.c_str());
