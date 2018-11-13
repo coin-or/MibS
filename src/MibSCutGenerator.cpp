@@ -2194,8 +2194,8 @@ MibSCutGenerator::boundCuts(BcpsConstraintPool &conPool, double *passedObjCoeffs
 	/** Create new MibS model to solve bilevel **/
 	MibSModel *boundModel = new MibSModel();
 	boundModel->setSolver(&lpSolver);
-	//boundModel->AlpsPar()->setEntry(AlpsParams::msgLevel, -1);
-	boundModel->AlpsPar()->setEntry(AlpsParams::msgLevel, 1000);
+	boundModel->AlpsPar()->setEntry(AlpsParams::msgLevel, -1);
+	//boundModel->AlpsPar()->setEntry(AlpsParams::msgLevel, 1000);
 	//boundModel->AlpsPar()->setEntry(AlpsParams::nodeLimit, 10);
 	boundModel->AlpsPar()->setEntry(AlpsParams::timeLimit, boundCutTimeLim);
 	boundModel->BlisPar()->setEntry(BlisParams::heurStrategy, 0);
@@ -2275,8 +2275,6 @@ MibSCutGenerator::boundCuts(BcpsConstraintPool &conPool, double *passedObjCoeffs
 				    colType, 1.0, oSolver->getInfinity(),
 				    oSolver->getRowSense());
 
-	delete[] indDel;
-
 	int argc = 1;
 	char** argv = new char* [1];
 	argv[0] = (char *) "mibs";
@@ -2316,8 +2314,8 @@ MibSCutGenerator::boundCuts(BcpsConstraintPool &conPool, double *passedObjCoeffs
 	  localModel_->setBoundProbRoot(boundProbTree->getRoot());
 	  localModel_->setBoundProbLinkingPool(boundModel->seenLinkingSolutions);
 	  int numStoredCuts(0);
-	  findLeafNodes(localModel_->getBoundProbRoot(), &isTimeLimReached,
-			&numStoredCuts, &localModel_->boundProbLeafNum_,
+	  findLeafNodes(localModel_->getBoundProbRoot(), &numStoredCuts,
+			&localModel_->boundProbLeafNum_,
 			localModel_->boundProbCutPoolStarts_,
 			localModel_->boundProbCutPoolIndices_,
 			localModel_->boundProbCutPoolValues_,
@@ -2466,6 +2464,7 @@ MibSCutGenerator::boundCuts(BcpsConstraintPool &conPool, double *passedObjCoeffs
     }
 
  TERM_BOUNDCUT:
+    delete[] indDel;
     delete [] colType;
     delete [] nObjCoeffs;
 
@@ -2474,8 +2473,8 @@ MibSCutGenerator::boundCuts(BcpsConstraintPool &conPool, double *passedObjCoeffs
 
 //############################################################################# 
 void
-MibSCutGenerator::findLeafNodes(AlpsTreeNode *node, bool *isTimeLimReached,
-				int *numStoredCuts, int *numLeafNodes,
+MibSCutGenerator::findLeafNodes(AlpsTreeNode *node, int *numStoredCuts,
+				int *numLeafNodes,
 				std::vector<int> &cutStarts,
 				std::vector<int> &cutIndices,
 				std::vector<double> &cutValues,
@@ -2489,13 +2488,8 @@ MibSCutGenerator::findLeafNodes(AlpsTreeNode *node, bool *isTimeLimReached,
 
   assert(node);
 
-  BlisTreeNode *blisNode = dynamic_cast<BlisTreeNode*>(node);
-  BlisModel *blisModel = dynamic_cast<BlisModel *>(blisNode->getDesc()->getModel());
-  MibSTreeNode *mibsNode = dynamic_cast<MibSTreeNode*>(node);
-  MibSModel *mibsModel = dynamic_cast<MibSModel *>(mibsNode->getDesc()->getModel());
- 
   int i(0), j(0), k(0);
-  int pos(0), tmp(0), numSeenChildren(0);
+  int tmp(0);
   double etol(localModel_->etol_);
   int numChildren = node->getNumChildren();
 
@@ -2503,10 +2497,6 @@ MibSCutGenerator::findLeafNodes(AlpsTreeNode *node, bool *isTimeLimReached,
   if(node->getIndex() == 0){
     cutStarts.push_back(0);
     leafNodeCutStatrs.push_back(0);
-  }
-    
-  if(*isTimeLimReached == true){
-    return;
   }
 
   if(numChildren == 0){
@@ -2624,9 +2614,8 @@ MibSCutGenerator::findLeafNodes(AlpsTreeNode *node, bool *isTimeLimReached,
   }
   else{
     for(j = 0; j < numChildren; j++){
-      findLeafNodes(node->getChild(j), isTimeLimReached,
-		    numStoredCuts, numLeafNodes, cutStarts, cutIndices,
-		    cutValues, cutBounds, sourceNode,
+      findLeafNodes(node->getChild(j), numStoredCuts, numLeafNodes,
+		    cutStarts, cutIndices, cutValues, cutBounds, sourceNode,
 		    leafNodeCutInf, leafNodeCutStatrs, leafNodeLBs, leafNodeUBs);
     }
   }
@@ -3032,9 +3021,12 @@ MibSCutGenerator::solveLeafNode(int leafNodeIndex, bool *isTimeLimReached)
     delete newMatrix;
     delete [] rowLb;
     delete [] rowUb;
+    delete [] objCoeffs;
   }
 
  TERM_SOLVELEAFNODE:
+  delete [] leafColLb;
+  delete [] leafColUb;
   delete [] newColLb;
   delete [] newColUb;
   delete [] upperSol;
