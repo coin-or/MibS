@@ -373,7 +373,7 @@ MibSParams::setDefaultEntries() {
 
    setEntry(boundCutFreq, 1);
 
-   setEntry(boundCutNodeLim, 1000000000000000);
+   setEntry(boundCutNodeLim, ALPS_INT_MAX);
 
    setEntry(relaxTypeParamBoundCut, MibSRelaxTypeParamBoundCutLP);
 
