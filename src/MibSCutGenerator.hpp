@@ -32,6 +32,7 @@ class MibSCutGenerator : public BlisConGenerator {
    bool isBigMIncObjSet_;
    double bigMIncObj_;
    OsiSolverInterface * watermelonICSolver_;
+   std::vector<int> leafNodeCutTmpHist_; 
     
  public:
    
@@ -122,6 +123,35 @@ class MibSCutGenerator : public BlisConGenerator {
    int boundCuts(BcpsConstraintPool &conPool, double *passedObjCoeff, double &passedRhs,
 		 bool &isInfeasible);
 
+   /** Getting the bounds and constraints of the leaf nodes (for parametric bound cut) **/
+   void getConstBoundLeafNodes(AlpsTreeNode *node);
+
+   /** Find the rhs of bound cut by using the leaf nodes of bunding problem **/
+   double getRhsParamBoundCut(bool *isTimeLimReached);
+
+   /** Find the leaf nodes of bounding problem **/
+  void findLeafNodes(AlpsTreeNode *node, bool *isTimeLimReached,
+		     int *numStoredCuts, int *numLeafNodes,
+		     std::vector<int> &cutStarts,
+		     std::vector<int> &cutIndices,
+		     std::vector<double> &cutValues,
+		     std::vector<double> &cutBounds,
+		     std::vector<int> &sourceNode,
+		     std::vector<int> &leafNodeCutInf,
+		     std::vector<int> &leafNodeCutStatrs,
+		     std::vector<double> &leafNodeLBs,
+		     std::vector<double> &leafNodeUBs);
+
+   /** Solve the leaf nodes of bounding problem **/
+  double solveLeafNode(int leafNodeIndex, bool *isTimeLimReached);
+
+   /** Getting the constraints at each leaf node **/
+  CoinPackedMatrix * getLeafConst(int nodeIndex, int &numRows,
+				  std::vector<double> &rowLb, std::vector<double> &rowUb);
+
+   /** Setting up MIP solver and solving it **/
+   void solveMips(OsiSolverInterface * mipSolver);
+  
    /** Add disjunctive cuts for binary upper-level variables **/
    int incObjCut(BcpsConstraintPool &conPool);
 
