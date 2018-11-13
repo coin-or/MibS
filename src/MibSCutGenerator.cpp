@@ -2651,7 +2651,7 @@ MibSCutGenerator::solveLeafNode(int leafNodeIndex, bool *isTimeLimReached)
   OsiSolverInterface * hSolver = localModel_->getSolver();
 
   int i;
-  int seenUCols(-1);
+  int index(0);
   double bound(0.0), value(0.0), lowerObjValue(0.0);
   double etol(localModel_->etol_);
   double infinity(hSolver->getInfinity());
@@ -2716,22 +2716,21 @@ MibSCutGenerator::solveLeafNode(int leafNodeIndex, bool *isTimeLimReached)
       bound = infinity;
       goto TERM_SOLVELEAFNODE;
     }
+  }
 
-    if(isLinkFixed == true){
-      if(localModel_->binarySearch(0, uCols - 1, i, uColInd) >= 0){
-	seenUCols ++;
+  for(i = 0; i < uCols; i++){
+      index = uColInd[i];
+      if(fixedInd[index] == 1){
+	  if(fabs(newColLb[index] - newColUb[index]) <= etol){
+	      value = floor(newColLb[index] + 0.5);
+	      linkSol.push_back(floor(value));
+	      upperSol[i] = value;
+	  }
+	  else{
+	      isLinkFixed = false;
+	      break;
+	  }
       }
-      if(fixedInd[i] == 1){
-	if(fabs(newColLb[i] - newColUb[i]) <= etol){
-	  value = floor(newColLb[i] + 0.5);
-	  linkSol.push_back(floor(value));
-	  upperSol[seenUCols] = value;
-	}
-	else{
-	  isLinkFixed = false;
-	}
-      }
-    }
   }
 
   if(isLinkFixed == true){
@@ -2819,16 +2818,20 @@ MibSCutGenerator::solveLeafNode(int leafNodeIndex, bool *isTimeLimReached)
       }
     }
     //setting up UB
-    std::vector<double> rowLbUBVec;
-    std::vector<double> rowUbUBVec;
-    CoinPackedMatrix *newMatrix = getLeafConst(leafNodeIndex, numRows, rowLbUBVec, rowUbUBVec);
+    CoinPackedMatrix *newMatrix = new CoinPackedMatrix(false, 0, 0);
+    newMatrix->setDimensions(0, numCols);
+    numRows = numOrigRows;
+    CoinPackedMatrix origMatrix = *localModel_->origConstCoefMatrix_;
+    origMatrix.reverseOrdering();
+    for(i = 0; i < numOrigRows; i++){
+	newMatrix->appendRow(origMatrix.getVector(i));
+    }
+    
     int numRowsUB(numRows + 1);
     double *rowLbUB = new double[numRowsUB];
     double *rowUbUB = new double[numRowsUB];
-    CoinDisjointCopyN(origRowLb, numOrigRows, rowLbUB);
-    CoinDisjointCopyN(origRowUb, numOrigRows, rowUbUB);
-    std::copy(rowLbUBVec.begin(), rowLbUBVec.end(), rowLbUB + numOrigRows);
-    std::copy(rowUbUBVec.begin(), rowUbUBVec.end(), rowUbUB + numOrigRows);
+    CoinDisjointCopyN(origRowLb, numRows, rowLbUB);
+    CoinDisjointCopyN(origRowUb, numRows, rowUbUB);
     
     OsiSolverInterface *UBSolver;
     if (feasCheckSolver == "Cbc"){
