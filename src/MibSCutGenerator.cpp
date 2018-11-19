@@ -56,7 +56,7 @@ MibSCutGenerator::MibSCutGenerator(MibSModel *mibs)
   auxCount_ = 0;
   upper_ = 0.0;
   maximalCutCount_ = 0;
-  numCalledBoundCut_ = 0;
+  numCalledBoundCut_ = -1;
   isBigMIncObjSet_ = false;
   bigMIncObj_ = 0.0;
   watermelonICSolver_ = 0;
@@ -2193,7 +2193,6 @@ MibSCutGenerator::boundCuts(BcpsConstraintPool &conPool, double *passedObjCoeffs
 	  (node->getIndex() == 0)) ||
 	 (boundCutOptimalType == MibSBoundCutOptimalTypeNonParametric) ||
 	 (passedObjCoeffs != NULL)){
-
 	/** Create new MibS model to solve bilevel **/
 	MibSModel *boundModel = new MibSModel();
 	boundModel->setSolver(&lpSolver);
@@ -2222,12 +2221,12 @@ MibSCutGenerator::boundCuts(BcpsConstraintPool &conPool, double *passedObjCoeffs
 	}
 	else{
 	  //sahar: these ones should be modified
-	    boundModel->MibSPar()->setEntry(MibSParams::branchStrategy, MibSBranchingStrategyLinking);
-	    boundModel->MibSPar()->setEntry(MibSParams::useBendersCut, PARAM_ON);
+	    boundModel->MibSPar()->setEntry(MibSParams::branchStrategy, -1);
+	    boundModel->MibSPar()->setEntry(MibSParams::useBendersCut, PARAM_OFF);
 	    boundModel->MibSPar()->setEntry(MibSParams::useGeneralNoGoodCut, PARAM_OFF);
 	    boundModel->MibSPar()->setEntry(MibSParams::useTypeIC, PARAM_OFF);
 	    boundModel->MibSPar()->setEntry(MibSParams::useTypeWatermelon, PARAM_OFF);
-	    boundModel->MibSPar()->setEntry(MibSParams::useTypeHypercubeIC, PARAM_OFF);
+	    boundModel->MibSPar()->setEntry(MibSParams::useTypeHypercubeIC, PARAM_ON);
 	    boundModel->MibSPar()->setEntry(MibSParams::useTypeTenderIC, PARAM_OFF);
 	    boundModel->MibSPar()->setEntry(MibSParams::useTypeHybridIC, PARAM_OFF);
 	    boundModel->MibSPar()->setEntry(MibSParams::useIncObjCut, PARAM_OFF);
@@ -5901,10 +5900,10 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
 	      numCalledBoundCut_ ++;
 	  }
 
-	  if((((numCalledBoundCut_%boundCutFreq) == 0) && (useBoundCut == true)) || (node->getIndex() == 0)){
-	  double tmpArg1 = 0;
-	  bool tmpArg2 = false;
-	  boundCuts(conPool, NULL, tmpArg1, tmpArg2);
+	  if(((numCalledBoundCut_%boundCutFreq) == 0) && (useBoundCut == true)){
+	      double tmpArg1 = 0;
+	      bool tmpArg2 = false;
+	      boundCuts(conPool, NULL, tmpArg1, tmpArg2);
 	  }
       }
       
