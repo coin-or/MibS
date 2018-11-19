@@ -5802,6 +5802,9 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
   int cutStrategy =
     localModel_->MibSPar_->entry(MibSParams::cutStrategy);
 
+  MibSTreeNode * node =
+      dynamic_cast<MibSTreeNode *>(localModel_->activeNode_);
+
   if(cutStrategy > 0){
      //use bilevel feasibility cut
     MibSBilevel *bS = localModel_->bS_;
@@ -5847,42 +5850,64 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
     if(cutTypes == 0){
       //general type of problem, no specialized cuts
       delete sol;
+
       if ((useBoundCut) && (localModel_->boundingPass_ <= 1)){
+
 	  int boundCutFreq(localModel_->MibSPar_->entry(MibSParams::boundCutFreq));
-	  if ((numCalledBoundCut_%boundCutFreq) == 0){
-	      int boundCutDepthLb(localModel_->MibSPar_->entry
-				  (MibSParams::boundCutDepthLb));
-	      int boundCutDepthUb(localModel_->MibSPar_->entry
-				  (MibSParams::boundCutDepthUb));
-	      useBoundCut = false;
-	      int depth = static_cast<MibSTreeNode *>(localModel_->activeNode_)->getDepth();
-	      if((boundCutDepthLb >= 0) && (boundCutDepthUb >= 0)){
-		  if((depth >= boundCutDepthLb) && (depth <= boundCutDepthUb)){
-		      useBoundCut = true;
-		  }
-	      }
-	      else if(boundCutDepthLb >= 0){
-		  if(depth >= boundCutDepthLb){
-		      useBoundCut = true;
-		  }
-	      }
-	      else if(boundCutDepthUb >= 0){
-		  if(depth <= boundCutDepthUb){
-		      useBoundCut = true;
-		  }
-	      }
-	      else{
+	  
+	  int boundCutDepthLb(localModel_->MibSPar_->entry
+			      (MibSParams::boundCutDepthLb));
+
+	  int boundCutDepthUb(localModel_->MibSPar_->entry
+			      (MibSParams::boundCutDepthUb));
+
+	  int depth = static_cast<MibSTreeNode *>(localModel_->activeNode_)->getDepth();
+
+	  bool boundCutOptimal
+	      = localModel_->MibSPar_->entry(MibSParams::boundCutOptimal);
+
+	  int boundCutOptimalType =
+	      localModel_->MibSPar_->entry(MibSParams::boundCutOptimalType);
+
+	  useBoundCut = false;
+
+	  if((boundCutDepthLb >= 0) && (boundCutDepthUb >= 0)){
+	      if((depth >= boundCutDepthLb) && (depth <= boundCutDepthUb)){
 		  useBoundCut = true;
 	      }
-
-	      if(useBoundCut == true){
-		  double tmpArg1 = 0;
-		  bool tmpArg2 = false;
-		  boundCuts(conPool, NULL, tmpArg1, tmpArg2);
+	  }
+	  else if(boundCutDepthLb >= 0){
+	      if(depth >= boundCutDepthLb){
+		  useBoundCut = true;
 	      }
 	  }
-	  numCalledBoundCut_ ++;
+	  else if(boundCutDepthUb >= 0){
+	      if(depth <= boundCutDepthUb){
+		  useBoundCut = true;
+	      }
+	  }
+	  else{
+	      useBoundCut = true;
+	  }
+
+	  if(node->getIndex() == 0){
+	      if((boundCutOptimal == true) &&
+		 (boundCutOptimalType == MibSBoundCutOptimalTypeParametric)){
+		  useBoundCut = true;
+	      }
+	  }
+
+	  if(useBoundCut == true){
+	      numCalledBoundCut_ ++;
+	  }
+
+	  if((((numCalledBoundCut_%boundCutFreq) == 0) && (useBoundCut == true)) || (node->getIndex() == 0)){
+	  double tmpArg1 = 0;
+	  bool tmpArg2 = false;
+	  boundCuts(conPool, NULL, tmpArg1, tmpArg2);
+	  }
       }
+      
       if (bS->isIntegral_){
 	  //if (useIntersectionCut == PARAM_ON){
 	  //  intersectionCuts(conPool, bS->optLowerSolutionOrd_);
