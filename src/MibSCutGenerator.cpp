@@ -2221,12 +2221,12 @@ MibSCutGenerator::boundCuts(BcpsConstraintPool &conPool, double *passedObjCoeffs
 	}
 	else{
 	  //sahar: these ones should be modified
-	    boundModel->MibSPar()->setEntry(MibSParams::branchStrategy, -1);
-	    boundModel->MibSPar()->setEntry(MibSParams::useBendersCut, PARAM_OFF);
+	    boundModel->MibSPar()->setEntry(MibSParams::branchStrategy, MibSBranchingStrategyLinking);
+	    boundModel->MibSPar()->setEntry(MibSParams::useBendersCut, PARAM_ON);
 	    boundModel->MibSPar()->setEntry(MibSParams::useGeneralNoGoodCut, PARAM_OFF);
 	    boundModel->MibSPar()->setEntry(MibSParams::useTypeIC, PARAM_OFF);
 	    boundModel->MibSPar()->setEntry(MibSParams::useTypeWatermelon, PARAM_OFF);
-	    boundModel->MibSPar()->setEntry(MibSParams::useTypeHypercubeIC, PARAM_ON);
+	    boundModel->MibSPar()->setEntry(MibSParams::useTypeHypercubeIC, PARAM_OFF);
 	    boundModel->MibSPar()->setEntry(MibSParams::useTypeTenderIC, PARAM_OFF);
 	    boundModel->MibSPar()->setEntry(MibSParams::useTypeHybridIC, PARAM_OFF);
 	    boundModel->MibSPar()->setEntry(MibSParams::useIncObjCut, PARAM_OFF);
@@ -2702,8 +2702,8 @@ MibSCutGenerator::solveLeafNode(int leafNodeIndex, bool *isTimeLimReached)
   double *upperSol = new double[uCols];
   CoinZeroN(upperSol, uCols);
 
-  std::map<std::vector<double>, LINKING_SOLUTION> linkingPool
-    = localModel_->getBoundProbLinkingPool();
+  /*std::map<std::vector<double>, LINKING_SOLUTION> linkingPool
+    = localModel_->getBoundProbLinkingPool();*/
 
   for(i = 0; i < numCols; i++){
     if(colLb[i] - leafColLb[i] > etol){
@@ -2743,7 +2743,7 @@ MibSCutGenerator::solveLeafNode(int leafNodeIndex, bool *isTimeLimReached)
     //If not, we check to see if there is linkSol in the linking pool
     //of either bounding problem or main problem. If so, we can get
     //the optimal objective of second-level problem from the pool.
-    if(linkingPool.find(linkSol) != linkingPool.end()){
+    /*if(linkingPool.find(linkSol) != linkingPool.end()){
       if(linkingPool[linkSol].tag == MibSLinkingPoolTagUBIsSolved){
 	if(linkingPool[linkSol].UBSolution.size() <= 1){
 	  bound = infinity;
@@ -2786,7 +2786,7 @@ MibSCutGenerator::solveLeafNode(int leafNodeIndex, bool *isTimeLimReached)
 	goto TERM_SOLVELEAFNODE;
       }
     }
-    else{
+    else{*/
       //we should solve second-level problem
       //sahar: we can add the result of solving second-level problem to
       //the linking pool of main problem to use it later, but the current
@@ -2818,7 +2818,7 @@ MibSCutGenerator::solveLeafNode(int leafNodeIndex, bool *isTimeLimReached)
 	bound = infinity;
 	goto TERM_SOLVELEAFNODE;
       }
-    }
+      //}
     //setting up UB
     CoinPackedMatrix *newMatrix = new CoinPackedMatrix(false, 0, 0);
     newMatrix->setDimensions(0, numCols);
