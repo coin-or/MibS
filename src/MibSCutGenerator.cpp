@@ -2699,8 +2699,8 @@ MibSCutGenerator::solveLeafNode(int leafNodeIndex, bool *isTimeLimReached)
   memcpy(newColLb, leafColLb, sizeof(double) * numCols);
   memcpy(newColUb, leafColUb, sizeof(double) * numCols);
 
-  double *upperSol = new double[uCols];
-  CoinZeroN(upperSol, uCols);
+  double *upperSol = new double[numCols];
+  //CoinZeroN(upperSol, uCols);
 
   /*std::map<std::vector<double>, LINKING_SOLUTION> linkingPool
     = localModel_->getBoundProbLinkingPool();*/
@@ -2720,6 +2720,7 @@ MibSCutGenerator::solveLeafNode(int leafNodeIndex, bool *isTimeLimReached)
     }
   }
 
+  memcpy(upperSol, newColLb, sizeof(double) * numCols);
   for(i = 0; i < uCols; i++){
       index = uColInd[i];
       if(fixedInd[index] == 1){
