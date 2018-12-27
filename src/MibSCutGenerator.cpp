@@ -185,6 +185,9 @@ MibSCutGenerator::bilevelFeasCut1(BcpsConstraintPool &conPool)
 		shouldUseNewPureIntCut = true;
 	    }
 	}
+	else{
+	    shouldUseNewPureIntCut = true;
+	}
     }
 
     if(shouldUseNewPureIntCut == true){
