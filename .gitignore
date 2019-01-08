@@ -33,3 +33,19 @@ build*/*
 
 acinclude.m4
 autom4te*
+
+# Dependencies
+.subdirs
+Alps/
+Bcps/
+BuildTools/
+CHiPPS-ALPS/
+CHiPPS-BLIS/
+CHiPPS-BiCePS/
+Cbc/
+Cgl/
+Clp/
+CoinUtils/
+Osi/
+SYMPHONY/
+ThirdParty/

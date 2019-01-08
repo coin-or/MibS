@@ -36,7 +36,7 @@ Most Linux distributions come with all the required tools installed.
 To obtain the source code, open a terminal and do
 
 ```
-git clone --branch=library https://www.github.com/tkralphs/MibS
+git clone --branch=library https://www.github.com/coin-or/MibS
 ```
 
 To build from source, there is a script that fetches dependent projects
@@ -90,7 +90,7 @@ MinGW compilers.
  5. Obtain the source code with 
 
    ```
-   git clone --branch=library https://www.github.com/tkralphs/MibS
+   git clone --branch=library https://www.github.com/coin-or/MibS
    ```
 
  6. To build from source, there is a script that fetches dependent projects
@@ -152,7 +152,7 @@ brew install gcc wget svn git
 ```
 
 ```
-git clone --branch=library https://www.github.com/tkralphs/MibS
+git clone --branch=library https://www.github.com/coin-or/MibS
 ```
 
 To build from source, there is a script that fetches dependent projects
@@ -216,6 +216,6 @@ the header file `MibParam.h` for explanations.
 
 Please post questions and issues to the github project page for MibS.
 
-http://github.com/tkralphs/MibS
+http://github.com/coin-or/MibS
 
 Enjoy!
