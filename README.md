@@ -4,7 +4,7 @@
 
 [![Build Status](https://travis-ci.org/coin-or/MibS.svg?branch=master)](https://travis-ci.org/coin-or/MibS)
 
-[![Build status](https://ci.appveyor.com/api/projects/status/aqxs9wcp2tjgpffd?svg=true)](https://ci.appveyor.com/project/tkralphs/mibs/branch/master)
+[![Build status](https://ci.appveyor.com/api/projects/status/aqxs9wcp2tjgpffd?svg=true)](https://ci.appveyor.com/project/coin-or/mibs/branch/master)
 ## Download
 
 [ ![Download](https://api.bintray.com/packages/coin-or/download/MibS/images/download.svg?version=1.0.0) ](https://bintray.com/coin-or/download/MibS/1.0.0/link)
@@ -45,7 +45,7 @@ Most Linux distributions come with all the required tools installed.
 To obtain the source code, open a terminal and do
 
 ```
-git clone https://www.github.com/tkralphs/MibS
+git clone https://www.github.com/coin-or/MibS
 ```
 
 To build from source, there is a script that fetches dependent projects
@@ -99,7 +99,7 @@ MinGW compilers.
  5. Obtain the source code with 
 
    ```
-   git clone https://www.github.com/tkralphs/MibS
+   git clone https://www.github.com/coin-or/MibS
    ```
 
  6. To build from source, there is a script that fetches dependent projects
@@ -161,7 +161,7 @@ brew install gcc wget svn git
 ```
 
 ```
-git clone https://www.github.com/tkralphs/MibS
+git clone https://www.github.com/coin-or/MibS
 ```
 
 To build from source, there is a script that fetches dependent projects
