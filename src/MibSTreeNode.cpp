@@ -345,6 +345,7 @@ MibSTreeNode::process(bool isRoot, bool rampUp)
             }
             getKnowledgeBroker()->tempTimer().start();
         }
+
 	
         lpStatus = static_cast<BlisLpStatus> (bound(model));
 
