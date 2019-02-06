@@ -345,10 +345,10 @@ MibSHeuristic::lowerObjHeuristic()
     if(!isContainedInLinkingPool){
 
       if(bS->lSolver_){
-	bS->lSolver_ = bS->setUpModel(oSolver, false, sol);
+	  bS->lSolver_ = bS->setUpModel(oSolver, false, 0, sol);
       }
       else{
-	bS->lSolver_ = bS->setUpModel(oSolver, true, sol);
+	  bS->lSolver_ = bS->setUpModel(oSolver, true, 0, sol);
       }
 
       OsiSolverInterface *lSolver = bS->lSolver_; 
@@ -433,7 +433,7 @@ MibSHeuristic::lowerObjHeuristic()
     //sahar:else means that linkingSol is in pool and tag is
     //MibSLinkingPoolTagLowerIsFeasible
     else{
-      lObjVal = model->seenLinkingSolutions[linkSol].lowerObjValue;
+      lObjVal = model->seenLinkingSolutions[linkSol].lowerObjValue[0];
       std::copy(model->seenLinkingSolutions[linkSol].lowerSolution.begin(),
 		model->seenLinkingSolutions[linkSol].lowerSolution.end(), lSol);
     }
@@ -578,10 +578,10 @@ MibSHeuristic::objCutHeuristic()
 
   if(shouldSolveLowerProb){
     if(bS->lSolver_){
-      bS->lSolver_ = bS->setUpModel(oSolver, false);
+	bS->lSolver_ = bS->setUpModel(oSolver, false, 0);
     }
     else{
-      bS->lSolver_ = bS->setUpModel(oSolver, true);
+	bS->lSolver_ = bS->setUpModel(oSolver, true, 0);
     }
 
     lSolver = bS->lSolver_;
@@ -824,10 +824,10 @@ MibSHeuristic::objCutHeuristic()
     if(!isContainedInLinkingPool){
 
       if(bS->lSolver_){
-	bS->lSolver_ = bS->setUpModel(oSolver, false, sol);
+	  bS->lSolver_ = bS->setUpModel(oSolver, false, 0, sol);
       }
       else{
-	bS->lSolver_ = bS->setUpModel(oSolver, true, sol);
+	  bS->lSolver_ = bS->setUpModel(oSolver, true, 0, sol);
       }
 
       lSolver = bS->lSolver_;
@@ -911,7 +911,7 @@ MibSHeuristic::objCutHeuristic()
     //sahar:else means that linkingSol is in pool and tag is
     //MibSLinkingPoolTagLowerIsFeasible
     else{
-      lObjVal = model->seenLinkingSolutions[linkSol].lowerObjValue;
+      lObjVal = model->seenLinkingSolutions[linkSol].lowerObjValue[0];
       std::copy(model->seenLinkingSolutions[linkSol].lowerSolution.begin(),
 		model->seenLinkingSolutions[linkSol].lowerSolution.end(), lSol);
     }
@@ -1427,7 +1427,7 @@ MibSHeuristic::checkLowerFeasibility(OsiSolverInterface * si,
 {
 
   MibSModel * model = MibSModel_;
-  OsiSolverInterface * lSolver = model->bS_->setUpModel(si, true, solution);
+  OsiSolverInterface * lSolver = model->bS_->setUpModel(si, true, 0, solution);
 
 #ifndef COIN_HAS_SYMPHONY
   dynamic_cast<OsiCbcSolverInterface *> 
@@ -1539,10 +1539,10 @@ MibSHeuristic::getBilevelSolution(const double * sol, double origLower,
 
   if(!isContainedInLinkingPool){
     if(bS->lSolver_){
-      bS->lSolver_ = bS->setUpModel(oSolver, false, sol);
+	bS->lSolver_ = bS->setUpModel(oSolver, false, 0, sol);
     }
     else{
-      bS->lSolver_ = bS->setUpModel(oSolver, true, sol);
+	bS->lSolver_ = bS->setUpModel(oSolver, true, 0, sol);
     }
 
     OsiSolverInterface *lSolver = bS->lSolver_;
@@ -1630,7 +1630,7 @@ MibSHeuristic::getBilevelSolution(const double * sol, double origLower,
   //sahar:else means that linkingSol is in pool and tag is
   //MibSLinkingPoolTagLowerIsFeasible
   else{
-    lowerObj = model->seenLinkingSolutions[linkSol].lowerObjValue;
+    lowerObj = model->seenLinkingSolutions[linkSol].lowerObjValue[0];
     std::copy(model->seenLinkingSolutions[linkSol].lowerSolution.begin(),
 	      model->seenLinkingSolutions[linkSol].lowerSolution.end(), lSol);
   }
@@ -2050,8 +2050,11 @@ MibSHeuristic::addSolutionToSeenLinkingSolutionPoolHeur(std::vector<double> &lin
   
   LINKING_SOLUTION linkingSolution;
 
+  std::vector<double> tmpVec;
+  tmpVec.push_back(objValue);
+
   linkingSolution.tag = MibSLinkingPoolTagLowerIsFeasible;
-  linkingSolution.lowerObjValue = objValue;
+  linkingSolution.lowerObjValue = tmpVec;
   linkingSolution.UBObjValue = 0.0;
   linkingSolution.lowerSolution = shouldStoreValues;
   linkingSolution.UBSolution.push_back(0);

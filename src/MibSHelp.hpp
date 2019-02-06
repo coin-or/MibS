@@ -20,7 +20,7 @@
 
 struct LINKING_SOLUTION{
     int tag;
-    double lowerObjValue;
+    std::vector<double> lowerObjValue;
     double UBObjValue;
     std::vector<double> lowerSolution;
     std::vector<double> UBSolution;

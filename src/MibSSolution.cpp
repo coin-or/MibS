@@ -134,7 +134,13 @@ MibSSolution::print(std::ostream& os) const
    }
 
    for(j = 0; j < lN; ++j) {
-      index = lowerColInd[j];      
+      int numScenarios(localModel_->getNumScenarios());
+      if(numScenarios == 1){
+	  index = lowerColInd[j];
+      }
+      else{
+	  index = uN + j;
+      }
       if (values_[index] > 1.0e-15 || values_[index] < -1.0e-15) {
 	 nearInt = floor(values_[index] + 0.5);
 	 if (ALPS_FABS(nearInt - values_[index]) < 1.0e-6) {
