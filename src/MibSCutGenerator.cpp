@@ -1694,12 +1694,15 @@ MibSCutGenerator::storeBestSolHypercubeIC(const double* lpSol, double optLowerOb
     }
     
     OsiSolverInterface *UBSolver;
+
+    std::vector<double> optLowerObjVec;
+    optLowerObjVec.push_back(optLowerObj);
     
     if(bS->UBSolver_){
-	bS->UBSolver_ = bS->setUpUBModel(localModel_->getSolver(), optLowerObj, false);
+	bS->UBSolver_ = bS->setUpUBModel(localModel_->getSolver(), optLowerObjVec, false);
     }
     else{
-	bS->UBSolver_ = bS->setUpUBModel(localModel_->getSolver(), optLowerObj, true);
+	bS->UBSolver_ = bS->setUpUBModel(localModel_->getSolver(), optLowerObjVec, true);
     }
 
     UBSolver = bS->UBSolver_;
@@ -2165,6 +2168,7 @@ MibSCutGenerator::boundCuts(BcpsConstraintPool &conPool, double *passedObjCoeffs
     bool isTimeLimReached(false);
 
     CoinPackedMatrix matrix = *oSolver->getMatrixByCol();
+    CoinPackedMatrix rowMatrix = *oSolver->getMatrixByRow();
     int numCols = localModel_->getLowerDim() + localModel_->getUpperDim();
     int auxCols = oSolver->getNumCols() - numCols;
     int *indDel = new int[auxCols];
@@ -2275,7 +2279,7 @@ MibSCutGenerator::boundCuts(BcpsConstraintPool &conPool, double *passedObjCoeffs
 				      localModel_->structRowInd_,
 				      0, NULL, lColLbInLProb, lColUbInLProb);
 
-	boundModel->loadProblemData(matrix, colLower, colUpper, nObjCoeffs,
+	boundModel->loadProblemData(matrix, rowMatrix, colLower, colUpper, nObjCoeffs,
 				    oSolver->getRowLower(), oSolver->getRowUpper(),
 				    colType, 1.0, oSolver->getInfinity(),
 				    oSolver->getRowSense());
@@ -2389,7 +2393,7 @@ MibSCutGenerator::boundCuts(BcpsConstraintPool &conPool, double *passedObjCoeffs
 					   localModel_->structRowNum_,
 					   localModel_->structRowInd_,
 					   0, NULL, NULL, NULL);
-	   NewboundModel.loadProblemData(matrix,
+	   NewboundModel.loadProblemData(matrix, rowMatrix,
 					 oSolver->getColLower(), NewColUpper,
 					 nObjCoeffs,
 					 oSolver->getRowLower(),
@@ -2799,10 +2803,10 @@ MibSCutGenerator::solveLeafNode(int leafNodeIndex, bool *isTimeLimReached)
       //change the format later.
       MibSBilevel *bS = localModel_->getMibSBilevel();
       if(bS->lSolver_){
-	bS->lSolver_ = bS->setUpModel(hSolver, false, upperSol);
+	  bS->lSolver_ = bS->setUpModel(hSolver, false, 0, upperSol);
       }
       else{
-	bS->lSolver_ = bS->setUpModel(hSolver, true, upperSol);
+	  bS->lSolver_ = bS->setUpModel(hSolver, true, 0, upperSol);
       }
       OsiSolverInterface *lSolver = bS->lSolver_;
       solveMips(lSolver);

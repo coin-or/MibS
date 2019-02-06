@@ -87,8 +87,14 @@ private:
     /** Number of LL variables **/
     int lowerDim_;
 
+    /** Truncated number of LL variables **/
+    int truncLowerDim_;
+
     /** Number of LL constraints **/
     int lowerRowNum_;
+
+    /** Truncated number of LL constraints **/
+    int truncLowerRowNum_;
 
     /** Number of structural constraints **/
     int structRowNum_;
@@ -273,6 +279,15 @@ private:
 
     std::map<std::vector<double>, LINKING_SOLUTION> seenLinkingSolutions;
     //std::map<std::vector<double>, LINKING_SOLUTION>::iterator it;
+
+    /** Number of scenarios **/
+    int numScenarios_;
+
+    /** Probability of each scenario **/
+    std::vector<double> scenarioProb_;
+
+    /** Matrix A2 for all scenarios **/
+    CoinPackedMatrix *stocA2Matrix_;
     
 public:
 
@@ -312,6 +327,9 @@ public:
     /** Set the lower-level dimension **/
     inline void setLowerDim(int val) {lowerDim_ = val;}
 
+    /** Set the truncated lower-level dimension **/
+    inline void setTruncLowerDim(int val) {truncLowerDim_ = val;}
+
     /** Set the upper-level dimension **/
     inline void setUpperDim(int val) {upperDim_ = val;}
 
@@ -323,6 +341,9 @@ public:
 
     /** Set the lower-level row number **/
     inline void setLowerRowNum(int val) {lowerRowNum_ = val;}
+
+    /** Set the truncated lower-level row number **/
+    inline void setTruncLowerRowNum(int val) {truncLowerRowNum_ = val;}
 
     /** Set the number of structural rows **/
     inline void setStructRowNum(int val) {structRowNum_ = val;}
@@ -393,6 +414,9 @@ public:
     /** Set the linking pool resulting from bounding problem **/
     void setBoundProbLinkingPool(std::map<std::vector<double>, LINKING_SOLUTION> linkingPool)
     {boundProbLinkingPool_ = linkingPool;}
+
+    /** Set pointer to the matrix of UL vars in LL problem for all scenarios **/
+    void setStocA2Matrix(CoinPackedMatrix *ptr) {stocA2Matrix_ = ptr;}
   
     /** Get the upper-level file **/
     std::string getUpperFile() {return ulDataFile_;}
@@ -409,8 +433,23 @@ public:
 	return MibSPar_->entry(MibSParams::auxiliaryInfoFile);
     }
 
+    /** Get the time file **/
+    std::string getTimFile()
+    {
+	return MibSPar_->entry(MibSParams::auxiliaryTimFile);
+    }
+
+    /** Get the stochastic file **/
+    std::string getStoFile()
+    {
+	return MibSPar_->entry(MibSParams::auxiliaryStoFile);
+    }
+
     /** Get the lower-level dimension **/
     int getLowerDim() {return lowerDim_;}
+
+    /** Get the truncated lower-level dimension **/
+    int getTruncLowerDim() {return truncLowerDim_;}
 
     /** Get the upper-level dimension **/
     int getUpperDim() {return upperDim_;}
@@ -429,6 +468,9 @@ public:
 
     /** Get the lower-level row number **/
     int getLowerRowNum() {return lowerRowNum_;}
+
+    /** Get the truncated lower-level row number **/
+    int getTruncLowerRowNum() {return truncLowerRowNum_;}
 
     /** Get bjective sense of lower-level problem **/
     double getLowerObjSense() {return lowerObjSense_;}
@@ -512,6 +554,15 @@ public:
     std::map<std::vector<double>, LINKING_SOLUTION> getBoundProbLinkingPool()
     {return boundProbLinkingPool_ ;}
 
+    /** Get the number of scenarios **/
+    int getNumScenarios() const {return numScenarios_;}
+
+    /** Get the vector of scenario probabilities **/
+    std::vector<double> getScenarioProb() {return scenarioProb_;}
+
+    /** Get pointer to the matrix of UL vars in LL problem for all scenarios **/
+    CoinPackedMatrix *getStocA2Matrix() const {return stocA2Matrix_;}
+
     /** Get the parameters **/
     MibSParams *MibSPar() {return MibSPar_;} 
 
@@ -519,7 +570,8 @@ public:
     void setBlisParameters();
   
     /** Read auxiliary data file **/
-    void readAuxiliaryData(int numCols, int numRows);
+    void readAuxiliaryData(int numCols, int numRows, double infinity,
+			   const char *rowSense);
 
     /** Set auxiliary data directly when using MibS as a library **/
     void loadAuxiliaryData(int lowerColNum, int lowerRowNum,
@@ -542,6 +594,7 @@ public:
 
     /** Set problem data directly when using MibS as a library **/
     void loadProblemData(const CoinPackedMatrix& matrix,
+			 const CoinPackedMatrix& rowMatrix,
 			 const double* colLB, const double* colUB,
 			 const double* obj, const double* rowLB,
 			 const double* rowUB, const char *types,

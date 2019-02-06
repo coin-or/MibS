@@ -110,16 +110,19 @@ public:
 private:
    
     int findIndex(int index, int size, int * indices);
-    OsiSolverInterface * setUpUBModel(OsiSolverInterface * solver, double objValLL,
-					  bool newOsi, const double *sol = NULL);
+    OsiSolverInterface * setUpUBModel(OsiSolverInterface * solver,
+				      std::vector<double> &objValuesVec,
+				      bool newOsi, const double *sol = NULL);
     OsiSolverInterface * setUpModel(OsiSolverInterface * solver,
-				    bool newOsi, const double *sol = NULL);
-    double getLowerObj(const double * sol, double objSense);
+				    bool newOsi, int scenarioIndex = 0,
+				    const double *sol = NULL);
+    double getLowerObj(const double * sol, double objSense, double scenarioIndex);
     int binarySearch(int index,int start, int stop, int * indexArray);
     CoinWarmStart * getWarmStart() {return ws_;}
     void setWarmStart(CoinWarmStart * ws) {ws_ = ws;}
     void addSolutionToSeenLinkingSolutionPool(MibSLinkingPoolTag solTag, std::vector<double>
-		      &shouldStoreValues, double objValue);
+					      &shouldStoreValues,
+					      std::vector<double> &shouldStoreObjValues);
     //void findHeuristicSolutions();
     //void objCutHeuristic();
     //void lowerObjHeuristic();

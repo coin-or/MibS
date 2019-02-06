@@ -229,11 +229,22 @@ MibSParams::createKeywordList() {
    keys_.push_back(make_pair(std::string("MibS_auxiliaryInfoFile"),
 			     AlpsParameter(AlpsStringPar, auxiliaryInfoFile)));
 
+   keys_.push_back(make_pair(std::string("MibS_auxiliaryTimFile"),
+			     AlpsParameter(AlpsStringPar, auxiliaryTimFile)));
+
+   keys_.push_back(make_pair(std::string("MibS_auxiliaryStoFile"),
+			     AlpsParameter(AlpsStringPar, auxiliaryStoFile)));
+
    keys_.push_back(make_pair(std::string("MibS_feasCheckSolver"),
 			     AlpsParameter(AlpsStringPar, feasCheckSolver)));
 
    keys_.push_back(make_pair(std::string("MibS_inputFormat"),
 			     AlpsParameter(AlpsStringPar, inputFormat)));
+
+   //saharStoc:this parameter should be set to "stochastic", in case of using
+   //smps format
+   keys_.push_back(make_pair(std::string("MibS_stochasticityType"),
+			     AlpsParameter(AlpsStringPar, stochasticityType)));
 
    //--------------------------------------------------------
    // Double Parameters.
@@ -389,9 +400,15 @@ MibSParams::setDefaultEntries() {
   
    setEntry(auxiliaryInfoFile, "");
 
+   setEntry(auxiliaryTimFile, "");
+
+   setEntry(auxiliaryStoFile, "");
+
    setEntry(feasCheckSolver, "SYMPHONY");
 
    setEntry(inputFormat, "indexBased");
+
+   setEntry(stochasticityType, "deterministic");
 }
 
 //#############################################################################

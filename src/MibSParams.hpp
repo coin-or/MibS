@@ -105,8 +105,11 @@ class MibSParams : public AlpsParameterSet {
   enum strParams{
       strDummy,
       auxiliaryInfoFile,
+      auxiliaryTimFile,
+      auxiliaryStoFile,
       feasCheckSolver,
       inputFormat,
+      stochasticityType,
       endOfStrParams
   };
 
