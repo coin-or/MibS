@@ -629,6 +629,8 @@ MibSModel::readAuxiliaryData(int numCols, int numRows, double infinity,
      truncRowNum = uRowNum + truncLRowNum;
      //setStocLowerDim(stocLColNum);
      //setStocLowerRowNum(stocLRowNum);
+     setLowerDim(lColNum);
+     setLowerRowNum(lRowNum);
 
      origRowLb_ = new double[rowNum];
      origRowUb_ = new double[rowNum];
@@ -1038,7 +1040,16 @@ MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
 	  truncMatrixG2 = new CoinPackedMatrix(true, 0, 0);
 	  truncMatrixG2->setDimensions(truncNumLRows, 0);
 	  for(i = numUCols; i < truncNumCols; i++){
-	      truncMatrixG2->appendCol(matrix.getVector(i));
+	      row1 = matrix.getVector(i);
+	      rowInd = row1.getIndices();
+	      rowElem = row1.getElements();
+	      rowNumElem = row1.getNumElements();
+	      for(j = 0; j < rowNumElem; j++){
+		  row2.insert(rowInd[j] - numURows, rowElem[j]);
+	      }
+	      truncMatrixG2->appendCol(row2);
+	      row1.clear();
+	      row2.clear();
 	  }
 	  truncMatrixG2->reverseOrdering();
 
