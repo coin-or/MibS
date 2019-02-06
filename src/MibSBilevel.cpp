@@ -416,6 +416,9 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 	    
 	    OsiSolverInterface *lSolver = lSolver_;
 
+	    if(0)
+		lSolver->writeLp("lSolver");
+
 	    remainingTime = timeLimit - model_->broker_->subTreeTimer().getTime();
 	    if(remainingTime <= etol){
 		shouldPrune_ = true;
@@ -493,6 +496,8 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 	    }else{
 		startTimeVF = model_->broker_->subTreeTimer().getTime();
 	        lSolver->branchAndBound();
+		if(0)
+		    lSolver->writeLp("lSolverAfter");
 	        model_->timerVF_ += model_->broker_->subTreeTimer().getTime() - startTimeVF;
 	    }
   
@@ -538,9 +543,16 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 	        const double * values = lSolver->getColSolution();
 
 		if(useLinkingSolutionPool){
+		    begPos = i * truncLN;
 		    if(shouldStoreSolution == true){
-			begPos = i * truncLN;
 		        std::copy(values, values + lN, shouldStoreValuesLowerSol.begin() + begPos);
+		    }
+		    else{
+			if(lowerSol == NULL){
+			    lowerSol = new double[lN];
+			    CoinFillN(lowerSol, lN, 0.0);
+			}
+			CoinDisjointCopyN(values, truncLN, lowerSol + begPos);
 		    }
 
 		    //step 12
@@ -562,21 +574,23 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 		    begPos = i * truncLN;
 		    CoinDisjointCopyN(values, truncLN, lowerSol + begPos);
 		}
+
+		if(i == numScenarios - 1){
+		    MibSTreeNode * node = static_cast<MibSTreeNode *>(model_->activeNode_);
+	            MibSTreeNode * parent =
+			static_cast<MibSTreeNode *>(model_->activeNode_->getParent());
 	    
-	        MibSTreeNode * node = static_cast<MibSTreeNode *>(model_->activeNode_);
-	        MibSTreeNode * parent =
-		    static_cast<MibSTreeNode *>(model_->activeNode_->getParent());
+	            if((!node->isBoundSet())
+		       && (node->getIndex() != 0)){
+			double parentBound = parent->getLowerUB();
+		        node->setLowerUB(parentBound);
+		        node->setIsBoundSet(true);
+		    }
 	    
-	        if((!node->isBoundSet())
-		   && (node->getIndex() != 0)){
-		    double parentBound = parent->getLowerUB();
-		    node->setLowerUB(parentBound);
-		    node->setIsBoundSet(true);
-		}
-	    
-	        if(objVal > node->getLowerUB()){
-		    node->setLowerUB(objVal);
-		    node->setIsBoundSet(true);
+	            if(objVal > node->getLowerUB()){
+			node->setLowerUB(objVal);
+		        node->setIsBoundSet(true);
+		    }
 		}
 	    }
 	    /*if (!warmStartLL){
@@ -605,12 +619,14 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 	    objVal_ = shouldStoreObjValues[0];
           
 
-	    if(lowerSol == NULL){
-		lowerSol = new double[lN];
-		CoinFillN(lowerSol, lN, 0.0);
-	    }	
+	    if(shouldStoreSolution == true){
+		if(lowerSol == NULL){
+		    lowerSol = new double[lN];
+		    CoinFillN(lowerSol, lN, 0.0);
+		}
 	    std::copy(model_->seenLinkingSolutions[linkSol].lowerSolution.begin(),
 		      model_->seenLinkingSolutions[linkSol].lowerSolution.end(), lowerSol);
+	    }
 	}
 
 	for(i = 0; i < numScenarios; i++){
@@ -635,7 +651,9 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 		}
 	    }
 	    else{
-		memcpy(optLowerSolutionOrd_, lowerSol, sizeof(double) * lN);
+		if(lowerSol != NULL){
+		    memcpy(optLowerSolutionOrd_, lowerSol, sizeof(double) * lN);
+		}
 		break;
 	    }
 	}
@@ -659,6 +677,9 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 		}
 
 		UBSolver = UBSolver_;
+
+		if(0)
+		    UBSolver->writeLp("UBSolver");
 
 		remainingTime = timeLimit - model_->broker_->subTreeTimer().getTime();
 
@@ -791,18 +812,20 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 	    }
 	    else if ((tagInSeenLinkingPool_ != MibSLinkingPoolTagUBIsSolved) ||
 		     ((!useLinkingSolutionPool) && (isUBSolved_))){
-		for (i = 0; i < lN; i++){
-		    index = lowerColInd[i];
-		    if ((model_->solver()->isInteger(index)) &&
-			(((lowerSol[i] - floor(lowerSol[i])) < etol) ||
-			 ((ceil(lowerSol[i]) - lowerSol[i]) < etol))){
-			optLowerSolutionOrd_[i] = (double) floor(lowerSol[i] + 0.5);
-		    }else{
-			optLowerSolutionOrd_[i] = (double) lowerSol[i];
+		if(lowerSol != NULL){
+		    for (i = 0; i < lN; i++){
+			index = lowerColInd[i];
+			if ((model_->solver()->isInteger(index)) &&
+			    (((lowerSol[i] - floor(lowerSol[i])) < etol) ||
+			     ((ceil(lowerSol[i]) - lowerSol[i]) < etol))){
+			    optLowerSolutionOrd_[i] = (double) floor(lowerSol[i] + 0.5);
+			}else{
+			    optLowerSolutionOrd_[i] = (double) lowerSol[i];
+			}
 		    }
-		}
-		if(isUpperIntegral_){
-		    storeSol = MibSHeurSol;
+		    if(isUpperIntegral_){
+			storeSol = MibSHeurSol;
+		    }
 		}
 	    }
 	}
@@ -895,16 +918,16 @@ MibSBilevel::setUpUBModel(OsiSolverInterface * oSolver,
 
 	//Set the col bounds
 	if(numScenarios == 1){
-	memcpy(colLb, origColLb, sizeof(double) * colNum);
-	memcpy(colUb, origColUb, sizeof(double) * colNum);
+	    memcpy(colLb, origColLb, sizeof(double) * colNum);
+	    memcpy(colUb, origColUb, sizeof(double) * colNum);
 	}
 	else{
 	    memcpy(colLb, origColLb, sizeof(double) * truncColNum);
 	    memcpy(colUb, origColUb, sizeof(double) * truncColNum);
 	    for(i = 1; i < numScenarios; i++){
 		beg = uCols + i * truncLCols;
-	        CoinDisjointCopyN(origColLb + uCols, lCols, colLb + beg);
-	        CoinDisjointCopyN(origColUb + uCols, lCols, colUb + beg);
+	        CoinDisjointCopyN(origColLb + uCols, truncLCols, colLb + beg);
+	        CoinDisjointCopyN(origColUb + uCols, truncLCols, colUb + beg);
 	    }
 	}
 
@@ -1292,7 +1315,7 @@ MibSBilevel::setUpModel(OsiSolverInterface * oSolver, bool newOsi,
 		 index2 = index1;
 	     }
 	     else{
-		 index2 = origURows + numScenarios * lRows + i;
+		 index2 = origURows + scenarioIndex * lRows + i;
 	     }
 	     if(origRowSense[index1] == 'G'){
 		 rowLb[i] = -origRowUb[index2];
