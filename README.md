@@ -116,7 +116,7 @@ install. To get MSys2, either download the installer
 [here](http://kent.dl.sourceforge.net/project/msys2/Base/x86_64/msys2-base-x86_64-20150512.tar.xz) 
 (this is an out-of-date version, there may be a better place to get an archive version). 
 
-Following any of the above steps, you should have the `bash` command (with MSys2m be sure to run `msys2_shell.bat` 
+Following any of the above steps, you should have the `bash` command (with Msys2, be sure to run `msys2_shell.bat` 
 or manually add `msys64\usr\bin`, `msys64\mingw32\bin`, and `msys64\mingw64\bin` to your Windows path).   
 
 Once you have bash installed and in your `PATH`, open a Windows terminal and type 
