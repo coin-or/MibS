@@ -104,8 +104,8 @@ to your `LD_LIBRARY_PATH` if you want to link to COIN libraries.
 
 By far, the easiest way to build on Windows is with the GNU autotools and the
 GCC compilers. The first step is to install either
-   * [Msys2](https://msys2.github.io/) or
-   * [CYGWIN](http://cygwin.org/).
+   * [Msys2](https://msys2.github.io/)
+   * [CYGWIN](http://cygwin.org/)
    * [Windows Subsystem for Linux](https://docs.microsoft.com/en-us/windows/wsl/install-win10)
 
 If you don't already have CYGWIN installed and don't want to fool around with
