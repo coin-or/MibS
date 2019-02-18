@@ -254,7 +254,36 @@ void
 MibSModel::readAuxiliaryData(int numCols, int numRows)
 {
 
+  int i(0);
   std::string fileName = getLowerFile();
+  if(fileName == ""){
+      std::string mpsFile(getUpperFile());
+      int length = mpsFile.length();
+      char *tmpArr = new char[length + 1];
+      fileName = mpsFile.erase(length - 3, 3);
+      fileName.append("aux");
+      if(fileCoinReadable(fileName) == 1){
+	  fileName.copy(tmpArr, length);
+	  tmpArr[length]='\0';
+	  MibSPar()->setEntry(MibSParams::auxiliaryInfoFile, tmpArr);
+	  std::cout << "Warning: The auxialiary file is not specified. MibS selected " <<  fileName << " automatically." << std::endl;
+      }
+      else{
+	  fileName.erase(length - 3, 3);
+	  fileName.append("txt");
+	  if(fileCoinReadable(fileName) == 1){
+	      fileName.copy(tmpArr, length);
+	      tmpArr[length]='\0';
+	      MibSPar()->setEntry(MibSParams::auxiliaryInfoFile, tmpArr);
+	      std::cout << "Warning: The auxialiary file is not specified. MibS selected " <<  fileName << " automatically." << std::endl;
+	  }
+	  else{
+	      std::cout << "Error: The auxialiary file is not specified. Aborting." << std::endl;
+	      abort();
+	  }
+      }
+      delete [] tmpArr;
+  }
   fileCoinReadable(fileName);
   std::ifstream data_stream(fileName.c_str());
 
@@ -270,7 +299,7 @@ MibSModel::readAuxiliaryData(int numCols, int numRows)
   int iValue(0);
   std::string cValue;
   double dValue(0.0);
-  int i(0), j(0), k(0), m(0), p(0), pos(0);
+  int j(0), k(0), m(0), p(0), pos(0);
   int lowerColNum(0), lowerRowNum(0);
 
   while (data_stream >> key){
@@ -1215,6 +1244,13 @@ MibSModel::setupSelf()
 	 }
       }
       
+   }
+
+   std::string dataFile(AlpsPar_->entry(AlpsParams::instance));
+
+   if(dataFile == "NONE"){
+       std::cout << "Error: data file is not specefied. Aborting." << std::endl;
+       abort();
    }
    
    //------------------------------------------------------
