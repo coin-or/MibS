@@ -214,7 +214,7 @@ To execute the script, do
 
 ```
 cd COIN-OR-OptimizationSuite
-chmod u+x coi.install.sh
+chmod u+x coin.install.sh
 ./coin.install.sh
 ```
 
