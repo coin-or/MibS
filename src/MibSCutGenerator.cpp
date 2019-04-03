@@ -127,8 +127,11 @@ MibSCutGenerator::bilevelFeasCut1(BcpsConstraintPool &conPool)
     CoinFillN(tempVals, numCols, 0.0);
     double value(0.0);
     int mult(0);
-    double *leftHandSide = new double[numCols];
-    CoinFillN(leftHandSide, numCols, 0.0);
+    double *leftHandSide = NULL;
+    if(useNewPureIntCut == true){
+	leftHandSide = new double[numCols];
+	CoinFillN(leftHandSide, numCols, 0.0);
+    }
 
     for(i = 0; i < numCols; i++){
 	for(j = 0; j < numRows; j++){
@@ -158,7 +161,9 @@ MibSCutGenerator::bilevelFeasCut1(BcpsConstraintPool &conPool)
 	tempVals[i] += - binding[numRows + numCols + i]; // variable lower bound
 
 	if((tempVals[i] > etol) || (tempVals[i] < - etol)){
-	    leftHandSide[i] = -1 * tempVals[i];
+	    if(leftHandSide != NULL){
+		leftHandSide[i] = -1 * tempVals[i];
+	    }
 	    indexList.push_back(i);
 	    valsList.push_back(tempVals[i]);
 	}
@@ -219,6 +224,9 @@ MibSCutGenerator::bilevelFeasCut1(BcpsConstraintPool &conPool)
 
     delete [] binding;
     delete [] tempVals;
+    if(leftHandSide != NULL){
+	delete [] leftHandSide;
+    }
 
     return numCuts;
 
