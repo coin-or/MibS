@@ -814,7 +814,12 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 		     ((!useLinkingSolutionPool) && (isUBSolved_))){
 		if(lowerSol != NULL){
 		    for (i = 0; i < lN; i++){
-			index = lowerColInd[i];
+			if(numScenarios == 1){
+			    index = lowerColInd[i];
+			}
+			else{
+			    index = uN + i;
+			}
 			if ((model_->solver()->isInteger(index)) &&
 			    (((lowerSol[i] - floor(lowerSol[i])) < etol) ||
 			     ((ceil(lowerSol[i]) - lowerSol[i]) < etol))){
