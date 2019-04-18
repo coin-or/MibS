@@ -185,7 +185,7 @@ void
 MibSModel::readParameters(const int argnum, const char * const * arglist)
 {
      //std::cout << "Reading parameters ..." << std::endl;
-    AlpsPar_->readFromArglist(argnum, arglist);
+    AlpsPar_->readFromArglist(argnum, arglist); 
     BlisPar_->readFromArglist(argnum, arglist);
     MibSPar_->readFromArglist(argnum, arglist);
 }
@@ -468,7 +468,7 @@ MibSModel::readAuxiliaryData(int numCols, int numRows, double infinity,
      std::cout << "Number of LL Variables:   "
 	       << getLowerDim() << "\n\n";
  }
- else{//smps format
+ else if(stochasticityType == stochasticSmps){//smps format
      std::string timFileName = getTimFile();
      fileCoinReadable(timFileName);
 
@@ -656,9 +656,81 @@ MibSModel::readAuxiliaryData(int numCols, int numRows, double infinity,
      std::cout << "Number of LL Variables:   "
 	       << truncLColNum << "\n\n"; 
  }
+ else{
+     std::string fileName = getLowerFile();
+     fileCoinReadable(fileName);
+     std::ifstream data_stream(fileName.c_str());
+
+     if (!data_stream){
+	 std::cout << "Error opening input data file. Aborting.\n";
+	 abort();
+     }
+
+     std::string key;
+     int k(0);
+     int uColNum(0), uRowNum(0);
+     int truncLColNum(0), truncLRowNum(0);
+     while (data_stream >> key){
+	 if(key == "N"){
+	     data_stream >> iValue;
+	     truncLColNum = iValue;
+	     setTruncLowerDim(iValue);
+	 }
+	 else if(key == "M"){
+	     data_stream >> iValue;
+	     truncLRowNum = iValue;
+	     setTruncLowerRowNum(iValue);
+	 }
+	 else if(key == "LC"){
+	     data_stream >> iValue;
+	 }
+	 else if(key == "LR"){
+	     data_stream >> iValue;
+	 }
+	 else if(key == "LO"){
+	     if(!getLowerObjCoeffs())
+		 lowerObjCoeffs_ = new double[getTruncLowerDim()];
+	     data_stream >> dValue;
+	     lowerObjCoeffs_[k] = dValue;
+	     k++;
+	 }
+	 else if(key == "OS"){
+	     data_stream >> dValue;
+	     lowerObjSense_ = dValue; //1 min; -1 max
+	 }
+     }
+
+     uColNum = numCols - truncLColNum;
+     uRowNum = numRows - truncLRowNum;
+     //saharSto:in the saa format, it is assumed that
+     //the indices of upper-level variables are 0,...,n1-1 and
+     //the indices of lower-level variables are n1,...,n1+n2-1
+     //and the same for upper- and lower-level constraints
+     //saharSto: we do not need LC and LR, but I considered them in case we
+     //want to use the input files for deterministic problems
+     if(!getLowerColInd())
+	 lowerColInd_ = new int[getTruncLowerDim()];
+     CoinIotaN(lowerColInd_, truncLColNum, uColNum);
+
+     if(!getLowerRowInd())
+	 lowerRowInd_ = new int[truncLRowNum];
+     CoinIotaN(lowerRowInd_, truncLRowNum, uRowNum);
+     
+     data_stream.close();
+       
+     uColNum = numCols - truncLColNum;
+     uRowNum = numRows - truncLRowNum;
+     //set lower col and row indices
+     lowerColInd_ = new int[getTruncLowerDim()];
+     lowerRowInd_ = new int[truncLRowNum];
+     CoinIotaN(lowerColInd_, truncLColNum, uColNum);
+     CoinIotaN(lowerRowInd_, truncLRowNum, uRowNum);
+
+     std::cout << "LL Data File: " << getLowerFile() << "\n";
+     std::cout << "Number of LL Variables:   "
+	       << getTruncLowerDim() << "\n\n";
+ }
 }
-
-
 
 //#############################################################################
 void 
@@ -886,7 +958,16 @@ MibSModel::readProblemData()
 
    //readAuxiliaryData(numCols, numRows); // reads in lower-level vars, rows, obj coeffs
    readAuxiliaryData(numCols, numRows, mps->getInfinity(),
-		     rowSense); // reads in lower-level vars, rows, obj coeffs 
+		     rowSense); // reads in lower-level vars, rows, obj coeffs
+
+   std::string stochasticityType(MibSPar_->entry
+				 (MibSParams::stochasticityType));
+
+   if(stochasticityType == "stochasticSAA"){
+       setupSAA(matrix, rowMatrix, varLB, varUB, objCoef, conLB, conUB, colType,
+		objSense, numCols, numRows, mps->getInfinity(), rowSense);
+   }
+   
    
    loadProblemData(matrix, rowMatrix, varLB, varUB, objCoef, conLB, conUB, colType, 
 		   objSense, mps->getInfinity(), rowSense);
@@ -899,6 +980,475 @@ MibSModel::readProblemData()
    delete [] objCoef;
 
    delete mps;
+}
+
+//#############################################################################
+// this function is used when user selects saa approach
+void
+MibSModel::setupSAA(const CoinPackedMatrix& matrix,
+		    const CoinPackedMatrix& rowMatrix,
+		    const double* varLB, const double* varUB,
+		    const double* objCoef, const double* conLB,
+		    const double* conUB, const char * colType,
+		    double objSense, int truncNumCols, int truncNumRows,
+		    double infinity, const char *rowSense)
+{
+
+    std::string feasCheckSolver =
+	MibSPar_->entry(MibSParams::feasCheckSolver);
+    
+    double timeLimit(AlpsPar()->entry(AlpsParams::timeLimit));
+    
+    int replNum(MibSPar_->entry(replNumSAA));//M
+    int evalSampleSize(MibSPar_->entry(evalSampSizeSAA));//N'
+    int i(0), j(0), m(0);
+    int index(0), rowNumElem(0);
+    double remainingTime(0.0), objU(0.0), objL(0.0);
+    bool isLowerInfeasible(false);
+    CoinPackedVector appendRow;
+    CoinPackedVector row;
+    int *rowInd = NULL;
+    double *rowElem = NULL;
+    int truncLColNum(getTruncLowerDim());
+    int truncLRowNum(getTruncLowerRowNum());
+    int uCols(truncNumCols - truncLColNum);
+    int uRows(truncNumRows - truncLRowNum);
+
+    //generating N' samples for evaluation
+    int evalLRowNum(truncLRowNum * evalSampleSize);
+    double *evalRHS = new double[evalLRowNum];
+    CoinZeroN(evalRHS, evalLRowNum);
+    coinPackedMatrix *evalA2Matrix = NULL;
+    evalA2Matrix = generateSamples(evalSampleSize, truncNumCols, evalRHS);
+    //evaluated upper-level solutions
+    std::unordered_map<std::vector<double>, double> seenULSolutions;
+    OsiSolverInterface * evalLSolver = 0;
+    //store G2 matrix to avoid extracting it for evaluatuion
+    CoinPackedMatrix *matrixG2 = new CoinPackedMatrix(false, 0, 0);
+    matrixG2->setDimensions(0, truncLColNum);
+    for(i = 0; i < truncLRowNum; i++){
+	row = rowMatrix.getVector(i);
+	rowInd = row.getIndices();
+	rowElem = row.getElements();
+	rowNumElem = row.getNumElements();
+	for(i = 0; i < rowNumElem; i++){
+	    index = rowInd[i];
+	    if(index >= uCols){
+		appendRow.insert(index - uCols, rowElem[i]);
+	    }
+	}
+	matrixG2->appendRow(appendRow);
+	appendRow.clear();
+    }
+
+    double *optSol  = NULL;
+    std::vector<double> optSolVec;
+    for(m = 0; m < replNum; m++){
+	optSol = solveSAA(matrix, rowMatrix, varLB, varUB, objCoef, conLB,
+			   conUB, colType, objSense, truncNumCols, truncNumRows,
+			   infinity, rowSense);
+
+	if(optSol != NULL){
+	    std::copy(optSol, optSol + uCols, optSolVec.begin());
+	    if(seenULSolutions.find(optSolVec) !=
+	       seenULSolutions.end()){
+		objL = 0.0;
+		objU = 0.0;
+		for(i = 0; i < evalSampleSize; i++){
+		    isLowerInfeasible = false;
+		    remainingTime = timeLimit - broker_->subTreeTimer().getTime();
+		    if(remainingTime <= etol){
+			//print best solution
+		    }
+		    evalLSolver = setUpEvalLModel(matrixG2, optSol, evalRHS,
+						  evalA2Matrix, rowSense, colType,
+						  i, uCols, uRows);
+		    remainingTime = timeLimit - broker_->subTreeTimer().getTime();
+		    remainingTime = CoinMax(remainingTime, 0.00);
+		    if(remainingTime <= etol){
+			//print best solution
+		    }
+		    if (feasCheckSolver == "Cbc"){
+			dynamic_cast<OsiCbcSolverInterface *>
+			    (evalLSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
+		    }else if (feasCheckSolver == "SYMPHONY"){
+#if COIN_HAS_SYMPHONY
+			sym_environment *env = dynamic_cast<OsiSymSolverInterface *>
+			    (evalLSolver)->getSymphonyEnvironment();
+
+			sym_set_dbl_param(env, "time_limit", remainingTime);
+			sym_set_int_param(env, "do_primal_heuristic", FALSE);
+			sym_set_int_param(env, "verbosity", -2);
+			sym_set_int_param(env, "prep_level", -1);
+			sym_set_int_param(env, "max_active_nodes", maxThreadsLL);
+			sym_set_int_param(env, "tighten_root_bounds", FALSE);
+			sym_set_int_param(env, "max_sp_size", 100);
+			sym_set_int_param(env, "do_reduced_cost_fixing", FALSE);
+			if (whichCutsLL == 0){
+			    sym_set_int_param(env, "generate_cgl_cuts", FALSE);
+			}else{
+			    sym_set_int_param(env, "generate_cgl_gomory_cuts", GENERATE_DEFAULT);
+			}
+#endif
+		    }else if (feasCheckSolver == "CPLEX"){
+#ifdef COIN_HAS_CPLEX
+			evalLSolver->setHintParam(OsiDoReducePrint);
+			evalLSolver->messageHandler()->setLogLevel(0);
+			CPXENVptr cpxEnv =
+			    dynamic_cast<OsiCpxSolverInterface*>(evalLSolver)->getEnvironmentPtr();
+			assert(cpxEnv);
+			CPXsetintparam(cpxEnv, CPX_PARAM_SCRIND, CPX_OFF);
+			CPXsetintparam(cpxEnv, CPX_PARAM_THREADS, maxThreadsLL);
+#endif
+		    }
+
+		    evalLSolver->branchAndBound();
+
+		    if((feasCheckSolver == "SYMPHONY") && (sym_is_time_limit_reached
+							   (dynamic_cast<OsiSymSolverInterface *>
+							    (evalLSolver)->getSymphonyEnvironment()))){
+			//printSolution
+		    }
+		    else if(!evalLSolver->isProvenOptimal()){
+			isLowerInfeasible = true;
+			break;
+		    }
+		    else{
+	                for(j = 0; j < lCols; j++){
+			    const double * values = evalLSolver->getColSolution();
+			    objL += objCoef[j + uCols] * values[j];
+			}
+		    }
+		}
+		if(isLowerInfeasible == true){
+		    seenULSolutions[optSolVec] = infinity;
+		}
+		else{
+		    for(j = 0; j < uCols; j++){
+			objU += objCoef[j] * optSol[j];
+		    }
+		    //saharSto2: check if objective is computed correctly
+		    seenULSolutions[optSolVec] = objU + objL/evalSampleSize;
+		}	
+		optSolVec.clear();
+	    }
+	}
+    }//for m
+
+    
+
+    
+    
+}
+
+//#############################################################################
+OsiSolverInterface *
+MibSBilevel::setUpEvalLModel(CoinPackedMatrix *matrixG2, double *optSol, 
+			     double *allRHS, CoinPackedMatrix *allA2Matrix,
+			     const char *rowSense, const char *colType,
+			     int scenarioIndex, int uCols, int uRows)
+{
+    std::string feasCheckSolver =
+	MibSPar_->entry(MibSParams::feasCheckSolver);
+
+    OsiSolverInterface * nSolver;
+
+    int i(0);
+    int index(0), cnt(0);
+    double etol(etol_);
+    int lRows = getTruncLowerRowNum();
+    int lCols = getTruncLowerDim();
+    double objSense(getLowerObjSense());
+    double * lObjCoeffs = getLowerObjCoeffs();
+
+
+    //setting col bounds
+    const double *origColLb = getOrigColLb();
+    const double *origColUb = getOrigColUb();
+    double * colUb = new double[lCols];
+    double * colLb = new double[lCols];
+    CoinDisjointCopyN(colUb, lCols, origColUb + uCols);
+    CoinDisjointCopyN(colLb, lCols, origColLb + uCols);
+    
+
+    //setting coefficient matrix
+    CoinPackedMatrix *copyMatrixG2 = new CoinPackedMatrix(false, 0, 0);
+    copyMatrixG2->setDimensions(0, lCols);
+    for(i = 0; i < lRows; i++){
+	copyMatrixG2->appendRow(matrixG2->getVector(i));
+    }
+
+    //setting row bounds
+    double *rowUb = new double[lRows];
+    double *rowLb = new double[lRows];
+    CoinFillN(rowUb, lRows, infinity);
+    CoinFillN(rowLb, lRows, -1 * infinity);
+    cnt = lRows * scenarioIndex;
+    CoinPackedMatrix *matrixA2 = new CoinPackedMatrix(false, 0, 0);
+    matrixA2->setDimensions(0, uCols);
+    for(i = 0; i < lRows; i++){
+	matrixA2->appendRow(allA2Matrix->getVector(cnt + i));
+    }
+    double *multA2XOpt = new double[lRows];
+    matrixA2->times(optSol, multA2XOpt);
+    for(i = 0; i < lRows; i++){
+	if(rowSense[i + uRows] == "L"){
+	    rowUb[i] = allRHS[cnt + i] - multA2XOpt[i];
+	}
+	if(rowSense[i + uRows] == "G"){
+	    rowLb[i] = allRHS[cnt + i] - multA2XOpt[i];
+	}
+	cnt ++;
+    }
+    
+
+    if (feasCheckSolver == "Cbc"){
+	nSolver = new OsiCbcSolverInterface();
+    }else if (feasCheckSolver == "SYMPHONY"){
+#ifdef COIN_HAS_SYMPHONY
+	nSolver = new OsiSymSolverInterface();
+#else
+	throw CoinError("SYMPHONY chosen as solver, but it has not been enabled",
+			"setUpModel", "MibsBilevel");
+#endif
+    }else if (feasCheckSolver == "CPLEX"){
+#ifdef COIN_HAS_CPLEX
+	nSolver = new OsiCpxSolverInterface();
+#else
+	throw CoinError("CPLEX chosen as solver, but it has not been enabled",
+			"setUpModel", "MibsBilevel");
+#endif
+    }else{
+	throw CoinError("Unknown solver chosen",
+			"setUpModel", "MibsBilevel");
+    }
+
+    nSolver->loadProblem(copyMatrixG2, colLb, colUb,
+			 objCoeffs, rowLb, rowUb);
+
+    for(i = 0; i < lCols; i++){
+	if((colType[i + uCols] == 'B') || (colType[i + uCols] == 'I')){
+	    nSolver->setInteger(i + uCols);
+	}
+    }
+
+    nSolver->setObjSense(objSense); 
+
+    nSolver->setHintParam(OsiDoReducePrint, true, OsiHintDo);
+
+    delete [] colLb;
+    delete [] colUb;
+    delete [] objCoeffs;
+    delete [] rowLb;
+    delete [] rowUb;
+    delete copyMatrixG2;
+
+    return nSolver;
+
+}
+
+//#############################################################################
+double *
+MibSModel::solveSAA(const CoinPackedMatrix& matrix,
+		    const CoinPackedMatrix& rowMatrix,
+		    const double* varLB, const double* varUB,
+		    const double* objCoef, const double* conLB,
+		    const double* conUB, const char * colType,
+		    double objSense, int truncNumCols, int truncNumRows,
+		    double infinity, const char *rowSense, double* collectSols)
+{
+    std::string feasCheckSolver
+	= MibSPar_->entry(MibSParams::feasCheckSolver);
+
+    double timeLimit(AlpsPar()->entry(AlpsParams::timeLimit));
+    
+    /** Create new MibS model to solve bilevel **/
+    MibSModel *modelSAA = new MibSModel();
+
+    /** Set up lp solver **/
+    OsiClpSolverInterface lpSolver;
+    lpSolver.getModelPtr()->setDualBound(1.0e10);
+    lpSolver.messageHandler()->setLogLevel(0);
+    modelSAA->setSolver(&lpSolver);
+
+    double remainingTime = timeLimit - broker_->subTreeTimer().getTime();
+    remainingTime = CoinMax(remainingTime, 0.00);
+
+    //set parameters
+    //modelSAA->AlpsPar()->setEntry(AlpsParams::msgLevel, -1);
+    //modelSAA->AlpsPar()->setEntry(AlpsParams::nodeLimit, boundCutNodeLim);
+    modelSAA->AlpsPar()->setEntry(AlpsParams::timeLimit, remainingTime);
+    modelSAA->BlisPar()->setEntry(BlisParams::heurStrategy, 0);
+    modelSAA->MibSPar()->setEntry(MibSParams::feasCheckSolver, feasCheckSolver.c_str());
+    modelSAA->->MibSPar()->setEntry(MibSParams::bilevelCutTypes, 0);
+    modelSAA->MibSPar()->setEntry(MibSParams::printProblemInfo, false);
+    modelSAA->->MibSPar()->setEntry(MibSParams::useBoundCut, false);
+    //saharSto2: think about it
+    modelSAA->MibSPar()->setEntry(MibSParams::branchStrategy, MibSBranchingStrategyLinking);
+    modelSAA->MibSPar()->setEntry(MibSParams::useBendersCut, PARAM_OFF);
+    modelSAA->MibSPar()->setEntry(MibSParams::useGeneralNoGoodCut, PARAM_OFF);
+    modelSAA->MibSPar()->setEntry(MibSParams::useTypeIC, PARAM_OFF);
+    modelSAA->MibSPar()->setEntry(MibSParams::useTypeWatermelon, PARAM_OFF);
+    modelSAA->MibSPar()->setEntry(MibSParams::useTypeHypercubeIC, PARAM_OFF);
+    modelSAA->MibSPar()->setEntry(MibSParams::useTypeTenderIC, PARAM_OFF);
+    modelSAA->MibSPar()->setEntry(MibSParams::useTypeHybridIC, PARAM_OFF);
+    modelSAA->MibSPar()->setEntry(MibSParams::useIncObjCut, PARAM_OFF);
+    modelSAA->MibSPar()->setEntry(MibSParams::bilevelCutTypes, -1);
+    modelSAA->MibSPar()->setEntry(MibSParams::usePureIntegerCut, PARAM_OFF);
+    modelSAA->MibSPar()->setEntry(MibSParams::useNewPureIntCut, false);
+
+    modelSAA->isInterdict_ = false;
+    modelSAA->MibSPar()->setEntry(MibSParams::stochasticityType, "stochasticSAA");
+
+    modelSAA->numScenarios_ = 1;
+
+    int i(0), j(0);
+    int cnt(0);
+    int sampleSize(MibSPar_->entry(sampSizeSAA));//N
+
+    int truncLColNum(getTruncLowerDim());
+    int truncLRowNum(getTruncLowerRowNum());
+    int uColNum(truncNumCols - truncLowerDim);
+    int uRowNum(truncNumRows - truncLRowNum);
+    int lColNum(sampleSize * truncLColNum);
+    int lRowNum(sampleSize * truncLRowNum);
+    int numCols(uColNum + lColNum);
+    int numRows(uRowNum + lRowNum);
+    double *b2Arr = new double[lRowNum];
+    CoinZeroN(b2Arr, lRowNum);
+    coinPackedMatrix *stocA2Matrix = NULL;
+    //saharSto2: it is assumed that the sense of lower rows are
+    //the same as what provided in mps file
+    stocA2Matrix = generateSamples(sampleSize, truncNumCols, b2Arr);
+
+    modelSAA->setTruncLowerDim(truncLowerDim);
+    modelSAA->setTruncLowerRowNum(truncLowerRowNum);
+
+    modelSAA->lowerObjCoeffs_ = new double[truncLColNum];
+    memcpy(modelSAA->lowerObjCoeffs_, getLowerObjCoeffs(),
+	   sizeof(double) * truncLColNum);
+
+    modelSAA->setLowerObjSense(getLowerObjSense());
+
+    modelSAA->lowerColInd_ = new int[truncLColNum];
+    modelSAA->lowerRowInd_ = new int[truncLRowNum];
+    CoinIotaN(modelSAA->lowerColInd_, truncLColNum, uColNum);
+    CoinIotaN(modelSAA->lowerRowInd_, truncLRowNum, uRowNum);
+
+    modelSAA->setStocA2Matrix(stocA2Matrix);
+
+    modelSAA->setLowerDim(lColNum);
+    modelSAA->setLowerRowNum(lRowNum);
+    
+    modelSAA->origRowLb_ = new double[numRows];
+    modelSAA->origRowUb_ = new double[numRows];
+
+    for(i = 0; i < sampleSize; i++){
+	for(j = 0; j < truncLRowNum; j++){
+	    if(rowSense[j] == "L"){
+		modelSSA->origRowLb_[j] = -1 * infinity;
+		modelSAA->origRowUb_[j] = b2Arr[cnt];
+	    }
+	    if(rowSense[j] == "G"){
+		modelSSA->origRowLb_[j] = b2Arr[cnt];
+		modelSAA->origRowUb_[j] = infinity;
+	    }
+	    cnt ++;
+	}
+    }
+
+    modelSAA->loadProblemData(matrix, rowMatrix, varLB, varUB, objCoef,
+			      conLB, conUB, colType, objSense, infinity, rowSense);
+
+
+    int argc = 1;
+    char** argv = new char* [1];
+    argv[0] = (char *) "mibs";
+
+#ifdef  COIN_HAS_MPI
+    AlpsKnowledgeBrokerMPI brokerSAA(argc, argv, *modelSAA);
+#else
+    AlpsKnowledgeBrokerSerial brokerSAA(argc, argv, *modelSAA);
+#endif
+
+    brokerSAA.search(modelSAA);
+
+    MibSSolution *mibsSol = NULL;
+
+    if(brokerSAA.getSolStatus() == AlpsExitStatusOptimal){
+	AlpsSolution *sol = dynamic_cast<AlpsSolution* >
+	    (brokerSAA.getBestKnowledge(AlpsKnowledgeTypeSolution).first);
+
+	mibsSol = dynamic_cast<MibSSolution* >(sol);
+    }
+
+    double *optSol;
+    if(mibsSol != NULL){
+	optSol = new double[uColNum];
+	memcpy(optSol, mibsSol->values_, uColNum);
+    }
+
+    delete [] b2Arr;
+    delete modelSAA;
+
+    return optSol;
+	    
+}
+
+//#############################################################################
+coinPackedMatrix *
+MibSModel::generateSamples(int size, int truncNumCols, double *rhs)
+{
+    
+    int i(0), j(0), n(0);
+    int tmpVal(0);
+    double etol(etol_);
+    int truncLowerDim(getTruncLowerDim());
+    int truncLowerRowNum(getTruncLowerRowNum());
+    int uColNum(truncNumCols - truncLowerDim);
+
+    int lbB2(MibSPar_->entry(lbDistB2SAA));
+    int ubB2(MibSPar_->entry(ubDistB2SAA));
+    int lbA2(MibSPar_->entry(lbDistA2SAA));
+    int ubA2(MibSPar_->entry(ubDistA2SAA));
+    //saharSto2: it is assumed that incB2Numer <= incB2Denum
+    //and they are relatively prime (the same for A2)
+    double incB2Numer(MibSPar_->entry(incDistB2NumerSAA));
+    double incB2Denum(MibSPar_->entry(incDistB2DenumSAA));
+    double incA2Numer(MibSPar_->entry(incDistA2NumerSAA));
+    double incA2Denum(MibSPar_->entry(incDistA2DenumSAA));
+
+    //saharSto2: check it
+    int tmpB2 = floor((ubB2 - lbB2) *incB2Denum/incB2Numer) + 1;
+    int tmpA2 = floor((ubA2 - lbA2) *incA2Denum/incA2Numer) + 1;
+
+    std::default_random_engine generator;
+    std::uniform_int_distribution<int> distB2(lbB2, lbB2 + tmpB2);
+    std::uniform_int_distribution<int> distA2(lbA2, lbA2 + tmpA2);
+
+    CoinPackedVector row;
+
+    CoinPackedMatrix *stocMatrixA2 = 0;
+    stocMatrixA2 = new CoinPackedMatrix(false, 0, 0);
+    stocMatrixA2->setDimensions(0, uColNum);
+    
+    for(n = 0; n < size; n++){
+	//generate A2
+	for(i = 0; i < truncLowerRowNum; i++){
+	    for(j = 0; j < uColNum; j++){
+		tmpVal = (distA2(generator) - 1) * incA2Numer/incA2Denum + lbA2;
+		if(fabs(tmpVal) > etol_){
+		    row.insert(j, tmpVal);
+		}
+	    }
+	    stocMatrixA2->appendRow(row);
+	    row.clear();
+	    tmpVal = (distB2(generator) - 1) * incB2Numer/incB2Denum + lbB2;
+	    b2Arr[i * truncLowerRowNum + j] = tmpVal;
+	}
+    }
+
+    return stocMatrixA2;
 }
 
 //#############################################################################
@@ -2326,8 +2876,7 @@ MibSModel::userFeasibleSolution(const double * solution, bool &userFeasible)
   if(userFeasible == true){
       mibSol = new MibSSolution(getNumCols(),
 				lpSolution,
-				upperObj,
-				this);
+				upperObj,				this);
   }
   else if(solType == MibSHeurSol){
       //in stochastic case, we assume that lower-level variables
