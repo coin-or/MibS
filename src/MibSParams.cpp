@@ -222,6 +222,29 @@ MibSParams::createKeywordList() {
    keys_.push_back(make_pair(std::string("MibS_relaxTypeParamBoundCut"),
    			     AlpsParameter(AlpsIntPar, relaxTypeParamBoundCut)));
 
+   //parameters for SAA
+   //N
+   keys_.push_back(make_pair(std::string("MibS_initSampSizeSAA"),
+			     AlpsParameter(AlpsIntPar, sampSizeSAA)));
+   //N'
+   keys_.push_back(make_pair(std::string("MibS_evalSampSizeSAA"),
+			     AlpsParameter(AlpsIntPar, evalSampSizeSAA)));
+   //M
+   keys_.push_back(make_pair(std::string("MibS_replNumSAA"),
+			     AlpsParameter(AlpsIntPar, replNumSAA)));
+
+   keys_.push_back(make_pair(std::string("MibS_lbDistB2SAA"),
+			     AlpsParameter(AlpsIntPar, lbDistB2SAA)));
+   
+   keys_.push_back(make_pair(std::string("MibS_ubDistB2SAA"),
+			     AlpsParameter(AlpsIntPar, ubDistB2SAA)));
+
+   keys_.push_back(make_pair(std::string("MibS_lbDistA2SAA"),
+			     AlpsParameter(AlpsIntPar, lbDistA2SAA)));
+
+   keys_.push_back(make_pair(std::string("MibS_ubDistA2SAA"),
+			     AlpsParameter(AlpsIntPar, ubDistA2SAA)));
+
    //--------------------------------------------------------
    // String Parameters.
    //--------------------------------------------------------
@@ -241,8 +264,10 @@ MibSParams::createKeywordList() {
    keys_.push_back(make_pair(std::string("MibS_inputFormat"),
 			     AlpsParameter(AlpsStringPar, inputFormat)));
 
-   //saharStoc:this parameter should be set to "stochastic", in case of using
-   //smps format
+   //saharStoc:this parameter should be set to
+   //"deterministic" : deterministic problems
+   //"stochasticSmps": using smps format
+   //"stochasticSAA": using SAA approach
    keys_.push_back(make_pair(std::string("MibS_stochasticityType"),
 			     AlpsParameter(AlpsStringPar, stochasticityType)));
 
@@ -252,6 +277,18 @@ MibSParams::createKeywordList() {
 
    keys_.push_back(make_pair(std::string("MibS_boundCutTimeLim"),
 			     AlpsParameter(AlpsDoublePar, boundCutTimeLim)));
+
+   keys_.push_back(make_pair(std::string("MibS_incDistB2NumerSAA"),
+			     AlpsParameter(AlpsDoublePar, incDistB2NumerSAA)));
+
+   keys_.push_back(make_pair(std::string("MibS_incDistB2DenumSAA"),
+			     AlpsParameter(AlpsDoublePar, incDistB2DenumSAA)));
+
+   keys_.push_back(make_pair(std::string("MibS_incDistA2NumerSAA"),
+			     AlpsParameter(AlpsDoublePar, incDistA2NumerSAA)));
+
+   keys_.push_back(make_pair(std::string("MibS_incDistA2DenumSAA"),
+			     AlpsParameter(AlpsDoublePar, incDistA2DenumSAA)));
 
 }
 
