@@ -35,7 +35,7 @@ before_script:
 - export PROJECT=`echo $TRAVIS_REPO_SLUG | cut -d "/" -f 2`
 - bash ./coinbrew fetch --no-prompt $PROJECT > /dev/null
 script:
-- bash ./coinbrew build --no-prompt $PROJECT --enable-static --disable-shared --verbosity 3 --test
+- bash ./coinbrew build --no-prompt $PROJECT --enable-static --disable-shared --verbosity 2 --test
 after_script:
 - if [ $TRAVIS_BRANCH = "master" ]; then export VERSION=master; else export VERSION=`echo
   $TRAVIS_BRANCH | cut -d "/" -f 2`; fi
