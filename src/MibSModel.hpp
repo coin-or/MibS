@@ -663,6 +663,41 @@ public:
 
     double interdictionBound();
 
+    //Functions for the SAA method
+    void setupSAA(const CoinPackedMatrix& matrix,
+		  const CoinPackedMatrix& rowMatrix,
+		  const double* varLB, const double* varUB,
+		  const double* objCoef, const double* conLB,
+		  const double* conUB, const char * colType,
+		  double objSense, int truncNumCols, int truncNumRows,
+		  double infinity, const char *rowSense);
+
+    void printSolutionSAA(int numRepl, int truncNumCols, bool isTimeLimReached,
+			  bool allEvalsInfeas, double optGap, double variance,
+			  double objBestSol, double *bestSol);
+    
+    void findOptGapVarSAA(int numRepl, double *objValSAARepls,
+			  double *objPartsBestEvalSol, double objBestEvalSol,
+			  double &optGap, double &variance);
+    
+    OsiSolverInterface *setUpEvalLModel(CoinPackedMatrix *matrixG2, double *optSol,
+					double *allRHS, CoinPackedMatrix *allA2Matrix,
+					const double *origColLb, const double *origColUb,
+					const char *rowSense, const char *colType,
+					double infinity, int scenarioIndex, int uCols,
+					int uRows);
+
+    double *solveSAA(const CoinPackedMatrix& matrix,
+		     const CoinPackedMatrix& rowMatrix,
+		     const double* varLB, const double* varUB,
+		     const double* objCoef, const double* conLB,
+		     const double* conUB, const char * colType,
+		     double objSense, int truncNumCols, int truncNumRows,
+		     double infinity, const char *rowSense, bool &isTimeLimReached,
+		     double &objSAA);
+
+    CoinPackedMatrix *generateSamples(int size, int truncNumCols, double *rhs);
+
 private:
 
     /** Initialize the object data **/
