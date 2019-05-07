@@ -99,16 +99,16 @@ class MibSParams : public AlpsParameterSet {
      ubDistB2SAA,
      lbDistA2SAA,
      ubDistA2SAA,
+     incDistB2NumerSAA,
+     incDistB2DenumSAA,
+     incDistA2NumerSAA,
+     incDistA2DenumSAA,
      endOfIntParams
   };
 
   /** Double parameters. */
   enum dblParams{
       boundCutTimeLim,
-      incDistB2NumerSAA,
-      incDistB2DenumSAA,
-      incDistA2NumerSAA,
-      incDistA2DenumSAA,
       endOfDblParams
   };
 

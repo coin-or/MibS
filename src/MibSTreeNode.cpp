@@ -346,7 +346,8 @@ MibSTreeNode::process(bool isRoot, bool rampUp)
             getKnowledgeBroker()->tempTimer().start();
         }
 
-	
+	model->solver()->writeLp("replModel");
+	model->solver()->writeMps("replModelMPS", "mps", model->solver()->getObjSense());
         lpStatus = static_cast<BlisLpStatus> (bound(model));
 
 	if (model->boundingPass_ == 1) {
