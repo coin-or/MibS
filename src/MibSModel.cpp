@@ -1192,8 +1192,9 @@ MibSModel::setupSAA(const CoinPackedMatrix& matrix,
 		    tmpArr[evalSampleSize] = objU;
 		    //saharSto2: check if objective is computed correctly
 		    allEvalsInfeas = false;
+		    objEval = objU;
 		    for(j = 0; j < evalSampleSize; j++){
-			objEval += tmpArr[j]; 
+			objEval += tmpArr[j]/evalSampleSize; 
 		    }
 		    if(objBestEvalSol - objEval > etol){
 			objBestEvalSol = objEval;
@@ -1571,6 +1572,7 @@ MibSModel::solveSAA(const CoinPackedMatrix& matrix,
 	AlpsSolution *sol = dynamic_cast<AlpsSolution* >
 	    (brokerSAA.getBestKnowledge(AlpsKnowledgeTypeSolution).first);
 	objSAA = brokerSAA.getBestQuality();
+	objSAA = objSAA/sampleSize;
 	mibsSol = dynamic_cast<MibSSolution* >(sol);
     }
 
