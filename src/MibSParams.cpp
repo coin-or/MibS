@@ -224,7 +224,7 @@ MibSParams::createKeywordList() {
 
    //parameters for SAA
    //N
-   keys_.push_back(make_pair(std::string("MibS_initSampSizeSAA"),
+   keys_.push_back(make_pair(std::string("MibS_sampSizeSAA"),
 			     AlpsParameter(AlpsIntPar, sampSizeSAA)));
    //N'
    keys_.push_back(make_pair(std::string("MibS_evalSampSizeSAA"),
@@ -244,6 +244,18 @@ MibSParams::createKeywordList() {
 
    keys_.push_back(make_pair(std::string("MibS_ubDistA2SAA"),
 			     AlpsParameter(AlpsIntPar, ubDistA2SAA)));
+
+   keys_.push_back(make_pair(std::string("MibS_incDistB2NumerSAA"),
+			     AlpsParameter(AlpsIntPar, incDistB2NumerSAA)));
+
+   keys_.push_back(make_pair(std::string("MibS_incDistB2DenumSAA"),
+			     AlpsParameter(AlpsIntPar, incDistB2DenumSAA)));
+
+   keys_.push_back(make_pair(std::string("MibS_incDistA2NumerSAA"),
+			     AlpsParameter(AlpsIntPar, incDistA2NumerSAA)));
+
+   keys_.push_back(make_pair(std::string("MibS_incDistA2DenumSAA"),
+			     AlpsParameter(AlpsIntPar, incDistA2DenumSAA)));
 
    //--------------------------------------------------------
    // String Parameters.
@@ -277,18 +289,6 @@ MibSParams::createKeywordList() {
 
    keys_.push_back(make_pair(std::string("MibS_boundCutTimeLim"),
 			     AlpsParameter(AlpsDoublePar, boundCutTimeLim)));
-
-   keys_.push_back(make_pair(std::string("MibS_incDistB2NumerSAA"),
-			     AlpsParameter(AlpsDoublePar, incDistB2NumerSAA)));
-
-   keys_.push_back(make_pair(std::string("MibS_incDistB2DenumSAA"),
-			     AlpsParameter(AlpsDoublePar, incDistB2DenumSAA)));
-
-   keys_.push_back(make_pair(std::string("MibS_incDistA2NumerSAA"),
-			     AlpsParameter(AlpsDoublePar, incDistA2NumerSAA)));
-
-   keys_.push_back(make_pair(std::string("MibS_incDistA2DenumSAA"),
-			     AlpsParameter(AlpsDoublePar, incDistA2DenumSAA)));
 
 }
 
