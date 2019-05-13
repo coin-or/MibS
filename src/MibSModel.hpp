@@ -672,13 +672,13 @@ public:
 		  double objSense, int truncNumCols, int truncNumRows,
 		  double infinity, const char *rowSense);
 
-    void printSolutionSAA(int numRepl, int truncNumCols, bool isTimeLimReached,
-			  bool allEvalsInfeas, double optGap, double variance,
-			  double objBestSol, double *bestSol);
+    void printSolutionSAA(int truncNumCols, double estimatedObj,
+			  double estimatedLowerBound, double varLower,
+			  double varUpper, double *bestSol);
     
-    void findOptGapVarSAA(int numRepl, double *objValSAARepls,
-			  double *objPartsBestEvalSol, double objBestEvalSol,
-			  double &optGap, double &variance);
+    void findOptGapVarSAA(double *objValSAARepls, double estimatedObj,
+			  double &estimatedLowerBound, double&varLower,
+			  double&varUpper, double *estimatedObjComps);
     
     OsiSolverInterface *setUpEvalLModel(CoinPackedMatrix *matrixG2, double *optSol,
 					double *allRHS, CoinPackedMatrix *allA2Matrix,
