@@ -536,9 +536,14 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 		//const double * sol = model_->solver()->getColSolution();
 		objVal = lSolver->getObjValue() * model_->getLowerObjSense();
 
-	        objVal_ = objVal;
+	        //objVal_ = objVal;
 
-	        shouldStoreObjValues.push_back(objVal_);
+		if((i == 0) && (!objValVec_.empty())){
+		    objValVec_.clear();
+		}
+
+		objValVec_.push_back(objVal);
+	        shouldStoreObjValues.push_back(objVal);
 
 	        const double * values = lSolver->getColSolution();
 
@@ -616,7 +621,11 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 	    shouldStoreObjValues = model_->seenLinkingSolutions[linkSol].lowerObjValue; 
 	    //objVal = seenLinkingSolutions.find(linkSol).
 	    //objVal_ = objVal;
-	    objVal_ = shouldStoreObjValues[0];
+	    //objVal_ = shouldStoreObjValues[0];
+	    if(!objValVec_.empty()){
+		objValVec_.clear();
+	    }
+	    objValVec_ = model_->seenLinkingSolutions[linkSol].lowerObjValue;
           
 
 	    if(shouldStoreSolution == true){

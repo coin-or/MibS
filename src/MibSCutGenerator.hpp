@@ -105,7 +105,9 @@ class MibSCutGenerator : public BlisConGenerator {
 			      std::vector<double> &alphaVec);
 
     /** Helper function for hypercube IC*/
-    void storeBestSolHypercubeIC(const double* lpSol, double optLowerObj, bool &isTimeLimReached);
+    void storeBestSolHypercubeIC(const double* lpSol,
+				 std::vector<double> &optLowerObjVec,
+				 bool &isTimeLimReached);
 
     /** Helper function for hypercube IC*/
     void getAlphaHypercubeIC(double** extRay, int numStruct, int numNonBasic,

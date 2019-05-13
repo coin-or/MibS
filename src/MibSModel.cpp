@@ -1370,6 +1370,11 @@ MibSModel::printSolutionSAA(int truncNumCols, double estimatedObj,
     std::cout << "Estimated standard deviation of lower bound = " << sqrt(varLower) << std::endl;
     std::cout << "Estimated standard deviation of the ptimality gap = ";
     std::cout << sqrt(varUpper + varLower) << std::endl;
+    std::cout << "Search CPU time: " << broker_->timer().getCpuTime();
+    std::cout << " seconds" << std::endl;
+    std::cout << "Search wall-clock time: " << broker_->timer().getWallClock();
+    std::cout << " seconds" << std::endl;
+    
 }
 
 //#############################################################################
@@ -1568,20 +1573,20 @@ MibSModel::solveSAA(const CoinPackedMatrix& matrix,
     modelSAA->AlpsPar()->setEntry(AlpsParams::timeLimit, remainingTime);
     modelSAA->BlisPar()->setEntry(BlisParams::heurStrategy, 0);
     modelSAA->MibSPar()->setEntry(MibSParams::feasCheckSolver, feasCheckSolver.c_str());
-    modelSAA->MibSPar()->setEntry(MibSParams::bilevelCutTypes, 0);
     modelSAA->MibSPar()->setEntry(MibSParams::printProblemInfo, false);
     modelSAA->MibSPar()->setEntry(MibSParams::useBoundCut, false);
     //saharSto2: think about it
     modelSAA->MibSPar()->setEntry(MibSParams::branchStrategy, MibSBranchingStrategyLinking);
+    //modelSAA->MibSPar()->setEntry(MibSParams::branchStrategy, MibSBranchingStrategyFractional);
+    modelSAA->MibSPar()->setEntry(MibSParams::bilevelCutTypes, 0);
     modelSAA->MibSPar()->setEntry(MibSParams::useBendersCut, PARAM_OFF);
     modelSAA->MibSPar()->setEntry(MibSParams::useGeneralNoGoodCut, PARAM_OFF);
     modelSAA->MibSPar()->setEntry(MibSParams::useTypeIC, PARAM_OFF);
     modelSAA->MibSPar()->setEntry(MibSParams::useTypeWatermelon, PARAM_OFF);
-    modelSAA->MibSPar()->setEntry(MibSParams::useTypeHypercubeIC, PARAM_OFF);
+    modelSAA->MibSPar()->setEntry(MibSParams::useTypeHypercubeIC, PARAM_ON);
     modelSAA->MibSPar()->setEntry(MibSParams::useTypeTenderIC, PARAM_OFF);
     modelSAA->MibSPar()->setEntry(MibSParams::useTypeHybridIC, PARAM_OFF);
     modelSAA->MibSPar()->setEntry(MibSParams::useIncObjCut, PARAM_OFF);
-    modelSAA->MibSPar()->setEntry(MibSParams::bilevelCutTypes, -1);
     modelSAA->MibSPar()->setEntry(MibSParams::usePureIntegerCut, PARAM_OFF);
     modelSAA->MibSPar()->setEntry(MibSParams::useNewPureIntCut, false);
 

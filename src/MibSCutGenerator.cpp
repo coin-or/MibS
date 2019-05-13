@@ -627,7 +627,7 @@ MibSCutGenerator::intersectionCuts(BcpsConstraintPool &conPool,
 	case MibSIntersectionCutTypeHypercubeIC:
 	    if(shouldFindBestSol == true){
 		isTimeLimReached = false;
-		storeBestSolHypercubeIC(sol, bS->objVal_, isTimeLimReached);
+		storeBestSolHypercubeIC(sol, bS->objValVec_, isTimeLimReached);
 		if(isTimeLimReached == true){
 		    goto TREM_INTERSECTIONCUT;
 		}
@@ -636,13 +636,13 @@ MibSCutGenerator::intersectionCuts(BcpsConstraintPool &conPool,
 	    break;
 	case MibSIntersectionCutTypeTenderIC:
 	    if(shouldFindBestSol == true){
-		storeBestSolTenderIC(sol, bS->objVal_);
+		storeBestSolTenderIC(sol, bS->objValVec_[0]);
 	    }
 	    getAlphaTenderIC(extRay, numNonBasic, alpha);
 	    break;
 	case MibSIntersectionCutTypeHybridIC:
 	    if(shouldFindBestSol == true){
-		storeBestSolTenderIC(sol, bS->objVal_);
+		storeBestSolTenderIC(sol, bS->objValVec_[0]);
 	    }
 	    getAlphaHypercubeIC(extRay, numStruct, numNonBasic, alpha);
 	    break;
@@ -1668,7 +1668,8 @@ MibSCutGenerator::getAlphaWatermelonIC(double** extRay, double *uselessIneqs,
 
 //#############################################################################
 void
-MibSCutGenerator::storeBestSolHypercubeIC(const double* lpSol, double optLowerObj,
+MibSCutGenerator::storeBestSolHypercubeIC(const double* lpSol,
+					  std::vector<double> &optLowerObjVec,
 					  bool &isTimeLimReached)
 {
 
@@ -1703,8 +1704,8 @@ MibSCutGenerator::storeBestSolHypercubeIC(const double* lpSol, double optLowerOb
     
     OsiSolverInterface *UBSolver;
 
-    std::vector<double> optLowerObjVec;
-    optLowerObjVec.push_back(optLowerObj);
+    //std::vector<double> optLowerObjVec;
+    //optLowerObjVec.push_back(optLowerObj);
     
     if(bS->UBSolver_){
 	bS->UBSolver_ = bS->setUpUBModel(localModel_->getSolver(), optLowerObjVec, false);
@@ -3215,7 +3216,7 @@ MibSCutGenerator::generalNoGoodCut(BcpsConstraintPool &conPool)
 
     
     if(shouldFindBestSol == true){
-	storeBestSolHypercubeIC(sol, bS->objVal_, isTimeLimReached);
+	storeBestSolHypercubeIC(sol, bS->objValVec_, isTimeLimReached);
     }
 
     if(isTimeLimReached == true){
@@ -4805,7 +4806,7 @@ MibSCutGenerator::generalWeakIncObjCutCurrent(BcpsConstraintPool &conPool)
     int index(0);
     int numCuts(0);
     double cutub(0.0), cutlb(-solver->getInfinity()), bigM(0.0);
-    double lObjVal(localModel_->bS_->objVal_);
+    double lObjVal(localModel_->bS_->objValVec_[0]);
     //double bigM(10000);
     double etol(localModel_->etol_);
     int uN(localModel_->getUpperDim());
@@ -5076,7 +5077,7 @@ MibSCutGenerator::weakIncObjCutCurrent(BcpsConstraintPool &conPool)
     }
   }
 
-  cutub = bS->objVal_;
+  cutub = bS->objValVec_[0];
 
 
   assert(indexList.size() == valsList.size());
