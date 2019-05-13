@@ -1106,9 +1106,6 @@ MibSModel::setupSAA(const CoinPackedMatrix& matrix,
 						  evalA2Matrix, varLB, varUB, rowSense,
 						  colType, infinity, i, uCols, uRows);
 
-		    evalLSolver->writeLp("evalLSolver");
-		    evalLSolver->writeMps("evalLSolverMPS", "mps", evalLSolver->getObjSense());
-
 		    remainingTime = timeLimit - broker_->subTreeTimer().getTime();
 		    remainingTime = CoinMax(remainingTime, 0.00);
 		    if(remainingTime <= etol){
