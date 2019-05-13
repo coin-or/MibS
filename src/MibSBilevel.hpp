@@ -61,7 +61,8 @@ private:
     MibSLPSolStatus LPSolStatus_;
 
     /** Optimal value of LL objective **/
-    double objVal_;
+    //double objVal_;
+    std::vector<double> objValVec_;
     int linkIntegralCount_;
 
     double *upperSolutionOrd_;
@@ -84,7 +85,7 @@ public:
 		    isLowerSolved_(false), isUBSolved_(false),
 		    shouldPrune_(false), isContainedInLinkingPool_(false),
 		    tagInSeenLinkingPool_(MibSLinkingPoolTagIsNotSet),
-		    LPSolStatus_(MibSLPSolStatusUnknown), objVal_(0.0),
+		    LPSolStatus_(MibSLPSolStatusUnknown),
 		    linkIntegralCount_(0){
 	upperSolutionOrd_ = 0;
 	lowerSolutionOrd_ = 0;
