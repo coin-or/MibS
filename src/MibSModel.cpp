@@ -1580,6 +1580,7 @@ MibSModel::solveSAA(const CoinPackedMatrix& matrix,
     //modelSAA->MibSPar()->setEntry(MibSParams::branchStrategy, MibSBranchingStrategyFractional);
     modelSAA->MibSPar()->setEntry(MibSParams::bilevelCutTypes, 0);
     modelSAA->MibSPar()->setEntry(MibSParams::useBendersCut, PARAM_OFF);
+    modelSAA->MibSPar()->setEntry(MibSParams::useNoGoodCut, PARAM_OFF);
     modelSAA->MibSPar()->setEntry(MibSParams::useGeneralNoGoodCut, PARAM_OFF);
     modelSAA->MibSPar()->setEntry(MibSParams::useTypeIC, PARAM_OFF);
     modelSAA->MibSPar()->setEntry(MibSParams::useTypeWatermelon, PARAM_OFF);
@@ -1589,6 +1590,14 @@ MibSModel::solveSAA(const CoinPackedMatrix& matrix,
     modelSAA->MibSPar()->setEntry(MibSParams::useIncObjCut, PARAM_OFF);
     modelSAA->MibSPar()->setEntry(MibSParams::usePureIntegerCut, PARAM_OFF);
     modelSAA->MibSPar()->setEntry(MibSParams::useNewPureIntCut, false);
+    modelSAA->MibSPar()->setEntry(MibSParams::solveSecondLevelWhenXYVarsInt, PARAM_ON);
+    modelSAA->MibSPar()->setEntry(MibSParams::solveSecondLevelWhenXVarsInt, PARAM_OFF);
+    modelSAA->MibSPar()->setEntry(MibSParams::solveSecondLevelWhenLVarsInt, PARAM_OFF);
+    modelSAA->MibSPar()->setEntry(MibSParams::solveSecondLevelWhenLVarsFixed, PARAM_ON);
+    modelSAA->MibSPar()->setEntry(MibSParams::computeBestUBWhenXVarsInt, PARAM_OFF);
+    modelSAA->MibSPar()->setEntry(MibSParams::computeBestUBWhenLVarsInt, PARAM_OFF);
+    modelSAA->MibSPar()->setEntry(MibSParams::computeBestUBWhenLVarsFixed, PARAM_ON);
+    modelSAA->MibSPar()->setEntry(MibSParams::useLinkingSolutionPool, PARAM_ON);
 
     modelSAA->isInterdict_ = false;
     modelSAA->MibSPar()->setEntry(MibSParams::stochasticityType, "stochasticSAA");
