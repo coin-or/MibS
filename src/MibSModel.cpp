@@ -1052,7 +1052,7 @@ MibSModel::setupSAA(const CoinPackedMatrix& matrix,
     std::map<std::vector<double>, double> seenULSolutions;
     OsiSolverInterface * evalLSolver = 0;
     //store G2 matrix to avoid extracting it for evaluatuion
-    int lcmDenum = 10;
+    int lcmDenum = 2;
     CoinPackedMatrix *matrixG2 = new CoinPackedMatrix(false, 0, 0);
     matrixG2->setDimensions(0, truncLColNum);
     for(i = uRows; i < truncNumRows; i++){
@@ -1720,10 +1720,10 @@ MibSModel::generateSamples(int size, int truncNumCols, double *rhs)
     int incA2Numer(MibSPar_->entry(MibSParams::incDistA2NumerSAA));
     int incA2Denum(MibSPar_->entry(MibSParams::incDistA2DenumSAA));
 
-    int lcmDenum = 10;
+    int lcmDenum = 2;
 
-    int tmpB2 = (ubB2 - lbB2) * incB2Denum + 1;
-    int tmpA2 = (ubA2 - lbA2) * incA2Denum + 1;
+    int tmpB2 = (ubB2 - lbB2) * incB2Denum/incB2Numer + 1;
+    int tmpA2 = (ubA2 - lbA2) * incA2Denum/incA2Numer + 1;
 
 
     static unsigned int lastSeed = 123456;
@@ -1897,7 +1897,7 @@ MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
 	  //extract truncG2
 	  int lcmDenum (1);
 	  if(stochasticityType == "stochasticSAA"){
-	      lcmDenum = 10;
+	      lcmDenum = 2;
 	  }
 	  CoinPackedMatrix *truncMatrixG2 = NULL;
 	  truncMatrixG2 = new CoinPackedMatrix(true, 0, 0);
