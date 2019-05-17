@@ -1568,7 +1568,7 @@ MibSModel::solveSAA(const CoinPackedMatrix& matrix,
     lpSolver.messageHandler()->setLogLevel(0);
     modelSAA->setSolver(&lpSolver);
     //set parameters
-    modelSAA->AlpsPar()->setEntry(AlpsParams::msgLevel, -1);
+    //modelSAA->AlpsPar()->setEntry(AlpsParams::msgLevel, -1);
     //modelSAA->AlpsPar()->setEntry(AlpsParams::nodeLimit, boundCutNodeLim);
     modelSAA->AlpsPar()->setEntry(AlpsParams::timeLimit, remainingTime);
     modelSAA->BlisPar()->setEntry(BlisParams::heurStrategy, 0);
