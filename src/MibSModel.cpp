@@ -1051,6 +1051,7 @@ MibSModel::setupSAA(const CoinPackedMatrix& matrix,
     //evaluated upper-level solutions
     std::map<std::vector<double>, double> seenULSolutions;
     OsiSolverInterface * evalLSolver = 0;
+    OsiSolverInterface * evalBestSolver = 0;
     //store G2 matrix to avoid extracting it for evaluatuion
     int lcmDenum = 2;
     CoinPackedMatrix *matrixG2 = new CoinPackedMatrix(false, 0, 0);
@@ -1102,8 +1103,8 @@ MibSModel::setupSAA(const CoinPackedMatrix& matrix,
 		for(i = 0; i < evalSampleSize; i++){
 		    objL = 0.0;
 		    isLowerInfeasible = false;
-		    evalLSolver = setUpEvalLModel(matrixG2, optSolRepl, evalRHS,
-						  evalA2Matrix, varLB, varUB, rowSense,
+		    evalLSolver = setUpEvalModels(matrixG2, optSolRepl, evalRHS,
+						  evalA2Matrix, varLB, varUB, objCoef, rowSense,
 						  colType, infinity, i, uCols, uRows);
 
 		    remainingTime = timeLimit - broker_->subTreeTimer().getTime();
@@ -1165,10 +1166,76 @@ MibSModel::setupSAA(const CoinPackedMatrix& matrix,
 			break;
 		    }
 		    else{
-			const double * values = evalLSolver->getColSolution();
-	                for(j = 0; j < truncLColNum; j++){
-			    objL += objCoef[j + uCols] * values[j];
+			evalBestSolver = setUpEvalModels(matrixG2, optSolRepl, evalRHS,
+							 evalA2Matrix, varLB, varUB, objCoef,
+							 rowSense, colType, infinity, i, uCols, uRows,
+							 evalLSolver->getObjValue(), false);
+
+			remainingTime = timeLimit - broker_->subTreeTimer().getTime();
+			remainingTime = CoinMax(remainingTime, 0.00);
+			if(remainingTime <= etol){
+			    isTimeLimReached = true;
+			    goto TERM_SETUPSAA;
 			}
+
+			if (feasCheckSolver == "Cbc"){
+			    dynamic_cast<OsiCbcSolverInterface *>
+				(evalBestSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
+			}else if (feasCheckSolver == "SYMPHONY"){
+			    //#if COIN_HAS_SYMPHONY
+			    sym_environment *env = dynamic_cast<OsiSymSolverInterface*>
+				(evalBestSolver)->getSymphonyEnvironment();
+
+			    sym_set_dbl_param(env, "time_limit", remainingTime);
+			    sym_set_int_param(env, "do_primal_heuristic", FALSE);
+			    sym_set_int_param(env, "verbosity", -2);
+			    sym_set_int_param(env, "prep_level", -1);
+			    sym_set_int_param(env, "max_active_nodes", maxThreadsLL);
+			    sym_set_int_param(env, "tighten_root_bounds", FALSE);
+			    sym_set_int_param(env, "max_sp_size", 100);
+			    sym_set_int_param(env, "do_reduced_cost_fixing", FALSE);
+			    if (whichCutsLL == 0){
+				sym_set_int_param(env, "generate_cgl_cuts", FALSE);
+			    }else{
+				sym_set_int_param(env, "generate_cgl_gomory_cuts", GENERATE_DEFAULT);
+			    }
+			    //#endif
+			}else if (feasCheckSolver == "CPLEX"){
+			    #ifdef COIN_HAS_CPLEX
+			    evalBestSolver->setHintParam(OsiDoReducePrint);
+			    evalBestSolver->messageHandler()->setLogLevel(0);
+			    CPXENVptr cpxEnv =
+				dynamic_cast<OsiCpxSolverInterface*>(evalBestSolver)->getEnvironmentPtr();
+			    assert(cpxEnv);
+			    CPXsetintparam(cpxEnv, CPX_PARAM_SCRIND, CPX_OFF);
+			    CPXsetintparam(cpxEnv, CPX_PARAM_THREADS, maxThreadsLL);
+			    #endif
+			}
+
+			evalBestSolver->branchAndBound();
+
+			if(feasCheckSolver == "SYMPHONY"){
+			    //#if COIN_HAS_SYMPHONY
+			    if(sym_is_time_limit_reached(dynamic_cast<OsiSymSolverInterface*>
+							 (evalBestSolver)->getSymphonyEnvironment())){
+				isTimeLimReached = true;
+				goto TERM_SETUPSAA;
+			    }
+			    //#endif
+			}
+			
+			if(!evalBestSolver->isProvenOptimal()){
+			    throw CoinError("evalBestSolver cannot be infeasible",
+					    "setupSAA",
+					    "MibSModel");
+			}
+			else{
+			    objL = evalBestSolver->getObjValue();
+			}
+			//const double * values = evalLSolver->getColSolution();
+	                //for(j = 0; j < truncLColNum; j++){
+			//  objL += objCoef[j + uCols] * values[j];
+			//}
 			tmpArr[i] = objL/evalSampleSize;
 		    }
 		}
@@ -1205,6 +1272,9 @@ MibSModel::setupSAA(const CoinPackedMatrix& matrix,
     if(evalLSolver){
 	delete evalLSolver;
 	    }
+    if(evalBestSolver){
+	delete evalBestSolver;
+    }
     delete evalA2Matrix;
     delete [] evalRHS;
 
@@ -1223,15 +1293,16 @@ MibSModel::setupSAA(const CoinPackedMatrix& matrix,
 	CoinPackedMatrix *evalA2MatrixNew = NULL;
 	evalA2MatrixNew = generateSamples(evalSampleSize, truncNumCols, evalRHSNew);
 	OsiSolverInterface * evalLSolverNew = 0;
+	OsiSolverInterface * evalBestSolverNew = 0;
 
 	CoinZeroN(tmpArr, evalSampleSize + 1);
 	objU = 0.0;
 	for(i = 0; i < evalSampleSize; i++){
 	    objL = 0.0;
 	    isLowerInfeasible = false;
-	    evalLSolverNew = setUpEvalLModel(matrixG2, bestEvalSol, evalRHSNew,
-					  evalA2MatrixNew, varLB, varUB, rowSense,
-					  colType, infinity, i, uCols, uRows);
+	    evalLSolverNew = setUpEvalModels(matrixG2, bestEvalSol, evalRHSNew,
+					     evalA2MatrixNew, varLB, varUB, objCoef,
+					     rowSense, colType, infinity, i, uCols, uRows);
 	    remainingTime = timeLimit - broker_->subTreeTimer().getTime();
 	    remainingTime = CoinMax(remainingTime, 0.00);
 	    if(remainingTime <= etol){
@@ -1289,10 +1360,77 @@ MibSModel::setupSAA(const CoinPackedMatrix& matrix,
 		break;
 	    }
 	    else{
-		const double * values = evalLSolverNew->getColSolution();
-		for(j = 0; j < truncLColNum; j++){
-		    objL += objCoef[j + uCols] * values[j];
+		evalBestSolverNew = setUpEvalModels(matrixG2, bestEvalSol, evalRHSNew,
+						    evalA2MatrixNew, varLB, varUB, objCoef,
+						    rowSense, colType, infinity, i, uCols,
+						    uRows, evalLSolverNew->getObjValue(), false);
+
+		remainingTime = timeLimit - broker_->subTreeTimer().getTime();
+		remainingTime = CoinMax(remainingTime, 0.00);
+		if(remainingTime <= etol){
+		    isTimeLimReached = true;
+		    goto TERM_SETUPSAA;
 		}
+
+		if (feasCheckSolver == "Cbc"){
+		    dynamic_cast<OsiCbcSolverInterface *>
+			(evalBestSolverNew)->getModelPtr()->messageHandler()->setLogLevel(0);
+		}else if (feasCheckSolver == "SYMPHONY"){
+		    //#if COIN_HAS_SYMPHONY
+		    sym_environment *env = dynamic_cast<OsiSymSolverInterface*>
+			(evalBestSolverNew)->getSymphonyEnvironment();
+
+		    sym_set_dbl_param(env, "time_limit", remainingTime);
+		    sym_set_int_param(env, "do_primal_heuristic", FALSE);
+		    sym_set_int_param(env, "verbosity", -2);
+		    sym_set_int_param(env, "prep_level", -1);
+		    sym_set_int_param(env, "max_active_nodes", maxThreadsLL);
+		    sym_set_int_param(env, "tighten_root_bounds", FALSE);
+		    sym_set_int_param(env, "max_sp_size", 100);
+		    sym_set_int_param(env, "do_reduced_cost_fixing", FALSE);
+		    if (whichCutsLL == 0){
+			sym_set_int_param(env, "generate_cgl_cuts", FALSE);
+		    }else{
+			sym_set_int_param(env, "generate_cgl_gomory_cuts", GENERATE_DEFAULT);
+		    }
+		    //#endif
+		}else if (feasCheckSolver == "CPLEX"){
+#ifdef COIN_HAS_CPLEX
+		    evalBestSolverNew->setHintParam(OsiDoReducePrint);
+		    evalBestSolverNew->messageHandler()->setLogLevel(0);
+		    CPXENVptr cpxEnv =
+			dynamic_cast<OsiCpxSolverInterface*>(evalBestSolverNew)->getEnvironmentPtr();
+		    assert(cpxEnv);
+		    CPXsetintparam(cpxEnv, CPX_PARAM_SCRIND, CPX_OFF);
+		    CPXsetintparam(cpxEnv, CPX_PARAM_THREADS, maxThreadsLL);
+#endif
+		}
+
+		evalBestSolverNew->branchAndBound();
+
+		if(feasCheckSolver == "SYMPHONY"){
+		    //#if COIN_HAS_SYMPHONY
+		    if(sym_is_time_limit_reached(dynamic_cast<OsiSymSolverInterface*>
+						 (evalBestSolverNew)->getSymphonyEnvironment())){
+			isTimeLimReached = true;
+			goto TERM_SETUPSAA;
+		    }
+		    //#endif
+		}
+
+		if(!evalBestSolverNew->isProvenOptimal()){
+		    throw CoinError("evlaBestSolverNew cannot be infeasible",
+				    "setupSAA",
+				    "MibSModel");
+		}
+		else{
+		    objL = evalBestSolverNew->getObjValue();
+		}
+						
+		//const double * values = evalLSolverNew->getColSolution();
+		//for(j = 0; j < truncLColNum; j++){
+		//  objL += objCoef[j + uCols] * values[j];
+		//}
 		tmpArr[i] = objL;
 	    }
 	}
@@ -1318,6 +1456,9 @@ MibSModel::setupSAA(const CoinPackedMatrix& matrix,
 			     varLower, varUpper, bestEvalSol);
 
     delete evalLSolverNew;
+    if(evalBestSolverNew){
+	delete evalBestSolverNew;
+    }
     delete evalA2MatrixNew;
     delete [] evalRHSNew;
 	}
@@ -1414,12 +1555,13 @@ MibSModel::findOptGapVarSAA(double *objValSAARepls, double estimatedObj,
 
 //#############################################################################
 OsiSolverInterface *
-MibSModel::setUpEvalLModel(CoinPackedMatrix *matrixG2, double *optSol, 
-			     double *allRHS, CoinPackedMatrix *allA2Matrix,
-			     const double *origColLb, const double *origColUb,
-			     const char *rowSense, const char *colType,
-			     double infinity, int scenarioIndex, int uCols,
-			     int uRows)
+MibSModel::setUpEvalModels(CoinPackedMatrix *matrixG2, double *optSol,
+			   double *allRHS, CoinPackedMatrix *allA2Matrix,
+			   const double *origColLb, const double *origColUb,
+			   const double* uObjCoef, const char *rowSense,
+			   const char *colType, double infinity, int scenarioIndex,
+			   int uCols, int uRows, double optLowerObj,
+			   bool isLowerProblem)
 {
     std::string feasCheckSolver =
 	MibSPar_->entry(MibSParams::feasCheckSolver);
@@ -1431,9 +1573,16 @@ MibSModel::setUpEvalLModel(CoinPackedMatrix *matrixG2, double *optSol,
     int lCols = getTruncLowerDim();
     int lRows = getTruncLowerRowNum();
     int numCols = uCols + lCols;
+    int numRows(0);
     double objSense(getLowerObjSense());
     double *lObjCoeffs = getLowerObjCoeffs();
 
+    if(isLowerProblem == true){
+	numRows = lRows;
+    }
+    else{
+	numRows = lRows + 1;
+    }
 
     //setting col bounds
     double *colUb = new double[lCols];
@@ -1443,17 +1592,24 @@ MibSModel::setUpEvalLModel(CoinPackedMatrix *matrixG2, double *optSol,
     
 
     //setting coefficient matrix
-    CoinPackedMatrix *copyMatrixG2 = new CoinPackedMatrix(false, 0, 0);
-    copyMatrixG2->setDimensions(0, lCols);
+    CoinPackedMatrix *coefMatrix = new CoinPackedMatrix(false, 0, 0);
+    coefMatrix->setDimensions(0, lCols);
     for(i = 0; i < lRows; i++){
-	copyMatrixG2->appendRow(matrixG2->getVector(i));
+	coefMatrix->appendRow(matrixG2->getVector(i));
+    }
+    if(isLowerProblem == false){
+	CoinPackedVector row;
+	for(i = 0; i < lCols; i++){
+	    row.insert(i, lObjCoeffs[i] * objSense);
+	}
+	coefMatrix->appendRow(row);
     }
 
     //setting row bounds
-    double *rowUb = new double[lRows];
-    double *rowLb = new double[lRows];
-    CoinFillN(rowUb, lRows, infinity);
-    CoinFillN(rowLb, lRows, -1 * infinity);
+    double *rowUb = new double[numRows];
+    double *rowLb = new double[numRows];
+    CoinFillN(rowUb, numRows, infinity);
+    CoinFillN(rowLb, numRows, -1 * infinity);
     cnt = lRows * scenarioIndex;
     CoinPackedMatrix *matrixA2 = new CoinPackedMatrix(false, 0, 0);
     matrixA2->setDimensions(0, uCols);
@@ -1470,9 +1626,17 @@ MibSModel::setUpEvalLModel(CoinPackedMatrix *matrixG2, double *optSol,
 	    rowLb[i] = allRHS[cnt + i] - multA2XOpt[i];
 	}
     }
+    if(isLowerProblem == false){
+	rowUb[lRows] = optLowerObj;
+    }
 
     double *objCoeffs = new double[lCols];
-    memcpy(objCoeffs, lObjCoeffs, sizeof(double) * lCols);
+    if(isLowerProblem == true){
+	memcpy(objCoeffs, lObjCoeffs, sizeof(double) * lCols);
+    }
+    else{
+	CoinDisjointCopyN(uObjCoef + uCols, lCols, objCoeffs);
+    }
     
 
     if (feasCheckSolver == "Cbc"){
@@ -1496,7 +1660,7 @@ MibSModel::setUpEvalLModel(CoinPackedMatrix *matrixG2, double *optSol,
 			"setUpModel", "MibsBilevel");
     }
 
-    nSolver->loadProblem(*copyMatrixG2, colLb, colUb,
+    nSolver->loadProblem(*coefMatrix, colLb, colUb,
 			 objCoeffs, rowLb, rowUb);
 
     for(i = uCols; i < numCols; i++){
@@ -1516,7 +1680,7 @@ MibSModel::setUpEvalLModel(CoinPackedMatrix *matrixG2, double *optSol,
     delete [] rowUb;
     delete [] multA2XOpt;
     delete matrixA2;
-    delete copyMatrixG2;
+    delete coefMatrix;
 
     return nSolver;
 

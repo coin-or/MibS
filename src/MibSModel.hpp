@@ -680,12 +680,13 @@ public:
 			  double &estimatedLowerBound, double&varLower,
 			  double&varUpper, double *estimatedObjComps);
     
-    OsiSolverInterface *setUpEvalLModel(CoinPackedMatrix *matrixG2, double *optSol,
+    OsiSolverInterface *setUpEvalModels(CoinPackedMatrix *matrixG2, double *optSol,
 					double *allRHS, CoinPackedMatrix *allA2Matrix,
 					const double *origColLb, const double *origColUb,
-					const char *rowSense, const char *colType,
-					double infinity, int scenarioIndex, int uCols,
-					int uRows);
+					const double* uObjCoef, const char *rowSense,
+					const char *colType, double infinity, int scenarioIndex,
+					int uCols, int uRows, double optLowerObj = 0.0,
+					bool isLowerProblem = true);
 
     double *solveSAA(const CoinPackedMatrix& matrix,
 		     const CoinPackedMatrix& rowMatrix,
