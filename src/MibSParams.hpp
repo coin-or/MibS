@@ -92,6 +92,8 @@ class MibSParams : public AlpsParameterSet {
      boundCutFreq,
      boundCutNodeLim,
      relaxTypeParamBoundCut,
+     isA2Random,
+     isSMPSFormat,
      sampSizeSAA,
      evalSampSizeSAA,
      replNumSAA,
