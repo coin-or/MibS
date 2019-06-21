@@ -275,12 +275,24 @@ MibSModel::setBlisParameters()
 
 //#############################################################################
 void 
-MibSModel::readAuxiliaryData(int numCols, int numRows, double infinity,
+MibSModel::readAuxiliaryData(const CoinPackedMatrix& rowMatrix,
+			     const double* conLB, const double* conUB,
+			     int numCols, int numRows, double infinity,
 			     const char *rowSense)
 {
 
  std::string stochasticityType(MibSPar_->entry
-			 (MibSParams::stochasticityType));
+			       (MibSParams::stochasticityType));
+
+ int isA2Random(MibSPar_->entry(MibSParams::isA2Random));
+
+ int isSMPSFormat(MibSPar_->entry(MibSParams::isSMPSFormat));
+
+ if((stochasticityType == "stochasticWithoutSAA") && (isSMPSFormat == PARAM_OFF)){
+     throw CoinError("When the SAA method is not used(for the stochastic case), the input format should be SMPS",
+		     "readAuxiliaryData",
+		     "MibSModel");
+ }
 
  if(stochasticityType == "deterministic"){
      numScenarios_ = 1;
@@ -485,7 +497,7 @@ MibSModel::readAuxiliaryData(int numCols, int numRows, double infinity,
      std::cout << "Number of LL Variables:   "
 	       << getLowerDim() << "\n\n";
  }
- else if(stochasticityType == "stochasticSmps"){//smps format
+ else if(stochasticityType == "stochasticWithoutSAA"){//the format is smps necessarily
      std::string timFileName = getTimFile();
      fileCoinReadable(timFileName);
 
@@ -509,10 +521,15 @@ MibSModel::readAuxiliaryData(int numCols, int numRows, double infinity,
      int i(0), j(0), p(0);
      double etol(etol_);
      std::string key, fLColName, fLRowName;
-     int iValue(0), pos(-1), index(0);
-     double dValue(0.0);
-     int uColNum(0), lColNum(0), uRowNum(0), lRowNum(0), rowNum(0);
+     int iValue(0), posRow(-1), posCol(-1), index(0), rowNumElem(0), scCount(0), start(0);
+     double dValue(0.0), element(0.0);
+     int uColNum(0), lColNum(0), uRowNum(0), lRowNum(0), totalRowNum(0);
      int truncRowNum(0), truncLColNum(0), truncLRowNum(0);
+     bool isFirstScenario(true);
+     CoinPackedVector appendedRow;
+     CoinPackedVector row;
+     int *rowInd = NULL;
+     double *rowElem = NULL;
      CoinPackedVector col;
      std::vector<double> stocLowerRhs;
 
@@ -532,11 +549,11 @@ MibSModel::readAuxiliaryData(int numCols, int numRows, double infinity,
 
      for(p = 0; p < numCols; p++){
 	 if(columnName_[p] == fLColName){
-	     pos = p;
+	     posCol = p;
 	     break;
 	 }
      }
-     if(pos < 0){
+     if(posCol < 0){
 	 std::cout << fLColName << " does not belong to the list of variables." << std::endl;
 	 abort();
      }
@@ -546,14 +563,14 @@ MibSModel::readAuxiliaryData(int numCols, int numRows, double infinity,
 	 setTruncLowerDim(truncLColNum);
      }
 
-     pos = -1;
+     posRow = -1;
      for(p = 0; p < numRows; p++){
 	 if(rowName_[p] == fLRowName){
-	     pos = p;
+	     posRow = p;
 	     break;
 	 }
      }
-     if(pos < 0){
+     if(posRow < 0){
 	 std::cout << fLRowName << " does not belong to the list of constraints." << std::endl;
 	 abort();
      }
@@ -585,144 +602,341 @@ MibSModel::readAuxiliaryData(int numCols, int numRows, double infinity,
      timData_stream.close();
 
      //read stochastic data
+     //find number of scenarios
+     while(stoData_stream >> key){
+	 if(key == "SC"){
+	     numScenarios_ ++;
+	 }
+     }
+     stoData_stream.close();
+
+     lColNum = truncLColNum * numScenarios_;
+     lRowNum = truncLRowNum * numScenarios_;
+     totalRowNum = uRowNum + lRowNum;
+     truncRowNum = uRowNum + truncLRowNum;
+     setLowerDim(lColNum);
+     setLowerRowNum(lRowNum);
+     //saharSto3: check it
+     //stoData_stream(stoFileName.c_str());
+     stoData_stream.open(stoFileName.c_str());
+
+     origRowLb_ = new double[totalRowNum];
+     origRowUb_ = new double[totalRowNum];
+     CoinFillN(origRowLb_, totalRowNum, -1 * infinity);
+     CoinFillN(origRowUb_, totalRowNum, infinity);
+     
      CoinPackedMatrix *stocMatrixA2 = 0;
      stocMatrixA2 = new CoinPackedMatrix(false, 0, 0);
      stocMatrixA2->setDimensions(0, uColNum);
+
+     //saharSto3: check it
+     //double **fullMatrixA2 = NULL;
+     //double **fullMatrixA2Copy = NULL;
+     std::vector<std::vector<double>> fullMatrixA2;
+     std::vector<std::vector<double>> fullMatrixA2Copy;
+
+     if(isA2Random != PARAM_OFF){
+	 /*fullMatrixA2 = new double*[truncLRowNum];
+	 fullMatrixA2Copy = new double*[truncLRowNum];
+	 for(i = 0; i < truncLRowNum; i++){
+	     //saharSto3: check if they are filled with zeros
+	     fullMatrixA2[i] = new double[uColNum]();
+	     fullMatrixA2Copy[i] = new double[uColNum]();
+	     }*/
+	 fullMatrixA2.resize(truncLRowNum, std::vector<double>(uColNum, 0.0));
+	 fullMatrixA2Copy.resize(truncLRowNum, std::vector<double>(uColNum, 0.0));
+     }
+
+     for(i = uRowNum; i < numRows; i++){
+	 row = rowMatrix.getVector(i);
+	 rowInd = row.getIndices();
+	 rowElem = row.getElements();
+	 rowNumElem = row.getNumElements();
+	 for(j = 0; j < rowNumElem; j++){
+	     index = rowInd[j];
+	     element = rowElem[j];
+	     if(index < uColNum){
+		 appendedRow.insert(index, element);
+		 if(isA2Random != PARAM_OFF){
+		     fullMatrixA2[i - uRowNum][index] = element;
+		     fullMatrixA2Copy[i - uRowNum][index] = element;
+		 }
+	     }
+	 }
+	 //saharSto: when A2 is not random, we just store matrix A2
+	 //as stocMatrixA2 because we know that it is the same
+	 //for all scenarios
+	 if(isA2Random == PARAM_OFF){
+	     stocMatrixA2->appendRow(appendedRow);
+	 }
+	 appendedRow.clear();
+     }
+
      //ignore first two lines
      for(i = 0; i < 4; i++){
 	 stoData_stream >> key;
      }
 
-     while (stoData_stream >> key){
+     while(stoData_stream >> key){
 	 if(key == "SC"){
-	     numScenarios_ ++;
 	     stoData_stream >> key;
 	     stoData_stream >> key;
 	     stoData_stream >> dValue;
 	     scenarioProb_.push_back(dValue);
 	     stoData_stream >> key;
-	     CoinPackedMatrix *matrixA2 = 0;
-	     matrixA2 = new CoinPackedMatrix(true, 0, 0);
-	     matrixA2->setDimensions(truncLRowNum, 0);
-	     for(i = 0; i < uColNum; i++){
-		 for(j = 0; j < truncLRowNum; j++){
-		     stoData_stream >> key;
-		     stoData_stream >> key;
-		     stoData_stream >> dValue;
-		     if(fabs(dValue) > etol){
-			 col.insert(j, dValue);
+	     start = uRowNum + scCount * truncLRowNum;
+	     CoinDisjointCopyN(conLB + uRowNum, truncLRowNum, origRowLb_ + start);
+	     CoinDisjointCopyN(conUB + uRowNum, truncLRowNum, origRowUb_ + start);
+	     if((isA2Random != PARAM_OFF) && (isFirstScenario == false)){
+		 //start = scCount * truncLRowNum;
+		 for(i = 0; i < truncLRowNum; i++){
+		     for(j = 0; j < uColNum; j++){
+			 element = fullMatrixA2Copy[i][j];
+			 if(fabs(element) > etol){
+			     appendedRow.insert(j,element); 
+			 }
+			 fullMatrixA2Copy[i][j] = fullMatrixA2[i][j];
 		     }
+		     stocMatrixA2->appendRow(appendedRow);
+		     appendedRow.clear();
 		 }
-		 matrixA2->appendCol(col);
-		 col.clear();
 	     }
-	     matrixA2->reverseOrdering();
-	     for(i = 0; i < truncLRowNum; i++){
-		 stocMatrixA2->appendRow(matrixA2->getVector(i));
-	     }
-	     delete matrixA2;
-	     //get rhs
-	     for(i = 0; i < truncLRowNum; i++){
-		 stoData_stream >> key;
-		 stoData_stream >> key;
-		 stoData_stream >> dValue;
-		 stocLowerRhs.push_back(dValue);
+	     scCount ++;
+	     if(isFirstScenario == true){
+		 isFirstScenario = false;
 	     }
 	 }
 	 else if(key == "ENDATA"){
+	     if(isA2Random != PARAM_OFF){
+		 for(i = 0; i < truncLRowNum; i++){
+		     for(j = 0; j < uColNum; j++){
+			 element = fullMatrixA2Copy[i][j];
+			 if(fabs(element) > etol){
+			     appendedRow.insert(j,element);
+			 }
+		     }
+		     stocMatrixA2->appendRow(appendedRow);
+		     appendedRow.clear();
+		 }
+	     }
 	     break;
 	 }
-	 else{
-	     std::cout << "incorrect structure for the stochastic data file" << std::endl;
-	     abort();
-	 }
-     }
-
-     //saharSto: Should it be a member of MibSModel?
-     setStocA2Matrix(stocMatrixA2);
-     lColNum = truncLColNum * numScenarios_;
-     lRowNum = truncLRowNum * numScenarios_;
-     rowNum = uRowNum + lRowNum;
-     truncRowNum = uRowNum + truncLRowNum;
-     //setStocLowerDim(stocLColNum);
-     //setStocLowerRowNum(stocLRowNum);
-     setLowerDim(lColNum);
-     setLowerRowNum(lRowNum);
-
-     origRowLb_ = new double[rowNum];
-     origRowUb_ = new double[rowNum];
-     CoinFillN(origRowLb_, rowNum, -1 * infinity);
-     CoinFillN(origRowUb_, rowNum, infinity);
-     for(i = 0; i < numScenarios_; i++){
-	 pos = i * truncLRowNum;
-	 for(j = uRowNum; j < truncRowNum; j++){
-	     index = pos + j;
-	     if(rowSense[j] == 'L'){
-		 origRowUb_[index] = stocLowerRhs[index - uRowNum];
+	 else if(key == "RHS"){
+	     stoData_stream >> key;
+	     stoData_stream >> dValue;
+	     posRow = -1;
+	     for(p = 0; p < numRows; p++){
+		 if(rowName_[p] == key){
+		     posRow = p;
+		     break;
+		 }
+	     }
+	     if(posRow < 0){
+		 std::cout << key << " does not belong to the list of constraints." << std::endl;
+		 throw CoinError("Wrong constriant name",
+				 "readAuxiliaryData",
+				 "MibSModel");
+	     }
+	     else if(posRow < uRowNum){
+		 throw CoinError("Upper-level RHS cannot be random",
+				 "readAuxiliaryData",
+				 "MibSModel");
 	     }
 	     else{
-		 origRowLb_[index] = stocLowerRhs[index - uRowNum];
+		 index = (scCount - 1) * truncLRowNum + posRow;
+		 if(rowSense[posRow] == 'L'){
+		     origRowUb_[index] = dValue;
+		 }
+		 else{
+		     origRowLb_[index] = dValue;
+		 }
+	     }  
+	 }
+	 else{
+	     posCol = -1;
+	     for(p = 0; p < numCols; p++){
+		 if(columnName_[p] == key){
+		     posCol = p;
+		     break;
+		 }
+	     }
+	     if(posCol < 0){
+		 std::cout << key << " does not belong to the list of variables." << std::endl;
+		 throw CoinError("Wrong variable name",
+				 "readAuxiliaryData",
+				 "MibSModel");
+	     }
+	     else if(posCol >= uColNum){
+		 throw CoinError("Lower-level coefficients cannot be random",
+				 "readAuxiliaryData",
+				 "MibSModel");
+	     }
+	     else{
+		 stoData_stream >> key;
+		 stoData_stream >> dValue;
+		 posRow = -1;
+		 for(p = 0; p < numRows; p++){
+		     if(rowName_[p] == key){
+			 posRow = p;
+			 break;
+		     }
+		 }
+		 if(posRow < 0){
+		     std::cout << key << " does not belong to the list of constraints." << std::endl;
+		     throw CoinError("Wrong constriant name",
+				     "readAuxiliaryData",
+				     "MibSModel");
+		 }
+		 else if(posRow < uRowNum){
+		     throw CoinError("Coefficients of lower-level constraints cannot be random",
+				     "readAuxiliaryData",
+				     "MibSModel");
+		 }
+		 else{
+		     fullMatrixA2Copy[posRow - uRowNum][posCol] = dValue;
+		 }
 	     }
 	 }
      }
+
+     setStocA2Matrix(stocMatrixA2);
 
      stoData_stream.close();
 
      std::cout << "Time Data File: " << getTimFile() << "\n";
      std::cout << "Stochastic Data File: " << getStoFile() << "\n";
      std::cout << "Number of LL Variables:   "
-	       << truncLColNum << "\n\n"; 
+	       << truncLColNum << "\n\n";
  }
  else{
-     std::string fileName = getLowerFile();
-     fileCoinReadable(fileName);
-     std::ifstream data_stream(fileName.c_str());
-
-     if (!data_stream){
-	 std::cout << "Error opening input data file. Aborting.\n";
-	 abort();
-     }
-
-     int iValue(0);
+     int iValue(0), pos(-1);
      double dValue(0.0);
-     std::string key;
-     int k(0);
+     std::string key, fLColName, fLRowName;;
+     int i(0), k(0), p(0);
      int uColNum(0), uRowNum(0);
      int truncLColNum(0), truncLRowNum(0);
-     while (data_stream >> key){
-	 if(key == "N"){
-	     data_stream >> iValue;
-	     truncLColNum = iValue;
-	     setTruncLowerDim(iValue);
+
+     if(isSMPSFormat != PARAM_ON){
+	 std::string fileName = getLowerFile();
+         fileCoinReadable(fileName);
+         std::ifstream data_stream(fileName.c_str());
+
+         if(!data_stream){
+	     std::cout << "Error opening input data file. Aborting.\n";
+	     abort();
 	 }
-	 else if(key == "M"){
-	     data_stream >> iValue;
-	     truncLRowNum = iValue;
-	     setTruncLowerRowNum(iValue);
+
+         while(data_stream >> key){
+	     if(key == "N"){
+		 data_stream >> iValue;
+	         truncLColNum = iValue;
+	         setTruncLowerDim(iValue);
+	     }
+	     else if(key == "M"){
+		 data_stream >> iValue;
+	         truncLRowNum = iValue;
+	         setTruncLowerRowNum(iValue);
+	     }
+	     else if(key == "LC"){
+		 data_stream >> iValue;
+	     }
+	     else if(key == "LR"){
+		 data_stream >> iValue;
+	     }
+	     else if(key == "LO"){
+		 if(!getLowerObjCoeffs())
+		     lowerObjCoeffs_ = new double[getTruncLowerDim()];
+		 data_stream >> dValue;
+	         lowerObjCoeffs_[k] = dValue;
+	         k++;
+	     }
+	     else if(key == "OS"){
+		 data_stream >> dValue;
+	         lowerObjSense_ = dValue; //1 min; -1 max
+	     }
 	 }
-	 else if(key == "LC"){
-	     data_stream >> iValue;
+	 uColNum = numCols - truncLColNum;
+	 uRowNum = numRows - truncLRowNum;
+	 
+	 data_stream.close();
+     }
+     else{
+	 std::string timFileName = getTimFile();
+	 fileCoinReadable(timFileName);
+
+	 std::ifstream timData_stream(timFileName.c_str());
+
+	 if(!timData_stream){
+	     std::cout << "Error opening input time data file. Aborting.\n";
+	     abort();
 	 }
-	 else if(key == "LR"){
-	     data_stream >> iValue;
+
+	 //read time file
+	 //ignoring first three lines
+	 for(i = 0; i < 7; i++){
+	     timData_stream >> key;
 	 }
-	 else if(key == "LO"){
-	     if(!getLowerObjCoeffs())
-		 lowerObjCoeffs_ = new double[getTruncLowerDim()];
-	     data_stream >> dValue;
-	     lowerObjCoeffs_[k] = dValue;
-	     k++;
+
+	 //name of first ll variable
+	 timData_stream >> key;
+	 fLColName = key;
+
+	 //name of first ll row
+	 timData_stream >> key;
+	 fLRowName = key;
+
+	 for(p = 0; p < numCols; p++){
+	     if(columnName_[p] == fLColName){
+		 pos = p;
+		 break;
+	     }
 	 }
-	 else if(key == "OS"){
-	     data_stream >> dValue;
-	     lowerObjSense_ = dValue; //1 min; -1 max
+	 if(pos < 0){
+	     std::cout << fLColName << " does not belong to the list of variables." << std::endl;
+	     abort();
 	 }
+	 else{
+	     uColNum = p;
+	     truncLColNum = numCols - uColNum;
+	     setTruncLowerDim(truncLColNum);
+	 }
+
+	 pos = -1;
+	 for(p = 0; p < numRows; p++){
+	     if(rowName_[p] == fLRowName){
+		 pos = p;
+		 break;
+	     }
+	 }
+	 if(pos < 0){
+	     std::cout << fLRowName << " does not belong to the list of constraints." << std::endl;
+	     abort();
+	 }
+	 else{
+	     uRowNum = p;
+	     truncLRowNum = numRows - uRowNum;
+	     setTruncLowerRowNum(truncLRowNum);
+	 }
+	 timData_stream >> key;
+	 
+	 //set lower objective function coeffs and sense
+	 if(!getLowerObjCoeffs())
+	     lowerObjCoeffs_ = new double[truncLColNum];
+     
+	 for(i = 0; i < truncLColNum; i++){
+	     timData_stream >> key;
+	     timData_stream >> dValue;
+	     lowerObjCoeffs_[i] = dValue;
+	 }
+	 timData_stream >> key;
+	 timData_stream >> iValue;
+	 lowerObjSense_ = iValue;//1 min; -1 max
+
+	 timData_stream.close();
      }
 
-     uColNum = numCols - truncLColNum;
-     uRowNum = numRows - truncLRowNum;
      //saharSto:in the saa format, it is assumed that
-     //the indices of upper-level variables are 0,...,n1-1 and
+     //The indices of upper-level variables are 0,...,n1-1 and
      //the indices of lower-level variables are n1,...,n1+n2-1
      //and the same for upper- and lower-level constraints
      //saharSto: we do not need LC and LR, but I considered them in case we
@@ -734,12 +948,19 @@ MibSModel::readAuxiliaryData(int numCols, int numRows, double infinity,
      if(!getLowerRowInd())
 	 lowerRowInd_ = new int[truncLRowNum];
      CoinIotaN(lowerRowInd_, truncLRowNum, uRowNum);
-     
-     data_stream.close();
 
-     std::cout << "LL Data File: " << getLowerFile() << "\n";
-     std::cout << "Number of LL Variables:   "
-	       << getTruncLowerDim() << "\n\n";
+     if(isSMPSFormat == PARAM_ON){
+	 std::cout << "Time Data File: " << getTimFile() << "\n";
+	 std::cout << "Stochastic Data File: " << getStoFile() << "\n";
+	 std::cout << "Number of LL Variables:   "
+		   << truncLColNum << "\n\n";
+	 
+     }
+     else{
+	 std::cout << "LL Data File: " << getLowerFile() << "\n";
+	 std::cout << "Number of LL Variables:   "
+		   << getTruncLowerDim() << "\n\n";
+     }
  }
 }
 
@@ -968,13 +1189,13 @@ MibSModel::readProblemData()
    const char* rowSense = mps->getRowSense();
 
    //readAuxiliaryData(numCols, numRows); // reads in lower-level vars, rows, obj coeffs
-   readAuxiliaryData(numCols, numRows, mps->getInfinity(),
-		     rowSense); // reads in lower-level vars, rows, obj coeffs
+   readAuxiliaryData(rowMatrix, conLB, conUB, numCols, numRows,
+		     mps->getInfinity(), rowSense); // reads in lower-level vars, rows, obj coeffs
 
    std::string stochasticityType(MibSPar_->entry
 				 (MibSParams::stochasticityType));
 
-   if(stochasticityType == "stochasticSAA"){
+   if(stochasticityType == "stochasticWithSAA"){
        setupSAA(matrix, rowMatrix, varLB, varUB, objCoef, conLB, conUB, colType,
 		objSense, numCols, numRows, mps->getInfinity(), rowSense);
    }
@@ -1019,11 +1240,16 @@ MibSModel::setupSAA(const CoinPackedMatrix& matrix,
 	MibSPar_->entry(MibSParams::maxThreadsLL);
     
     double timeLimit(AlpsPar()->entry(AlpsParams::timeLimit));
+
+    int isSMPSFormat(MibSPar_->entry(MibSParams::isSMPSFormat));
+
+    int isA2Random(MibSPar_->entry(MibSParams::isA2Random));
     
     int replNum(MibSPar_->entry(MibSParams::replNumSAA));//M
     int evalSampleSize(MibSPar_->entry(MibSParams::evalSampSizeSAA));//N'
     int i(0), j(0), m(0);
-    int index(0), rowNumElem(0);
+    int index(0), rowNumElem(0), allScenariosNumSMPS(0);
+    double element(0.0);
     double etol(etol_);
     double remainingTime(0.0) ,objU(0.0), objL(0.0);
     double objSAA(0.0);//z_N^i
@@ -1037,23 +1263,78 @@ MibSModel::setupSAA(const CoinPackedMatrix& matrix,
     CoinPackedVector row;
     int *rowInd = NULL;
     double *rowElem = NULL;
+    double *b2Base = NULL;
+    //double **fullMatrixA2 = NULL;
+    std::vector<std::vector<double>> fullMatrixA2;
+    CoinPackedMatrix *matrixA2Base = NULL;
     int truncLColNum(getTruncLowerDim());
     int truncLRowNum(getTruncLowerRowNum());
     int uCols(truncNumCols - truncLColNum);
     int uRows(truncNumRows - truncLRowNum);
 
+    //count the number of all scenarios in smps format
+    if(isSMPSFormat == PARAM_ON){
+	allScenariosNumSMPS = countScenariosSMPS();
+	if(isA2Random != PARAM_OFF){
+	    /*fullMatrixA2 = new double*[truncLRowNum];
+	    for(i = 0; i < truncLRowNum; i++){
+		//saharSto3: check if they are filled with zeros
+		fullMatrixA2[i] = new double[uCols]();
+		}*/
+	    fullMatrixA2.resize(truncLRowNum, std::vector<double>(uCols, 0.0));
+	}
+	else{
+	    matrixA2Base = new CoinPackedMatrix(false, 0, 0);
+	    matrixA2Base->setDimensions(0, uCols);
+	}
+	for(i = uRows; i < truncNumRows; i++){
+	    row = rowMatrix.getVector(i);
+	    rowInd = row.getIndices();
+	    rowElem = row.getElements();
+	    rowNumElem = row.getNumElements();
+	    for(j = 0; j < rowNumElem; j++){
+		index = rowInd[j];
+		element = rowElem[j];
+		if(index < uCols){
+		    appendedRow.insert(index, element);
+		    if(isA2Random != PARAM_OFF){
+			fullMatrixA2[i - uRows][index] = element;
+		    }
+		}
+	    }
+	    if(isA2Random == PARAM_OFF){
+		matrixA2Base->appendRow(appendedRow);
+	    }
+	    appendedRow.clear();
+	}
+
+	b2Base = new double[truncLRowNum];
+	for(i = 0; i < truncLRowNum; i++){
+	    index = i + uRows;
+	    if(rowSense[index] == 'L'){
+		b2Base[i] = conUB[index];
+	    }
+	    else{
+		b2Base[i] = conLB[index];
+	    }
+	}
+    }
+    
     //generating N' samples for evaluation
     int evalLRowNum(truncLRowNum * evalSampleSize);
     double *evalRHS = new double[evalLRowNum];
     CoinZeroN(evalRHS, evalLRowNum);
     CoinPackedMatrix *evalA2Matrix = NULL;
-    evalA2Matrix = generateSamples(evalSampleSize, truncNumCols, evalRHS);
+    evalA2Matrix = generateSamples(evalSampleSize, truncNumCols,
+				   truncNumRows, allScenariosNumSMPS, rowSense,
+				   b2Base, matrixA2Base, fullMatrixA2, evalRHS);
+    
     //evaluated upper-level solutions
     std::map<std::vector<double>, double> seenULSolutions;
     OsiSolverInterface * evalLSolver = 0;
     OsiSolverInterface * evalBestSolver = 0;
     //store G2 matrix to avoid extracting it for evaluatuion
-    int lcmDenum = 2;
+    int lcmDenum = 1;
     CoinPackedMatrix *matrixG2 = new CoinPackedMatrix(false, 0, 0);
     matrixG2->setDimensions(0, truncLColNum);
     for(i = uRows; i < truncNumRows; i++){
@@ -1084,8 +1365,9 @@ MibSModel::setupSAA(const CoinPackedMatrix& matrix,
     for(m = 0; m < replNum; m++){
 	//std::cout << "Replication: " << m + 1 << std::endl;
 	optSolRepl = solveSAA(matrix, rowMatrix, varLB, varUB, objCoef, conLB,
-			   conUB, colType, objSense, truncNumCols, truncNumRows,
-			      infinity, rowSense, isTimeLimReached, objSAA);
+			      conUB, colType, objSense, truncNumCols, truncNumRows,
+			      infinity, rowSense, isTimeLimReached, objSAA,
+			      allScenariosNumSMPS, b2Base, matrixA2Base, fullMatrixA2);
 
 	if(isTimeLimReached == true){
 	    goto TERM_SETUPSAA;
@@ -1291,7 +1573,10 @@ MibSModel::setupSAA(const CoinPackedMatrix& matrix,
 	double *evalRHSNew = new double[evalLRowNum];
 	CoinZeroN(evalRHSNew, evalLRowNum);
 	CoinPackedMatrix *evalA2MatrixNew = NULL;
-	evalA2MatrixNew = generateSamples(evalSampleSize, truncNumCols, evalRHSNew);
+	evalA2MatrixNew = generateSamples(evalSampleSize, truncNumCols,
+					  truncNumRows, allScenariosNumSMPS, rowSense,
+					  b2Base, matrixA2Base, fullMatrixA2, evalRHSNew);
+
 	OsiSolverInterface * evalLSolverNew = 0;
 	OsiSolverInterface * evalBestSolverNew = 0;
 
@@ -1463,6 +1748,12 @@ MibSModel::setupSAA(const CoinPackedMatrix& matrix,
     delete [] evalRHSNew;
 	}
     }
+    if(b2Base != NULL){
+	delete [] b2Base;
+    }
+    if(matrixA2Base != NULL){
+	delete matrixA2Base;
+    }
     delete matrixG2;
     delete [] tmpArr;
     delete [] bestEvalSol;
@@ -1474,6 +1765,34 @@ MibSModel::setupSAA(const CoinPackedMatrix& matrix,
 }
 
 //#############################################################################
+int
+MibSModel::countScenariosSMPS()
+{
+    int numScenarios(0);
+
+    std::string key;
+    
+    std::string stoFileName = getStoFile();
+    fileCoinReadable(stoFileName);
+
+    std::ifstream stoData_stream(stoFileName.c_str());
+
+    if(!stoData_stream){
+	std::cout << "Error opening input stochastic data file. Aborting.\n";
+	abort();
+    }
+
+    while(stoData_stream >> key){
+	if(key == "SC"){
+	    numScenarios ++;
+	}
+    }
+
+    return numScenarios;
+
+}
+
+//############################################################################# 
 void
 MibSModel::printSolutionSAA(int truncNumCols, double estimatedObj,
 			    double estimatedLowerBound, double varLower,
@@ -1563,6 +1882,9 @@ MibSModel::setUpEvalModels(CoinPackedMatrix *matrixG2, double *optSol,
 			   int uCols, int uRows, double optLowerObj,
 			   bool isLowerProblem)
 {
+
+    int isA2Random(MibSPar_->entry(MibSParams::isA2Random));
+    
     std::string feasCheckSolver =
 	MibSPar_->entry(MibSParams::feasCheckSolver);
 
@@ -1610,7 +1932,9 @@ MibSModel::setUpEvalModels(CoinPackedMatrix *matrixG2, double *optSol,
     double *rowLb = new double[numRows];
     CoinFillN(rowUb, numRows, infinity);
     CoinFillN(rowLb, numRows, -1 * infinity);
-    cnt = lRows * scenarioIndex;
+    if(isA2Random != PARAM_OFF){
+	cnt = lRows * scenarioIndex;
+    }
     CoinPackedMatrix *matrixA2 = new CoinPackedMatrix(false, 0, 0);
     matrixA2->setDimensions(0, uCols);
     for(i = 0; i < lRows; i++){
@@ -1620,10 +1944,10 @@ MibSModel::setUpEvalModels(CoinPackedMatrix *matrixG2, double *optSol,
     matrixA2->times(optSol, multA2XOpt);
     for(i = 0; i < lRows; i++){
 	if(rowSense[i + uRows] == 'L'){
-	    rowUb[i] = allRHS[cnt + i] - multA2XOpt[i];
+	    rowUb[i] = allRHS[lRows * scenarioIndex + i] - multA2XOpt[i];
 	}
 	if(rowSense[i + uRows] == 'G'){
-	    rowLb[i] = allRHS[cnt + i] - multA2XOpt[i];
+	    rowLb[i] = allRHS[lRows * scenarioIndex + i] - multA2XOpt[i];
 	}
     }
     if(isLowerProblem == false){
@@ -1695,8 +2019,12 @@ MibSModel::solveSAA(const CoinPackedMatrix& matrix,
 		    const double* conUB, const char * colType,
 		    double objSense, int truncNumCols, int truncNumRows,
 		    double infinity, const char *rowSense, bool &isTimeLimReached,
-		    double &objSAA)
+		    double &objSAA, int allScenariosNumSMPS, double *b2Base,
+		    CoinPackedMatrix *matrixA2Base,
+		    const std::vector<std::vector<double>> &fullMatrixA2)
 {
+    int isA2Random(MibSPar_->entry(MibSParams::isA2Random));
+
     std::string feasCheckSolver
 	= MibSPar_->entry(MibSParams::feasCheckSolver);
 
@@ -1764,14 +2092,17 @@ MibSModel::solveSAA(const CoinPackedMatrix& matrix,
     modelSAA->MibSPar()->setEntry(MibSParams::useLinkingSolutionPool, PARAM_ON);
 
     modelSAA->isInterdict_ = false;
-    modelSAA->MibSPar()->setEntry(MibSParams::stochasticityType, "stochasticSAA");
+    modelSAA->MibSPar()->setEntry(MibSParams::stochasticityType, "stochasticWithSAA");
+    modelSAA->MibSPar()->setEntry(MibSParams::isA2Random, isA2Random);
 
     modelSAA->numScenarios_ = sampleSize;
 
     double *b2Arr = new double[lRowNum];
     CoinZeroN(b2Arr, lRowNum);
     CoinPackedMatrix *stocA2Matrix = NULL;
-    stocA2Matrix = generateSamples(sampleSize, truncNumCols, b2Arr);
+    stocA2Matrix = generateSamples(sampleSize, truncNumCols,
+				   truncNumRows, allScenariosNumSMPS, rowSense,
+				   b2Base, matrixA2Base, fullMatrixA2, b2Arr);
 
     modelSAA->setTruncLowerDim(truncLColNum);
     modelSAA->setTruncLowerRowNum(truncLRowNum);
@@ -1871,62 +2202,238 @@ MibSModel::solveSAA(const CoinPackedMatrix& matrix,
 
 //#############################################################################
 CoinPackedMatrix *
-MibSModel::generateSamples(int size, int truncNumCols, double *rhs)
+MibSModel::generateSamples(int size, int truncNumCols, int truncNumRows,
+			   int allScenariosNum, const char *rowSense,
+			   double *b2Base, CoinPackedMatrix *matrixA2Base,
+			   const std::vector<std::vector<double>> &fullMatrixA2,
+			   double *rhs)
 {
+    int isSMPSFormat(MibSPar_->entry(MibSParams::isSMPSFormat));
+    int isA2Random(MibSPar_->entry(MibSParams::isA2Random));
     
-    int i(0), j(0), n(0);
-    double tmpVal(0.0);
-    int genVal(0);
+    int i(0), j(0), n(0), p(0);
+    int numGeneratedSamples(0), count(0), posRow(0), posCol(0), index(0);
+    int genVal(0), scCount(0);
+    bool generatedBefore(false), isFinished(false);
+    double tmpVal(0.0), dValue(0.0), element(0.0);
+    std::string key;
+    CoinPackedVector appendedRow;
+    double etol(etol_);
     int truncLowerDim(getTruncLowerDim());
     int truncLowerRowNum(getTruncLowerRowNum());
     int uColNum(truncNumCols - truncLowerDim);
-
-    int lbB2(MibSPar_->entry(MibSParams::lbDistB2SAA));
-    int ubB2(MibSPar_->entry(MibSParams::ubDistB2SAA));
-    int lbA2(MibSPar_->entry(MibSParams::lbDistA2SAA));
-    int ubA2(MibSPar_->entry(MibSParams::ubDistA2SAA));
-    //saharSto2: it is assumed that incB2Numer <= incB2Denum
-    //and they are relatively prime (the same for A2)
-    //strict assumption: numerators are 1
-    int incB2Numer(MibSPar_->entry(MibSParams::incDistB2NumerSAA));
-    int incB2Denum(MibSPar_->entry(MibSParams::incDistB2DenumSAA));
-    int incA2Numer(MibSPar_->entry(MibSParams::incDistA2NumerSAA));
-    int incA2Denum(MibSPar_->entry(MibSParams::incDistA2DenumSAA));
-
-    int lcmDenum = 2;
-
-    int tmpB2 = (ubB2 - lbB2) * incB2Denum/incB2Numer + 1;
-    int tmpA2 = (ubA2 - lbA2) * incA2Denum/incA2Numer + 1;
-
+    int uRowNum(truncNumRows - truncLowerRowNum);
+    
+    CoinPackedVector row;
+    CoinPackedMatrix *stocMatrixA2 = 0;
+    stocMatrixA2 = new CoinPackedMatrix(false, 0, 0);
+    stocMatrixA2->setDimensions(0, uColNum);
 
     static unsigned int lastSeed = 123456;
     lastSeed = 1664525 * lastSeed + 1013904223;
     std::default_random_engine generator;
     generator.seed(lastSeed);
-    std::uniform_int_distribution<int> distB2(1, tmpB2);
-    std::uniform_int_distribution<int> distA2(1, tmpA2);
 
-    CoinPackedVector row;
+    if(isSMPSFormat == PARAM_ON){
+	std::string stoFileName = getStoFile();
+	std::ifstream stoData_stream(stoFileName.c_str());
+	
+	std::uniform_int_distribution<int> distScenIndex(1, allScenariosNum);
 
-    CoinPackedMatrix *stocMatrixA2 = 0;
-    stocMatrixA2 = new CoinPackedMatrix(false, 0, 0);
-    stocMatrixA2->setDimensions(0, uColNum);
-    
-    for(n = 0; n < size; n++){
-	//generate A2
-	for(i = 0; i < truncLowerRowNum; i++){
-	    for(j = 0; j < uColNum; j++){
-		tmpVal = (distA2(generator) - 1) * incA2Numer * lcmDenum/incA2Denum + lbA2 * lcmDenum;
-		if(fabs(tmpVal) > etol_){
-		    genVal = (int)round(tmpVal);
-		    row.insert(j, genVal);
+	int *scenIndex = new int[size];
+	while(numGeneratedSamples < size){
+	    index = distScenIndex(generator);
+	    generatedBefore = false;
+	    for(i = 0; i < numGeneratedSamples; i++){
+		if(scenIndex[i] == index){
+		    generatedBefore = true;
+		    break;
 		}
 	    }
-	    stocMatrixA2->appendRow(row);
-	    row.clear();
-	    tmpVal = (distB2(generator) - 1) * incB2Numer * lcmDenum/incB2Denum + lbB2 * lcmDenum;
-	    genVal = (int)round(tmpVal);
-	    rhs[n * truncLowerRowNum + i] = genVal;
+	    if(generatedBefore == false){
+		scenIndex[numGeneratedSamples] = index;
+		numGeneratedSamples ++;
+	    }
+	}
+
+	stoData_stream.close();
+
+	std::vector<std::vector<double>> fullMatrixA2Copy;
+
+	if(isA2Random != PARAM_OFF){
+	    fullMatrixA2Copy.resize(truncLowerRowNum, std::vector<double>(uColNum, 0.0));
+	    for(i = 0; i < truncLowerRowNum; i++){
+		for(j = 0; j < uColNum; j++){
+		    fullMatrixA2Copy[i][j] = fullMatrixA2[i][j];
+		}
+	    }
+	}
+	else{
+	    for(i = 0; i < truncLowerRowNum; i++){
+		stocMatrixA2->appendRow(matrixA2Base->getVector(i));
+	    }
+	}
+
+	for(i = 0; i < size; i++){
+	    count = 1;
+	    index = i * truncLowerRowNum;
+	    CoinDisjointCopyN(rhs + index, truncLowerRowNum, b2Base);
+	    stoData_stream.open(stoFileName.c_str());
+	    while(stoData_stream >> key){
+		isFinished = false;
+		if(key == "SC"){
+		    if(count == scenIndex[i]){
+			stoData_stream >> key;
+			stoData_stream >> key;
+			stoData_stream >> key;
+			stoData_stream >> key;
+			while(isFinished == false){
+			    stoData_stream >> key;
+			    if((key == "SC") || (key == "ENDATA")){
+				isFinished = true;
+			    }
+			    else if(key == "RHS"){
+				stoData_stream >> key;
+				stoData_stream >> dValue;
+				posRow = -1;
+				for(p = 0; p < truncNumRows; p++){
+				    if(rowName_[p] == key){
+					posRow = p;
+					break;
+				    }
+				}
+				if(posRow < 0){
+				    std::cout << key << " does not belong to the list of constraints." << std::endl;
+				    throw CoinError("Wrong constriant name",
+						    "generateSamples",
+						    "MibSModel");
+				}
+				else if(posRow < uRowNum){
+				    throw CoinError("Upper-level RHS cannot be random",
+						    "generateSamples",
+						    "MibSModel");
+				}
+				else{
+				    index = i * truncLowerRowNum + posRow - uRowNum;
+				    if(rowSense[posRow] == 'L'){
+					rhs[index] = dValue;
+				    }
+				    else{
+					rhs[index] = dValue;
+				    }
+				}
+				
+			    }
+			    else{
+				posCol = -1;
+				for(p = 0; p < truncNumCols; p++){
+				    if(columnName_[p] == key){
+					posCol = p;
+					break;
+				    }
+				}
+				if(posCol < 0){
+				    std::cout << key << " does not belong to the list of variables." << std::endl;
+				    throw CoinError("Wrong variable name",
+						    "generateSamples",
+						    "MibSModel");
+				}
+				else if(posCol >= uColNum){
+				    throw CoinError("Lower-level coefficients cannot be random",
+						    "generateSamples",
+						    "MibSModel");
+				}
+				else{
+				    stoData_stream >> key;
+				    stoData_stream >> dValue;
+				    posRow = -1;
+				    for(p = 0; p < truncNumRows; p++){
+					if(rowName_[p] == key){
+					    posRow = p;
+					    break;
+					}
+				    }
+				    if(posRow < 0){
+					std::cout << key << " does not belong to the list of constraints." << std::endl;
+					throw CoinError("Wrong constriant name",
+							"generateSamples",
+							"MibSModel");
+				    }
+				    else if(posRow < uRowNum){
+					throw CoinError("Coefficients of lower-level constraints cannot be random",
+							"generateSamples",
+							"MibSModel");
+				    }
+				    else{
+					index = i * truncLowerRowNum + posRow - uRowNum;
+					fullMatrixA2Copy[index][posCol] = dValue;
+				    }
+				    
+				}
+			    }
+			}
+		    }
+		    else{
+			count ++;
+		    }
+		}
+		if(isFinished == true){
+		    stoData_stream.close();
+		    break;
+		}
+	    }
+	    if(isA2Random != PARAM_OFF){
+		for(p = 0; p < truncLowerRowNum; p++){
+		    for(j = 0; j < uColNum; j++){
+			element = fullMatrixA2Copy[p][j];
+			if(fabs(element) > etol){
+			    appendedRow.insert(j, element);
+			}
+		    }
+		    stocMatrixA2->appendRow(appendedRow);
+		    appendedRow.clear();
+		}
+	    }
+	}
+	delete [] scenIndex;
+    }
+    else{
+	int lbB2(MibSPar_->entry(MibSParams::lbDistB2SAA));
+	int ubB2(MibSPar_->entry(MibSParams::ubDistB2SAA));
+	int lbA2(MibSPar_->entry(MibSParams::lbDistA2SAA));
+	int ubA2(MibSPar_->entry(MibSParams::ubDistA2SAA));
+        //saharSto2: it is assumed that incB2Numer <= incB2Denum
+	//and they are relatively prime (the same for A2)
+	//strict assumption: numerators are 1
+	int incB2Numer(MibSPar_->entry(MibSParams::incDistB2NumerSAA));
+        int incB2Denum(MibSPar_->entry(MibSParams::incDistB2DenumSAA));
+        int incA2Numer(MibSPar_->entry(MibSParams::incDistA2NumerSAA));
+        int incA2Denum(MibSPar_->entry(MibSParams::incDistA2DenumSAA));
+
+        int lcmDenum = 1;
+
+        int tmpB2 = (ubB2 - lbB2) * incB2Denum/incB2Numer + 1;
+        int tmpA2 = (ubA2 - lbA2) * incA2Denum/incA2Numer + 1;
+
+        std::uniform_int_distribution<int> distB2(1, tmpB2);
+        std::uniform_int_distribution<int> distA2(1, tmpA2);
+    
+        for(n = 0; n < size; n++){
+	    //generate A2
+	    for(i = 0; i < truncLowerRowNum; i++){
+		for(j = 0; j < uColNum; j++){
+		    tmpVal = (distA2(generator) - 1) * incA2Numer * lcmDenum/incA2Denum + lbA2 * lcmDenum;
+		    if(fabs(tmpVal) > etol_){
+			genVal = (int)round(tmpVal);
+		        row.insert(j, genVal);
+		    }
+		}
+		stocMatrixA2->appendRow(row);
+	        row.clear();
+	        tmpVal = (distB2(generator) - 1) * incB2Numer * lcmDenum/incB2Denum + lbB2 * lcmDenum;
+	        genVal = (int)round(tmpVal);
+	        rhs[n * truncLowerRowNum + i] = genVal;
+	    }
 	}
     }
 
@@ -1951,6 +2458,8 @@ MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
 
     std::string stochasticityType(MibSPar_->entry
 				  (MibSParams::stochasticityType));
+
+    int isA2Random(MibSPar_->entry(MibSParams::isA2Random));
 
     int problemType(MibSPar_->entry(MibSParams::bilevelProblemType));
 
@@ -2069,8 +2578,8 @@ MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
 	  //set matrix
 	  //extract truncG2
 	  int lcmDenum (1);
-	  if(stochasticityType == "stochasticSAA"){
-	      lcmDenum = 2;
+	  if(stochasticityType == "stochasticWithSAA"){
+	      lcmDenum = 1;
 	  }
 	  CoinPackedMatrix *truncMatrixG2 = NULL;
 	  truncMatrixG2 = new CoinPackedMatrix(true, 0, 0);
@@ -2099,7 +2608,9 @@ MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
 
 	  for(i = 0; i < numScenarios; i++){
 	      for(j = 0; j < truncNumLRows; j++){
-		  rowBeg = i * truncNumLRows;
+		  if(isA2Random != PARAM_OFF){
+		      rowBeg = i * truncNumLRows;
+		  }
 		  row1 = truncMatrixG2->getVector(j);
 		  rowInd = row1.getIndices();
 		  rowElem = row1.getElements();
@@ -2144,7 +2655,7 @@ MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
 	  //set objective
 	  index = numUCols;
 	  CoinDisjointCopyN(obj, numUCols, objCoef);
-	  if(stochasticityType == "stochasticSmps"){
+	  if(stochasticityType == "stochasticWithoutSAA"){
 	      double *subObjCoef = new double[truncNumLCols];
 	      CoinDisjointCopyN(obj + numUCols, truncNumLCols, subObjCoef);
 	      for(i = 0; i < numScenarios; i++){
@@ -3373,7 +3884,7 @@ MibSModel::userFeasibleSolution(const double * solution, bool &userFeasible)
   if(userFeasible == true){
       mibSol = new MibSSolution(getNumCols(),
 				lpSolution,
-				upperObj,				this);
+				upperObj, this);
   }
   else if(solType == MibSHeurSol){
       //in stochastic case, we assume that lower-level variables

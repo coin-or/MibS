@@ -65,6 +65,7 @@ MibSParams::createKeywordList() {
 
    keys_.push_back(make_pair(std::string("MibS_useNewPureIntCut"),
 			     AlpsParameter(AlpsBoolPar, useNewPureIntCut)));
+   
 
    //--------------------------------------------------------
    // BoolArrayPar
@@ -222,7 +223,16 @@ MibSParams::createKeywordList() {
    keys_.push_back(make_pair(std::string("MibS_relaxTypeParamBoundCut"),
    			     AlpsParameter(AlpsIntPar, relaxTypeParamBoundCut)));
 
-   //parameters for SAA
+   //parameters for stochastic and SAA
+   //this parameter should be set to false, when the problem is
+   //stochastic and A2 is not random.
+   keys_.push_back(make_pair(std::string("MibS_isA2Random"),
+			     AlpsParameter(AlpsIntPar, isA2Random)));
+
+   //this parameter should be set to true when the smps format
+   //is used for the stochastic case. 
+   keys_.push_back(make_pair(std::string("MibS_isSMPSFormat"),
+			     AlpsParameter(AlpsIntPar, isSMPSFormat)));
    //N
    keys_.push_back(make_pair(std::string("MibS_sampSizeSAA"),
 			     AlpsParameter(AlpsIntPar, sampSizeSAA)));
@@ -278,8 +288,10 @@ MibSParams::createKeywordList() {
 
    //saharStoc:this parameter should be set to
    //"deterministic" : deterministic problems
-   //"stochasticSmps": using smps format
-   //"stochasticSAA": using SAA approach
+   //"stochasticWithSAA": stochastic problem and is solved by SAA method 
+   //"stochasticWithoutSAA": stochastic problem, but SAA method is not used.
+   //When the SAA method is not used, the format should be SMPS necessarily.
+   //So the parameter "isSMPSFormat" should be set to true.
    keys_.push_back(make_pair(std::string("MibS_stochasticityType"),
 			     AlpsParameter(AlpsStringPar, stochasticityType)));
 
@@ -424,6 +436,32 @@ MibSParams::setDefaultEntries() {
    setEntry(boundCutNodeLim, ALPS_INT_MAX);
 
    setEntry(relaxTypeParamBoundCut, MibSRelaxTypeParamBoundCutLP);
+
+   setEntry(isA2Random, PARAM_NOTSET);
+
+   setEntry(isSMPSFormat, PARAM_NOTSET);
+
+   setEntry(sampSizeSAA, PARAM_NOTSET);
+
+   setEntry(evalSampSizeSAA, PARAM_NOTSET);
+
+   setEntry(replNumSAA, PARAM_NOTSET);
+
+   setEntry(lbDistB2SAA, PARAM_NOTSET);
+
+   setEntry(ubDistB2SAA, PARAM_NOTSET);
+
+   setEntry(lbDistA2SAA, PARAM_NOTSET);
+
+   setEntry(ubDistA2SAA, PARAM_NOTSET);
+
+   setEntry(incDistB2NumerSAA, PARAM_NOTSET);
+
+   setEntry(incDistB2DenumSAA, PARAM_NOTSET);
+
+   setEntry(incDistA2NumerSAA, PARAM_NOTSET);
+
+   setEntry(incDistA2DenumSAA, PARAM_NOTSET);
 
    //-------------------------------------------------------------
    // Double Parameters

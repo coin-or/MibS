@@ -570,7 +570,9 @@ public:
     void setBlisParameters();
   
     /** Read auxiliary data file **/
-    void readAuxiliaryData(int numCols, int numRows, double infinity,
+    void readAuxiliaryData(const CoinPackedMatrix& rowMatrix,
+			   const double* conLB, const double* conUB,
+			   int numCols, int numRows, double infinity,
 			   const char *rowSense);
 
     /** Set auxiliary data directly when using MibS as a library **/
@@ -672,6 +674,8 @@ public:
 		  double objSense, int truncNumCols, int truncNumRows,
 		  double infinity, const char *rowSense);
 
+    int countScenariosSMPS();
+
     void printSolutionSAA(int truncNumCols, double estimatedObj,
 			  double estimatedLowerBound, double varLower,
 			  double varUpper, double *bestSol);
@@ -695,9 +699,15 @@ public:
 		     const double* conUB, const char * colType,
 		     double objSense, int truncNumCols, int truncNumRows,
 		     double infinity, const char *rowSense, bool &isTimeLimReached,
-		     double &objSAA);
+		     double &objSAA, int allScenariosNumSMPS, double *b2Base,
+		     CoinPackedMatrix *matrixA2Base,
+		     const std::vector<std::vector<double>> &fullMatrixA2);
 
-    CoinPackedMatrix *generateSamples(int size, int truncNumCols, double *rhs);
+    CoinPackedMatrix *generateSamples(int size, int truncNumCols, int truncNumRows,
+				      int allScenariosNum, const char *rowSense,
+				      double *b2Base, CoinPackedMatrix *matrixA2Base,
+				      const std::vector<std::vector<double>> &fullMatrixA2,
+				      double *rhs);
 
 private:
 
