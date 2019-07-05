@@ -350,11 +350,13 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
     int lN(model_->lowerDim_); // lower-level dimension
     int uN(model_->upperDim_); // lower-level dimension
     int i(0), index(0), length(0), pos(0), begPos(0);
+    int lpStat;
     int sizeFixedInd(model_->sizeFixedInd_);
     double etol(model_->etol_), objVal(0.0), lowerObj(0.0);
     int * fixedInd = model_->fixedInd_;
     int * lowerColInd = model_->getLowerColInd();
     int * upperColInd = model_->getUpperColInd();
+    OsiSolverInterface *UBSolver = 0;
 
     //saharSto: fix it later
     if(numScenarios == 1){
@@ -407,12 +409,15 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 	    solver_ = setUpModel(model_->getSolver(), true);
 	}*/
 
-	    if(lSolver_){
-		lSolver_ = setUpModel(model_->getSolver(), false, i);
+	    if(warmStartLL && (feasCheckSolver == "SYMPHONY") && lSolver_){
+	    lSolver_ = setUpModel(model_->getSolver(), false, i);
 	    }
 	    else{
-		lSolver_ = setUpModel(model_->getSolver(), true, i);
-	    }
+		if(lSolver_){
+		    delete lSolver_;
+		}
+	    	lSolver_ = setUpModel(model_->getSolver(), true, i);
+	     }
 	    
 	    OsiSolverInterface *lSolver = lSolver_;
 
@@ -486,6 +491,8 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 	        assert(cpxEnv);
 	        CPXsetintparam(cpxEnv, CPX_PARAM_SCRIND, CPX_OFF);
 	        CPXsetintparam(cpxEnv, CPX_PARAM_THREADS, maxThreadsLL);
+		CPXsetintparam(cpxEnv, CPX_PARAM_CLOCKTYPE, 1);
+		CPXsetdblparam(cpxEnv, CPX_PARAM_TILIM, remainingTime);
 #endif
 	    }
 
@@ -507,14 +514,32 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 		isLowerSolved_ = true;
 	    }
 	
-	    if((feasCheckSolver == "SYMPHONY") && (sym_is_time_limit_reached
-						   (dynamic_cast<OsiSymSolverInterface *>
-						    (lSolver)->getSymphonyEnvironment()))){
+	    if(feasCheckSolver == "SYMPHONY"){
+#ifdef COIN_HAS_SYMPHONY
+		if(sym_is_time_limit_reached(dynamic_cast<OsiSymSolverInterface *>
+					     (lSolver)->getSymphonyEnvironment())){
 		shouldPrune_ = true;
 	        storeSol = MibSNoSol;
 	        goto TERM_CHECKBILEVELFEAS;
+		}
+#endif
 	    }
-	    else if(!lSolver->isProvenOptimal()){
+	    else if(feasCheckSolver == "CPLEX"){
+#ifdef COIN_HAS_CPLEX
+		lpStat = CPXgetstat(dynamic_cast<OsiCpxSolverInterface*>
+				    (lSolver)->getEnvironmentPtr(),
+				    dynamic_cast<OsiCpxSolverInterface*>
+				    (lSolver)->getLpPtr());
+		if((lpStat == CPXMIP_TIME_LIM_FEAS) ||
+		   (lpStat == CPXMIP_TIME_LIM_INFEAS)){
+		    shouldPrune_ = true;
+		    storeSol = MibSNoSol;
+		    goto TERM_CHECKBILEVELFEAS;
+		}
+#endif
+	    }
+	    
+	    if(!lSolver->isProvenOptimal()){
 		LPSolStatus_ = MibSLPSolStatusInfeasible;
 		isProvenOptimal_ = false;
 	        if(useLinkingSolutionPool){
@@ -608,8 +633,6 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
     if(((!useLinkingSolutionPool) && (isProvenOptimal_)) ||
        ((tagInSeenLinkingPool_ == MibSLinkingPoolTagLowerIsFeasible) ||
 	(tagInSeenLinkingPool_ == MibSLinkingPoolTagUBIsSolved))){
-
-	OsiSolverInterface *UBSolver;
 	
 	//double *lowerSol = new double[lN];
 	//CoinFillN(lowerSol, lN, 0.0);
@@ -676,7 +699,7 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 		((computeBestUBWhenXVarsInt == PARAM_ON) && (isUpperIntegral_)) ||
 		((computeBestUBWhenLVarsInt == PARAM_ON)) ||
 		((computeBestUBWhenLVarsFixed == PARAM_ON) && (isLinkVarsFixed_)))){
-		if(UBSolver_){
+		/*if(UBSolver_){
 		    UBSolver_ = setUpUBModel(model_->getSolver(), shouldStoreObjValues,
 					     false);
 		}
@@ -685,7 +708,9 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 					    true);
 		}
 
-		UBSolver = UBSolver_;
+		UBSolver = UBSolver_;*/
+		
+		UBSolver =setUpUBModel(model_->getSolver(), shouldStoreObjValues, true);
 
 		if(0)
 		    UBSolver->writeLp("UBSolver");
@@ -745,6 +770,8 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 		    assert(cpxEnv);
 		    CPXsetintparam(cpxEnv, CPX_PARAM_SCRIND, CPX_OFF);
 		    CPXsetintparam(cpxEnv, CPX_PARAM_THREADS, maxThreadsLL);
+		    CPXsetintparam(cpxEnv, CPX_PARAM_CLOCKTYPE, 1);
+		    CPXsetdblparam(cpxEnv, CPX_PARAM_TILIM, remainingTime);
 #endif
 		}
 
@@ -754,14 +781,33 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 		model_->timerUB_ += model_->broker_->subTreeTimer().getTime() - startTimeUB;
 		model_->counterUB_ ++;
 		isUBSolved_ = true;
-		if((feasCheckSolver == "SYMPHONY") && (sym_is_time_limit_reached
-						       (dynamic_cast<OsiSymSolverInterface *>
-							(UBSolver)->getSymphonyEnvironment()))){
-		    shouldPrune_ = true;
-		    storeSol = MibSNoSol;
-		    goto TERM_CHECKBILEVELFEAS;
+
+		if(feasCheckSolver == "SYMPHONY"){
+#ifdef COIN_HAS_SYMPHONY
+		    if(sym_is_time_limit_reached(dynamic_cast<OsiSymSolverInterface *>
+						 (UBSolver)->getSymphonyEnvironment())){
+			shouldPrune_ = true;
+			storeSol = MibSNoSol;
+			goto TERM_CHECKBILEVELFEAS;
+		    }
+#endif
 		}
-		else if (UBSolver->isProvenOptimal()){
+		else if(feasCheckSolver == "CPLEX"){
+#ifdef COIN_HAS_CPLEX
+		    lpStat = CPXgetstat(dynamic_cast<OsiCpxSolverInterface*>
+					(UBSolver)->getEnvironmentPtr(),
+					dynamic_cast<OsiCpxSolverInterface*>
+					(UBSolver)->getLpPtr());
+		    if((lpStat == CPXMIP_TIME_LIM_FEAS) ||
+		       (lpStat == CPXMIP_TIME_LIM_INFEAS)){
+			shouldPrune_ = true;
+			storeSol = MibSNoSol;
+			goto TERM_CHECKBILEVELFEAS;
+		    }
+#endif
+		}
+
+		if(UBSolver->isProvenOptimal()){
 		    isProvenOptimal_ = true;
 		    const double * valuesUB = UBSolver->getColSolution();
 		    if(shouldStoreSolution == true){
@@ -848,6 +894,9 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
  TERM_CHECKBILEVELFEAS:
     
     delete [] lowerSol;
+    if(UBSolver){
+	delete UBSolver;
+    }
 
     return storeSol;
 }
@@ -862,7 +911,6 @@ MibSBilevel::gutsOfDestructor()
   if(upperSolutionOrd_) delete [] upperSolutionOrd_;
   if(lowerSolutionOrd_) delete [] lowerSolutionOrd_;
   if(lSolver_) delete lSolver_;
-  if(UBSolver_) delete UBSolver_;
   //delete heuristic_;
 }
 
@@ -1065,7 +1113,7 @@ MibSBilevel::setUpUBModel(OsiSolverInterface * oSolver,
         delete [] objCoeffs;
         delete newMat;
     }
-    else{
+    /*else{
 	nSolver = UBSolver_;
 	for(i = 0; i < numScenarios; i++){
 	    index1 = rowNum - (numScenarios - i);
@@ -1079,7 +1127,7 @@ MibSBilevel::setUpUBModel(OsiSolverInterface * oSolver,
 		nSolver->setColUpper(index1, value);
 	    }
 	}
-    }
+    }*/
 
     return nSolver;
 
@@ -1299,7 +1347,7 @@ MibSBilevel::setUpModel(OsiSolverInterface * oSolver, bool newOsi,
   }else{
      nSolver = lSolver_;
      
-     signsChanged = false;
+     /*signsChanged = false;
      if(feasCheckSolver == "SYMPHONY"){
 	 for(i = 0; i < lRows; i++){
 	     index1 = lRowIndices[i];
@@ -1340,7 +1388,7 @@ MibSBilevel::setUpModel(OsiSolverInterface * oSolver, bool newOsi,
 		 rowUb[i] = origRowUb[index2];
 	     }
 	 }
-     }
+     }*/
      
   }
   
