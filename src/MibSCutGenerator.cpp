@@ -1685,6 +1685,7 @@ MibSCutGenerator::storeBestSolHypercubeIC(const double* lpSol,
     OsiSolverInterface * oSolver = localModel_->solver();
     MibSBilevel *bS = localModel_->bS_;
     int i(0);
+    int lpStat;
     int numCols(oSolver->getNumCols());
     int uN(localModel_->getUpperDim());
     int lN(localModel_->getLowerDim());
@@ -1702,19 +1703,21 @@ MibSCutGenerator::storeBestSolHypercubeIC(const double* lpSol,
 	}
     }
     
-    OsiSolverInterface *UBSolver;
+    OsiSolverInterface *UBSolver = 0;
 
     //std::vector<double> optLowerObjVec;
     //optLowerObjVec.push_back(optLowerObj);
     
-    if(bS->UBSolver_){
+    /*if(bS->UBSolver_){
 	bS->UBSolver_ = bS->setUpUBModel(localModel_->getSolver(), optLowerObjVec, false);
     }
     else{
 	bS->UBSolver_ = bS->setUpUBModel(localModel_->getSolver(), optLowerObjVec, true);
-    }
+	}
 
-    UBSolver = bS->UBSolver_;
+	UBSolver = bS->UBSolver_;*/
+
+    UBSolver = bS->setUpUBModel(localModel_->getSolver(), optLowerObjVec, true);
 
     remainingTime = timeLimit - localModel_->broker_->subTreeTimer().getTime();
 
@@ -1771,6 +1774,8 @@ MibSCutGenerator::storeBestSolHypercubeIC(const double* lpSol,
 	    assert(cpxEnv);
 	    CPXsetintparam(cpxEnv, CPX_PARAM_SCRIND, CPX_OFF);
 	    CPXsetintparam(cpxEnv, CPX_PARAM_THREADS, maxThreadsLL);
+	    CPXsetintparam(cpxEnv, CPX_PARAM_CLOCKTYPE, 1);
+	    CPXsetdblparam(cpxEnv, CPX_PARAM_TILIM, remainingTime);
 #endif
 	}
 
@@ -1779,13 +1784,30 @@ MibSCutGenerator::storeBestSolHypercubeIC(const double* lpSol,
         localModel_->timerUB_ += localModel_->broker_->subTreeTimer().getTime() - startTimeUB;
         localModel_->counterUB_ ++;
 
-        if((feasCheckSolver == "SYMPHONY") && (sym_is_time_limit_reached
-					       (dynamic_cast<OsiSymSolverInterface *>
-						(UBSolver)->getSymphonyEnvironment()))){
-	    isTimeLimReached = true;
-	    bS->shouldPrune_ = true;
+	if(feasCheckSolver == "SYMPHONY"){
+#ifdef COIN_HAS_SYMPHONY
+	    if(sym_is_time_limit_reached(dynamic_cast<OsiSymSolverInterface *>
+					 (UBSolver)->getSymphonyEnvironment())){
+		isTimeLimReached = true;
+		bS->shouldPrune_ = true;
+	    }
+#endif
 	}
-	else if(UBSolver->isProvenOptimal()){
+	else if(feasCheckSolver == "CPLEX"){
+#ifdef COIN_HAS_CPLEX
+	    lpStat = CPXgetstat(dynamic_cast<OsiCpxSolverInterface*>
+				(UBSolver)->getEnvironmentPtr(),
+				dynamic_cast<OsiCpxSolverInterface*>
+				(UBSolver)->getLpPtr());
+	    if((lpStat == CPXMIP_TIME_LIM_FEAS) ||
+	       (lpStat == CPXMIP_TIME_LIM_INFEAS)){
+		isTimeLimReached = true;
+		bS->shouldPrune_ = true;
+	    }
+#endif
+	}
+
+	if(UBSolver->isProvenOptimal()){
 	    MibSSolution *mibsSol = new MibSSolution(numCols,
 						     UBSolver->getColSolution(),
 						     UBSolver->getObjValue(),
@@ -1817,6 +1839,10 @@ MibSCutGenerator::storeBestSolHypercubeIC(const double* lpSol,
 		localModel_->seenLinkingSolutions[linkSol].UBSolution.push_back(valuesUB[i]);
 	    }
 	}
+    }
+
+    if(UBSolver){
+	delete UBSolver;
     }
 }
 
