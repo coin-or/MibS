@@ -1769,7 +1769,7 @@ MibSCutGenerator::storeBestSolHypercubeIC(const double* lpSol,
 	    sym_set_dbl_param(env, "time_limit", remainingTime);
 	    sym_set_int_param(env, "do_primal_heuristic", FALSE);
 	    sym_set_int_param(env, "verbosity", -2);
-	    sym_set_int_param(env, "prep_level", -1);
+	    //sym_set_int_param(env, "prep_level", -1);
 	    sym_set_int_param(env, "max_active_nodes", maxThreadsLL);
 	    sym_set_int_param(env, "tighten_root_bounds", FALSE);
 	    sym_set_int_param(env, "max_sp_size", 100);
