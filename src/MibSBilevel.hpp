@@ -111,6 +111,9 @@ public:
 private:
    
     int findIndex(int index, int size, int * indices);
+    OsiSolverInterface * setUpDecomposedUBModel(OsiSolverInterface * oSolver,
+						std::vector<double> &objValuesVec,
+						int scenarioIndex);
     OsiSolverInterface * setUpUBModel(OsiSolverInterface * solver,
 				      std::vector<double> &objValuesVec,
 				      bool newOsi, const double *sol = NULL);

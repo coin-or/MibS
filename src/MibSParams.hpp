@@ -35,6 +35,7 @@ class MibSParams : public AlpsParameterSet {
      isBilevelBranchProb,
      warmStartLL,
      doDualFixing,
+     useUBDecompose,
      turnOffOtherCuts,
      printProblemInfo,
      allowRemoveCut,
