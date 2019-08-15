@@ -53,6 +53,9 @@ MibSParams::createKeywordList() {
 
    keys_.push_back(make_pair(std::string("MibS_doDualFixing"),
 			     AlpsParameter(AlpsBoolPar, doDualFixing)));
+
+   keys_.push_back(make_pair(std::string("MibS_useUBDecompose"),
+			     AlpsParameter(AlpsBoolPar, useUBDecompose)));
    
    keys_.push_back(make_pair(std::string("MibS_turnOffOtherCuts"),
 			     AlpsParameter(AlpsBoolPar, turnOffOtherCuts)));
@@ -328,6 +331,8 @@ MibSParams::setDefaultEntries() {
    setEntry(warmStartLL, false);
 
    setEntry(doDualFixing, false);
+
+   setEntry(useUBDecompose, false);
 
    setEntry(turnOffOtherCuts, false);
 

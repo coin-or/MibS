@@ -1679,6 +1679,9 @@ MibSCutGenerator::storeBestSolHypercubeIC(const double* lpSol,
 		    (MibSParams::whichCutsLL));
     std::string feasCheckSolver(localModel_->MibSPar_->entry
 				(MibSParams::feasCheckSolver));
+    bool useUBDecompose(localModel_->MibSPar_->entry
+			(MibSParams::useUBDecompose));
+    int numScenarios(localModel_->getNumScenarios()); 
     double timeLimit(localModel_->AlpsPar()->entry(AlpsParams::timeLimit));
     double remainingTime(0.0);
     
@@ -1686,15 +1689,19 @@ MibSCutGenerator::storeBestSolHypercubeIC(const double* lpSol,
     MibSBilevel *bS = localModel_->bS_;
     int i(0);
     int lpStat;
+    bool isUBProvenOptimal(true);
     int numCols(oSolver->getNumCols());
     int uN(localModel_->getUpperDim());
     int lN(localModel_->getLowerDim());
+    int truncLN(localModel_->getTruncLowerDim());
     double objVal(0.0);
     double startTimeUB(0.0);
     int * fixedInd = localModel_->getFixedInd();
     
     int useLinkingSolutionPool(localModel_->MibSPar_->entry
 		   (MibSParams::useLinkingSolutionPool));
+
+    double *valuesUB = new double[uN + lN];
 
     std::vector<double> linkSol;
     for(i = 0; i < uN + lN; i++){
@@ -1717,15 +1724,35 @@ MibSCutGenerator::storeBestSolHypercubeIC(const double* lpSol,
 
 	UBSolver = bS->UBSolver_;*/
 
-    UBSolver = bS->setUpUBModel(localModel_->getSolver(), optLowerObjVec, true);
+    int numDecomposedProbs(1);
 
-    remainingTime = timeLimit - localModel_->broker_->subTreeTimer().getTime();
+    if((numScenarios > 1) && (useUBDecompose == true) && (localModel_->sizeFixedInd_ == uN)){
+      numDecomposedProbs = numScenarios;
+      const double *relaxSol = oSolver->getColSolution();
+      const double * uObjCoeffs(oSolver->getObjCoefficients());
+      double uObjSense = oSolver->getObjSense();
+      CoinDisjointCopyN(relaxSol, uN, valuesUB);
+      for(i = 0; i < uN; i++){
+	objVal += relaxSol[i] * uObjCoeffs[i] * uObjSense;
+      } 
+    }
 
-    if(remainingTime <= localModel_->etol_){
+    for(i = 0; i < numDecomposedProbs; i++){
+      if(numDecomposedProbs == 1){
+	UBSolver = bS->setUpUBModel(localModel_->getSolver(), optLowerObjVec, true);
+      }
+      else{
+	UBSolver = bS->setUpDecomposedUBModel(localModel_->getSolver(), optLowerObjVec, i);
+      }
+
+      remainingTime = timeLimit - localModel_->broker_->subTreeTimer().getTime();
+
+      if(remainingTime <= localModel_->etol_){
 	isTimeLimReached = true;
 	bS->shouldPrune_ = true;
-    }
-    else{
+	break;
+      }
+      else{
 	remainingTime = CoinMax(remainingTime, 0.00);
 
 	if (feasCheckSolver == "Cbc"){
@@ -1790,6 +1817,7 @@ MibSCutGenerator::storeBestSolHypercubeIC(const double* lpSol,
 					 (UBSolver)->getSymphonyEnvironment())){
 		isTimeLimReached = true;
 		bS->shouldPrune_ = true;
+		break;
 	    }
 #endif
 	}
@@ -1803,26 +1831,49 @@ MibSCutGenerator::storeBestSolHypercubeIC(const double* lpSol,
 	       (lpStat == CPXMIP_TIME_LIM_INFEAS)){
 		isTimeLimReached = true;
 		bS->shouldPrune_ = true;
+	        break;
 	    }
 #endif
 	}
 
 	if(UBSolver->isProvenOptimal()){
-	    MibSSolution *mibsSol = new MibSSolution(numCols,
-						     UBSolver->getColSolution(),
-						     UBSolver->getObjValue(),
-						     localModel_);
-
-	    localModel_->storeSolution(BlisSolutionTypeHeuristic, mibsSol);
-	
-	    objVal = UBSolver->getObjValue() * localModel_->solver()->getObjSense();
+	  isUBProvenOptimal = true;
+	  const double *partialValuesUB = UBSolver->getColSolution();
+	  if(numDecomposedProbs == 1){
+	    CoinDisjointCopyN(partialValuesUB, lN + uN, valuesUB);
+	  }
+	  else{
+	    int begPos = uN + i * truncLN;
+	    CoinDisjointCopyN(partialValuesUB, truncLN, valuesUB + begPos);
+	  }
+	  objVal += UBSolver->getObjValue() * localModel_->solver()->getObjSense();
 	}
 	else{
-	    objVal = 10000000;
+	  isUBProvenOptimal = false;
+	  //when all first-level variables are linking,
+	  //UBSolver cannot be infeasible 
+	  if(numDecomposedProbs > 1){
+	    throw CoinError("When all first-level variables are linking, problem UB cannot be infeasible",
+			    "storeBestSolHypercubeIC", "MibSCutGenerator");
+	  }
 	}
+      }
+      delete UBSolver;
     }
 
-    if((useLinkingSolutionPool) && (isTimeLimReached == false)){
+    if(isTimeLimReached == false){
+      if(isUBProvenOptimal == true){
+	MibSSolution *mibsSol = new MibSSolution(numCols,
+						 valuesUB,
+						 objVal,
+						 localModel_);
+	localModel_->storeSolution(BlisSolutionTypeHeuristic, mibsSol);
+      }
+      else{
+	objVal = 10000000;
+      }
+
+      if(useLinkingSolutionPool){
 	//Add to linking solution pool
 	//localModel_->it = localModel_->seenLinkingSolutions.find(linkSol);
 	//localModel_->it->second.tag = MibSSetETagUBIsSolved;
@@ -1830,20 +1881,19 @@ MibSCutGenerator::storeBestSolHypercubeIC(const double* lpSol,
 	localModel_->bS_->tagInSeenLinkingPool_ = MibSLinkingPoolTagUBIsSolved;
 	localModel_->seenLinkingSolutions[linkSol].tag = MibSLinkingPoolTagUBIsSolved;
 	localModel_->seenLinkingSolutions[linkSol].UBObjValue = objVal;   
-	if(UBSolver->isProvenOptimal()){
-	    localModel_->seenLinkingSolutions[linkSol].UBSolution.clear();
-	    //localModel_->it->second.UBSol1.clear();
-	    const double * valuesUB = UBSolver->getColSolution();
+	if(isUBProvenOptimal == true){
+	  localModel_->seenLinkingSolutions[linkSol].UBSolution.clear();
+	  //localModel_->it->second.UBSol1.clear();
+	  if(numScenarios == 1){
 	    for(i = 0; i < uN + lN; i++){
-		//localModel_->it->second.UBSol1.push_back(valuesUB[i]);
-		localModel_->seenLinkingSolutions[linkSol].UBSolution.push_back(valuesUB[i]);
+	      //localModel_->it->second.UBSol1.push_back(valuesUB[i]);
+	      localModel_->seenLinkingSolutions[linkSol].UBSolution.push_back(valuesUB[i]);
 	    }
+	  }
 	}
+      }
     }
-
-    if(UBSolver){
-	delete UBSolver;
-    }
+    delete [] valuesUB;
 }
 
 //#############################################################################
