@@ -2236,7 +2236,7 @@ MibSCutGenerator::boundCuts(BcpsConstraintPool &conPool, double *passedObjCoeffs
 	    boundModel->MibSPar()->setEntry(MibSParams::usePureIntegerCut, PARAM_OFF);
 	    boundModel->MibSPar()->setEntry(MibSParams::useNewPureIntCut, false);
 	    if(boundCutOptimalType == MibSBoundCutOptimalTypeParametric){
-	      boundModel->AlpsPar()->setEntry(AlpsParams::warmStart, true);
+	      boundModel->AlpsPar()->setEntry(AlpsParams::deletePrunedNodes, true);
 	      boundModel->AlpsPar()->setEntry(AlpsParams::deleteDeadNode, false);
 	      boundModel->BlisPar()->setEntry(BlisParams::difference, -2);  
 	    }
