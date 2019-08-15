@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type = "text/xsl" href = "http://www.coin-or.org/projects/autoGen.xsl"?>
+<projectData xmlns="coin-or.org" 
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="coin-or.org http://www.coin-or.org/projects/autoGen.xsd">
+
+  <projectBasics>
+      <projectName>MibS</projectName>
+      <projectRepo>MibS</projectRepo>
+
+      <projectDescription>
+         MibS is a solver for mixed integer bilevel optimization problems.
+      </projectDescription>
+      <projectShortDescription>
+         Solver for mixed integer bilevel optimization problems.
+      </projectShortDescription>
+
+      <projectManager>Ted Ralphs, tkralphs at lehigh dot edu</projectManager>
+
+      <projectHomePage>https://github.com/coin-or/MibS</projectHomePage>
+
+      <projectLicense>Eclipse Public License 1.0</projectLicense>
+      <projectLicenseURL>https://opensource.org/licenses/EPL-1.0</projectLicenseURL>
+
+      <coinLinkedProjects>
+         <coinProject>
+            <repoName>CHiPPS</repoName>
+         </coinProject>
+         <coinProject>
+            <repoName>Cbc</repoName>
+         </coinProject>
+         <coinProject>
+            <repoName>SYMPHONY</repoName>
+         </coinProject>
+      </coinLinkedProjects>
+
+      <otherLinkedPackages>
+      </otherLinkedPackages>
+
+      <projectLanguage>C++</projectLanguage>
+
+      <developmentStatus>
+        <activityStatus>Active</activityStatus>
+        <maturityLevel>2</maturityLevel>
+      </developmentStatus>
+
+      <testedPlatforms>
+         <platform>
+            <operatingSystem>Linux</operatingSystem>
+            <compiler>GCC</compiler>
+         </platform>
+         <platform>
+            <operatingSystem>Mac OS X</operatingSystem>
+            <compiler>clang</compiler>
+         </platform>
+         <platform>
+            <operatingSystem>Microsoft Windows</operatingSystem>
+            <compiler>MSVC++/cl</compiler>
+         </platform>
+      </testedPlatforms>
+
+      <projectCategories>
+      <category>
+          Interfaces
+      </category>
+      <category>
+          Optimization bilevel
+      </category>
+      <category>
+          Optimization deterministic linear discrete
+      </category>
+      </projectCategories>
+  </projectBasics>
+
+  <leftMenuLinks>                                                   
+     <documentation></documentation>
+     <sourceCodeDownload>https://github.com/coin-or/MiBS/releases</sourceCodeDownload>
+     <binaryDownload>https://bintray.com/coin-or/download/MibS</binaryDownload>
+     <mailingList></mailingList>
+  </leftMenuLinks>
+
+</projectData>

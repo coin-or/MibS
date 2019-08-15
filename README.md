@@ -1,14 +1,17 @@
-# MibS (Mixed Integer Bilevel Solver) 0.95
+# MibS (Mixed Integer Bilevel Solver) 1.1
+
+***IMPORTANT: The procedure for obtaining the source code for MibS and
+dependencies has changed. Please read below and do not clone this project
+directly.***
 
 ## Build Status
 
-[![Build Status](https://travis-ci.org/tkralphs/MibS.svg?branch=master)](https://travis-ci.org/tkralphs/MibS)
+[![Build Status](https://travis-ci.org/coin-or/MibS.svg?branch=master)](https://travis-ci.org/coin-or/MibS)
 
-[![Build status](https://ci.appveyor.com/api/projects/status/fa7egaj3n4kcq101/branch/master?svg=true)](https://ci.appveyor.com/project/tkralphs/mibs/branch/master)
-
+[![Build status](https://ci.appveyor.com/api/projects/status/aqxs9wcp2tjgpffd?svg=true)](https://ci.appveyor.com/project/tkralphs/mibs-gkymh/branch/master)
 ## Download
 
-[ ![Download](https://api.bintray.com/packages/coin-or/download/MibS/images/download.svg?version=0.9) ](https://bintray.com/coin-or/download/MibS/0.9/link)
+[ ![Download](https://api.bintray.com/packages/coin-or/download/MibS/images/download.svg?version=1.1.2) ](https://bintray.com/coin-or/download/MibS/1.1.2/link)
 
 Binary packages are available for some platforms from [Bintray](https://bintray.com/coin-or/download/MibS).
 
@@ -42,109 +45,145 @@ download, build, and install all dependencies.
 
 ### Building on Linux
 
-Most Linux distributions come with all the required tools installed.
-To obtain the source code, open a terminal and do
+Most Linux distributions come with all the required tools installed. To obtain
+the source code, the first step is to get the installer that will then
+fetch the source for MibS and all its dependencies. *You do not need to
+clone MibS first, just do the following!* Open a terminal and execute
 
 ```
-git clone https://www.github.com/tkralphs/MibS
+git clone https://www.github.com/coin-or/COIN-OR-OptimizationSuite
 ```
 
-To build from source, there is a script that fetches dependent projects
-and builds automatically. To get the script and perform the build, do
+Next, to check out source code for and build all the necessary projects (including 
+dependencies), execute the script in the `COIN-OR-OptimizationSuite` subdirectory. 
+To execute the script, do
 
 ```
-cd MibS
-git clone https://github.com/coin-or-tools/BuildTools/
+cd COIN-OR-OptimizationSuite
+chmod u+x coin.install.sh
+./coin.install.sh
 ```
 
-and then execute
+(Note: The `chmod` command is only needed if the execute permission is not automatically 
+set by git on cloning). Once you run the script,
+you will be prompted interactively to select a project to fetch and build. The
+rest should happen automagically. Alternatively, the following command-line
+incantation will execute the procedure non-interactively.
 
 ```
-BuildTools/get.dependencies.sh fetch
-BuildTools/get.dependencies.sh build --quiet
+./coin.install.sh fetch build --no-prompt --main-proj=MibS
 ```
 
-This will build all required dependencies and MibS itself. Afterwards, the
-binaries will be installed in the directory `Mibs/build/bin` and the libraries
-in the directory `MibS/build/lib`. If you wish to install in a different
-directory, such as `/usr/local`, then run the command
+Options to the `configure` script can simply be added to the command-line. For
+example, to build with debugging symbols, do
 
 ```
-BuildTools/get.dependencies.sh install --prefix=/path/to/install/dir
+./coin.install.sh fetch build --no-prompt --main-proj=MibS --enable-debug
 ```
 
-After installation, you will also need to add `/your/install/dir/bin` to your
-`PATH` variable in your `.bashrc` and also add `/your/install/dir/lib`
+To get help with additional options available in running the script, do
+
+```
+./coin/install.sh --help
+```
+
+The above procedures will build all required dependencies and MibS itself.
+Afterwards, the binaries will be installed in the directory `Mibs/build/bin`
+and the libraries in the directory `MibS/build/lib`. If you wish to install in
+a different directory, such as `/usr/local`, then run the command
+
+```
+./coin.install.sh install --prefix=/path/to/install/dir
+```
+
+After installation, you will also need to add `/path/to/install/dir/bin` to your
+`PATH` variable in your `.bashrc` and also add `/path/to/install/dir/lib`
 to your `LD_LIBRARY_PATH` if you want to link to COIN libraries. 
 
 ### Building on Windows (MSys2/CYGWIN and MinGW/MSVC)
 
 By far, the easiest way to build on Windows is with the GNU autotools and the
-MinGW compilers.  
- 1. The first step is to install either [Msys2](https://msys2.github.io/) or
- [CYGWIN](http://cygwin.org/). If you don't already
- have CYGWIN installed, it is recommended to use MSys2, since it provides a
- minimal toolset that is easy to install.    
- 2. To get MSys2, either download the installer
- [here](https://msys2.github.io/) or download and unzip MSys2 base from
- [here](http://kent.dl.sourceforge.net/project/msys2/Base/x86_64/msys2-base-x86_64-20150512.tar.xz). 
- 3. Either run `msys2_shell.bat` or manually add `msys64\usr\bin`,
- `msys64\mingw32\bin`, and `msys64\mingw64\bin` to your Windows path.   
- 4. Open a Windows terminal and type
+GCC compilers. The first step is to install either
+   * [Msys2](https://msys2.github.io/)
+   * [CYGWIN](http://cygwin.org/)
+   * [Windows Subsystem for Linux](https://docs.microsoft.com/en-us/windows/wsl/install-win10)
 
-   ```
-   bash
-   pacman -S make wget tar patch dos2unix diffutils git svn
-   ```
+If you don't already have CYGWIN installed and don't want to fool around with
+WSL (which is a great option if you already know your way around Unix), it is
+recommended to use MSys2, since it provides a minimal toolset that is easy to
+install. To get MSys2, either download the installer
+[here](https://msys2.github.io/) or download and unzip MSys2 base from
+[here](http://kent.dl.sourceforge.net/project/msys2/Base/x86_64/msys2-base-x86_64-20150512.tar.xz) 
+(this is an out-of-date version, there may be a better place to get an archive version). 
 
- 5. Obtain the source code with 
+Following any of the above steps, you should have the `bash` command (with Msys2, be sure to run `msys2_shell.bat` 
+or manually add `msys64\usr\bin`, `msys64\mingw32\bin`, and `msys64\mingw64\bin` to your Windows path).   
 
-   ```
-   git clone https://www.github.com/tkralphs/MibS
-   ```
-
- 6. To build from source, there is a script that fetches dependent projects
-and builds automatically. To get the script amd perform the build, do 
+Once you have bash installed and in your `PATH`, open a Windows terminal and type 
 
 ```
-cd MibS
-git clone https://github.com/coin-or-tools/BuildTools/
+bash
+pacman -S make wget tar patch dos2unix diffutils git svn
 ```
 
-and then execute
+To obtain the source code, the first step is to get the installer that will then
+fetch the source for MibS and all its dependencies. *You do not need to
+clone MibS first, just do the following!* Open a terminal and execute
 
 ```
-BuildTools/get.dependencies.sh fetch
-BuildTools/get.dependencies.sh build --quiet
+git clone https://www.github.com/coin-or/COIN-OR-OptimizationSuite
 ```
 
-This will build all required dependencies and MibS itself. Afterwards, the
-binaries will be installed in the directory `Mibs/build/bin` and the libraries
-in the directory `MibS/build/lib`. If you wish to install in a different
-directory, such /c/Program\ Files\ \(x86\)/MibS, then run the command
+Next, to check out source code for and build all the necessary projects (including 
+dependencies), execute the script in the `COIN-OR-OptimizationSuite` subdirectory. 
+To execute the script, do
 
 ```
-BuildTools/get.dependencies.sh install --prefix=/path/to/install/dir
+cd COIN-OR-OptimizationSuite
+chmod u+x coi.install.sh
+./coin.install.sh
 ```
 
- 7. To use the resulting binaries and/or libraries, you will need to add the
- full path of the directory `MibS\build\bin` to your Windows executable
- search `PATH`, or, alternatively, copy this directory to `C:\Program Files
- (x86)` and add the directory `C:\Program Files (x86)\MibS\bin` to your
- Windows executable search `PATH`. You may also consider copying the
- `build\lib` and `build\include` directories if you want to link to the
- COIN-OR libraries.
+(Note: The `chmod` command is only needed if the execute permission is not automatically 
+set by git on cloning). Once you run the script,
+you will be prompted interactively to select a project to fetch and build. the
+rest should happen automagically. Alternatively, the following command-line
+incantation will execute the procedure non-interactively.
+
+```
+./coin.install.sh fetch build --no-prompt --main-proj=MibS
+```
+Options to the `configure` script can simply be added to the command-line. For
+example, to build with debugging symbols, do
+
+```
+./coin.install.sh fetch build --no-prompt --main-proj=MibS --enable-debug
+```
+
+To get help with additional options available in running the script, do
+
+```
+./coin/install.sh --help
+```
+
+To use the resulting binaries and/or libraries, you will need to add the
+full path of the directory `build\bin` to your Windows executable
+search `PATH`, or, alternatively, copy the conents of the build directory to 
+`C:\Program Files (x86)\MibS` and add the directory `C:\Program Files (x86)\MibS\bin` 
+to your Windows executable search `PATH`. You may also consider adding
+`C:\Program Files (x86)\MibS\lib` to the `LIB` path and 
+`C:\Program Files (x86)\MibS\include` to the `INCLUDE` path. 
 
 It is possible to use almost the exact same commands to build with the Visual
 Studio compilers. Before doing any of the above commands in the Windows
-terminla, first run the `vcvarsall.bat` script for your version of Visual
+terminal, first run the `vcvarsall.bat` script for your version of Visual
 Studio. Note that you will also need a compatible Fortran compiler if you want
 to build any projects requiring Fortran (`ifort` is recommended, but not
 free). Then follow all the steps above, but replace the `build` command
 with
 
 ```
-BuildTools/get.dependencies.sh build --quiet --enable-msvc 
+./coin.install.sh fetch build --no-prompt --main-proj=MibS --enable-msvc
 ```
 
 ### Building on OS X
@@ -161,28 +200,33 @@ do
 brew install gcc wget svn git
 ```
 
-```
-git clone https://www.github.com/tkralphs/MibS
-```
-
-To build from source, there is a script that fetches dependent projects
-and builds automatically. To get the script amd perform the build, do
+To obtain the source code, the first step is to get the installer that will then
+fetch the source for MibS and all its dependencies. *You do not need to
+clone MibS first, just do the following!* Open a terminal and execute
 
 ```
-cd MibS
-git clone https://github.com/coin-or-tools/BuildTools/
+git clone https://www.github.com/coin-or/COIN-OR-OptimizationSuite
 ```
 
-and then execute
+Next, to check out source code for and build all the necessary projects (including 
+dependencies), execute the script in the `COIN-OR-OptimizationSuite` subdirectory. 
+To execute the script, do
 
 ```
-BuildTools/get.dependencies.sh fetch
-BuildTools/get.dependencies.sh build --quiet
+cd COIN-OR-OptimizationSuite
+chmod u+x coin.install.sh
+./coin.install.sh
 ```
 
-This will build all required dependencies and MibS itself. Afterwards, the
-binaries will be installed in the directory `Mibs/build/bin` and the libraries
-in the directory `MibS/build/lib`.
+(Note: The `chmod` command is only needed if the execute permission is not automatically 
+set by git on cloning). Once you run the script,
+you will be prompted interactively to select a project to fetch and build. the
+rest should happen automagically. Alternatively, the following command-line
+incantation will execute the procedure non-interactively.
+
+```
+./coin.install.sh fetch build --no-prompt --main-proj=MibS
+```
 
 With this setup, `clang` will be used for compiling C++ by default and
 `gfortran` will be used for Fortran. Since `clang` uses the GNU standard
@@ -192,18 +236,30 @@ If you want to use the `gcc` compiler provided by Homebrew, then replace the
 `build` command above with
 
 ```
-BuildTools/get.dependencies.sh build --quiet CC=gcc-5 CXX=g++-5
+./coin.install.sh build --no-prompt --main-proj=MibS CC=gcc-5 CXX=g++-5
 ```
 
-If you wish to install in a different
-directory, such as `/usr/local`, then run the command
+Additional options to the `configure` script can simply be added to the command-line. For
+example, to build with debugging symbols, do
 
 ```
-BuildTools/get.dependencies.sh install --prefix=/path/to/install/dir
+./coin.install.sh fetch build --no-prompt --main-proj=MibS --enable-debug
 ```
 
-After installation, you will also need to add `/your/install/dir/bin` to your
-`PATH` variable in your `.bashrc` and also add `/your/install/dir/lib`
+To get help with additional options available in running the script, do
+
+```
+./coin/install.sh --help
+```
+
+If you wish to install in a different directory, such as `/usr/local`, then run the command
+
+```
+./coin.install.sh install --prefix=/path/to/install/dir
+```
+
+After installation, you will also need to add `/path/to/install/dir/bin` to your
+`PATH` variable in your `.bashrc` and also add `/path/to/install/dir/lib`
 to your `DYLD_LIBRARY_PATH` if you want to link to COIN libraries. 
 
 ## USING
@@ -241,6 +297,6 @@ MibS was developed with support from
 Laboratories" funded by the German Federal Ministry of Education and Research
 (BMBF Grant 05M14ZAM) and by the DFG SFB/Transregio 154
 
-http://github.com/tkralphs/MibS
+http://github.com/coin-or/MibS
 
 Enjoy!
