@@ -1248,19 +1248,25 @@ MibSModel::setupProgresHedg(const CoinPackedMatrix& matrix,
 {
     //saharPH: define these as parameter later
     int maxPHIteration(MibSPar_->entry(MibSParams::iterationLimitPH));
-    double rho(1.0);
+    //double rho(1.0);
 
-    int i(0), j(0);
+    int i(0), j(0), k(0);
     int cntIter(0);
     double element(0.0), optObj(0.0), value(0.0), removedObj(0.0);
+    double maxVal(0.0), minVal(0.0);
     double etol(etol_);
     bool shouldTerminate(false), isTimeLimReached(false);
     bool isImplementable(true), isFixed(true), solveRestrictedProb(false);
+    bool maxFound(false), minFound(false);
     int truncLColNum(getTruncLowerDim());
     int truncLRowNum(getTruncLowerRowNum());
     int uColNum(truncNumCols - truncLColNum);
     int uRowNum(truncNumRows - truncLRowNum);
     int numScenarios(getNumScenarios());
+
+    double *rho = new double[uColNum];
+    CoinZeroN(rho, uColNum);
+    
 
     double **wArrs = new double *[numScenarios];
     for(i = 0; i < numScenarios; i++){
@@ -1310,8 +1316,35 @@ MibSModel::setupProgresHedg(const CoinPackedMatrix& matrix,
 	for(i = 0; i < numScenarios; i ++){
 	    isTimeLimReached = false;
 	    if(cntIter > 0){
+		//compute rho
 		for(j = 0; j < uColNum; j++){
-		    tmpWArr[j] = wArrs[i][j] + rho * (allScenarioSols[i][j] - implemSolBack[j]);
+		    maxVal = 0.0;
+		    minVal = 1.0;
+		    maxFound = false;
+		    minFound = false;
+		    for(k = 0; k < numScenarios; k++){
+			value = allScenarioSols[k][j];
+			if(maxFound == false){
+			    if(fabs(value - maxVal) > 0.5){
+				maxVal = 1.0;
+				maxFound = true;
+			    }
+			}
+			if(minFound == false){
+			    if(fabs(minVal - value) > 0.5){
+				minVal = 0.0;
+				minFound = true;
+			    }
+			}
+			if((minFound == true) && (maxFound == true)){
+			    break;
+			}
+		    }
+		    rho[j] = copyObjCoef[j]/(maxVal - minVal + 1);
+		}
+		//compute w
+		for(j = 0; j < uColNum; j++){
+		    tmpWArr[j] = wArrs[i][j] + rho[j] * (allScenarioSols[i][j] - implemSolBack[j]);
 		    wArrs[i][j] = tmpWArr[j];
 		}
 	    }
@@ -1431,6 +1464,7 @@ MibSModel::setupProgresHedg(const CoinPackedMatrix& matrix,
     delete [] copyObjCoef;
     delete [] implemSol;
     delete [] implemSolBack;
+    delete [] rho;
     delete [] tmpWArr;
     for(i = 0; i < numScenarios; i++){
 	delete [] wArrs[i];
@@ -1904,7 +1938,7 @@ MibSModel::solvePHProb(const CoinPackedMatrix& rowMatrix, const double *varLB,
 		       const double *conLB, const double *conUB, const char *colType,
 		       double objSense, int numCols, int numRows, double infinity,
 		       const char *rowSense, int scenarioIndex, int iterIndex,
-		       bool &isTimeLimReached, double *wArr, double *implemSol, double rho)
+		       bool &isTimeLimReached, double *wArr, double *implemSol, double *rho)
 {
 
     int nodeLimit(MibSPar_->entry(MibSParams::nodeLimitPHSubprob));
@@ -1984,11 +2018,13 @@ MibSModel::solvePHProb(const CoinPackedMatrix& rowMatrix, const double *varLB,
     coefMatrix->reverseOrdering();
 
     //There is no penalty in the first iteration
+    double rhoVal(0.0);
     memcpy(objCoef, origObjCoef, sizeof(double) * numCols);
     if(iterIndex > 0){
 	for(i = 0; i < uColNum; i++){
 	    //saharPH: check rho/2.0
-	    objCoef[i] += wArr[i] - rho * implemSol[i] + (rho/2.0);
+	    rhoVal = rho[i];
+	    objCoef[i] += wArr[i] - rhoVal * implemSol[i] + (rhoVal/2.0);
 	}
     }
 

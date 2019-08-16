@@ -691,7 +691,7 @@ public:
 			const double *conLB, const double *conUB, const char *colType,
 			double objSense, int numCols, int numRows, double infinity,
 			const char *rowSense, int scenarioIndex, int iterIndex,
-			bool &isTimeLimReached, double *wArr, double *implemSol, double rho);
+			bool &isTimeLimReached, double *wArr, double *implemSol, double *rho);
 
     //Functions for the SAA method
     void setupSAA(const CoinPackedMatrix& matrix,
