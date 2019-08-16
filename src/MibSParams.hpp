@@ -40,6 +40,7 @@ class MibSParams : public AlpsParameterSet {
      printProblemInfo,
      allowRemoveCut,
      useNewPureIntCut,
+     useProgresHedg,
      endOfBoolParams
   };
   
@@ -106,12 +107,15 @@ class MibSParams : public AlpsParameterSet {
      incDistB2DenumSAA,
      incDistA2NumerSAA,
      incDistA2DenumSAA,
+     iterationLimitPH,
+     nodeLimitPHSubprob,
      endOfIntParams
   };
 
   /** Double parameters. */
   enum dblParams{
       boundCutTimeLim,
+      optimalRelGapLimitPHSubprob,
       endOfDblParams
   };
 

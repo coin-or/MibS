@@ -68,6 +68,12 @@ MibSParams::createKeywordList() {
 
    keys_.push_back(make_pair(std::string("MibS_useNewPureIntCut"),
 			     AlpsParameter(AlpsBoolPar, useNewPureIntCut)));
+
+   //the parameter for using progressive hedging
+   //note that this heuristic can be used only when
+   //the parameter "stochasticityType" is set to "stochasticWithoutSAA"
+   keys_.push_back(make_pair(std::string("MibS_useProgresHedg"),
+			     AlpsParameter(AlpsBoolPar, useProgresHedg)));
    
 
    //--------------------------------------------------------
@@ -270,6 +276,13 @@ MibSParams::createKeywordList() {
    keys_.push_back(make_pair(std::string("MibS_incDistA2DenumSAA"),
 			     AlpsParameter(AlpsIntPar, incDistA2DenumSAA)));
 
+   //parameters for progressive hedging
+   keys_.push_back(make_pair(std::string("MibS_iterationLimitPH"),
+			     AlpsParameter(AlpsIntPar, iterationLimitPH)));
+
+   keys_.push_back(make_pair(std::string("MibS_nodeLimitPHSubprob"),
+			     AlpsParameter(AlpsIntPar, nodeLimitPHSubprob)));
+
    //--------------------------------------------------------
    // String Parameters.
    //--------------------------------------------------------
@@ -304,6 +317,10 @@ MibSParams::createKeywordList() {
 
    keys_.push_back(make_pair(std::string("MibS_boundCutTimeLim"),
 			     AlpsParameter(AlpsDoublePar, boundCutTimeLim)));
+
+   //For progressive hedging
+   keys_.push_back(make_pair(std::string("MibS_optimalRelGapLimitPHSubprob"),
+			     AlpsParameter(AlpsDoublePar, optimalRelGapLimitPHSubprob)));
 
 }
 
@@ -341,6 +358,8 @@ MibSParams::setDefaultEntries() {
    setEntry(allowRemoveCut, false);
 
    setEntry(useNewPureIntCut, false);
+
+   setEntry(useProgresHedg, false);
 
    //-------------------------------------------------------------
    // Int Parameters.
@@ -468,11 +487,17 @@ MibSParams::setDefaultEntries() {
 
    setEntry(incDistA2DenumSAA, PARAM_NOTSET);
 
+   setEntry(iterationLimitPH, ALPS_INT_MAX);
+
+   setEntry(nodeLimitPHSubprob, ALPS_INT_MAX);
+
    //-------------------------------------------------------------
    // Double Parameters
    //-------------------------------------------------------------
 
    setEntry(boundCutTimeLim, 3600);
+
+   setEntry(optimalRelGapLimitPHSubprob, 1.0e-4);
    
    //-------------------------------------------------------------
    // String Parameters
