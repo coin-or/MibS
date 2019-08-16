@@ -665,6 +665,34 @@ public:
 
     double interdictionBound();
 
+    //Functions for the progressive hedging method
+    void setupProgresHedg(const CoinPackedMatrix& matrix,
+			  const CoinPackedMatrix& rowMatrix,
+			  const double* varLB, const double* varUB,
+			  const double* objCoef, const double* conLB,
+			  const double* conUB, const char * colType,
+			  double objSense, int truncNumCols, int truncNumRows,
+			  double infinity, const char *rowSense);
+
+    void solveRestrictedPH(const CoinPackedMatrix& matrix,
+			   const CoinPackedMatrix& rowMatrix,
+			   const double* varLB, const double* varUB,
+			   const double* objCoefOrig, const double* conLB,
+			   const double* conUB, const char * colTypeOrig,
+			   double objSense, int truncNumColsOrig, int truncNumRows,
+			   double infinity, const char *rowSense,
+			   double *uLUpper, double *uLLower, int numFixed, int *isFixedUL);
+
+    void printSolutionPH(double *optSol, double optObj, int numIter,
+			 int uColNum);
+
+    double *solvePHProb(const CoinPackedMatrix& rowMatrix, const double *varLB,
+			const double *varUB, double *origObjCoef,
+			const double *conLB, const double *conUB, const char *colType,
+			double objSense, int numCols, int numRows, double infinity,
+			const char *rowSense, int scenarioIndex, int iterIndex,
+			bool &isTimeLimReached, double *wArr, double *implemSol, double rho);
+
     //Functions for the SAA method
     void setupSAA(const CoinPackedMatrix& matrix,
 		  const CoinPackedMatrix& rowMatrix,
