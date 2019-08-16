@@ -399,6 +399,12 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 
     if(!isContainedInLinkingPool_){
 	for(i = 0; i < numScenarios; i++){
+            remainingTime = timeLimit - model_->broker_->subTreeTimer().getTime();
+	    if(remainingTime <= etol){
+		shouldPrune_ = true;
+		storeSol = MibSNoSol;
+		goto TERM_CHECKBILEVELFEAS;
+	    }
 	
 	//isProvenOptimal_ = true;
     
@@ -731,6 +737,13 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 	      }
 
 	      for(i = 0; i < numDecomposedProbs; i++){
+		  remainingTime = timeLimit - model_->broker_->subTreeTimer().getTime();
+		  if(remainingTime <= etol){
+		      shouldPrune_ = true;
+		      storeSol = MibSNoSol;
+		      goto TERM_CHECKBILEVELFEAS;
+		  }
+		  
 		if(numDecomposedProbs == 1){
 		  UBSolver = setUpUBModel(oSolver, shouldStoreObjValues, true);
 		}
@@ -856,7 +869,9 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 					"checkBilevelFeasiblity", "MibSBilevel");
 		    }
 		}
-		delete UBSolver;
+		if(UBSolver){
+		    delete UBSolver;
+		}
 	      }
 
 	      if(isUBProvenOptimal){
