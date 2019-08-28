@@ -366,6 +366,10 @@ MibSTreeNode::process(bool isRoot, bool rampUp)
         
         switch(lpStatus) {
         case BlisLpStatusOptimal:
+	  if (quality_ > cutoff) {
+	      setStatus(AlpsNodeStatusFathomed);
+	      goto TERM_PROCESS;
+	  }
 	  //can we put preprocessor here?
 
 	  //MibSModel * mibs = dynamic_cast<MibSModel *>(model);
