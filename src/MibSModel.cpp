@@ -2337,6 +2337,9 @@ MibSModel::setupSAA(const CoinPackedMatrix& matrix,
 	if(optSolRepl != NULL){
 	    objValSAARepls[m] = objSAA;
 	    std::copy(optSolRepl, optSolRepl + uCols, optSolReplVec.begin());
+	    if(m == 1){
+		memcpy(bestEvalSol, optSolRepl, sizeof(double) * uCols);
+	    }
 	    if(seenULSolutions.find(optSolReplVec) ==
 	       seenULSolutions.end()){
 		objU = 0.0;
@@ -2522,10 +2525,10 @@ MibSModel::setupSAA(const CoinPackedMatrix& matrix,
     if(isTimeLimReached == true){
 	std::cout << "Time limit is reached" << std::endl;
     }
-    else if(allEvalsInfeas == true){
-	std::cout << "All solutions of replicates are infeasible ";
-	std::cout << "with respect to evaluation sample." << std::endl;
-    }
+    //else if(allEvalsInfeas == true){
+	//std::cout << "All solutions of replicates are infeasible ";
+	//std::cout << "with respect to evaluation sample." << std::endl;
+	//}
     else{
 	double estimatedObj(0.0);
 	//we generate a new eval sample to be unbiased
@@ -2613,7 +2616,7 @@ MibSModel::setupSAA(const CoinPackedMatrix& matrix,
 		remainingTime = CoinMax(remainingTime, 0.00);
 		if(remainingTime <= etol){
 		    isTimeLimReached = true;
-		    goto TERM_SETUPSAA;
+		    break;
 		}
 
 		if (feasCheckSolver == "Cbc"){
@@ -2657,7 +2660,7 @@ MibSModel::setupSAA(const CoinPackedMatrix& matrix,
 		    if(sym_is_time_limit_reached(dynamic_cast<OsiSymSolverInterface*>
 						 (evalBestSolverNew)->getSymphonyEnvironment())){
 			isTimeLimReached = true;
-			goto TERM_SETUPSAA;
+			break;
 		    }
 		    //#endif
 		}
@@ -2680,10 +2683,10 @@ MibSModel::setupSAA(const CoinPackedMatrix& matrix,
 	}
 
 	if(isLowerInfeasible == true){
-	    std::cout << ("Optimality gap is infinite :(") << std::endl;
+	    std::cout << "Optimality gap is infinite :(" << std::endl;
 	}
 	else if(isTimeLimReached == true){
-	    std::cout << ("Time limit is reached") << std::endl;
+	    std::cout << "Time limit is reached" << std::endl;
 	}   
 	else{
 	    for(j = 0; j < uCols; j++){
@@ -2699,12 +2702,12 @@ MibSModel::setupSAA(const CoinPackedMatrix& matrix,
 	    printSolutionSAA(truncNumCols, estimatedObj, estimatedLowerBound,
 			     varLower, varUpper, bestEvalSol);
 
-    delete evalLSolverNew;
-    if(evalBestSolverNew){
-	delete evalBestSolverNew;
-    }
-    delete evalA2MatrixNew;
-    delete [] evalRHSNew;
+	    delete evalLSolverNew;
+            if(evalBestSolverNew){
+		delete evalBestSolverNew;
+	    }
+	    delete evalA2MatrixNew;
+	    delete [] evalRHSNew;
 	}
     }
     if(b2Base != NULL){
