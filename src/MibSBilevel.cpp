@@ -1177,7 +1177,7 @@ MibSBilevel::setUpUBModel(OsiSolverInterface * oSolver,
 	int tmpRowNum(rowNum - numScenarios);
 
 	CoinPackedMatrix matrix = *model_->origConstCoefMatrix_;
-	matrix.reverseOrdering();
+	//matrix.reverseOrdering();
 
 	double * rowUb = new double[rowNum];
         double * rowLb = new double[rowNum];
@@ -1262,12 +1262,14 @@ MibSBilevel::setUpUBModel(OsiSolverInterface * oSolver,
         //rowUb[rowNum-1] = objValLL;
         //rowLb[rowNum-1] = -1 * (oSolver->getInfinity());
 
-        CoinPackedMatrix * newMat = new CoinPackedMatrix(false, 0, 0);
-        newMat->setDimensions(0, colNum);
+        //CoinPackedMatrix * newMat = new CoinPackedMatrix(false, 0, 0);
+        //newMat->setDimensions(0, colNum);
+	CoinPackedMatrix newMat;
+	newMat.reverseOrderedCopyOf(matrix);    
 
-        for(i = 0; i < rowNum - numScenarios; i++){
-	    newMat->appendRow(matrix.getVector(i));
-	}
+        //for(i = 0; i < rowNum - numScenarios; i++){
+	//  newMat->appendRow(matrix.getVector(i));
+	//}
 
         CoinPackedVector row;
 	//for(i = 0; i < lCols; i++){
@@ -1287,7 +1289,7 @@ MibSBilevel::setUpUBModel(OsiSolverInterface * oSolver,
 		index1 = lColIndices[i];
 		row.insert(index1, newRow[i]);
 	    }
-	    newMat->appendRow(row);
+	    newMat.appendRow(row);
 	    rowUb[rowNum-1] = objValuesVec[0];
 	    rowLb[rowNum-1] = minusInf;
 	    delete [] newRow;
@@ -1300,14 +1302,14 @@ MibSBilevel::setUpUBModel(OsiSolverInterface * oSolver,
 		    row.insert(index1, lObjCoeffs[j] * objSense);
 		    index1 ++;
 		}
-		newMat->appendRow(row);
+		newMat.appendRow(row);
 		row.clear();
 		rowUb[tmpRowNum + i] = objValuesVec[i];
 	    }
 	    
 	}
 
-        nSolver->loadProblem(*newMat, colLb, colUb,
+        nSolver->loadProblem(newMat, colLb, colUb,
 			     objCoeffs, rowLb, rowUb);
 
         for(i = 0; i < intCnt; i++){
@@ -1324,7 +1326,7 @@ MibSBilevel::setUpUBModel(OsiSolverInterface * oSolver,
         delete [] colUb;
         delete [] colLb;
         delete [] objCoeffs;
-        delete newMat;
+        //delete newMat;
     }
     /*else{
 	nSolver = UBSolver_;
