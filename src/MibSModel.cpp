@@ -2992,6 +2992,8 @@ MibSModel::solveSAA(const CoinPackedMatrix& matrix,
 
     double timeLimit(AlpsPar()->entry(AlpsParams::timeLimit));
 
+    bool useUBDecompose(MibSPar_->entry(MibSParams::useUBDecompose));
+
     double etol(etol_);
     int sampleSize(MibSPar_->entry(MibSParams::sampSizeSAA));//N
     int i(0), j(0);
@@ -3056,6 +3058,8 @@ MibSModel::solveSAA(const CoinPackedMatrix& matrix,
     modelSAA->isInterdict_ = false;
     modelSAA->MibSPar()->setEntry(MibSParams::stochasticityType, "stochasticWithSAA");
     modelSAA->MibSPar()->setEntry(MibSParams::isA2Random, isA2Random);
+    modelSAA->MibSPar()->setEntry(MibSParams::useUBDecompose, useUBDecompose);
+    
 
     modelSAA->numScenarios_ = sampleSize;
 
