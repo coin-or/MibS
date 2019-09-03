@@ -1687,7 +1687,7 @@ MibSCutGenerator::storeBestSolHypercubeIC(const double* lpSol,
     
     OsiSolverInterface * oSolver = localModel_->solver();
     MibSBilevel *bS = localModel_->bS_;
-    int i(0);
+    int i(0), j(0), k(0);
     int lpStat;
     bool isUBProvenOptimal(true);
     int numCols(oSolver->getNumCols());
@@ -1709,7 +1709,9 @@ MibSCutGenerator::storeBestSolHypercubeIC(const double* lpSol,
 	    linkSol.push_back(lpSol[i]);
 	}
     }
-    
+
+    CoinPackedMatrix *truncMatrixG2 = NULL;
+    double *multA2XOpt = NULL; 
     OsiSolverInterface *UBSolver = 0;
 
     //std::vector<double> optLowerObjVec;
@@ -1742,7 +1744,45 @@ MibSCutGenerator::storeBestSolHypercubeIC(const double* lpSol,
 	UBSolver = bS->setUpUBModel(localModel_->getSolver(), optLowerObjVec, true);
       }
       else{
-	UBSolver = bS->setUpDecomposedUBModel(localModel_->getSolver(), optLowerObjVec, i);
+	if(i == 0){
+	  CoinPackedMatrix coefMatrix = *localModel_->origConstCoefMatrix_;
+	  int truncNumCols = uN + truncLN;
+	  int uRowNum = localModel_->getOrigUpperRowNum();
+	  CoinPackedVector col1;
+	  CoinPackedVector col2;
+	  int *colInd = NULL;
+	  double *colElem = NULL;
+	  int colNumElem(0);
+	  truncMatrixG2 = new CoinPackedMatrix(true, 0, 0);
+	  truncMatrixG2->setDimensions(localModel_->getTruncLowerRowNum(), 0);
+	  for(j = uN; j < truncNumCols; j++){
+	    col1 = coefMatrix.getVector(j);
+	    colInd = col1.getIndices();
+	    colElem = col1.getElements();
+	    colNumElem = col1.getNumElements();
+	    for(k = 0; k < colNumElem; k++){
+	      col2.insert(colInd[k] - uRowNum, colElem[k]);
+	    }
+	    truncMatrixG2->appendCol(col2);
+	    col1.clear();
+	    col2.clear();
+	  }
+	  int isA2Random(localModel_->MibSPar_->entry(MibSParams::isA2Random));
+	  if(isA2Random == PARAM_OFF){
+	      multA2XOpt = new double[localModel_->getTruncLowerRowNum()];
+	  }
+	  else{
+	      multA2XOpt = new double[localModel_->getLowerRowNum()];
+	  }
+	  const double *lpSol = localModel_->getSolver()->getColSolution();
+	  double *optUpperSol = new double[uN];
+	  CoinDisjointCopyN(lpSol, uN, optUpperSol);
+	  localModel_->getStocA2Matrix()->times(optUpperSol, multA2XOpt);
+	  delete [] optUpperSol;
+	}
+	UBSolver = bS->setUpDecomposedUBModel(localModel_->getSolver(),
+					      optLowerObjVec, i, truncMatrixG2,
+					      multA2XOpt);
       }
 
       remainingTime = timeLimit - localModel_->broker_->subTreeTimer().getTime();
@@ -1893,6 +1933,8 @@ MibSCutGenerator::storeBestSolHypercubeIC(const double* lpSol,
 	}
       }
     }
+    delete truncMatrixG2;
+    delete [] multA2XOpt;
     delete [] valuesUB;
 }
 

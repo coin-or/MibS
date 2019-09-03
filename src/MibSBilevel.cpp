@@ -351,13 +351,15 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
     int truncLN(model_->truncLowerDim_);;
     int lN(model_->lowerDim_); // lower-level dimension
     int uN(model_->upperDim_); // lower-level dimension
-    int i(0), index(0), length(0), pos(0), begPos(0);
+    int i(0), j(0), k(0),  index(0), length(0), pos(0), begPos(0);
     int lpStat;
     int sizeFixedInd(model_->sizeFixedInd_);
     double etol(model_->etol_), objVal(0.0), lowerObj(0.0);
     int * fixedInd = model_->fixedInd_;
     int * lowerColInd = model_->getLowerColInd();
     int * upperColInd = model_->getUpperColInd();
+    CoinPackedMatrix *truncMatrixG2 = NULL;
+    double *multA2XOpt = NULL;
     OsiSolverInterface *UBSolver = 0;
 
     //saharSto: fix it later
@@ -748,7 +750,44 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 		  UBSolver = setUpUBModel(oSolver, shouldStoreObjValues, true);
 		}
 		else{
-		  UBSolver = setUpDecomposedUBModel(oSolver, shouldStoreObjValues, i);
+		    if(i == 0){
+			CoinPackedMatrix coefMatrix = *model_->origConstCoefMatrix_;
+			int truncNumCols = uN + truncLN;
+			int uRowNum = model_->getOrigUpperRowNum();
+			CoinPackedVector col1;
+			CoinPackedVector col2;
+			int *colInd = NULL;
+			double *colElem = NULL;
+			int colNumElem(0);
+			truncMatrixG2 = new CoinPackedMatrix(true, 0, 0);
+			truncMatrixG2->setDimensions(model_->getTruncLowerRowNum(), 0);
+			for(j = uN; j < truncNumCols; j++){
+			    col1 = coefMatrix.getVector(j);
+			    colInd = col1.getIndices();
+			    colElem = col1.getElements();
+			    colNumElem = col1.getNumElements();
+			    for(k = 0; k < colNumElem; k++){
+				col2.insert(colInd[k] - uRowNum, colElem[k]);
+			    }
+			    truncMatrixG2->appendCol(col2);
+			    col1.clear();
+			    col2.clear();
+			}
+			int isA2Random(model_->MibSPar_->entry(MibSParams::isA2Random));
+			if(isA2Random == PARAM_OFF){
+			    multA2XOpt = new double[model_->getTruncLowerRowNum()];
+			}
+			else{
+			    multA2XOpt = new double[model_->getLowerRowNum()];
+			}
+			const double *lpSol = oSolver->getColSolution();
+			double *optUpperSol = new double[uN];
+			CoinDisjointCopyN(lpSol, uN, optUpperSol);
+			model_->getStocA2Matrix()->times(optUpperSol, multA2XOpt);
+			delete [] optUpperSol;
+		    }
+		    UBSolver = setUpDecomposedUBModel(oSolver, shouldStoreObjValues, i,
+						      truncMatrixG2, multA2XOpt);
 		}
 		
 		if(0)
@@ -930,6 +969,12 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 		    shouldPrune_ = true;
 		}
 		delete [] valuesUB;
+		if(truncMatrixG2){
+		    delete truncMatrixG2;
+		}
+		if(multA2XOpt){
+		    delete [] multA2XOpt;
+		}
 	    }
 	    else if ((tagInSeenLinkingPool_ != MibSLinkingPoolTagUBIsSolved) ||
 		     ((!useLinkingSolutionPool) && (isUBSolved_))){
@@ -981,11 +1026,15 @@ MibSBilevel::gutsOfDestructor()
 OsiSolverInterface *
 MibSBilevel::setUpDecomposedUBModel(OsiSolverInterface * oSolver,
 				    std::vector<double> &objValuesVec,
-				    int scenarioIndex)
+				    int scenarioIndex,
+				    CoinPackedMatrix *truncMatrixG2,
+				    double *multA2XOpt)
 {
 
     std::string feasCheckSolver =
 	model_->MibSPar_->entry(MibSParams::feasCheckSolver);
+
+    int isA2Random(model_->MibSPar_->entry(MibSParams::isA2Random));
 
     OsiSolverInterface * nSolver;
 
@@ -1009,9 +1058,12 @@ MibSBilevel::setUpDecomposedUBModel(OsiSolverInterface * oSolver,
     const double * origRowLb(model_->getOrigRowLb());
     const double * origRowUb(model_->getOrigRowUb());
     double * upComp = new double[lRows];
-    CoinFillN(upComp, lRows, 0.0);
+    if(isA2Random != PARAM_OFF){
+	rowIndex = scenarioIndex * lRows;
+    }
+    CoinDisjointCopyN(multA2XOpt + rowIndex, lRows, upComp); 
 
-    CoinPackedMatrix matrix = *model_->origConstCoefMatrix_;
+    /*CoinPackedMatrix matrix = *model_->origConstCoefMatrix_;
     matrix.reverseOrdering();
     CoinPackedMatrix * newMat = new CoinPackedMatrix(false, 0, 0);
     newMat->setDimensions(0, numCols);
@@ -1042,12 +1094,16 @@ MibSBilevel::setUpDecomposedUBModel(OsiSolverInterface * oSolver,
 	rowG2.clear();
 	row.clear();
 	rowIndex ++;
-    }
+	}*/
+
+    CoinPackedMatrix newMat;
+    CoinPackedVector row;
+    newMat.reverseOrderedCopyOf(*truncMatrixG2); 
 
     for(i = 0; i < numCols; i++){
 	row.insert(i, lObjCoeffs[i] * lObjSense);
     }
-    newMat->appendRow(row);
+    newMat.appendRow(row);
     row.clear();
 
     double * objCoeffs = new double[numCols];
@@ -1100,7 +1156,7 @@ MibSBilevel::setUpDecomposedUBModel(OsiSolverInterface * oSolver,
 			"setUpDecomposedUBModel", "MibsBilevel");
     }
 
-    nSolver->loadProblem(*newMat, colLb, colUb,
+    nSolver->loadProblem(newMat, colLb, colUb,
 			 objCoeffs, rowLb, rowUb);
 
     for(i = 0; i < intCnt; i++){
@@ -1123,7 +1179,6 @@ MibSBilevel::setUpDecomposedUBModel(OsiSolverInterface * oSolver,
     delete [] colLb;
     delete [] objCoeffs;
     delete [] upComp;
-    delete newMat;
 
     return nSolver;
 }
