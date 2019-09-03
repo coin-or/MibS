@@ -113,7 +113,9 @@ private:
     int findIndex(int index, int size, int * indices);
     OsiSolverInterface * setUpDecomposedUBModel(OsiSolverInterface * oSolver,
 						std::vector<double> &objValuesVec,
-						int scenarioIndex);
+						int scenarioIndex,
+						CoinPackedMatrix *truncMatrixG2,
+						double *multA2XOpt);
     OsiSolverInterface * setUpUBModel(OsiSolverInterface * solver,
 				      std::vector<double> &objValuesVec,
 				      bool newOsi, const double *sol = NULL);
