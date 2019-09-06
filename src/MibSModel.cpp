@@ -2189,6 +2189,13 @@ MibSModel::setupSAA(const CoinPackedMatrix& matrix,
     //saharStoSAA: ask about generating samples
     //saharStoSAA: lcm
     //saharStoSAA: ask about defining symphony then check all COIN_HAS_SYMPHONY
+
+    const int clockType = AlpsPar()->entry(AlpsParams::clockType);
+    broker_->timer().setClockType(clockType);
+    broker_->subTreeTimer().setClockType(clockType);
+    broker_->tempTimer().setClockType(clockType);
+    broker_->timer().start();
+    
     std::string feasCheckSolver =
 	MibSPar_->entry(MibSParams::feasCheckSolver);
 
@@ -2351,7 +2358,7 @@ MibSModel::setupSAA(const CoinPackedMatrix& matrix,
 						  evalA2Matrix, varLB, varUB, objCoef, rowSense,
 						  colType, infinity, i, uCols, uRows);
 
-		    remainingTime = timeLimit - broker_->subTreeTimer().getTime();
+		    remainingTime = timeLimit - broker_->timer().getTime();
 		    remainingTime = CoinMax(remainingTime, 0.00);
 		    if(remainingTime <= etol){
 			isTimeLimReached = true;
@@ -2415,7 +2422,7 @@ MibSModel::setupSAA(const CoinPackedMatrix& matrix,
 							 rowSense, colType, infinity, i, uCols, uRows,
 							 evalLSolver->getObjValue(), false);
 
-			remainingTime = timeLimit - broker_->subTreeTimer().getTime();
+			remainingTime = timeLimit - broker_->timer().getTime();
 			remainingTime = CoinMax(remainingTime, 0.00);
 			if(remainingTime <= etol){
 			    isTimeLimReached = true;
@@ -2550,7 +2557,7 @@ MibSModel::setupSAA(const CoinPackedMatrix& matrix,
 	    evalLSolverNew = setUpEvalModels(matrixG2, bestEvalSol, evalRHSNew,
 					     evalA2MatrixNew, varLB, varUB, objCoef,
 					     rowSense, colType, infinity, i, uCols, uRows);
-	    remainingTime = timeLimit - broker_->subTreeTimer().getTime();
+	    remainingTime = timeLimit - broker_->timer().getTime();
 	    remainingTime = CoinMax(remainingTime, 0.00);
 	    if(remainingTime <= etol){
 		isTimeLimReached = true;
@@ -2612,7 +2619,7 @@ MibSModel::setupSAA(const CoinPackedMatrix& matrix,
 						    rowSense, colType, infinity, i, uCols,
 						    uRows, evalLSolverNew->getObjValue(), false);
 
-		remainingTime = timeLimit - broker_->subTreeTimer().getTime();
+		remainingTime = timeLimit - broker_->timer().getTime();
 		remainingTime = CoinMax(remainingTime, 0.00);
 		if(remainingTime <= etol){
 		    isTimeLimReached = true;
@@ -2992,6 +2999,8 @@ MibSModel::solveSAA(const CoinPackedMatrix& matrix,
 
     double timeLimit(AlpsPar()->entry(AlpsParams::timeLimit));
 
+    int clockType(AlpsPar()->entry(AlpsParams::clockType));
+
     bool useUBDecompose(MibSPar_->entry(MibSParams::useUBDecompose));
 
     double etol(etol_);
@@ -3007,7 +3016,7 @@ MibSModel::solveSAA(const CoinPackedMatrix& matrix,
     int lRowNum(sampleSize * truncLRowNum);
     int numRows(uRowNum + lRowNum);
     
-    double remainingTime = timeLimit - broker_->subTreeTimer().getTime();
+    double remainingTime = timeLimit - broker_->timer().getTime();
     remainingTime = CoinMax(remainingTime, 0.00);
 
     if(remainingTime < etol){
@@ -3059,6 +3068,7 @@ MibSModel::solveSAA(const CoinPackedMatrix& matrix,
     modelSAA->MibSPar()->setEntry(MibSParams::stochasticityType, "stochasticWithSAA");
     modelSAA->MibSPar()->setEntry(MibSParams::isA2Random, isA2Random);
     modelSAA->MibSPar()->setEntry(MibSParams::useUBDecompose, useUBDecompose);
+    modelSAA->AlpsPar()->setEntry(AlpsParams::clockType, clockType);
     
 
     modelSAA->numScenarios_ = sampleSize;
