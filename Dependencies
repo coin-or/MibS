@@ -6,7 +6,7 @@ Clp               https://projects.coin-or.org/svn/Clp/stable/1.17/Clp
 Cgl               https://projects.coin-or.org/svn/Cgl/stable/0.60/Cgl
 Alps              https://github.com/coin-or/CHiPPS-ALPS stable/1.5
 Bcps              https://github.com/coin-or/CHiPPS-BiCePS stable/0.94
-Blis              https://github.com/coin-or/CHiPPS-BLIS master
+Blis              https://github.com/SaTahernejad/CHiPPS-BLIS master
 SYMPHONY          https://github.com/coin-or/SYMPHONY WS
 Cbc               https://projects.coin-or.org/svn/Cbc/stable/2.10/Cbc
 
