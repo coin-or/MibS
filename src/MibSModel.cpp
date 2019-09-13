@@ -1237,6 +1237,7 @@ MibSModel::readProblemData()
 
 //#############################################################################
 //this function is used when user selects to use progressive hedging heuristic
+//it is assumed that all subproblems are solved untile finding at least one feasible solution
 void
 MibSModel::setupProgresHedg(const CoinPackedMatrix& matrix,
 			    const CoinPackedMatrix& rowMatrix,
@@ -1246,12 +1247,19 @@ MibSModel::setupProgresHedg(const CoinPackedMatrix& matrix,
 			    double objSense, int truncNumCols, int truncNumRows,
 			    double infinity, const char *rowSense)
 {
+    const int clockType = AlpsPar()->entry(AlpsParams::clockType);
+    broker_->timer().setClockType(clockType);
+    broker_->subTreeTimer().setClockType(clockType);
+    broker_->tempTimer().setClockType(clockType);
+    broker_->timer().start();
+    
     //saharPH: define these as parameter later
     int maxPHIteration(MibSPar_->entry(MibSParams::iterationLimitPH));
     //double rho(1.0);
+    int isA2Random(MibSPar_->entry(MibSParams::isA2Random));
 
     int i(0), j(0), k(0);
-    int cntIter(0);
+    int cntIter(0), index(0), rowNumElem(0);
     double element(0.0), optObj(0.0), value(0.0), removedObj(0.0);
     double maxVal(0.0), minVal(0.0);
     double etol(etol_);
@@ -1263,6 +1271,12 @@ MibSModel::setupProgresHedg(const CoinPackedMatrix& matrix,
     int uColNum(truncNumCols - truncLColNum);
     int uRowNum(truncNumRows - truncLRowNum);
     int numScenarios(getNumScenarios());
+    std::vector<double> scenarioProb(getScenarioProb());
+    CoinPackedVector row;
+    CoinPackedVector appendedRow;
+    int *rowInd = NULL;
+    double *rowElem = NULL;
+    double *optSol = NULL;
 
     double *rho = new double[uColNum];
     CoinZeroN(rho, uColNum);
@@ -1282,11 +1296,9 @@ MibSModel::setupProgresHedg(const CoinPackedMatrix& matrix,
     double *implemSolBack = new double[uColNum];
     CoinZeroN(implemSolBack, uColNum);
 
-    int *foundSol = new int[numScenarios];
-    CoinZeroN(foundSol, numScenarios);
     int *newIndexUL = new int[uColNum];
     CoinZeroN(newIndexUL, uColNum);
-    int numFoundSol(0), numFixed(0);
+    int numFixed(0);
 
     double **allScenarioSols = new double *[numScenarios];
     for(i = 0; i < numScenarios; i++){
@@ -1307,41 +1319,68 @@ MibSModel::setupProgresHedg(const CoinPackedMatrix& matrix,
 	}
     }
 
+    CoinPackedMatrix *stocA2Matrix(getStocA2Matrix());
+    CoinPackedMatrix *filledCoefMatrix = 0;
+    if(isA2Random == PARAM_OFF){
+	filledCoefMatrix = new CoinPackedMatrix(false, 0, 0);
+	filledCoefMatrix->setDimensions(0, truncNumCols);
+	for(i = 0; i < uRowNum; i++){
+	    filledCoefMatrix->appendRow(rowMatrix.getVector(i));
+	}
+	for(i = 0; i < truncLRowNum; i++){
+	    appendedRow = stocA2Matrix->getVector(i);
+	    row = rowMatrix.getVector(i + uRowNum);
+	    rowInd = row.getIndices();
+	    rowElem = row.getElements();
+	    rowNumElem = row.getNumElements();
+	    for(j = 0; j < rowNumElem; j++){
+		index = rowInd[j];
+		if(index >= uColNum){
+		    appendedRow.insert(index, rowElem[j]);
+		}
+	    }
+	    filledCoefMatrix->appendRow(appendedRow);
+	    appendedRow.clear();
+	}
+    }
+
     while(shouldTerminate == false){
 	memcpy(implemSolBack, implemSol, sizeof(double) * uColNum);
-	CoinZeroN(foundSol, numScenarios);
+	//CoinZeroN(foundSol, numScenarios);
 	CoinZeroN(implemSol, uColNum);
 	isImplementable = true;
-	numFoundSol = 0;
+	//numFoundSol = 0;
+	if(cntIter > 0){
+	    //compute rho
+	    for(j = 0; j < uColNum; j++){
+		maxVal = 0.0;
+		minVal = 1.0;
+		maxFound = false;
+		minFound = false;
+		for(k = 0; k < numScenarios; k++){
+		    value = allScenarioSols[k][j];
+		    if(maxFound == false){
+			if(fabs(value - maxVal) > 0.5){
+			    maxVal = 1.0;
+			    maxFound = true;
+			}
+		    }
+		    if(minFound == false){
+			if(fabs(minVal - value) > 0.5){
+			    minVal = 0.0;
+			    minFound = true;
+			}
+		    }
+		    if((minFound == true) && (maxFound == true)){
+			break;
+		    }
+		}
+		rho[j] = copyObjCoef[j]/(maxVal - minVal + 1);
+	    }
+	}
 	for(i = 0; i < numScenarios; i ++){
 	    isTimeLimReached = false;
 	    if(cntIter > 0){
-		//compute rho
-		for(j = 0; j < uColNum; j++){
-		    maxVal = 0.0;
-		    minVal = 1.0;
-		    maxFound = false;
-		    minFound = false;
-		    for(k = 0; k < numScenarios; k++){
-			value = allScenarioSols[k][j];
-			if(maxFound == false){
-			    if(fabs(value - maxVal) > 0.5){
-				maxVal = 1.0;
-				maxFound = true;
-			    }
-			}
-			if(minFound == false){
-			    if(fabs(minVal - value) > 0.5){
-				minVal = 0.0;
-				minFound = true;
-			    }
-			}
-			if((minFound == true) && (maxFound == true)){
-			    break;
-			}
-		    }
-		    rho[j] = copyObjCoef[j]/(maxVal - minVal + 1);
-		}
 		//compute w
 		for(j = 0; j < uColNum; j++){
 		    tmpWArr[j] = wArrs[i][j] + rho[j] * (allScenarioSols[i][j] - implemSolBack[j]);
@@ -1353,53 +1392,52 @@ MibSModel::setupProgresHedg(const CoinPackedMatrix& matrix,
 	    scenarioSol = solvePHProb(rowMatrix,varLB, varUB, copyObjCoef, conLB,
 				      conUB, colType, objSense, truncNumCols, truncNumRows,
 				      infinity, rowSense, i, cntIter, isTimeLimReached,
-				      tmpWArr, implemSolBack, rho);
+				      tmpWArr, implemSolBack, rho, filledCoefMatrix);
 
 	    if(isTimeLimReached == true){
 		std::cout << "Time limit is reached" << std::endl;
 		goto TERM_SETUPPH;
 	    }
 
-	    if((maxPHIteration > 1) && (scenarioSol == NULL)){
-		throw CoinError("When the PH heuristic has more than one iteration, at least one feasible solution for all subprblems should be found.",
-				"setupProgresHedg",
-				"MibSModel");
+	    if(scenarioSol == NULL){
+		throw CoinError("It is assumed that all subproblems are solved until finding at least one feasible solution",
+				"setupProgresHedg", "MibSModel");
 	    }
 
-	    if(scenarioSol != NULL){
-		foundSol[i] = 1;
-		numFoundSol ++;
-		for(j = 0; j < uColNum; j++){
-		    value = scenarioSol[j];
-		    allScenarioSols[i][j] = value;
-		    implemSol[j] += value;
-		}
-		delete [] scenarioSol;
+	    //if(scenarioSol != NULL){
+	    //foundSol[i] = 1;
+	    //numFoundSol ++;
+	    for(j = 0; j < uColNum; j++){
+		value = scenarioSol[j];
+		allScenarioSols[i][j] = value;
+		implemSol[j] += scenarioProb[i] * value;
 	    }
+	    delete [] scenarioSol;
+		//}
 	}
 
-	for(j = 0; j < uColNum; j++){
+	/*for(j = 0; j < uColNum; j++){
 	    implemSol[j] = implemSol[j]/numFoundSol;
-	}
+	    }*/
 
 	cntIter ++;
-	if(numFoundSol == numScenarios){
-	    for(j = 0; j < uColNum; j++){
-		value = implemSol[j];
-		for(i = 0; i < numScenarios; i++){
-		    if(fabs(allScenarioSols[i][j] - value) > etol){
-			isImplementable = false;
-			break;
-		    }
-		}
-		if(isImplementable == false){
+	//if(numFoundSol == numScenarios){
+	for(j = 0; j < uColNum; j++){
+	    value = implemSol[j];
+	    for(i = 0; i < numScenarios; i++){
+		if(fabs(allScenarioSols[i][j] - value) > etol){
+		    isImplementable = false;
 		    break;
 		}
 	    }
+	    if(isImplementable == false){
+		break;
+	    }
 	}
-	else{
-	    isImplementable = false;
-	}
+	    //}
+	    //else{
+	    //isImplementable = false;
+	    //}
 
 	if(isImplementable == true){
 	    optObj = 0;
@@ -1427,15 +1465,15 @@ MibSModel::setupProgresHedg(const CoinPackedMatrix& matrix,
 		value = implemSol[j];
 		isFixed = true;
 		for(i = 0; i < numScenarios; i++){
-		    if(foundSol[i] == 1){
-			if(fabs(allScenarioSols[i][j] - value) > etol){
-			    uLUpper[j] = 1;
-			    uLLower[j] = 0;
-			    isFixed = false;
-			    newIndexUL[j] = j - numFixed;
-			    break;
-			}
-		    }
+		    //if(foundSol[i] == 1){
+		      if(fabs(allScenarioSols[i][j] - value) > etol){
+			  uLUpper[j] = 1;
+			  uLLower[j] = 0;
+			  isFixed = false;
+			  newIndexUL[j] = j - numFixed;
+			  break;
+		      }
+			//}
 		}
 		/*if(isFixed == false){
   if((implemSol[j] - 0.45) < etol){
@@ -1472,14 +1510,18 @@ MibSModel::setupProgresHedg(const CoinPackedMatrix& matrix,
     }
     delete [] wArrs;
     delete [] allScenarioSols;
+    if(filledCoefMatrix){
+	delete filledCoefMatrix;
+    }
     if(solveRestrictedProb == true){
-	std::cout << "Number of the subproblems found feasible solution: " << numFoundSol << std::endl;
 	std::cout << "Removed obj = " << removedObj << std::endl;
 	std::cout << "CPU time for solving subproblems: " << broker_->timer().getCpuTime() << std::endl;
+	std::cout << "Wallclock time for solving subproblems: " << broker_->timer().getWallClock() << std::endl;
 	solveRestrictedPH(matrix, rowMatrix, varLB, varUB, objCoef,
 			  conLB, conUB, colType, objSense, truncNumCols,
 			  truncNumRows, infinity, rowSense, uLUpper, uLLower, numFixed, newIndexUL);
 	std::cout << "Total CPU time: " << broker_->timer().getCpuTime() << std::endl;
+	std::cout << "Total wallclock time: " << broker_->timer().getWallClock() << std::endl;
     }
 
     exit(0);
@@ -1529,7 +1571,7 @@ MibSModel::solveRestrictedPH(const CoinPackedMatrix& matrix,
     double *rowElem = NULL;
     double *optSol = NULL;
 
-    double remainingTime = timeLimit - broker_->subTreeTimer().getTime();
+    double remainingTime = timeLimit - broker_->timer().getTime();
 
     if(remainingTime < etol){
 	std::cout << "Time limit is reached" << std::endl;
@@ -1545,6 +1587,7 @@ MibSModel::solveRestrictedPH(const CoinPackedMatrix& matrix,
     //CoinDisjointCopyN(uLLower, uColNum, colLower);
     //CoinDisjointCopyN(uLUpper, uColNum, colUpper);
 
+    if(numFixed > 0){
     for(i = 0; i < uColNumOrig; i++){
 	index = newIndexUL[i];
 	if(index >= 0){
@@ -1560,6 +1603,13 @@ MibSModel::solveRestrictedPH(const CoinPackedMatrix& matrix,
     CoinDisjointCopyN(objCoefOrig + uColNumOrig, truncLColNum, objCoef + uColNum);
 
     CoinDisjointCopyN(colTypeOrig + uColNumOrig, truncLColNum, colType + uColNum);
+    }
+    else{
+	memcpy(colLower, varLB, sizeof(double) * truncNumCols);
+	memcpy(colUpper, varUB, sizeof(double) * truncNumCols);
+	memcpy(objCoef, objCoefOrig, sizeof(double) * truncNumCols);
+	memcpy(colType, colTypeOrig, sizeof(double) * truncNumCols);
+    }
 
     //Create new MibS model to solve bilevel
     MibSModel *modelResPH = new MibSModel();
@@ -1591,114 +1641,121 @@ MibSModel::solveRestrictedPH(const CoinPackedMatrix& matrix,
     //modelResPH->origRowUb_ = origRowUb_;
 
     CoinPackedMatrix *stocMatrixA2 = new CoinPackedMatrix(false, 0, 0);
-    if(isA2Random != PARAM_OFF){
-	for(i = 0; i < lRowNum; i++){
-	    row = stocA2Matrix_->getVector(i);
-	    rowInd = row.getIndices();
-	    rowElem = row.getElements();
-	    rowNumElem = row.getNumElements();
-	    for(j = 0; j < rowNumElem; j++){
-		index = newIndexUL[rowInd[j]];
-		if(index >= 0){
-		    appendedRow.insert(index, rowElem[j]);
-		}
-		else{
-		    index = i + uRowNum;
-		    value = rowElem[j] * uLLower[rowInd[j]];
-		    if(rowSense[index] == 'G'){
-			modelResPH->origRowLb_[index] = origRowLb_[index] - value;
+    if(numFixed > 0){
+        if(isA2Random != PARAM_OFF){
+	    for(i = 0; i < lRowNum; i++){
+		row = stocA2Matrix_->getVector(i);
+	        rowInd = row.getIndices();
+	        rowElem = row.getElements();
+	        rowNumElem = row.getNumElements();
+	        for(j = 0; j < rowNumElem; j++){
+		    index = newIndexUL[rowInd[j]];
+		    if(index >= 0){
+			appendedRow.insert(index, rowElem[j]);
 		    }
 		    else{
-			modelResPH->origRowUb_[index] = origRowUb_[index] - value;
-		    }
-		}
-	    }
-	    stocMatrixA2->appendRow(appendedRow);
-	    appendedRow.clear();
-	}
-    }
-    else{
-	for(i = 0; i < truncLRowNum; i++){
-	    row = stocA2Matrix_->getVector(i);
-	    rowInd = row.getIndices();
-	    rowElem = row.getElements();
-	    rowNumElem = row.getNumElements();
-	    for(j = 0; j < rowNumElem; j++){
-		index = newIndexUL[rowInd[j]];
-		if(index >= 0){
-		    appendedRow.insert(index, rowElem[j]);
-		}
-		else{
-		    value = rowElem[j] * uLLower[rowInd[j]];
-		    if(rowSense[i + uRowNum] == 'G'){
-			for(k = 0; k < numScenarios_; k++){
-			    index = i + uRowNum + k * truncLRowNum;
+			index = i + uRowNum;
+		        value = rowElem[j] * uLLower[rowInd[j]];
+		        if(rowSense[index] == 'G'){
 			    modelResPH->origRowLb_[index] = origRowLb_[index] - value;
 			}
-		    }
-		    else{
-			for(k = 0; k < numScenarios_; k++){
-			    index = i + uRowNum + k * truncLRowNum;
+		        else{
 			    modelResPH->origRowUb_[index] = origRowUb_[index] - value;
 			}
 		    }
 		}
+	        stocMatrixA2->appendRow(appendedRow);
+	        appendedRow.clear();
 	    }
-	    stocMatrixA2->appendRow(appendedRow);
-	    appendedRow.clear();
 	}
-    }
+        else{
+	    for(i = 0; i < truncLRowNum; i++){
+		row = stocA2Matrix_->getVector(i);
+	        rowInd = row.getIndices();
+	        rowElem = row.getElements();
+	        rowNumElem = row.getNumElements();
+	        for(j = 0; j < rowNumElem; j++){
+		    index = newIndexUL[rowInd[j]];
+		    if(index >= 0){
+			appendedRow.insert(index, rowElem[j]);
+		    }
+		    else{
+			value = rowElem[j] * uLLower[rowInd[j]];
+		        if(rowSense[i + uRowNum] == 'G'){
+			    for(k = 0; k < numScenarios_; k++){
+				index = i + uRowNum + k * truncLRowNum;
+			        modelResPH->origRowLb_[index] = origRowLb_[index] - value;
+			    }
+			}
+		        else{
+			    for(k = 0; k < numScenarios_; k++){
+				index = i + uRowNum + k * truncLRowNum;
+			        modelResPH->origRowUb_[index] = origRowUb_[index] - value;
+			    }
+			}
+		    }
+		}
+	        stocMatrixA2->appendRow(appendedRow);
+	        appendedRow.clear();
+	    }
+	}
 
-    modelResPH->setStocA2Matrix(stocMatrixA2);
+	modelResPH->setStocA2Matrix(stocMatrixA2);
+    }
+    else{
+	modelResPH->setStocA2Matrix(stocA2Matrix_);
+    }
 
     CoinPackedMatrix *coefMatrix = new CoinPackedMatrix(false, 0, 0);
-    coefMatrix->setDimensions(0, truncNumCols);
     CoinPackedMatrix *coefRowMatrix = new CoinPackedMatrix(false, 0, 0);
-    coefRowMatrix->setDimensions(0, truncNumCols);
+    if(numFixed > 0){
+        coefMatrix->setDimensions(0, truncNumCols);
+        coefRowMatrix->setDimensions(0, truncNumCols);
 
-    for(i = 0; i < uRowNum; i++){
-	row = rowMatrix.getVector(i);
-	rowInd = row.getIndices();
-	rowElem = row.getElements();
-	rowNumElem = row.getNumElements();
-	for(j = 0; j < rowNumElem; j++){
-	    index = newIndexUL[rowInd[j]];
-	    if(index >= 0){
-		appendedRow.insert(index, rowElem[j]);
-	    }
-	    else{
-		value = rowElem[j] * uLLower[rowInd[j]];
-		if(rowSense[i] == 'G'){
-		    modelResPH->origRowLb_[i] = origRowLb_[i] - value;
+        for(i = 0; i < uRowNum; i++){
+	    row = rowMatrix.getVector(i);
+	    rowInd = row.getIndices();
+	    rowElem = row.getElements();
+	    rowNumElem = row.getNumElements();
+	    for(j = 0; j < rowNumElem; j++){
+		index = newIndexUL[rowInd[j]];
+	        if(index >= 0){
+		    appendedRow.insert(index, rowElem[j]);
 		}
-		else{
-		    modelResPH->origRowUb_[i] = origRowUb_[i] - value;
+	        else{
+		    value = rowElem[j] * uLLower[rowInd[j]];
+		    if(rowSense[i] == 'G'){
+			modelResPH->origRowLb_[i] = origRowLb_[i] - value;
+		    }
+		    else{
+			modelResPH->origRowUb_[i] = origRowUb_[i] - value;
+		    }
 		}
 	    }
+	    coefMatrix->appendRow(appendedRow);
+	    coefRowMatrix->appendRow(appendedRow);
+	    appendedRow.clear();
 	}
-	coefMatrix->appendRow(appendedRow);
-	coefRowMatrix->appendRow(appendedRow);
-	appendedRow.clear();
-    }
 
 
-    for(i = 0; i < truncLRowNum; i++){
-	appendedRow = stocMatrixA2->getVector(i);
-	row = rowMatrix.getVector(i + uRowNum);
-	rowInd = row.getIndices();
-	rowElem = row.getElements();
-	rowNumElem = row.getNumElements();
-	for(j = 0; j < rowNumElem; j++){
-	    index = rowInd[j];
-	    if(index >= uColNumOrig){
-		appendedRow.insert(index - numFixed, rowElem[j]);
+        for(i = 0; i < truncLRowNum; i++){
+	    appendedRow = stocMatrixA2->getVector(i);
+	    row = rowMatrix.getVector(i + uRowNum);
+	    rowInd = row.getIndices();
+	    rowElem = row.getElements();
+	    rowNumElem = row.getNumElements();
+	    for(j = 0; j < rowNumElem; j++){
+		index = rowInd[j];
+	        if(index >= uColNumOrig){
+		    appendedRow.insert(index - numFixed, rowElem[j]);
+		}
 	    }
+	    coefMatrix->appendRow(appendedRow);
+	    coefRowMatrix->appendRow(appendedRow);
+	    appendedRow.clear();
 	}
-	coefMatrix->appendRow(appendedRow);
-	coefRowMatrix->appendRow(appendedRow);
-	appendedRow.clear();
+        coefMatrix->reverseOrdering();
     }
-    coefMatrix->reverseOrdering();
 
     //stocMatrixA2->setDimensions(0, uColNum);
     //for(i = 0; i < lRowNum; i++){
@@ -1707,7 +1764,7 @@ MibSModel::solveRestrictedPH(const CoinPackedMatrix& matrix,
 
     modelResPH->scenarioProb_ = getScenarioProb();
 
-    remainingTime = timeLimit - broker_->subTreeTimer().getTime();
+    remainingTime = timeLimit - broker_->timer().getTime();
 
     if(remainingTime < etol){
 	std::cout << "Time limit is reached" << std::endl;
@@ -1755,23 +1812,40 @@ MibSModel::solveRestrictedPH(const CoinPackedMatrix& matrix,
     modelResPH->MibSPar()->setEntry(MibSParams::useUBDecompose, useUBDecompose);
     modelResPH->AlpsPar()->setEntry(AlpsParams::clockType, clockType);
 
-    modelResPH->loadProblemData(*coefMatrix, *coefRowMatrix, colLower, colUpper, objCoef,
-				conLB, conUB, colType, objSense, infinity, rowSense);
+    if(numFixed > 0){
+	modelResPH->loadProblemData(*coefMatrix, *coefRowMatrix, colLower, colUpper, objCoef,
+				    conLB, conUB, colType, objSense, infinity, rowSense);
+    }
+    else{
+	modelResPH->loadProblemData(matrix, rowMatrix, colLower, colUpper, objCoef,
+				    conLB, conUB, colType, objSense, infinity, rowSense);
+    }
 
     int argc = 1;
     char** argv = new char* [1];
     argv[0] = (char *) "mibs";
 
-      #ifdef  COIN_HAS_MPI
+#ifdef  COIN_HAS_MPI
     AlpsKnowledgeBrokerMPI brokerResPH(argc, argv, *modelResPH);
-      #else
+#else
     AlpsKnowledgeBrokerSerial brokerResPH(argc, argv, *modelResPH);
-      #endif
+#endif
 
     brokerResPH.search(modelResPH);
 
     brokerResPH.printBestSolution();
 
+    delete [] colLower;
+    delete [] colUpper;
+    delete [] objCoef;
+    delete [] colType;
+    if(coefMatrix){
+	delete coefMatrix;
+    }
+    if(coefRowMatrix){
+	delete coefRowMatrix;
+    }
+    
     delete modelResPH;
 }
 
@@ -1938,7 +2012,8 @@ MibSModel::solvePHProb(const CoinPackedMatrix& rowMatrix, const double *varLB,
 		       const double *conLB, const double *conUB, const char *colType,
 		       double objSense, int numCols, int numRows, double infinity,
 		       const char *rowSense, int scenarioIndex, int iterIndex,
-		       bool &isTimeLimReached, double *wArr, double *implemSol, double *rho)
+		       bool &isTimeLimReached, double *wArr, double *implemSol, double *rho,
+		       CoinPackedMatrix *filledCoefMatrix)
 {
 
     int nodeLimit(MibSPar_->entry(MibSParams::nodeLimitPHSubprob));
@@ -1984,38 +2059,46 @@ MibSModel::solvePHProb(const CoinPackedMatrix& rowMatrix, const double *varLB,
     CoinIotaN(uRowInd, uRowNum, 0);
     CoinIotaN(structRowInd, numRows, 0);
 
-    CoinPackedMatrix *coefMatrix = new CoinPackedMatrix(false, 0, 0);
-    coefMatrix->setDimensions(0, numCols);
-    CoinPackedMatrix *coefRowMatrix = new CoinPackedMatrix(false, 0, 0);
-    coefRowMatrix->setDimensions(0, numCols);
+    CoinPackedMatrix *coefMatrix = 0;
+    CoinPackedMatrix *coefRowMatrix = 0;
+    CoinPackedMatrix copyCoefMatrix;
+    CoinPackedMatrix copyCoefRowMatrix;
 
-    for(i = 0; i < uRowNum; i++){
-	coefMatrix->appendRow(rowMatrix.getVector(i));
-	coefRowMatrix->appendRow(rowMatrix.getVector(i));
-    }
+    if(isA2Random != PARAM_OFF){
+	coefMatrix = new CoinPackedMatrix(false, 0, 0);
+        coefMatrix->setDimensions(0, numCols);
+        coefRowMatrix = new CoinPackedMatrix(false, 0, 0);
+        coefRowMatrix->setDimensions(0, numCols);
 
-    for(i = 0; i < lRowNum; i++){
-	if(isA2Random != PARAM_OFF){
-	    appendedRow = stocA2Matrix->getVector(scenarioIndex * lRowNum + i);
+        for(i = 0; i < uRowNum; i++){
+	    coefMatrix->appendRow(rowMatrix.getVector(i));
+	    coefRowMatrix->appendRow(rowMatrix.getVector(i));
 	}
-	else{
-	    appendedRow = stocA2Matrix->getVector(i);
-	}
-	row = rowMatrix.getVector(i + uRowNum);
-	rowInd = row.getIndices();
-	rowElem = row.getElements();
-	rowNumElem = row.getNumElements();
-	for(j = 0; j < rowNumElem; j++){
-	    index = rowInd[j];
-	    if(index >= uColNum){
-		appendedRow.insert(index, rowElem[j]);
+
+        for(i = 0; i < lRowNum; i++){
+	    if(isA2Random != PARAM_OFF){
+		appendedRow = stocA2Matrix->getVector(scenarioIndex * lRowNum + i);
 	    }
+	    row = rowMatrix.getVector(i + uRowNum);
+	    rowInd = row.getIndices();
+	    rowElem = row.getElements();
+	    rowNumElem = row.getNumElements();
+	    for(j = 0; j < rowNumElem; j++){
+		index = rowInd[j];
+		if(index >= uColNum){
+		    appendedRow.insert(index, rowElem[j]);
+		}
+	    }
+	    coefMatrix->appendRow(appendedRow);
+	    coefRowMatrix->appendRow(appendedRow);
+	    appendedRow.clear();
 	}
-	coefMatrix->appendRow(appendedRow);
-	coefRowMatrix->appendRow(appendedRow);
-	appendedRow.clear();
+        coefMatrix->reverseOrdering();
     }
-    coefMatrix->reverseOrdering();
+    else{
+	copyCoefMatrix.reverseOrderedCopyOf(*filledCoefMatrix);
+	copyCoefRowMatrix.copyOf(*filledCoefMatrix);
+    }
 
     //There is no penalty in the first iteration
     double rhoVal(0.0);
@@ -2049,7 +2132,7 @@ MibSModel::solvePHProb(const CoinPackedMatrix& rowMatrix, const double *varLB,
     //Create new MibS model to solve bilevel
     MibSModel *pHModel = new MibSModel();
 
-    remainingTime = timeLimit - broker_->subTreeTimer().getTime();
+    remainingTime = timeLimit - broker_->timer().getTime();
     if(remainingTime <= etol){
 	isTimeLimReached = true;
 	//saharPH: free the memory
@@ -2097,9 +2180,16 @@ MibSModel::solvePHProb(const CoinPackedMatrix& rowMatrix, const double *varLB,
 			       uRowNum, uColInd, uRowInd, numRows, structRowInd, 0,
 			       NULL, NULL, NULL);
 
-    pHModel->loadProblemData(*coefMatrix, *coefRowMatrix, varLB, varUB, objCoef,
-			     rowLower, rowUpper, colType, 1, infinity,
-			     rowSense);
+    if(isA2Random != PARAM_OFF){
+	pHModel->loadProblemData(*coefMatrix, *coefRowMatrix, varLB, varUB, objCoef,
+			         rowLower, rowUpper, colType, 1, infinity,
+			         rowSense);
+    }
+    else{
+	pHModel->loadProblemData(copyCoefMatrix, copyCoefRowMatrix, varLB, varUB, objCoef,
+				 rowLower, rowUpper, colType, 1, infinity,
+				 rowSense);
+    }
 
     int argc = 1;
     char** argv = new char* [1];
@@ -2138,7 +2228,7 @@ MibSModel::solvePHProb(const CoinPackedMatrix& rowMatrix, const double *varLB,
     "solvePHProb", "MibSModel");
   }
     */
-    if(timeLimit - broker_->subTreeTimer().getTime() <= 0){
+    if(timeLimit - broker_->timer().getTime() <= 0){
 	isTimeLimReached = true;
     }
 
