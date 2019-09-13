@@ -1608,7 +1608,7 @@ MibSModel::solveRestrictedPH(const CoinPackedMatrix& matrix,
 	memcpy(colLower, varLB, sizeof(double) * truncNumCols);
 	memcpy(colUpper, varUB, sizeof(double) * truncNumCols);
 	memcpy(objCoef, objCoefOrig, sizeof(double) * truncNumCols);
-	memcpy(colType, colTypeOrig, sizeof(double) * truncNumCols);
+	memcpy(colType, colTypeOrig, sizeof(char) * truncNumCols);
     }
 
     //Create new MibS model to solve bilevel
