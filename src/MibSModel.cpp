@@ -1446,6 +1446,8 @@ MibSModel::setupProgresHedg(const CoinPackedMatrix& matrix,
 		//saharPH: correct it
 		optObj += value * objCoef[i];
 	    }
+	    std::cout << "CPU time for solving subproblems: " << broker_->timer().getCpuTime() << std::endl;
+	    std::cout << "Wallclock time for solving subproblems: " << broker_->timer().getWallClock() << std::endl;
 	    printSolutionPH(implemSol, optObj, cntIter, uColNum);
 	    shouldTerminate = true;
 	}
@@ -1782,7 +1784,7 @@ MibSModel::solveRestrictedPH(const CoinPackedMatrix& matrix,
     //modelResPH->AlpsPar()->setEntry(AlpsParams::nodeLimit, 150);
     modelResPH->BlisPar()->setEntry(BlisParams::heurStrategy, 0);
     modelResPH->MibSPar()->setEntry(MibSParams::feasCheckSolver, feasCheckSolver.c_str());
-    modelResPH->MibSPar()->setEntry(MibSParams::printProblemInfo, false);
+    //modelResPH->MibSPar()->setEntry(MibSParams::printProblemInfo, false);
     modelResPH->MibSPar()->setEntry(MibSParams::useBoundCut, false);
     modelResPH->MibSPar()->setEntry(MibSParams::branchStrategy, MibSBranchingStrategyLinking);
     modelResPH->MibSPar()->setEntry(MibSParams::bilevelCutTypes, 0);
@@ -2140,7 +2142,7 @@ MibSModel::solvePHProb(const CoinPackedMatrix& rowMatrix, const double *varLB,
     }
     remainingTime = CoinMax(remainingTime, 0.00);
     pHModel->setSolver(&lpSolver);
-    //pHModel->AlpsPar()->setEntry(AlpsParams::msgLevel, -1);
+    pHModel->AlpsPar()->setEntry(AlpsParams::msgLevel, -1);
     pHModel->BlisPar()->setEntry(BlisParams::optimalRelGap, gapLimit);
     pHModel->AlpsPar()->setEntry(AlpsParams::timeLimit, remainingTime);
     //pHModel->AlpsPar()->setEntry(AlpsParams::timeLimit, 5);
