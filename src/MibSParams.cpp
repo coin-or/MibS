@@ -232,6 +232,9 @@ MibSParams::createKeywordList() {
    keys_.push_back(make_pair(std::string("MibS_relaxTypeParamBoundCut"),
    			     AlpsParameter(AlpsIntPar, relaxTypeParamBoundCut)));
 
+   keys_.push_back(make_pair(std::string("MibS_maxActiveNodes"),
+			     AlpsParameter(AlpsIntPar, maxActiveNodes)));
+
    //parameters for stochastic and SAA
    //this parameter should be set to false, when the problem is
    //stochastic and A2 is not random.
@@ -463,6 +466,8 @@ MibSParams::setDefaultEntries() {
    setEntry(boundCutNodeLim, ALPS_INT_MAX);
 
    setEntry(relaxTypeParamBoundCut, MibSRelaxTypeParamBoundCutLP);
+
+   setEntry(maxActiveNodes, 1);
 
    setEntry(isA2Random, PARAM_NOTSET);
 
