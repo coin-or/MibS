@@ -264,6 +264,9 @@ MibSParams::createKeywordList() {
    keys_.push_back(make_pair(std::string("MibS_ubDistA2SAA"),
 			     AlpsParameter(AlpsIntPar, ubDistA2SAA)));
 
+   //it is assumed that incDistB2NumerSAA <= incDistB2DenumSAA
+   //and they are relatively prime (the same for A2)
+   //it is assumed that numerators are 1  
    keys_.push_back(make_pair(std::string("MibS_incDistB2NumerSAA"),
 			     AlpsParameter(AlpsIntPar, incDistB2NumerSAA)));
 

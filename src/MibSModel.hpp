@@ -600,7 +600,8 @@ public:
 			 const double* colLB, const double* colUB,
 			 const double* obj, const double* rowLB,
 			 const double* rowUB, const char *types,
-			 double objSense, double infinity,  const char *rowSense);
+			 double objSense, double infinity, const char *rowSense,
+			 int lcmDenum = 1);
   
     /** Set integer indices and number of integer variables **/
     void findIntegers();
@@ -725,7 +726,7 @@ public:
 		     const CoinPackedMatrix& rowMatrix,
 		     const double* varLB, const double* varUB,
 		     const double* objCoef, const double* conLB,
-		     const double* conUB, const char * colType,
+		     const double* conUB, const char * colType, int lcmDenum,
 		     double objSense, int truncNumCols, int truncNumRows,
 		     double infinity, const char *rowSense, bool &isTimeLimReached,
 		     double &objSAA, int allScenariosNumSMPS, double *b2Base,
@@ -737,6 +738,8 @@ public:
 				      double *b2Base, CoinPackedMatrix *matrixA2Base,
 				      const std::vector<std::vector<double>> &fullMatrixA2,
 				      double *rhs);
+
+    int greatestCommonDivisor(int number1, int number2);
 
 private:
 

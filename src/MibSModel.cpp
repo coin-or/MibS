@@ -2392,7 +2392,17 @@ MibSModel::setupSAA(const CoinPackedMatrix& matrix,
     OsiSolverInterface * evalLSolver = 0;
     OsiSolverInterface * evalBestSolver = 0;
     //store G2 matrix to avoid extracting it for evaluatuion
-    int lcmDenum = 1;
+    int lcmDenum;
+    if(isSMPSFormat == PARAM_ON){
+	lcmDenum = 1;
+    }
+    else{
+	int incB2Denum(MibSPar_->entry(MibSParams::incDistB2DenumSAA));
+	int incA2Denum(MibSPar_->entry(MibSParams::incDistA2DenumSAA));
+	int gcdDenum = greatestCommonDivisor(CoinMin(incB2Denum, incA2Denum), CoinMax(incB2Denum, incA2Denum));
+	lcmDenum = (incB2Denum * incA2Denum)/gcdDenum;
+    }
+    
     CoinPackedMatrix *matrixG2 = new CoinPackedMatrix(false, 0, 0);
     matrixG2->setDimensions(0, truncLColNum);
     for(i = uRows; i < truncNumRows; i++){
@@ -2423,7 +2433,7 @@ MibSModel::setupSAA(const CoinPackedMatrix& matrix,
     for(m = 0; m < replNum; m++){
 	//std::cout << "Replication: " << m + 1 << std::endl;
 	optSolRepl = solveSAA(matrix, rowMatrix, varLB, varUB, objCoef, conLB,
-			      conUB, colType, objSense, truncNumCols, truncNumRows,
+			      conUB, colType, lcmDenum, objSense, truncNumCols, truncNumRows,
 			      infinity, rowSense, isTimeLimReached, objSAA,
 			      allScenariosNumSMPS, b2Base, matrixA2Base, fullMatrixA2);
 
@@ -3077,7 +3087,7 @@ MibSModel::solveSAA(const CoinPackedMatrix& matrix,
 		    const CoinPackedMatrix& rowMatrix,
 		    const double* varLB, const double* varUB,
 		    const double* objCoef, const double* conLB,
-		    const double* conUB, const char * colType,
+		    const double* conUB, const char * colType, int lcmDenum,
 		    double objSense, int truncNumCols, int truncNumRows,
 		    double infinity, const char *rowSense, bool &isTimeLimReached,
 		    double &objSAA, int allScenariosNumSMPS, double *b2Base,
@@ -3210,7 +3220,8 @@ MibSModel::solveSAA(const CoinPackedMatrix& matrix,
     }
 
     modelSAA->loadProblemData(matrix, rowMatrix, varLB, varUB, objCoef,
-			      conLB, conUB, colType, objSense, infinity, rowSense);
+			      conLB, conUB, colType, objSense, infinity, rowSense,
+			      lcmDenum);
 
 
     int argc = 1;
@@ -3478,7 +3489,8 @@ MibSModel::generateSamples(int size, int truncNumCols, int truncNumRows,
         int incA2Numer(MibSPar_->entry(MibSParams::incDistA2NumerSAA));
         int incA2Denum(MibSPar_->entry(MibSParams::incDistA2DenumSAA));
 
-        int lcmDenum = 1;
+	int gcdDenum = greatestCommonDivisor(CoinMin(incB2Denum, incA2Denum), CoinMax(incB2Denum, incA2Denum));
+        int lcmDenum = (incB2Denum * incA2Denum)/gcdDenum;
 
         int tmpB2 = (ubB2 - lbB2) * incB2Denum/incB2Numer + 1;
         int tmpA2 = (ubA2 - lbA2) * incA2Denum/incA2Numer + 1;
@@ -3509,13 +3521,24 @@ MibSModel::generateSamples(int size, int truncNumCols, int truncNumRows,
 }
 
 //#############################################################################
+int
+MibSModel::greatestCommonDivisor(int number1, int number2)
+{
+    if(number1 == 0){
+	return number2;
+    }
+    return greatestCommonDivisor(number2 % number1, number1);
+}
+
+//#############################################################################
 void
 MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
 			   const CoinPackedMatrix& rowMatrix,
 			   const double* colLB, const double* colUB,   
 			   const double* obj, const double* rowLB,
 			   const double* rowUB, const char *types,
-			   double objSense, double infinity, const char *rowSense)
+			   double objSense, double infinity, const char *rowSense,
+			   int lcmDenum)
 {
    //FIXME: THIS ISN'T TRUE IF WE LOAD AN INTERDICTION PROBLEM 
    //AS A "GENERAL" PROBLEM.  FOR NOW, IT'S OK SINCE WE ONLY
@@ -3530,6 +3553,8 @@ MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
     int isA2Random(MibSPar_->entry(MibSParams::isA2Random));
 
     int problemType(MibSPar_->entry(MibSParams::bilevelProblemType));
+
+    int isSMPSFormat(MibSPar_->entry(MibSParams::isSMPSFormat));
 
     if(stochasticityType == "deterministic"){
 	numScenarios_ = 1;
@@ -3649,10 +3674,11 @@ MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
 
 	  //set matrix
 	  //extract truncG2
-	  int lcmDenum (1);
-	  if(stochasticityType == "stochasticWithSAA"){
-	      lcmDenum = 1;
-	  }
+	  //int lcmDenum (1);
+	  //if(stochasticityType == "stochasticWithSAA"){
+	  //  lcmDenum = 1;
+	  //  }
+	   
 	  CoinPackedMatrix *truncMatrixG2 = NULL;
 	  truncMatrixG2 = new CoinPackedMatrix(true, 0, 0);
 	  truncMatrixG2->setDimensions(truncNumLRows, 0);
