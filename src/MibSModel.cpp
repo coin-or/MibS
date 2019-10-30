@@ -2197,11 +2197,11 @@ MibSModel::solvePHProb(const CoinPackedMatrix& rowMatrix, const double *varLB,
     char** argv = new char* [1];
     argv[0] = (char *) "mibs";
 
-    #ifdef  COIN_HAS_MPI
+#ifdef  COIN_HAS_MPI
     AlpsKnowledgeBrokerMPI brokerPH(argc, argv, *pHModel);
-    #else
+#else
     AlpsKnowledgeBrokerSerial brokerPH(argc, argv, *pHModel);
-    #endif
+#endif
 
     brokerPH.search(pHModel);
     brokerPH.printBestSolution();
@@ -2554,7 +2554,7 @@ MibSModel::setupSAA(const CoinPackedMatrix& matrix,
 			    }
 			    //#endif
 			}else if (feasCheckSolver == "CPLEX"){
-			    #ifdef COIN_HAS_CPLEX
+#ifdef COIN_HAS_CPLEX
 			    evalBestSolver->setHintParam(OsiDoReducePrint);
 			    evalBestSolver->messageHandler()->setLogLevel(0);
 			    CPXENVptr cpxEnv =
@@ -2562,7 +2562,7 @@ MibSModel::setupSAA(const CoinPackedMatrix& matrix,
 			    assert(cpxEnv);
 			    CPXsetintparam(cpxEnv, CPX_PARAM_SCRIND, CPX_OFF);
 			    CPXsetintparam(cpxEnv, CPX_PARAM_THREADS, maxThreadsLL);
-			    #endif
+#endif
 			}
 
 			evalBestSolver->branchAndBound();
@@ -3041,14 +3041,14 @@ MibSModel::setUpEvalModels(CoinPackedMatrix *matrixG2, double *optSol,
 	nSolver = new OsiSymSolverInterface();
 	//#else
 	//throw CoinError("SYMPHONY chosen as solver, but it has not been enabled",
-	//		"setUpModel", "MibsBilevel");
+	//		"setUpEvalModels", "MibSModel");
 	//#endif
     }else if (feasCheckSolver == "CPLEX"){
 #ifdef COIN_HAS_CPLEX
 	nSolver = new OsiCpxSolverInterface();
 #else
 	throw CoinError("CPLEX chosen as solver, but it has not been enabled",
-			"setUpModel", "MibsBilevel");
+			"setUpEvalModels", "MibSModel");
 #endif
     }else{
 	throw CoinError("Unknown solver chosen",

@@ -1762,6 +1762,16 @@ MibSBilevel::setUpDecomposedUBModel(OsiSolverInterface * oSolver,
     rowUb[numRows - 1] = objValuesVec[scenarioIndex];
     rowLb[numRows - 1] = -1 * oSolver->getInfinity();
 
+    /*double etol(model_->etol_);
+    double optMultTol(10000000.0);
+    double optObj = objValuesVec[scenarioIndex];
+    optObj = trunc(optObj * trunc(optMultTol));
+    if(optObj >= etol){
+	optObj ++;
+    }
+    optObj = optObj/trunc(optMultTol);
+    rowUb[numRows - 1] = optObj;*/
+
     int * integerVars = new int[numCols];
     int intCnt(0);
     colIndex = uCols + scenarioIndex * numCols;
