@@ -110,6 +110,11 @@ class MibSCutGenerator : public BlisConGenerator {
 				 bool &isTimeLimReached);
 
     /** Helper function for hypercube IC*/
+    void storeBestSolHypercubeICParallel(const double* lpSol,
+					 std::vector<double> &optLowerObjVec,
+					 bool &isTimeLimReached); 
+
+    /** Helper function for hypercube IC*/
     void getAlphaHypercubeIC(double** extRay, int numStruct, int numNonBasic,
 			     std::vector<double> &alphaVec);
 
