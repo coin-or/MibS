@@ -25,7 +25,9 @@ MibS is a solver for mixed integelibrr bilevel optimization problems. For an
 introduction to bilevel optimization, see [this slide
 deck](http://coral.ie.lehigh.edu/~ted/files/talks/BILEVEL-IWOBIP16.pdf). A
 somewhat outdated but still useful introduction to MibS is
-[here](http://coral.ie.lehigh.edu/~ted/files/talks/BILEVEL-INFORMS11.pdf).
+[here](http://coral.ie.lehigh.edu/~ted/files/talks/BILEVEL-INFORMS11.pdf). 
+A paper that contains a complete technical description of the algorithms in MibS is 
+[here](http://coral.ie.lehigh.edu/~ted/files/papers/MIBLP16.pdf).
 
 ## SUPPORTED PLATFORMS
 
@@ -43,57 +45,51 @@ download, build, and install all dependencies.
 
 ## BUILDING AND INSTALLING
 
-### Building on Linux
-
 Most Linux distributions come with all the required tools installed. To obtain
 the source code, the first step is to get the installer that will then
-fetch the source for MibS and all its dependencies. *You do not need to
-clone MibS first, just do the following!* Open a terminal and execute
+fetch the source for `MibS` and all its dependencies. *You do not need to
+clone the repository first, just do the following!* Open a terminal and execute
 
 ```
-git clone https://www.github.com/coin-or/COIN-OR-OptimizationSuite
+git clone https://www.github.com/coin-or/coinbrew
 ```
 
-Next, to check out source code for and build all the necessary projects (including 
-dependencies), execute the script in the `COIN-OR-OptimizationSuite` subdirectory. 
-To execute the script, do
+Next, to check out source code for and build all the necessary projects
+(including dependencies), execute the script in the `coinbrew`
+subdirectory. To execute the script, do
 
 ```
-cd COIN-OR-OptimizationSuite
-chmod u+x coin.install.sh
-./coin.install.sh
+cd coinbrew
+chmod u+x coinbrew
+./coinbrew
 ```
 
-(Note: The `chmod` command is only needed if the execute permission is not automatically 
-set by git on cloning). Once you run the script,
+(Note: The `chmod` command is only needed if the execute permission is not
+automatically set by git on cloning). Once you run the script,
 you will be prompted interactively to select a project to fetch and build. The
 rest should happen automagically. Alternatively, the following command-line
 incantation will execute the procedure non-interactively.
 
 ```
-./coin.install.sh fetch build --no-prompt --main-proj=MibS
+./coinbrew fetch --no-prompt MibS:stable/x.y
+./coinbrew build --no-prompt MibS --prefix=/path/to/install/dir
+./coinbrew install MibS
 ```
-
-Options to the `configure` script can simply be added to the command-line. For
-example, to build with debugging symbols, do
+Note that the prefix specified above is the directory where the packages will be
+installed. If the specified prefix is writable, then all packages will be
+automatically installed immediately after building. If no prefix is specified,
+the package will be installed in the directory dist/. Options that would have
+been passed to the `configure` script under the old build system can simply be
+added to the command-line. For example, to build with debugging symbols, do
 
 ```
-./coin.install.sh fetch build --no-prompt --main-proj=MibS --enable-debug
+./coinbrew build --no-prompt MibS --prefix=/path/to/install/dir --enable-debug
 ```
 
 To get help with additional options available in running the script, do
 
 ```
-./coin/install.sh --help
-```
-
-The above procedures will build all required dependencies and MibS itself.
-Afterwards, the binaries will be installed in the directory `Mibs/build/bin`
-and the libraries in the directory `MibS/build/lib`. If you wish to install in
-a different directory, such as `/usr/local`, then run the command
-
-```
-./coin.install.sh install --prefix=/path/to/install/dir
+./coinbrew --help
 ```
 
 After installation, you will also need to add `/path/to/install/dir/bin` to your
@@ -107,69 +103,71 @@ GCC compilers. The first step is to install either
    * [Msys2](https://msys2.github.io/)
    * [CYGWIN](http://cygwin.org/)
    * [Windows Subsystem for Linux](https://docs.microsoft.com/en-us/windows/wsl/install-win10)
+Bash and the gcc compilers also come with the [Anaconda Python distribution](https://www.anaconda.com/distribution/)
 
 If you don't already have CYGWIN installed and don't want to fool around with
 WSL (which is a great option if you already know your way around Unix), it is
 recommended to use MSys2, since it provides a minimal toolset that is easy to
 install. To get MSys2, either download the installer
 [here](https://msys2.github.io/) or download and unzip MSys2 base from
-[here](http://kent.dl.sourceforge.net/project/msys2/Base/x86_64/msys2-base-x86_64-20150512.tar.xz) 
-(this is an out-of-date version, there may be a better place to get an archive version). 
+[here](http://kent.dl.sourceforge.net/project/msys2/Base/x86_64/msys2-base-x86_64-20190512.tar.xz) 
+(this is an out-of-date version, there may be a better place to get an archive
+version). 
 
-Following any of the above steps, you should have the `bash` command (with Msys2, be sure to run `msys2_shell.bat` 
-or manually add `msys64\usr\bin`, `msys64\mingw32\bin`, and `msys64\mingw64\bin` to your Windows path).   
+Following any of the above steps, you should have the `bash` command
+(with Msys2, be sure to run `msys2_shell.bat` 
+or manually add `msys64\usr\bin`, `msys64\mingw32\bin`, and
+`msys64\mingw64\bin` to your Windows path).   
 
-Once you have bash installed and in your `PATH`, open a Windows terminal and type 
+Once you have bash installed and in your `PATH`, open a Windows terminal and
+type 
 
 ```
 bash
 pacman -S make wget tar patch dos2unix diffutils git svn
+git clone https://www.github.com/coin-or/coinbrew
 ```
-
-To obtain the source code, the first step is to get the installer that will then
-fetch the source for MibS and all its dependencies. *You do not need to
-clone MibS first, just do the following!* Open a terminal and execute
-
-```
-git clone https://www.github.com/coin-or/COIN-OR-OptimizationSuite
-```
-
-Next, to check out source code for and build all the necessary projects (including 
-dependencies), execute the script in the `COIN-OR-OptimizationSuite` subdirectory. 
-To execute the script, do
+Next, to check out source code for and build all the necessary projects
+(including dependencies), execute the script in the `COIN-OR-OptimizationSuite`
+subdirectory. To execute the script, do
 
 ```
-cd COIN-OR-OptimizationSuite
-chmod u+x coi.install.sh
-./coin.install.sh
+cd coinbrew
+chmod u+x coinbrew
+./coinbrew
 ```
-
-(Note: The `chmod` command is only needed if the execute permission is not automatically 
-set by git on cloning). Once you run the script,
-you will be prompted interactively to select a project to fetch and build. the
+(Note: The `chmod` command is only needed if the execute permission is not
+automatically set by git on cloning). Once you run the script,
+you will be prompted interactively to select a project to fetch and build. The
 rest should happen automagically. Alternatively, the following command-line
 incantation will execute the procedure non-interactively.
 
 ```
-./coin.install.sh fetch build --no-prompt --main-proj=MibS
+./coinbrew fetch --no-prompt MibS:stable/x.y
+./coinbrew build --no-prompt MibS --prefix=C:\path\to\install\dir
+./coinbrew install MibS
 ```
-Options to the `configure` script can simply be added to the command-line. For
-example, to build with debugging symbols, do
-
+Note that the prefix specified above is the directory where the packages will be
+installed. If the specified prefix is writable, then all packages will be
+automatically installed immediately after building. If no prefix is specified,
+the package will be installed in the directory dist/. Options that would have
+been passed to the `configure` script under the old build system can simply be
+added to the command-line. For example, to build with debugging symbols, do
 ```
-./coin.install.sh fetch build --no-prompt --main-proj=MibS --enable-debug
+./coinbrew build --no-prompt MibS --prefix=C:\path\to\install\dir --enable-debug
 ```
 
 To get help with additional options available in running the script, do
 
 ```
-./coin/install.sh --help
+./coinbrew --help
 ```
 
 To use the resulting binaries and/or libraries, you will need to add the
 full path of the directory `build\bin` to your Windows executable
 search `PATH`, or, alternatively, copy the conents of the build directory to 
-`C:\Program Files (x86)\MibS` and add the directory `C:\Program Files (x86)\MibS\bin` 
+`C:\Program Files (x86)\MibS` and add the directory
+`C:\Program Files (x86)\MibS\bin` 
 to your Windows executable search `PATH`. You may also consider adding
 `C:\Program Files (x86)\MibS\lib` to the `LIB` path and 
 `C:\Program Files (x86)\MibS\include` to the `INCLUDE` path. 
@@ -184,8 +182,8 @@ with
 
 ```
 ./coin.install.sh fetch build --no-prompt --main-proj=MibS --enable-msvc
+./coinbrew build --no-prompt MibS --prefix=C:\path\to\install\dir --enable-msvc
 ```
-
 ### Building on OS X
 
 OS X is a Unix-based OS and ships with many of the basic components needed to
@@ -200,64 +198,52 @@ do
 brew install gcc wget svn git
 ```
 
-To obtain the source code, the first step is to get the installer that will then
+To obtain
+the source code, the first step is to get the installer that will then
 fetch the source for MibS and all its dependencies. *You do not need to
 clone MibS first, just do the following!* Open a terminal and execute
 
 ```
-git clone https://www.github.com/coin-or/COIN-OR-OptimizationSuite
+git clone https://www.github.com/coin-or/coinbrew
 ```
 
-Next, to check out source code for and build all the necessary projects (including 
-dependencies), execute the script in the `COIN-OR-OptimizationSuite` subdirectory. 
-To execute the script, do
+Next, to check out source code for and build all the necessary projects
+(including dependencies), execute the script in the `coinbrew`
+subdirectory. To execute the script, do
 
 ```
-cd COIN-OR-OptimizationSuite
-chmod u+x coi.install.sh
-./coin.install.sh
+cd coinbrew
+chmod u+x coinbrew
+./coinbrew
 ```
 
-(Note: The `chmod` command is only needed if the execute permission is not automatically 
-set by git on cloning). Once you run the script,
-you will be prompted interactively to select a project to fetch and build. the
+(Note: The `chmod` command is only needed if the execute permission is not
+automatically set by git on cloning). Once you run the script,
+you will be prompted interactively to select a project to fetch and build. The
 rest should happen automagically. Alternatively, the following command-line
 incantation will execute the procedure non-interactively.
 
 ```
-./coin.install.sh fetch build --no-prompt --main-proj=MibS
+./coinbrew fetch --no-prompt MibS:stable/x.y
+./coinbrew build --no-prompt MibS --prefix=/path/to/install/dir
+./coinbrew install MibS
 ```
-
-With this setup, `clang` will be used for compiling C++ by default and
-`gfortran` will be used for Fortran. Since `clang` uses the GNU standard
-library, `gfortran` is compatible.
-
-If you want to use the `gcc` compiler provided by Homebrew, then replace the
-`build` command above with
-
-```
-./coin.install.sh build --no-prompt --main-proj=MibS CC=gcc-5 CXX=g++-5
-```
-
-Additional options to the `configure` script can simply be added to the command-line. For
-example, to build with debugging symbols, do
+Note that the prefix specified above is the directory where the packages will be
+installed. If the specified prefix is writable, then all packages will be
+automatically installed immediately after building. If no prefix is specified,
+the package will be installed in the directory dist/. Options that would have
+been passed to the `configure` script under the old build system can simply be
+added to the command-line. For example, to build with debugging symbols, do
 
 ```
-./coin.install.sh fetch build --no-prompt --main-proj=MibS --enable-debug
+./coinbrew build --no-prompt MibS --prefix=/path/to/install/dir --enable-debug
 ```
 
 To get help with additional options available in running the script, do
 
 ```
-./coin/install.sh --help
+./coinbrew --help
 ```
-
-If you wish to install in a different directory, such as `/usr/local`, then run the command
-
-```
-./coin.install.sh install --prefix=/path/to/install/dir
-```
-
 After installation, you will also need to add `/path/to/install/dir/bin` to your
 `PATH` variable in your `.bashrc` and also add `/path/to/install/dir/lib`
 to your `DYLD_LIBRARY_PATH` if you want to link to COIN libraries. 
