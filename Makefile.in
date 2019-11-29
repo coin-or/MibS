@@ -20,7 +20,7 @@
 # Authors: Scott DeNegre, Lehigh University                                 #
 #          Ted Ralphs, Lehigh University                                    #
 #          Sahar Tahernajad, Lehigh University                              #
-# Copyright (C) 2007-2016 Lehigh University, Scott DeNegre, Ted Ralphs,     #
+# Copyright (C) 2007-2019 Lehigh University, Scott DeNegre, Ted Ralphs,     #
 #                         and Sahar Tahernajad                              #
 # All Rights Reserved.                                                      #
 #                                                                           #
@@ -288,6 +288,7 @@ coin_doxy_usedot = @coin_doxy_usedot@
 coin_have_doxygen = @coin_have_doxygen@
 coin_have_latex = @coin_have_latex@
 datadir = @datadir@
+dos2unix = @dos2unix@
 exec_prefix = @exec_prefix@
 have_autoconf = @have_autoconf@
 have_automake = @have_automake@
