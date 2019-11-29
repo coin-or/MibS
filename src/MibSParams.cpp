@@ -6,7 +6,7 @@
 /*          Ted Ralphs, Lehigh University                                    */
 /*          Sahar Tahernajad, Lehigh University                              */
 /*                                                                           */
-/* Copyright (C) 2007-2017 Lehigh University, Scott DeNegre, and Ted Ralphs. */
+/* Copyright (C) 2007-2019 Lehigh University, Scott DeNegre, and Ted Ralphs. */
 /* All Rights Reserved.                                                      */
 /*                                                                           */
 /* This software is licensed under the Eclipse Public License. Please see    */
@@ -62,6 +62,9 @@ MibSParams::createKeywordList() {
 
    keys_.push_back(make_pair(std::string("MibS_allowRemoveCut"),
 			     AlpsParameter(AlpsBoolPar, allowRemoveCut)));
+
+   keys_.push_back(make_pair(std::string("MibS_useNewPureIntCut"),
+			     AlpsParameter(AlpsBoolPar, useNewPureIntCut)));
 
    //--------------------------------------------------------
    // BoolArrayPar
@@ -148,8 +151,23 @@ MibSParams::createKeywordList() {
    keys_.push_back(make_pair(std::string("MibS_useIntersectionCut"),
                              AlpsParameter(AlpsIntPar, useIntersectionCut)));
 
-   keys_.push_back(make_pair(std::string("MibS_intersectionCutType"),
-			     AlpsParameter(AlpsIntPar, intersectionCutType)));
+   //keys_.push_back(make_pair(std::string("MibS_intersectionCutType"),
+   //			     AlpsParameter(AlpsIntPar, intersectionCutType)));
+
+   keys_.push_back(make_pair(std::string("MibS_useTypeIC"),
+			     AlpsParameter(AlpsIntPar, useTypeIC)));
+
+   keys_.push_back(make_pair(std::string("MibS_useTypeWatermelon"),
+			     AlpsParameter(AlpsIntPar, useTypeWatermelon)));
+
+   keys_.push_back(make_pair(std::string("MibS_useTypeHypercubeIC"),
+			     AlpsParameter(AlpsIntPar, useTypeHypercubeIC)));
+
+   keys_.push_back(make_pair(std::string("MibS_useTypeTenderIC"),
+			     AlpsParameter(AlpsIntPar, useTypeTenderIC)));
+
+   keys_.push_back(make_pair(std::string("MibS_useTypeHybridIC"),
+			     AlpsParameter(AlpsIntPar, useTypeHybridIC)));
 
    keys_.push_back(make_pair(std::string("MibS_bilevelFreeSetTypeIC"),
 			     AlpsParameter(AlpsIntPar, bilevelFreeSetTypeIC)));
@@ -180,6 +198,30 @@ MibSParams::createKeywordList() {
    keys_.push_back(make_pair(std::string("MibS_useLinkingSolutionPool"),
 			     AlpsParameter(AlpsIntPar, useLinkingSolutionPool)));
 
+   keys_.push_back(make_pair(std::string("MibS_newPureIntCutDepthLb"),
+			     AlpsParameter(AlpsIntPar, newPureIntCutDepthLb)));
+
+   keys_.push_back(make_pair(std::string("MibS_newPureIntCutDepthUb"),
+			     AlpsParameter(AlpsIntPar, newPureIntCutDepthUb)));
+
+   keys_.push_back(make_pair(std::string("MibS_boundCutOptimalType"),
+			     AlpsParameter(AlpsIntPar, boundCutOptimalType)));
+
+   keys_.push_back(make_pair(std::string("MibS_boundCutDepthLb"),
+			     AlpsParameter(AlpsIntPar, boundCutDepthLb)));
+
+   keys_.push_back(make_pair(std::string("MibS_boundCutDepthUb"),
+			     AlpsParameter(AlpsIntPar, boundCutDepthUb)));
+
+   keys_.push_back(make_pair(std::string("MibS_boundCutFreq"),
+			     AlpsParameter(AlpsIntPar, boundCutFreq)));
+
+   keys_.push_back(make_pair(std::string("MibS_boundCutNodeLim"),
+			     AlpsParameter(AlpsIntPar, boundCutNodeLim)));
+
+   keys_.push_back(make_pair(std::string("MibS_relaxTypeParamBoundCut"),
+   			     AlpsParameter(AlpsIntPar, relaxTypeParamBoundCut)));
+
    //--------------------------------------------------------
    // String Parameters.
    //--------------------------------------------------------
@@ -192,6 +234,13 @@ MibSParams::createKeywordList() {
 
    keys_.push_back(make_pair(std::string("MibS_inputFormat"),
 			     AlpsParameter(AlpsStringPar, inputFormat)));
+
+   //--------------------------------------------------------
+   // Double Parameters.
+   //--------------------------------------------------------
+
+   keys_.push_back(make_pair(std::string("MibS_boundCutTimeLim"),
+			     AlpsParameter(AlpsDoublePar, boundCutTimeLim)));
 
 }
 
@@ -208,9 +257,9 @@ MibSParams::setDefaultEntries() {
      
    setEntry(useBoundCut, false);
    
-   setEntry(boundCutOptimal, false);
+   setEntry(boundCutOptimal, true);
    
-   setEntry(boundCutRelaxUpper, true);
+   setEntry(boundCutRelaxUpper, false);
 
    setEntry(useIpBound, false);
 
@@ -225,6 +274,8 @@ MibSParams::setDefaultEntries() {
    setEntry(printProblemInfo, true);
 
    setEntry(allowRemoveCut, false);
+
+   setEntry(useNewPureIntCut, false);
 
    //-------------------------------------------------------------
    // Int Parameters.
@@ -280,7 +331,17 @@ MibSParams::setDefaultEntries() {
 
    setEntry(useIntersectionCut, PARAM_NOTSET);
 
-   setEntry(intersectionCutType, MibSIntersectionCutTypeNotSet);
+   //setEntry(intersectionCutType, MibSIntersectionCutTypeNotSet);
+
+   setEntry(useTypeIC, PARAM_NOTSET);
+
+   setEntry(useTypeWatermelon, PARAM_NOTSET);
+
+   setEntry(useTypeHypercubeIC, PARAM_NOTSET);
+
+   setEntry(useTypeTenderIC, PARAM_NOTSET);
+
+   setEntry(useTypeHybridIC, PARAM_NOTSET);
 
    setEntry(bilevelFreeSetTypeIC, MibSBilevelFreeSetTypeICNotSet);
 
@@ -300,9 +361,27 @@ MibSParams::setDefaultEntries() {
 
    setEntry(useLinkingSolutionPool, PARAM_NOTSET);
 
+   setEntry(newPureIntCutDepthLb, -1);
+
+   setEntry(newPureIntCutDepthUb, -1);
+
+   setEntry(boundCutOptimalType, MibSBoundCutOptimalTypeParametric);
+
+   setEntry(boundCutDepthLb, -1);
+
+   setEntry(boundCutDepthUb, -1);
+
+   setEntry(boundCutFreq, 1);
+
+   setEntry(boundCutNodeLim, ALPS_INT_MAX);
+
+   setEntry(relaxTypeParamBoundCut, MibSRelaxTypeParamBoundCutLP);
+
    //-------------------------------------------------------------
    // Double Parameters
    //-------------------------------------------------------------
+
+   setEntry(boundCutTimeLim, 3600);
    
    //-------------------------------------------------------------
    // String Parameters

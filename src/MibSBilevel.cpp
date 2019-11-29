@@ -6,7 +6,7 @@
 /*          Ted Ralphs, Lehigh University                                    */
 /*          Sahar Tahernajad, Lehigh University                              */
 /*                                                                           */
-/* Copyright (C) 2007-2017 Lehigh University, Scott DeNegre, and Ted Ralphs. */
+/* Copyright (C) 2007-2019 Lehigh University, Scott DeNegre, and Ted Ralphs. */
 /* All Rights Reserved.                                                      */
 /*                                                                           */
 /* This software is licensed under the Eclipse Public License. Please see    */
@@ -329,6 +329,12 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 	OsiSolverInterface *lSolver = lSolver_;
 
 	remainingTime = timeLimit - model_->broker_->subTreeTimer().getTime();
+	if(remainingTime <= etol){
+	    shouldPrune_ = true;
+	    storeSol = MibSNoSol;
+	    goto TERM_CHECKBILEVELFEAS;
+	}
+	
 	remainingTime = CoinMax(remainingTime, 0.00);
 	
 	if (feasCheckSolver == "Cbc"){
@@ -526,6 +532,13 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 		UBSolver = UBSolver_;
 
 		remainingTime = timeLimit - model_->broker_->subTreeTimer().getTime();
+
+		if(remainingTime <= etol){
+		    shouldPrune_ = true;
+		    storeSol = MibSNoSol;
+		    goto TERM_CHECKBILEVELFEAS;
+		}
+		
 		remainingTime = CoinMax(remainingTime, 0.00);
 
                 if (feasCheckSolver == "Cbc"){

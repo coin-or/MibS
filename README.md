@@ -21,7 +21,9 @@ MibS is a solver for mixed integelibrr bilevel optimization problems. For an
 introduction to bilevel optimization, see [this slide
 deck](http://coral.ie.lehigh.edu/~ted/files/talks/BILEVEL-IWOBIP16.pdf). A
 somewhat outdated but still useful introduction to MibS is
-[here](http://coral.ie.lehigh.edu/~ted/files/talks/BILEVEL-INFORMS11.pdf).
+[here](http://coral.ie.lehigh.edu/~ted/files/talks/BILEVEL-INFORMS11.pdf). 
+A paper that contains a complete technical description of the algorithms in MibS is 
+[here](http://coral.ie.lehigh.edu/~ted/files/papers/MIBLP16.pdf).
 
 ## SUPPORTED PLATFORMS
 

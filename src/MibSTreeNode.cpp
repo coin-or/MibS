@@ -6,7 +6,7 @@
 /*          Ted Ralphs, Lehigh University                                    */
 /*          Sahar Tahernajad, Lehigh University                              */
 /*                                                                           */
-/* Copyright (C) 2007-2017 Lehigh University, Scott DeNegre, and Ted Ralphs. */
+/* Copyright (C) 2007-2019 Lehigh University, Scott DeNegre, and Ted Ralphs. */
 /* All Rights Reserved.                                                      */
 /*                                                                           */
 /* This software is licensed under the Eclipse Public License. Please see    */
@@ -25,6 +25,8 @@ MibSTreeNode::MibSTreeNode()
 
    lowerUpperBound_ = - ALPS_DBL_MAX;
    boundSet_ = false;
+   isCutStored_ = false;
+   shouldSolve_ = false;
 
 }
 
@@ -35,6 +37,8 @@ MibSTreeNode::MibSTreeNode(AlpsNodeDesc *&desc)
 
    lowerUpperBound_ = - ALPS_DBL_MAX;
    boundSet_ = false;
+   isCutStored_ = false;
+   shouldSolve_ = false;
 
 }
 
@@ -45,6 +49,8 @@ MibSTreeNode::MibSTreeNode(BlisModel *m)
 
    lowerUpperBound_ = - ALPS_DBL_MAX;
    boundSet_ = false;
+   isCutStored_ = false;
+   shouldSolve_ = false;
 
 }
 
@@ -1515,10 +1521,10 @@ MibSTreeNode::process(bool isRoot, bool rampUp)
     delete [] currLpSolution;
 
     if (status_ == AlpsNodeStatusFathomed) {
-	// Delete new cuts since no use anymore.
-        for (k = 0; k < newNumCons; ++k) {
-            delete newConstraints[k];
-        }
+      // Delete new cuts since no use anymore.
+      for (k = 0; k < newNumCons; ++k) {
+	delete newConstraints[k];
+      }
     }
     delete [] newConstraints;
     delete [] oldConsPos;

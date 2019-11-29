@@ -6,7 +6,7 @@
 /*          Ted Ralphs, Lehigh University                                    */
 /*          Sahar Tahernajad, Lehigh University                              */
 /*                                                                           */
-/* Copyright (C) 2007-2017 Lehigh University, Scott DeNegre, and Ted Ralphs. */
+/* Copyright (C) 2007-2019 Lehigh University, Scott DeNegre, and Ted Ralphs. */
 /* All Rights Reserved.                                                      */
 /*                                                                           */
 /* This software is licensed under the Eclipse Public License. Please see    */
@@ -88,6 +88,20 @@ enum MibSBilevelFreeSetTypeIC{
 };
 
 //#############################################################################
+
+enum MibSRelaxTypeParamBoundCut{
+  MibSRelaxTypeParamBoundCutLP = 0,
+  MibSRelaxTypeParamBoundCutMIP
+};
+
+//#############################################################################
+
+enum MibSBoundCutOptimalType{
+  MibSBoundCutOptimalTypeParametric = 0,
+  MibSBoundCutOptimalTypeNonParametric
+};
+
+//############################################################################# 
 /*---------  which_active_con_method choices --------------------------------*/
 #define SIMPLE  0
 #define BASIS  1

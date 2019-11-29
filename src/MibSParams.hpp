@@ -6,7 +6,7 @@
 /*          Ted Ralphs, Lehigh University                                    */
 /*          Sahar Tahernajad, Lehigh University                              */
 /*                                                                           */
-/* Copyright (C) 2007-2017 Lehigh University, Scott DeNegre, and Ted Ralphs. */
+/* Copyright (C) 2007-2019 Lehigh University, Scott DeNegre, and Ted Ralphs. */
 /* All Rights Reserved.                                                      */
 /*                                                                           */
 /* This software is licensed under the Eclipse Public License. Please see    */
@@ -38,6 +38,7 @@ class MibSParams : public AlpsParameterSet {
      turnOffOtherCuts,
      printProblemInfo,
      allowRemoveCut,
+     useNewPureIntCut,
      endOfBoolParams
   };
   
@@ -68,7 +69,12 @@ class MibSParams : public AlpsParameterSet {
      useBendersCut,
      bendersCutType,
      useIntersectionCut,
-     intersectionCutType,
+     //intersectionCutType,
+     useTypeIC,
+     useTypeWatermelon,
+     useTypeHypercubeIC,
+     useTypeTenderIC,
+     useTypeHybridIC,
      bilevelFreeSetTypeIC,
      solveSecondLevelWhenXYVarsInt,
      solveSecondLevelWhenXVarsInt,
@@ -78,12 +84,20 @@ class MibSParams : public AlpsParameterSet {
      computeBestUBWhenLVarsInt,
      computeBestUBWhenLVarsFixed,
      useLinkingSolutionPool,
+     newPureIntCutDepthLb,
+     newPureIntCutDepthUb,
+     boundCutOptimalType,
+     boundCutDepthLb,
+     boundCutDepthUb,
+     boundCutFreq,
+     boundCutNodeLim,
+     relaxTypeParamBoundCut,
      endOfIntParams
   };
 
   /** Double parameters. */
   enum dblParams{
-      ///
+      boundCutTimeLim,
       endOfDblParams
   };
 

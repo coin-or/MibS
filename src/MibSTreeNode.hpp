@@ -6,7 +6,7 @@
 /*          Ted Ralphs, Lehigh University                                    */
 /*          Sahar Tahernajad, Lehigh University                              */
 /*                                                                           */
-/* Copyright (C) 2007-2017 Lehigh University, Scott DeNegre, and Ted Ralphs. */
+/* Copyright (C) 2007-2019 Lehigh University, Scott DeNegre, and Ted Ralphs. */
 /* All Rights Reserved.                                                      */
 /*                                                                           */
 /* This software is licensed under the Eclipse Public License. Please see    */
@@ -29,6 +29,10 @@ class MibSTreeNode : public BlisTreeNode {
    
   double lowerUpperBound_;
   bool boundSet_;
+  //for parametric bound cut
+  bool isCutStored_;
+  //for parametric boundcut
+  bool shouldSolve_;
   
  public:
   
@@ -40,8 +44,11 @@ class MibSTreeNode : public BlisTreeNode {
   
   void setIsBoundSet(bool val) {boundSet_ = val;}
   void setLowerUB(double bound) {lowerUpperBound_ = bound;}
+  void setIsCutStored(bool isCutStored)
+  {isCutStored_ = isCutStored;}
   inline bool isBoundSet() {return boundSet_;}
   inline double getLowerUB() {return lowerUpperBound_;}
+  bool getIsCutStored() {return isCutStored_;}
   AlpsTreeNode* createNewTreeNode(AlpsNodeDesc *&desc) const;
   int process(bool isRoot, bool rampUp);
 };
