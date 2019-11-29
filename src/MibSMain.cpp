@@ -35,6 +35,21 @@
 int main(int argc, char* argv[])
 {
 
+   std::cout 
+      << "\n========================================================"
+      << "\n========================================================"
+      <<   "\nWelcome to MibS (Mixed Integer Bilevel Solver)"
+      <<   "\nCopyright (C) 2007-2017 Lehigh University, Scott DeNegre, Ted Ralphs"
+      <<   "\nand Sahar Tahernejad."
+      <<   "\nAll Rights Reserved."
+      <<   "\nThis software is licensed under the Eclipse Public License. Please see"
+      <<   "\naccompanying file for terms."
+      <<   "\nVersion: " << MIBS_VERSION
+      <<   "\nBuild Date: " << __DATE__
+      << "\n========================================================"
+      << "\n========================================================"
+      << "\n";
+
     try{
        
       /** Set up lp solver **/
@@ -51,19 +66,6 @@ int main(int argc, char* argv[])
         AlpsKnowledgeBrokerMPI broker(argc, argv, model);
 #else
         if(argc == 1){
-           std::cout 
-              << "\n========================================================"
-              << "\n========================================================"
-              <<   "\nWelcome to MibS (Mixed Integer Bilevel Solver)"
-              <<   "\nCopyright (C) 2007-2017 Lehigh University, Scott DeNegre, and Ted Ralphs."
-              <<   "\nAll Rights Reserved."
-              <<   "\nThis software is licensed under the Eclipse Public License. Please see"
-              <<   "\naccompanying file for terms."
-              <<   "\nVersion: " << MIBS_VERSION
-              <<   "\nBuild Date: " << __DATE__
-              << "\n========================================================"
-              << "\n========================================================"
-              << "\n";
            std::cerr
               << "================================================" << std::endl
               << "Usage:" << std::endl

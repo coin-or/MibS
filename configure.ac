@@ -4,7 +4,7 @@
 # Authors: Scott DeNegre, Lehigh University                                 #
 #          Ted Ralphs, Lehigh University                                    #
 #          Sahar Tahernajad, Lehigh University                              #
-# Copyright (C) 2007-2017 Lehigh University, Scott DeNegre, Ted Ralphs,     #
+# Copyright (C) 2007-2019 Lehigh University, Scott DeNegre, Ted Ralphs,     #
 #                         and Sahar Tahernajad                              #
 # All Rights Reserved.                                                      #
 #                                                                           #
@@ -19,7 +19,7 @@
 AC_PREREQ(2.59)
 
 m4_define([gitversion], m4_esyscmd([sh -c "git describe --always | cut -d '=' -f 2 | head --bytes -1"]))
-AC_INIT([MibS],[trunk],[https://github.com/tkralphs/MibS/issues/new])
+AC_INIT([MibS],[trunk],[https://github.com/coin-or/MibS/issues/new])
 
 AC_DEFINE([MIBS_GIT_VERSION], [gitversion], [MibS git version])
 
