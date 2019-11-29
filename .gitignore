@@ -1,1 +1,4 @@
 *~
+build*
+acinclude.m4*
+autom4te.cache*
