@@ -81,7 +81,7 @@ MibS_usePreprocessor 0          # -1: auto, 0: false, 1: true
 MibS_useLowerObjHeuristic 0     # -1: auto, 0: false, 1: true
 MibS_useObjCutHeuristic 0       # -1: auto, 0: false, 1: true
 MibS_useWSHeuristic 0           # -1: auto, 0: false, 1: true
-MibS_useGreedyHeuristic 1       # 0: false, 1: true
+MibS_useGreedyHeuristic 0       # 0: false, 1: true
 #MibS_usePureIntegerCut 1        # 0: false, 1: true
 #MibS_useValFuncCut 1            # 0: false, 1: true
 #MibS_useNoGoodCut 1             # 0: false, 1: true
