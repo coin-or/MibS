@@ -480,19 +480,6 @@ MibSModel::readAuxiliaryData(const CoinPackedMatrix& rowMatrix,
 
      data_stream.close();
   
-<<<<<<< HEAD
-  std::string key;
-  int iValue(0);
-  std::string cValue;
-  double dValue(0.0);
-  int j(0), k(0), m(0), p(0), pos(0);
-  int lowerColNum(0), lowerRowNum(0);
-
-  while (data_stream >> key){
-     if(key == "N"){ 
-	   data_stream >> iValue;
-	   setLowerDim(iValue);
-=======
      std::cout << "LL Data File: " << getLowerFile() << "\n";
      std::cout << "Number of LL Variables:   "
 	       << getLowerDim() << "\n\n";
@@ -510,7 +497,6 @@ MibSModel::readAuxiliaryData(const CoinPackedMatrix& rowMatrix,
      if(!timData_stream){
 	 std::cout << "Error opening input time data file. Aborting.\n";
 	 abort();
->>>>>>> First try for adding the stochastic case
      }
 
      if(!stoData_stream){
