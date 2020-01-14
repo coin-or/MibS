@@ -618,8 +618,8 @@ MibSModel::readAuxiliaryData(const CoinPackedMatrix& rowMatrix,
      //saharSto3: check it
      //double **fullMatrixA2 = NULL;
      //double **fullMatrixA2Copy = NULL;
-     std::vector<std::vector<double>> fullMatrixA2;
-     std::vector<std::vector<double>> fullMatrixA2Copy;
+     std::vector<std::vector<double> > fullMatrixA2;
+     std::vector<std::vector<double> > fullMatrixA2Copy;
 
      if(isA2Random != PARAM_OFF){
 	 /*fullMatrixA2 = new double*[truncLRowNum];
@@ -2309,7 +2309,7 @@ MibSModel::setupSAA(const CoinPackedMatrix& matrix,
     double *rowElem = NULL;
     double *b2Base = NULL;
     //double **fullMatrixA2 = NULL;
-    std::vector<std::vector<double>> fullMatrixA2;
+    std::vector<std::vector<double> > fullMatrixA2;
     CoinPackedMatrix *matrixA2Base = NULL;
     int truncLColNum(getTruncLowerDim());
     int truncLRowNum(getTruncLowerRowNum());
@@ -3078,7 +3078,7 @@ MibSModel::solveSAA(const CoinPackedMatrix& matrix,
 		    double infinity, const char *rowSense, bool &isTimeLimReached,
 		    double &objSAA, int allScenariosNumSMPS, double *b2Base,
 		    CoinPackedMatrix *matrixA2Base,
-		    const std::vector<std::vector<double>> &fullMatrixA2)
+		    const std::vector<std::vector<double> > &fullMatrixA2)
 {
     int isA2Random(MibSPar_->entry(MibSParams::isA2Random));
 
@@ -3270,7 +3270,7 @@ CoinPackedMatrix *
 MibSModel::generateSamples(int size, int truncNumCols, int truncNumRows,
 			   int allScenariosNum, const char *rowSense,
 			   double *b2Base, CoinPackedMatrix *matrixA2Base,
-			   const std::vector<std::vector<double>> &fullMatrixA2,
+			   const std::vector<std::vector<double> > &fullMatrixA2,
 			   double *rhs)
 {
     int isSMPSFormat(MibSPar_->entry(MibSParams::isSMPSFormat));
@@ -3323,7 +3323,7 @@ MibSModel::generateSamples(int size, int truncNumCols, int truncNumRows,
 
 	stoData_stream.close();
 
-	std::vector<std::vector<double>> fullMatrixA2Copy;
+	std::vector<std::vector<double> > fullMatrixA2Copy;
 
 	if(isA2Random != PARAM_OFF){
 	    fullMatrixA2Copy.resize(truncLowerRowNum, std::vector<double>(uColNum, 0.0));
