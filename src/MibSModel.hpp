@@ -731,12 +731,12 @@ public:
 		     double infinity, const char *rowSense, bool &isTimeLimReached,
 		     double &objSAA, int allScenariosNumSMPS, double *b2Base,
 		     CoinPackedMatrix *matrixA2Base,
-		     const std::vector<std::vector<double>> &fullMatrixA2);
+		     const std::vector<std::vector<double> > &fullMatrixA2);
 
     CoinPackedMatrix *generateSamples(int size, int truncNumCols, int truncNumRows,
 				      int allScenariosNum, const char *rowSense,
 				      double *b2Base, CoinPackedMatrix *matrixA2Base,
-				      const std::vector<std::vector<double>> &fullMatrixA2,
+				      const std::vector<std::vector<double> > &fullMatrixA2,
 				      double *rhs);
 
     int greatestCommonDivisor(int number1, int number2);
