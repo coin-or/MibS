@@ -4275,7 +4275,7 @@ MibSModel::setupSelf()
    
    std::string dataFile(AlpsPar_->entry(AlpsParams::instance));
 
-   if(dataFile == "NONE"){
+   if((numCols_ == 0) && (dataFile == "NONE")){
        std::cout << "Error: data file is not specefied. Aborting." << std::endl;
        abort();
    }
