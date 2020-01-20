@@ -13,16 +13,16 @@
 /* accompanying file for terms.                                              */
 /*===========================================================================*/
 
-#include <map>
+//#include <map>
 #include <time.h>
 #include "OsiCbcSolverInterface.hpp"
 #include "OsiSolverInterface.hpp"
 
 #include "MibSHeuristic.hpp"
-#include "MibSModel.hpp"
+//#include "MibSModel.hpp"
 #include "MibSParams.hpp"
 #include "MibSSolution.hpp"
-#include "MibSSolTypes.hpp"
+//#include "MibSSolTypes.hpp"
 #include "MibSConfig.hpp"
 
 #ifdef COIN_HAS_SYMPHONY

@@ -43,9 +43,9 @@
 #include "AlpsKnowledgeBrokerSerial.h"
 #endif
 
-#ifdef COIN_HAS_SYMPHONY
-#include "OsiSymSolverInterface.hpp"
-#endif
+//#ifdef COIN_HAS_SYMPHONY
+//#include "OsiSymSolverInterface.hpp"
+//#endif
 //to run in parallel, uncomment this (should be modified later)
 //#define _OPENMPMIBS 1
 #ifdef _OPENMPMIBS
