@@ -17,10 +17,10 @@
 #include "OsiCbcSolverInterface.hpp"
 
 #include "MibSBilevel.hpp"
-#include "MibSModel.hpp"
+//#include "MibSModel.hpp"
 #include "MibSTreeNode.hpp"
 #include "MibSSolution.hpp"
-#include "MibSHeuristic.hpp"
+//#include "MibSHeuristic.hpp"
 #include "MibSConfig.hpp"
 
 #ifdef COIN_HAS_SYMPHONY

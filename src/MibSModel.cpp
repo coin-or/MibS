@@ -14,7 +14,7 @@
 
 #include <random>
 
-#include "BlisModel.h"
+//#include "BlisModel.h"
 #include "BlisConstraint.h"
 #include "BlisVariable.h"
 #include "BlisNodeDesc.h"
@@ -39,20 +39,21 @@
 #include "CglTwomir.hpp"
 
 #include "OsiCbcSolverInterface.hpp"
-//#ifdef COIN_HAS_SYMPHONY
+#include "MibSConfig.hpp"
+#include "MibSModel.hpp"
+#ifdef COIN_HAS_SYMPHONY
 #include "symphony.h"
 #include "SymConfig.h"
 #include "OsiSymSolverInterface.hpp"
-//#endif
+#endif
 #ifdef COIN_HAS_CPLEX
 #include "cplex.h"
 #include "OsiCpxSolverInterface.hpp"
 #endif
 
-#include "MibSModel.hpp"
 #include "MibSSolution.hpp"
 #include "MibSCutGenerator.hpp"
-#include "MibSBilevel.hpp"
+//#include "MibSBilevel.hpp"
 #include "MibSTreeNode.hpp"
 #include "MibSConstants.hpp"	
 
@@ -2462,7 +2463,7 @@ MibSModel::setupSAA(const CoinPackedMatrix& matrix,
 			dynamic_cast<OsiCbcSolverInterface *>
 			    (evalLSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
 		    }else if (feasCheckSolver == "SYMPHONY"){
-			//#if COIN_HAS_SYMPHONY
+#if COIN_HAS_SYMPHONY
 			sym_environment *env = dynamic_cast<OsiSymSolverInterface*>
 			    (evalLSolver)->getSymphonyEnvironment();
 
@@ -2479,7 +2480,7 @@ MibSModel::setupSAA(const CoinPackedMatrix& matrix,
 			}else{
 			    sym_set_int_param(env, "generate_cgl_gomory_cuts", GENERATE_DEFAULT);
 			}
-			//#endif
+#endif
 		    }else if (feasCheckSolver == "CPLEX"){
 #ifdef COIN_HAS_CPLEX
 			evalLSolver->setHintParam(OsiDoReducePrint);
@@ -2496,13 +2497,13 @@ MibSModel::setupSAA(const CoinPackedMatrix& matrix,
 
 
 		    if(feasCheckSolver == "SYMPHONY"){
-			//#if COIN_HAS_SYMPHONY
+#if COIN_HAS_SYMPHONY
 			if(sym_is_time_limit_reached(dynamic_cast<OsiSymSolverInterface*>
 						     (evalLSolver)->getSymphonyEnvironment())){
 			    isTimeLimReached = true;
 			    goto TERM_SETUPSAA;
 			}
-			//#endif
+#endif
 		    }
 		       
 		    if(!evalLSolver->isProvenOptimal()){
@@ -2526,7 +2527,7 @@ MibSModel::setupSAA(const CoinPackedMatrix& matrix,
 			    dynamic_cast<OsiCbcSolverInterface *>
 				(evalBestSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
 			}else if (feasCheckSolver == "SYMPHONY"){
-			    //#if COIN_HAS_SYMPHONY
+#if COIN_HAS_SYMPHONY
 			    sym_environment *env = dynamic_cast<OsiSymSolverInterface*>
 				(evalBestSolver)->getSymphonyEnvironment();
 
@@ -2543,7 +2544,7 @@ MibSModel::setupSAA(const CoinPackedMatrix& matrix,
 			    }else{
 				sym_set_int_param(env, "generate_cgl_gomory_cuts", GENERATE_DEFAULT);
 			    }
-			    //#endif
+#endif
 			}else if (feasCheckSolver == "CPLEX"){
 #ifdef COIN_HAS_CPLEX
 			    evalBestSolver->setHintParam(OsiDoReducePrint);
@@ -2559,13 +2560,13 @@ MibSModel::setupSAA(const CoinPackedMatrix& matrix,
 			evalBestSolver->branchAndBound();
 
 			if(feasCheckSolver == "SYMPHONY"){
-			    //#if COIN_HAS_SYMPHONY
+#if COIN_HAS_SYMPHONY
 			    if(sym_is_time_limit_reached(dynamic_cast<OsiSymSolverInterface*>
 							 (evalBestSolver)->getSymphonyEnvironment())){
 				isTimeLimReached = true;
 				goto TERM_SETUPSAA;
 			    }
-			    //#endif
+#endif
 			}
 			
 			if(!evalBestSolver->isProvenOptimal()){
@@ -2661,7 +2662,7 @@ MibSModel::setupSAA(const CoinPackedMatrix& matrix,
 		dynamic_cast<OsiCbcSolverInterface *>
 		    (evalLSolverNew)->getModelPtr()->messageHandler()->setLogLevel(0);
 	    }else if (feasCheckSolver == "SYMPHONY"){
-		//#if COIN_HAS_SYMPHONY
+#if COIN_HAS_SYMPHONY
 		sym_environment *env = dynamic_cast<OsiSymSolverInterface*>
 		    (evalLSolverNew)->getSymphonyEnvironment();
 
@@ -2678,7 +2679,7 @@ MibSModel::setupSAA(const CoinPackedMatrix& matrix,
 		}else{
 		    sym_set_int_param(env, "generate_cgl_gomory_cuts", GENERATE_DEFAULT);
 		}
-		//#endif
+#endif
 	    }else if (feasCheckSolver == "CPLEX"){
 #ifdef COIN_HAS_CPLEX
 		evalLSolverNew->setHintParam(OsiDoReducePrint);
@@ -2694,13 +2695,13 @@ MibSModel::setupSAA(const CoinPackedMatrix& matrix,
 	    evalLSolverNew->branchAndBound();
 
 	    if(feasCheckSolver == "SYMPHONY"){
-		//#if COIN_HAS_SYMPHONY
+#if COIN_HAS_SYMPHONY
 		if(sym_is_time_limit_reached(dynamic_cast<OsiSymSolverInterface*>
 					     (evalLSolverNew)->getSymphonyEnvironment())){
 		    isTimeLimReached = true;
 		    break;
 		}
-		//#endif
+#endif
 	    }
 	    if(!evalLSolverNew->isProvenOptimal()){
 		isLowerInfeasible = true;
@@ -2723,7 +2724,7 @@ MibSModel::setupSAA(const CoinPackedMatrix& matrix,
 		    dynamic_cast<OsiCbcSolverInterface *>
 			(evalBestSolverNew)->getModelPtr()->messageHandler()->setLogLevel(0);
 		}else if (feasCheckSolver == "SYMPHONY"){
-		    //#if COIN_HAS_SYMPHONY
+#if COIN_HAS_SYMPHONY
 		    sym_environment *env = dynamic_cast<OsiSymSolverInterface*>
 			(evalBestSolverNew)->getSymphonyEnvironment();
 
@@ -2740,7 +2741,7 @@ MibSModel::setupSAA(const CoinPackedMatrix& matrix,
 		    }else{
 			sym_set_int_param(env, "generate_cgl_gomory_cuts", GENERATE_DEFAULT);
 		    }
-		    //#endif
+#endif
 		}else if (feasCheckSolver == "CPLEX"){
 #ifdef COIN_HAS_CPLEX
 		    evalBestSolverNew->setHintParam(OsiDoReducePrint);
@@ -2756,13 +2757,13 @@ MibSModel::setupSAA(const CoinPackedMatrix& matrix,
 		evalBestSolverNew->branchAndBound();
 
 		if(feasCheckSolver == "SYMPHONY"){
-		    //#if COIN_HAS_SYMPHONY
+#if COIN_HAS_SYMPHONY
 		    if(sym_is_time_limit_reached(dynamic_cast<OsiSymSolverInterface*>
 						 (evalBestSolverNew)->getSymphonyEnvironment())){
 			isTimeLimReached = true;
 			break;
 		    }
-		    //#endif
+#endif
 		}
 
 		if(!evalBestSolverNew->isProvenOptimal()){
@@ -3028,12 +3029,12 @@ MibSModel::setUpEvalModels(CoinPackedMatrix *matrixG2, double *optSol,
     if (feasCheckSolver == "Cbc"){
 	nSolver = new OsiCbcSolverInterface();
     }else if (feasCheckSolver == "SYMPHONY"){
-	//#ifdef COIN_HAS_SYMPHONY
+#ifdef COIN_HAS_SYMPHONY
 	nSolver = new OsiSymSolverInterface();
-	//#else
-	//throw CoinError("SYMPHONY chosen as solver, but it has not been enabled",
-	//		"setUpEvalModels", "MibSModel");
-	//#endif
+#else
+	throw CoinError("SYMPHONY chosen as solver, but it has not been enabled",
+			"setUpEvalModels", "MibSModel");
+#endif
     }else if (feasCheckSolver == "CPLEX"){
 #ifdef COIN_HAS_CPLEX
 	nSolver = new OsiCpxSolverInterface();

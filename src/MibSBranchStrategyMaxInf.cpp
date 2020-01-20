@@ -18,7 +18,7 @@
 #include "MibSObjectInt.hpp"
 
 //#include "BlisObjectInt.h"
-#include "BlisModel.h"
+//#include "BlisModel.h"
 
 //#############################################################################
 MibSBranchStrategyMaxInf::MibSBranchStrategyMaxInf()
