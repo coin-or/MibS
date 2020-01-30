@@ -12,7 +12,9 @@
 /* accompanying file for terms.                                              */
 /*===========================================================================*/
 
+#ifdef HAS_C11
 #include <random>
+#endif
 
 //#include "BlisModel.h"
 #include "BlisConstraint.h"
@@ -71,11 +73,6 @@
 #include "AlpsKnowledgeBrokerMPI.h"
 #else
 #include "AlpsKnowledgeBrokerSerial.h"
-#endif
-
-//supporting c++11
-#if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1900)
-#define HAS_C11
 #endif
 
 //#############################################################################
