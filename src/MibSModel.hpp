@@ -22,7 +22,7 @@
 #include "BlisSolution.h"
 #include "MibSBilevel.hpp"
 #include "MibSParams.hpp"
-#include "MibSHelp.hpp"
+#include "MibSHelper.hpp"
 #include "MibSConstants.hpp"
 
 class MibSBilevel;

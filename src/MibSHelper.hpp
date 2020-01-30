@@ -13,8 +13,8 @@
 /* accompanying file for terms.                                              */
 /*===========================================================================*/
 
-#ifndef MibSHelp_h_
-#define MibSHelp_h_
+#ifndef MibSHelper_h_
+#define MibSHelper_h_
 
 //#############################################################################
 

@@ -22,7 +22,7 @@
 #include "MibSModel.hpp"
 #include "MibSHeuristic.hpp"
 #include "MibSConstants.hpp"
-#include "MibSHelp.hpp"
+#include "MibSHelper.hpp"
 
 class MibSModel;
 class MibSCutGenerator;
