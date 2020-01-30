@@ -61,3 +61,8 @@
 #endif /* HAVE_CONFIG_H */
 
 #endif /*__MIBSCONFIG_H__*/
+
+//supporting c++11
+#if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1900)
+#define HAS_C11
+#endif
