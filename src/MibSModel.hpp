@@ -20,6 +20,31 @@
 
 #include "BlisModel.h"
 #include "BlisSolution.h"
+#include "BlisConstraint.h"
+#include "BlisVariable.h"
+#include "BlisNodeDesc.h"
+#include "BlisConfig.h"
+
+#include "BcpsConfig.h"
+
+#include "BlisBranchStrategyMaxInf.h"
+#include "BlisBranchStrategyPseudo.h"
+#include "BlisBranchStrategyRel.h"
+#include "BlisBranchStrategyStrong.h"
+
+#include "BlisHeurRound.h"
+
+#include "CglGomory.hpp"
+#include "CglProbing.hpp"
+#include "CglKnapsackCover.hpp"
+#include "CglOddHole.hpp"
+#include "CglClique.hpp"
+#include "CglFlowCover.hpp"
+#include "CglMixedIntegerRounding2.hpp"
+#include "CglTwomir.hpp"
+
+#include "OsiCbcSolverInterface.hpp"
+
 #include "MibSBilevel.hpp"
 #include "MibSParams.hpp"
 #include "MibSHelper.hpp"
