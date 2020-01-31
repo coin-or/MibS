@@ -13,30 +13,6 @@
 /*===========================================================================*/
 
 //#include "BlisModel.h"
-#include "BlisConstraint.h"
-#include "BlisVariable.h"
-#include "BlisNodeDesc.h"
-#include "BlisConfig.h"
-
-#include "BcpsConfig.h"
-
-#include "BlisBranchStrategyMaxInf.h"
-#include "BlisBranchStrategyPseudo.h"
-#include "BlisBranchStrategyRel.h"
-#include "BlisBranchStrategyStrong.h"
-
-#include "BlisHeurRound.h"
-
-#include "CglGomory.hpp"
-#include "CglProbing.hpp"
-#include "CglKnapsackCover.hpp"
-#include "CglOddHole.hpp"
-#include "CglClique.hpp"
-#include "CglFlowCover.hpp"
-#include "CglMixedIntegerRounding2.hpp"
-#include "CglTwomir.hpp"
-
-#include "OsiCbcSolverInterface.hpp"
 #include "MibSConfig.hpp"
 #include "MibSModel.hpp"
 #ifdef COIN_HAS_SYMPHONY
@@ -63,7 +39,6 @@
 //NECESSARY DATA MEMBERS ARE DESIGNATED AS PRIVATE
 //IN PARENT CLASS.  DIDNT WANT TO ALTER BLIS CODE
 //#include "MibSBranchStrategyRel.h"
-#include "MibSBranchStrategyStrong.hpp"
 
 #if  COIN_HAS_MPI
 #include "AlpsKnowledgeBrokerMPI.h"
