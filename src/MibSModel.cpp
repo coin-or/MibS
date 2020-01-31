@@ -12,10 +12,6 @@
 /* accompanying file for terms.                                              */
 /*===========================================================================*/
 
-#ifdef HAS_C11
-#include <random>
-#endif
-
 //#include "BlisModel.h"
 #include "BlisConstraint.h"
 #include "BlisVariable.h"
@@ -73,6 +69,10 @@
 #include "AlpsKnowledgeBrokerMPI.h"
 #else
 #include "AlpsKnowledgeBrokerSerial.h"
+#endif
+
+#ifdef COIN_HAS_C11
+#include <random>
 #endif
 
 //#############################################################################
@@ -3297,7 +3297,7 @@ MibSModel::generateSamples(int size, int truncNumCols, int truncNumRows,
     stocMatrixA2 = new CoinPackedMatrix(false, 0, 0);
     stocMatrixA2->setDimensions(0, uColNum);
 
-#ifdef HAS_C11
+#ifdef COIN_HAS_C11
     static unsigned int lastSeed = 123456;
     lastSeed = 1664525 * lastSeed + 1013904223;
     std::default_random_engine generator;
@@ -3307,13 +3307,13 @@ MibSModel::generateSamples(int size, int truncNumCols, int truncNumRows,
     if(isSMPSFormat == PARAM_ON){
 	std::string stoFileName = getStoFile();
 	std::ifstream stoData_stream(stoFileName.c_str());
-#ifdef HAS_C11
+#ifdef COIN_HAS_C11
 	std::uniform_int_distribution<int> distScenIndex(1, allScenariosNum);
 #endif
 
 	int *scenIndex = new int[size];
 	while(numGeneratedSamples < size){
-#ifdef HAS_C11
+#ifdef COIN_HAS_C11
 	    index = distScenIndex(generator);
 #else
 	    index = 1 + int(CoinDrand48() * allScenariosNum);
@@ -3492,7 +3492,7 @@ MibSModel::generateSamples(int size, int truncNumCols, int truncNumRows,
         int tmpB2 = (ubB2 - lbB2) * incB2Denum/incB2Numer + 1;
         int tmpA2 = (ubA2 - lbA2) * incA2Denum/incA2Numer + 1;
 
-#ifdef HAS_C11
+#ifdef COIN_HAS_C11
         std::uniform_int_distribution<int> distB2(1, tmpB2);
         std::uniform_int_distribution<int> distA2(1, tmpA2);
 #endif
@@ -3501,7 +3501,7 @@ MibSModel::generateSamples(int size, int truncNumCols, int truncNumRows,
 	    //generate A2
 	    for(i = 0; i < truncLowerRowNum; i++){
 		for(j = 0; j < uColNum; j++){
-#ifdef HAS_C11
+#ifdef COIN_HAS_C11
 		    tmpVal = (distA2(generator) - 1) * incA2Numer * lcmDenum/incA2Denum + lbA2 * lcmDenum;
 #else
 		    intRandVal = 1 + int(CoinDrand48() * tmpA2);
@@ -3514,7 +3514,7 @@ MibSModel::generateSamples(int size, int truncNumCols, int truncNumRows,
 		}
 		stocMatrixA2->appendRow(row);
 	        row.clear();
-#ifdef HAS_C11
+#ifdef COIN_HAS_C11
 	        tmpVal = (distB2(generator) - 1) * incB2Numer * lcmDenum/incB2Denum + lbB2 * lcmDenum;
 #else
 		intRandVal = 1 + int(CoinDrand48() * tmpB2);
