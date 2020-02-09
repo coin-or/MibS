@@ -3998,7 +3998,7 @@ MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
    setProblemType(); //determine the type of MIBLP
    //determine the list of first-stage variables participate in second-stage constraints
    setRequiredFixedList(newMatrix);
-   if(stochasticityType == "deterministic"){
+   if((stochasticityType == "deterministic") || (stochasticityType == "stochasticWithoutSAA")){
        instanceStructure(newMatrix, conLB, conUB, rowSense);
    }
 }
@@ -6147,8 +6147,177 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix,
                              const double* rowLB, const double* rowUB,
                              const char *rowSense)
 {
+
    bool printProblemInfo(MibSPar_->entry(MibSParams::printProblemInfo));
+    
+   std::string stochasticityType(MibSPar_->entry
+				(MibSParams::stochasticityType));
+
+   int paramValue(0);
+
+   //set the default value of time limit if it is not set by user
+   //Alps sets the default value of this parameter to a very large value
+   //but it is very large and creats memory issues for setting the time limit
+   //when an extra mip should be solved. So, we set it to a smaller large value.
+   if (AlpsPar()->entry(AlpsParams::timeLimit) > 1.0e200){
+       AlpsPar()->setEntry(AlpsParams::timeLimit, 1.0e200);
+   }
+
+   if(stochasticityType == "stochasticWithoutSAA"){
+       BlisPar()->setEntry(BlisParams::heurStrategy, 0);
+
+       //Param: "MibS_usePreprocessor"
+       paramValue = MibSPar_->entry(MibSParams::usePreprocessor);
+
+       if (paramValue == PARAM_NOTSET){
+	   MibSPar()->setEntry(MibSParams::usePreprocessor, PARAM_OFF);
+       }else if (paramValue == PARAM_ON){
+	   std::cout << "The preprocessor is not currently functional.";
+	   std::cout << std::endl;
+	   MibSPar()->setEntry(MibSParams::usePreprocessor, PARAM_OFF);
+       }
+
+       //Param: MibS heuristics
+       if((MibSPar_->entry(MibSParams::useLowerObjHeuristic) == PARAM_ON) ||
+	  (MibSPar_->entry(MibSParams::useObjCutHeuristic) == PARAM_ON)||
+	  (MibSPar_->entry(MibSParams::useWSHeuristic) == PARAM_ON)||
+	  (MibSPar_->entry(MibSParams::useGreedyHeuristic) == PARAM_ON)){
+	   std::cout << "The heuristics are  not currently functional.";
+	   std::cout << std::endl;
+       }
+       MibSPar()->setEntry(MibSParams::useLowerObjHeuristic, PARAM_OFF);
+       MibSPar()->setEntry(MibSParams::useObjCutHeuristic, PARAM_OFF);
+       MibSPar()->setEntry(MibSParams::useWSHeuristic, PARAM_OFF);
+       MibSPar()->setEntry(MibSParams::useGreedyHeuristic, PARAM_OFF);
+
+
+       if((MibSPar_->entry(MibSParams::useBoundCut) == true) ||
+	  (MibSPar_->entry(MibSParams::useBendersCut) == PARAM_ON) ||
+	  (MibSPar_->entry(MibSParams::useNoGoodCut) == PARAM_ON) ||
+	  (MibSPar_->entry(MibSParams::useGeneralNoGoodCut) == PARAM_ON) ||
+	  (MibSPar_->entry(MibSParams::useTypeIC) == PARAM_ON) ||
+	  (MibSPar_->entry(MibSParams::useTypeWatermelon) == PARAM_ON) ||
+	  (MibSPar_->entry(MibSParams::useTypeTenderIC) == PARAM_ON) ||
+	  (MibSPar_->entry(MibSParams::useTypeHybridIC) == PARAM_ON) ||
+	  (MibSPar_->entry(MibSParams::useIncObjCut) == PARAM_ON) ||
+	  (MibSPar_->entry(MibSParams::usePureIntegerCut) == PARAM_ON)){
+	   throw CoinError("Only hypercube intersection cut is currently functional for the stochastic problems",
+			   "instanceStructure", "MibSModel");
+       }
+
+       if((MibSPar_->entry(MibSParams::useBendersCut) == PARAM_NOTSET) &&
+	  (MibSPar_->entry(MibSParams::useNoGoodCut) == PARAM_NOTSET) &&
+	  (MibSPar_->entry(MibSParams::useGeneralNoGoodCut) == PARAM_NOTSET) &&
+	  (MibSPar_->entry(MibSParams::useTypeIC) == PARAM_NOTSET) &&
+	  (MibSPar_->entry(MibSParams::useTypeWatermelon) == PARAM_NOTSET) &&
+	  (MibSPar_->entry(MibSParams::useTypeTenderIC) == PARAM_NOTSET) &&
+	  (MibSPar_->entry(MibSParams::useTypeHybridIC) == PARAM_NOTSET) &&
+	  (MibSPar_->entry(MibSParams::useIncObjCut) == PARAM_NOTSET) &&
+	  (MibSPar_->entry(MibSParams::usePureIntegerCut) == PARAM_NOTSET)){
+	   MibSPar()->setEntry(MibSParams::useTypeHypercubeIC, PARAM_ON);
+	   if (printProblemInfo == true){
+	       std::cout <<
+		   "Default cut is hypercube intersection cut.";
+	       std::cout << std::endl;
+	   }
+       }
+       else if(MibSPar_->entry(MibSParams::useTypeHypercubeIC) == PARAM_ON){
+	   std::cout << "Hypercub intersection cut generator is on." << std::endl;
+       }
    
+       //Param: "MibS_branchProcedure"
+       MibSBranchingStrategy branchParSto = static_cast<MibSBranchingStrategy>
+	   (MibSPar_->entry(MibSParams::branchStrategy));
+
+       if (branchParSto == MibSBranchingStrategyNotSet){
+	   MibSPar()->setEntry(MibSParams::branchStrategy,
+			       MibSBranchingStrategyLinking);
+	   if (printProblemInfo == true){
+	       std::cout <<
+		   "Default branching strategy is MibSBranchingStrategyLinking.";
+	       std::cout << std::endl;
+	   }
+       }else if (branchParSto == MibSBranchingStrategyLinking){
+	   std::cout << "Branching strategy is MibSBranchingStrategyLinking.";
+	   std::cout << std::endl;
+       }else{
+	   std::cout << "Branching procedure is MibSBranchingStrategyFractional.";
+           std::cout << std::endl;
+       }
+
+       //Setting parameters of solving (VF) and (UB)
+       int solveSecondLevelWhenXYVarsIntSto(MibSPar_->entry(MibSParams::solveSecondLevelWhenXYVarsInt));
+       int solveSecondLevelWhenXVarsIntSto(MibSPar_->entry(MibSParams::solveSecondLevelWhenXVarsInt));
+       int solveSecondLevelWhenLVarsIntSto(MibSPar_->entry(MibSParams::solveSecondLevelWhenLVarsInt));
+       int solveSecondLevelWhenLVarsFixedSto(MibSPar_->entry(MibSParams::solveSecondLevelWhenLVarsFixed));
+       int computeBestUBWhenXVarsIntSto(MibSPar_->entry(MibSParams::computeBestUBWhenXVarsInt));
+       int computeBestUBWhenLVarsIntSto(MibSPar_->entry(MibSParams::computeBestUBWhenLVarsInt));
+       int computeBestUBWhenLVarsFixedSto(MibSPar_->entry(MibSParams::computeBestUBWhenLVarsFixed));
+   
+
+       if ((solveSecondLevelWhenXYVarsIntSto == PARAM_NOTSET) &&
+	   (solveSecondLevelWhenXVarsIntSto == PARAM_NOTSET) &&
+           (solveSecondLevelWhenLVarsIntSto == PARAM_NOTSET) &&
+           (solveSecondLevelWhenLVarsFixedSto == PARAM_NOTSET) &&
+           (computeBestUBWhenXVarsIntSto == PARAM_NOTSET) &&
+           (computeBestUBWhenLVarsIntSto == PARAM_NOTSET) &&
+           (computeBestUBWhenLVarsFixedSto == PARAM_NOTSET)){
+	   MibSPar()->setEntry(MibSParams::solveSecondLevelWhenXYVarsInt, PARAM_ON);
+           MibSPar()->setEntry(MibSParams::solveSecondLevelWhenLVarsFixed, PARAM_ON);
+           MibSPar()->setEntry(MibSParams::computeBestUBWhenLVarsFixed, PARAM_ON);
+       } 
+
+       if (printProblemInfo == true){
+	   if (MibSPar_->entry(MibSParams::solveSecondLevelWhenXYVarsInt) == PARAM_ON){
+	       std::cout << "solveSecondLevelWhenXYVarsInt is set." << std::endl;
+	   }
+
+           if (MibSPar_->entry(MibSParams::solveSecondLevelWhenXVarsInt) == PARAM_ON){
+	       std::cout << "solveSecondLevelWhenXVarsInt is set." <<std::endl;
+	   }
+
+           if (MibSPar_->entry(MibSParams::solveSecondLevelWhenLVarsInt) == PARAM_ON){
+	       std::cout << "solveSecondLevelWhenLVarsInt is set." <<std::endl;
+	   }
+
+           if (MibSPar_->entry(MibSParams::solveSecondLevelWhenLVarsFixed) == PARAM_ON){
+	       std::cout << "solveSecondLevelWhenLVarsFixed is set." <<std::endl;
+	   }
+
+           if (MibSPar_->entry(MibSParams::computeBestUBWhenXVarsInt) == PARAM_ON){
+	       std::cout << "computeBestUBWhenXVarsInt is set." <<std::endl;
+	   }
+
+           if (MibSPar_->entry(MibSParams::computeBestUBWhenLVarsInt) == PARAM_ON){
+	       std::cout << "computeBestUBWhenLVarsInt is set." <<std::endl;
+	   }
+
+           if (MibSPar_->entry(MibSParams::computeBestUBWhenLVarsFixed) == PARAM_ON){
+	       std::cout << "computeBestUBWhenLVarsFixed is set." <<std::endl;
+	   }
+       }
+
+       //Setting "saveSeenLinkingSols" parameter
+
+       if (MibSPar_->entry(MibSParams::useLinkingSolutionPool) == PARAM_NOTSET){
+	   MibSPar()->setEntry(MibSParams::useLinkingSolutionPool, PARAM_ON);
+       }
+
+       if (printProblemInfo == true){
+	   if(MibSPar_->entry(MibSParams::useLinkingSolutionPool) == PARAM_ON){
+	       std::cout << "Linking solution pool will be used." << std::endl;
+	   }
+           else{
+	       std::cout << "Linking solution pool will not be used." << std::endl;
+	   }
+       }
+       std::cout << std::endl;
+
+       return;
+   }
+
+   
+    
    /** Determines the properties of instance **/
    if(printProblemInfo == true){
       std::cout<<"======================================="<<std::endl;
@@ -6377,15 +6546,8 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix,
     std::cout << "Setting parameters                     " <<std::endl;
     std::cout << "=======================================" <<std::endl;
     std::cout << std::endl;
-    //set the default value of time limit if it is not set by user
-    //Alps sets the default value of this parameter to a very large value
-    //but it is very large and creats memory issues for setting the time limit
-    //when an extra mip should be solved. So, we set it to a smaller large value.
-    if (AlpsPar()->entry(AlpsParams::timeLimit) > 1.0e200){
-       AlpsPar()->setEntry(AlpsParams::timeLimit, 1.0e200);
-    }
-    
-    int paramValue(0);
+   
+   
     //MibSIntersectionCutType cutType(MibSIntersectionCutTypeNotSet);
     //bool isHypercubeOn(false);
     
@@ -6399,6 +6561,7 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix,
       if((paramValue == PARAM_ON) && (cutType == 2)){
       isHypercubeOn = true;
       }*/
+   
     
     //Param: "MibS_usePreprocessor" 
     paramValue = MibSPar_->entry(MibSParams::usePreprocessor);
