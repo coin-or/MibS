@@ -17,7 +17,7 @@ Binary packages are available for some platforms from [Bintray](https://bintray.
 
 ## DESCRIPTION
 
-MibS is a solver for mixed integelibrr bilevel optimization problems. For an
+MibS is a solver for mixed integer bilevel linear optimization problems. For an
 introduction to bilevel optimization, see [this slide
 deck](http://coral.ie.lehigh.edu/~ted/files/talks/BILEVEL-IWOBIP16.pdf). A
 somewhat outdated but still useful introduction to MibS is
@@ -245,7 +245,7 @@ to your `DYLD_LIBRARY_PATH` if you want to link to COIN libraries.
 
 ## USING
 
-To solve a bilevel program, you must provide both an MPS file and an auxiliary
+To solve a deterministic mixed integer bilevel linear optimization problem, you must provide both an MPS file and an auxiliary
 information file that specifies which variables and constraints are associated
 with the each level (see [here](http://coral.ise.lehigh.edu/wp-content/uploads/2016/02/MibS_inputFile.pdf)). Then call `mibs` like this:
 ```
@@ -257,11 +257,21 @@ e.g.,
 <build_or_install_dir>/bin/mibs -param <build_or_install_dir>/MibS/src/mibs.par
 ```
 MibS has many parameters. See the example parameter file `mibs.par` and
-the header file `MibParam.h` for explanations. You can also find a detailed
+the header file `MibParams.hpp` for explanations. You can also find a detailed
 description of MibS
 [here](http://www.optimization-online.org/DB_FILE/2017/04/5977.pdf).
 Furthermore, to conduct the experiments illustrated in this report, see
-the `README` file in the directory `scripts`.     
+the `README` file in the directory `scripts`.
+
+`MibS` is also capable of solving two-stage mixed integer stochastic bilevel linear optimization problems. For an introduction to these problems, see this. To solve these problems, there are two ways:
+
+* You must provide an MPS file, a time file and a stoch file in the same way as the SMPS format. The second-stage objective coefficients should be defined at the end of the time file (see here). Then call `mibs` like this:
+```
+<build_or_install_dir>/bin/mibs -Alps_instance file.mps -MibS_auxiliaryTimFile file.tim -MibS_auxiliaryStoFile file.sto -MibS_stochasticityType stochasticWithoutSAA -MibS_isSMPSFormat 1 -MibS_isA2Random 1
+```
+The parameter `MibS_isA2Random` should be set to 0 in case the coefficients of the first-stage variables in the second-stage problem are not random variables.
+
+* You must provide an MPS file and an auxiliary information file in the same way as deterministic bilevel problems. The probability distributions of the random variables also should be specified by setting the values of corresponding parameters (MibS currently supports only the discrete uniform distribution). For a sample parameter file, see here.
 
 HELP
 
