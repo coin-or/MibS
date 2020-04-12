@@ -1,18 +1,9 @@
-#Alps_instance ../data/MIPS/RANDOM/NEW_MIPINT/miblp_10_10_50_0110_0_2.mps
-#MibS_auxiliaryInfoFile ../data/MIPS/RANDOM/NEW_MIPINT/NONSYMMETRIC/miblp_10_10_50_0110_0_2.mps.txt
-#Alps_instance ../data/miplibconv/p0033-0.500000.mps
-#MibS_auxiliaryInfoFile ../data/miplibconv/p0033-0.500000.aux
-#Alps_instance /home/sat214/MIBS/OldMibS/data/MCDM/NO_CORR/10_ITEMS_1000/K5010W11.KNP.mps
-#MibS_auxiliaryInfoFile /home/sat214/MIBS/OldMibS/data/MCDM/NO_CORR/10_ITEMS_1000/K5010W11.KNP.txt
-#Alps_instance /home/sat214/MIBS/OldMibS/data/moore90.mps
-#MibS_auxiliaryInfoFile /home/sat214/MIBS/OldMibS/data/moore90.txt
-#Alps_instance /home/sat214/MIBS/OldMibS/data/MIPS/RANDOM/RAND_BILEVEL/miblp_20_15_50_0110_10_3.mps
-#MibS_auxiliaryInfoFile /home/sat214/MIBS/OldMibS/data/MIPS/RANDOM/RAND_BILEVEL/miblp_20_15_50_0110_10_3.txt
-Alps_instance /mnt/c/Users/tkral/Documents/Projects/MibS/Data/DNEGMibs/DNeg_n30k3j4.mps
-#MibS_auxiliaryInfoFile /home/sat214/MIBS/data/K5020W06.KNP.txt
-#Alps_instance /home/sat214/forkBlis/name/MibS/build/src/moore90.mps
-#MibS_auxiliaryInfoFile /home/sat214/forkBlis/name/MibS/build/src/moore90.txt
-#Alps_timeLimit 3600
+#Alps_instance ../data/notInterdiction/moore90.mps
+#MibS_auxiliaryInfoFile ../data/notInterdiction/moore90.txt
+#Alps_instance ../data/interdiction/MCDM/NO_CORR/10_ITEMS_1000/K5010W01.KNP.mps
+#MibS_auxiliaryInfoFile ../data/interdiction/MCDM/NO_CORR/10_ITEMS_1000/K5010W01.KNP.txt
+
+Alps_timeLimit 3600
 #Alps_nodeLimit 4000000
 #Alps_nodeLimit 20000
 
@@ -41,9 +32,10 @@ Alps_instance /mnt/c/Users/tkral/Documents/Projects/MibS/Data/DNEGMibs/DNeg_n30k
 #Alps_masterBalancePeriod 0.3
 #Alps_hubReportPeriod 0.5
 
-Blis_cutFactor 2
+Blis_scaleConFactor 10000000000
+
 #Blis_cutRampUp 1      # true(1) or false(0)
-Blis_cutStrategy      2
+#Blis_cutStrategy      3
 #Blis_cutGenerationFrequency 1
 
 #Blis_cutCliqueStrategy      0
@@ -81,42 +73,44 @@ MibS_usePreprocessor 0          # -1: auto, 0: false, 1: true
 MibS_useLowerObjHeuristic 0     # -1: auto, 0: false, 1: true
 MibS_useObjCutHeuristic 0       # -1: auto, 0: false, 1: true
 MibS_useWSHeuristic 0           # -1: auto, 0: false, 1: true
-MibS_useGreedyHeuristic 1       # 0: false, 1: true
-#MibS_usePureIntegerCut 1        # 0: false, 1: true
-#MibS_useValFuncCut 1            # 0: false, 1: true
-#MibS_useNoGoodCut 1             # 0: false, 1: true
-#MibS_useIncObjCut 1             # 0: false, 1: true
+MibS_useGreedyHeuristic 0       # 0: false, 1: true
+MibS_usePureIntegerCut 1        # 0: false, 1: true
+MibS_useValFuncCut 0            # 0: false, 1: true
+MibS_useNoGoodCut 0             # 0: false, 1: true
+MibS_useIncObjCut 0             # 0: false, 1: true
 MibS_bilevelProblemType 1       # 0: general, 1: interdict
-#MibS_bilevelCutTypes 1          # 0: general, 1: general/interdict, 2: #general/binary UL, 3: binary UL
+MibS_bilevelCutTypes 0          # 0: general, 1: general/interdict, 2: #general/binary UL, 3: binary UL
 #MibS_whichActiveConMethod 1    # 0: simple, 1: basis
-#MibS_cutStrategy 2              # 0: branch only, 1: cut only, 2: use cut #and branch
-#MibS_objBoundStrategy 0         # 0: LL obj bound, 1: interdiction bound
-#MibS_blisCutStrategy -1                 # -2: root, -1: auto, 0: disable, any positive integer
+MibS_cutStrategy 2              # 0: branch only, 1: cut only, 2: use cut #and branch
+MibS_objBoundStrategy 0         # 0: LL obj bound, 1: interdiction bound
+MibS_blisCutStrategy -1                 # -2: root, -1: auto, 0: disable, any positive integer
 #MibS_blisBranchStrategy 0      # 0: max inf, 1: pseudocost, 2: relibility, 3: strong
 #MibS_upperFileFormat 0         # 0: mps, 1: AMPL/GMPL (not working, yet)
-#MibS_branchStrategy  1       # 0: fractional, 1: linking
-#MibS_warmStartLL 0
-#MibS_maxThreadsLL 1
-MibS_useBendersCut 1
-MibS_bendersCutType 0
-#MibS_useGeneralNoGoodCut 1
-#MibS_useIntersectionCut 1
-#MibS_intersectionCutType 3
-#MibS_useBoundCut 0
-#MibS_boundCutOptimal 1
-#MibS_boundCutRelaxUpper 0    # This option doesn't work for now
-#MibS_whichCutsLL 2           # 0: no cuts, 1: gomory only, 2: all cuts
-#MibS_doDualFixing 0
-#MibS_feasCheckSolver SYMPHONY
-#MibS_solveSecondLevelWhenXYVarsInt 1
-#MibS_solveSecondLevelWhenXVarsInt 0
-#MibS_solveSecondLevelWhenLVarsInt 0
-#MibS_solveSecondLevelWhenLVarsFixed 0
+MibS_branchStrategy  1       # 0: fractional, 1: linking
+MibS_warmStartLL 0
+MibS_maxThreadsLL 1
+MibS_useBendersCut 0
+MibS_bendersCutType 0           # 0: justOne, 1: multiple
+MibS_useGeneralNoGoodCut 0
+MibS_useIntersectionCut 0
+MibS_bilevelFreeSetTypeIC 0     # 0: LLOptSol, 1: NewLLSol
+MibS_intersectionCutType 3
+MibS_useBoundCut 0
+MibS_boundCutOptimal 1
+MibS_boundCutRelaxUpper 0    # This option doesn't work for now
+MibS_allowRemoveCut 0        # 0: false, 1: true
+MibS_whichCutsLL 2           # 0: no cuts, 1: gomory only, 2: all cuts
+MibS_doDualFixing 0
+MibS_feasCheckSolver SYMPHONY
 
-#MibS_computeBestUBWhenXVarsInt 1
-#MibS_computeBestUBWhenLVarsInt 0
-#MibS_computeBestUBWhenLVarsFixed 0
+MibS_solveSecondLevelWhenXYVarsInt 1
+MibS_solveSecondLevelWhenXVarsInt 0
+MibS_solveSecondLevelWhenLVarsInt 0
+MibS_solveSecondLevelWhenLVarsFixed 1
 
-#MibS_useLinkingSolutionPool 1
+MibS_computeBestUBWhenXVarsInt 0
+MibS_computeBestUBWhenLVarsInt 0
+MibS_computeBestUBWhenLVarsFixed 1
 
-#MibS_inputFormat indexBased
+MibS_useLinkingSolutionPool 1
+
