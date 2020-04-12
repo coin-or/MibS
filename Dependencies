@@ -1,12 +1,14 @@
 ThirdParty/Blas   https://projects.coin-or.org/svn/BuildTools/ThirdParty/Blas/stable/1.4
 ThirdParty/Lapack https://projects.coin-or.org/svn/BuildTools/ThirdParty/Lapack/stable/1.5
+Data/Sample       https://projects.coin-or.org/svn/Data/Sample/stable/1.2
+Data/miplib3      https://projects.coin-or.org/svn/Data/miplib3/stable/1.2
 CoinUtils         https://projects.coin-or.org/svn/CoinUtils/stable/2.11/CoinUtils
 Osi               https://projects.coin-or.org/svn/Osi/stable/0.108/Osi
 Clp               https://projects.coin-or.org/svn/Clp/stable/1.17/Clp
 Cgl               https://projects.coin-or.org/svn/Cgl/stable/0.60/Cgl
 Alps              https://github.com/coin-or/CHiPPS-ALPS stable/1.5
 Bcps              https://github.com/coin-or/CHiPPS-BiCePS stable/0.94
-Blis              https://github.com/SaTahernejad/CHiPPS-BLIS master
+Blis              https://github.com/coin-or/CHiPPS-BLIS master
 SYMPHONY          https://github.com/coin-or/SYMPHONY WS
 Cbc               https://projects.coin-or.org/svn/Cbc/stable/2.10/Cbc
 

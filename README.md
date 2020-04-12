@@ -266,6 +266,7 @@ the `README` file in the directory `scripts`.
 `MibS` is also capable of solving two-stage mixed integer stochastic bilevel linear optimization problems. To solve these problems, there are two ways:
 
 * You must provide an MPS file, a time file and a stoch file in the same way as the SMPS format. The second-stage objective coefficients should be defined at the end of the time file (see [here](https://github.com/tkralphs/BilevelLib/blob/master/stochastic/sslp/bilevel_nonZeroSum_sslp_10_50_50.tim)). Then call `mibs` like this:
+
 ```
 <build_or_install_dir>/bin/mibs -Alps_instance file.mps -MibS_auxiliaryTimFile file.tim -MibS_auxiliaryStoFile file.sto -MibS_stochasticityType stochasticWithoutSAA -MibS_isSMPSFormat 1 -MibS_isA2Random 1
 ```
