@@ -1,4 +1,4 @@
-# MibS (Mixed Integer Bilevel Solver) 1.1
+# MibS (Mixed Integer Bilevel Stochastic Solver) 2.0
 
 ## Build Status
 
@@ -17,7 +17,7 @@ Binary packages are available for some platforms from [Bintray](https://bintray.
 
 ## DESCRIPTION
 
-MibS is a solver for mixed integer bilevel linear optimization problems. For an
+MibS is a solver for stochastic mixed integer bilevel linear optimization problems. For an
 introduction to bilevel optimization, see [this slide
 deck](http://coral.ie.lehigh.edu/~ted/files/talks/BILEVEL-IWOBIP16.pdf). A
 somewhat outdated but still useful introduction to MibS is
