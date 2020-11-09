@@ -108,6 +108,7 @@ public:
 		       MibSModel *mibs=0);
     MibSSolType checkBilevelFeasiblity(bool isRoot);
     MibSSolType checkBilevelFeasiblityParallel(bool isRoot);
+    MibSSolType checkBilevelFeasiblityBR(bool isRoot);
     void gutsOfDestructor();
 
 private:
