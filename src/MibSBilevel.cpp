@@ -149,7 +149,7 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
   const double *lower = model_->solver()->getColLower();
   const double *upper = model_->solver()->getColUpper();
   double value;
-  for(i = 0; i < numElements; i ++){
+  for(i = 0; i < numElements; i ++){ // YX: check if integrality satisfied
     index = indices[i];
     value = CoinMax(values[i], lower[index]);
     value = CoinMin(value, upper[index]);
@@ -157,11 +157,11 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
        if(fabs(floor(value + 0.5) - value) > etol){
 #if 1
 	   if(fixedInd[index] == 1){
-	       isLinkVarsIntegral_ = false;
+	       isLinkVarsIntegral_ = false; // YX: x_L \notin Z
 	   }
 	   if(mibs->solver()->isInteger(index)){
-	       isUpperIntegral_ = false;
-	       isIntegral_ = false;
+	       isUpperIntegral_ = false; // YX: x \notin X
+	       isIntegral_ = false; // YX: y \notin Y?
 	       LPSolStatus_ = MibSLPSolStatusInfeasible;
 	   }
 #endif
@@ -274,12 +274,12 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
 	  }
       }
       if(model_->seenLinkingSolutions.find(linkSol) !=
-	 model_->seenLinkingSolutions.end()){
+	 model_->seenLinkingSolutions.end()){ // YX: x_L \in L; use the result from pool
 	  isContainedInLinkingPool_ = true;
 	  solType = model_->seenLinkingSolutions.find(linkSol)->second.tag;
       }
   }
-	 
+  // YX: retrieve solution status with the same x_L from pool L 
   if(isContainedInLinkingPool_){
       tagInSeenLinkingPool_ = static_cast<MibSLinkingPoolTag>(solType);
   }
@@ -292,7 +292,7 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
 			     MibSLinkingPoolTagLowerIsInfeasible) ||
 			 (tagInSeenLinkingPool_ == MibSLinkingPoolTagUBIsSolved))){
       useBilevelBranching_ = false;
-      shouldPrune_ = true;
+      shouldPrune_ = true; // YX: x_l and (UB) is explored before
   }
 
 #ifdef _OPENMPMIBS
@@ -323,7 +323,8 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
 #ifdef _OPENMPMIBS
 	storeSol = checkBilevelFeasiblityParallel(mibs->isRoot_);
 #else
-	storeSol = checkBilevelFeasiblity(mibs->isRoot_);
+	// storeSol = checkBilevelFeasiblity(mibs->isRoot_); // YX: solve (SL-MILP) and (UB)
+	storeSol = checkBilevelFeasiblityBR(mibs->isRoot_);  // YX: BR solving; under construction
 #endif
       }
   }
@@ -410,7 +411,7 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
         shouldStoreValuesLowerSol.resize(lN);
         shouldStoreValuesUBSol.resize(lN + uN);
     }
-
+	// YX: get solution to (LR)
     const double * sol = model_->solver()->getColSolution();
     
     std::vector<double> linkSol;
@@ -423,10 +424,10 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 
     isProvenOptimal_ = true; 
 
-    if(!isContainedInLinkingPool_){
+    if(!isContainedInLinkingPool_){ // YX: line 7; checked in caller function?
 	for(i = 0; i < numScenarios; i++){
-            remainingTime = timeLimit - model_->broker_->subTreeTimer().getTime();
-	    if(remainingTime <= etol){
+        remainingTime = timeLimit - model_->broker_->subTreeTimer().getTime();
+	    if(remainingTime <= etol){ // YX: no remaining time -> exit 
 		shouldPrune_ = true;
 		storeSol = MibSNoSol;
 		goto TERM_CHECKBILEVELFEAS;
@@ -442,7 +443,7 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 	   // }
 	    solver_ = setUpModel(model_->getSolver(), true);
 	}*/
-
+		// YX: set up (SL-MILP) and solver params
 	    if(warmStartLL && (feasCheckSolver == "SYMPHONY") && lSolver_){
 		lSolver_ = setUpModel(oSolver, false, i);
 	    }
@@ -457,7 +458,7 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 
 	    if(0)
 		lSolver->writeLp("lSolver");
-
+		// YX: check time remained
 	    remainingTime = timeLimit - model_->broker_->subTreeTimer().getTime();
 	    if(remainingTime <= etol){
 		shouldPrune_ = true;
@@ -529,7 +530,7 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 		CPXsetdblparam(cpxEnv, CPX_PARAM_TILIM, remainingTime);
 #endif
 	    }
-
+		// YX: line 8; solve (SL-MILP); lSolver stores solution for MILP
 	    //step 8
 	    if (warmStartLL && feasCheckSolver == "SYMPHONY"){
 		lSolver->resolve();
@@ -573,7 +574,7 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 #endif
 	    }
 	    
-	    if(!lSolver->isProvenOptimal()){
+	    if(!lSolver->isProvenOptimal()){ // YX: line 9; if SL-MILP is infeasible
 		LPSolStatus_ = MibSLPSolStatusInfeasible;
 		isProvenOptimal_ = false;
 	        if(useLinkingSolutionPool){
@@ -582,10 +583,10 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 		    shouldStoreObjValues.push_back(0);
 		    addSolutionToSeenLinkingSolutionPool
 			(MibSLinkingPoolTagLowerIsInfeasible, shouldStoreValuesLowerSol,
-			 shouldStoreObjValues);
+			 shouldStoreObjValues); // YX: line 10
 		    shouldStoreObjValues.clear();
 		}
-	        if(isLinkVarsFixed_){
+	        if(isLinkVarsFixed_){ // YX: line 11
 		    useBilevelBranching_ = false;
 	            shouldPrune_ = true;
 		}
@@ -603,12 +604,12 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 
 		objValVec_.push_back(objVal);
 	        shouldStoreObjValues.push_back(objVal);
-
+			// YX: update second level solution y^t
 	        const double * values = lSolver->getColSolution();
 
 		if(useLinkingSolutionPool){
 		    begPos = i * truncLN;
-		    if(shouldStoreSolution == true){
+		    if(shouldStoreSolution == true){ // YX: true only when numscenario = 1 (deterministic)
 		        std::copy(values, values + lN, shouldStoreValuesLowerSol.begin() + begPos);
 		    }
 		    else{
@@ -621,7 +622,7 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 
 		    //step 12
 		    //Adding x_L to set E
-		    if(i == numScenarios - 1){
+		    if(i == numScenarios - 1){ // YX: line 14
 			addSolutionToSeenLinkingSolutionPool
 			    (MibSLinkingPoolTagLowerIsFeasible, shouldStoreValuesLowerSol,
 			     shouldStoreObjValues);
@@ -666,7 +667,7 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
     //step 13
     if(((!useLinkingSolutionPool) && (isProvenOptimal_)) ||
        ((tagInSeenLinkingPool_ == MibSLinkingPoolTagLowerIsFeasible) ||
-	(tagInSeenLinkingPool_ == MibSLinkingPoolTagUBIsSolved))){
+	(tagInSeenLinkingPool_ == MibSLinkingPoolTagUBIsSolved))){ // YX: line 15; not using linking pool leads here 
 	
 	//double *lowerSol = new double[lN];
 	//CoinFillN(lowerSol, lN, 0.0);
@@ -708,12 +709,12 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 
 	    //step 15
 	    /** Current solution is bilevel feasible **/
-	    if((fabs(objVal - lowerObj) < etol) && (isIntegral_)){
+	    if((fabs(objVal - lowerObj) < etol) && (isIntegral_)){ // YX: line 17 - line 19
 		if(i == numScenarios - 1){
 		    LPSolStatus_ = MibSLPSolStatusFeasible;
 		    useBilevelBranching_ = false;
 	            shouldPrune_ = true;
-	            storeSol = MibSRelaxationSol;
+	            storeSol = MibSRelaxationSol; // YX: line 18; using (LR) solution
 		}
 	    }
 	    else{
@@ -724,7 +725,7 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 	    }
 	}
     
-	
+	// YX: line 20 - line 28
 	if(!shouldPrune_){	
 	    //step 18
 	    if((tagInSeenLinkingPool_ != MibSLinkingPoolTagUBIsSolved) &&
@@ -879,7 +880,7 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 
 		//step 19
 		startTimeUB = model_->broker_->subTreeTimer().getTime(); 
-		UBSolver->branchAndBound();
+		UBSolver->branchAndBound(); // YX: set up to solving UB
 		model_->timerUB_ += model_->broker_->subTreeTimer().getTime() - startTimeUB;
 		model_->counterUB_ ++;
 		if(i == numDecomposedProbs - 1){
@@ -911,7 +912,7 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 #endif
 		}
 
-		if(UBSolver->isProvenOptimal()){
+		if(UBSolver->isProvenOptimal()){ // YX: line 22
 		    isUBProvenOptimal = true;
 		    const double *partialValuesUB = UBSolver->getColSolution();
 		    if(numDecomposedProbs == 1){
@@ -921,9 +922,9 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 			int begPos = uN + i * truncLN;
 			CoinDisjointCopyN(partialValuesUB, truncLN, valuesUB + begPos);
 		    }
-		    objVal += UBSolver->getObjValue() * model_->solver()->getObjSense();
+		    objVal += UBSolver->getObjValue() * model_->solver()->getObjSense();  // YX:  +?
 		}
-		else{
+		else{ // YX: prepare for line 24
 		    isUBProvenOptimal = false;
 		    //when all first-level variables are linking,
 		    //UBSolver cannot be infeasible
@@ -937,7 +938,7 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 		}
 	      }
 
-	      if(isUBProvenOptimal){
+	      if(isUBProvenOptimal){ // YX: line 24
 		    isProvenOptimal_ = true;
 		    if(shouldStoreSolution == true){
 			std::copy(valuesUB, valuesUB + uN + lN, shouldStoreValuesUBSol.begin());
@@ -978,7 +979,7 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 		}
 		//step 22
 		//Adding x_L to set E
-		if(useLinkingSolutionPool){
+		if(useLinkingSolutionPool){ // YX: line 24, part 2
 		    addSolutionToSeenLinkingSolutionPool
 			(MibSLinkingPoolTagUBIsSolved, shouldStoreValuesUBSol,
 			 shouldStoreObjValues);
@@ -987,7 +988,7 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 		shouldStoreObjValues.clear();
 	    
 		//step 23
-		if(isLinkVarsFixed_){
+		if(isLinkVarsFixed_){ // YX: line 25 - line 26
 		    useBilevelBranching_ = false;
 		    //isProvenOptimal_ = false;
 		    shouldPrune_ = true;
@@ -1001,7 +1002,7 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 		}
 	    }
 	    else if ((tagInSeenLinkingPool_ != MibSLinkingPoolTagUBIsSolved) ||
-		     ((!useLinkingSolutionPool) && (isUBSolved_))){
+		     ((!useLinkingSolutionPool) && (isUBSolved_))){  // YX: still check solution \yhat; line 27?
 		if(lowerSol != NULL){
 		    for (i = 0; i < lN; i++){
 			if(numScenarios == 1){
@@ -1025,7 +1026,7 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 	    }
 	}
     }
-
+ // YX: after Line 28; Upper bound is updated outside?
  TERM_CHECKBILEVELFEAS:
     
     delete [] lowerSol;
@@ -1648,6 +1649,903 @@ MibSBilevel::checkBilevelFeasiblityParallel(bool isRoot)
   return storeSol;
 }
 
+//#############################################################################
+MibSSolType
+MibSBilevel::checkBilevelFeasiblityBR(bool isRoot)
+{
+    OsiSolverInterface *oSolver = model_->getSolver();
+    
+    int numScenarios(model_->getNumScenarios()); // YX: stochastic case only check numscenario??
+    
+    bool warmStartLL(model_->MibSPar_->entry
+		     (MibSParams::warmStartLL));
+    int maxThreadsLL(model_->MibSPar_->entry
+		     (MibSParams::maxThreadsLL));
+    int whichCutsLL(model_->MibSPar_->entry
+		    (MibSParams::whichCutsLL));
+    int probType(model_->MibSPar_->entry
+		 (MibSParams::bilevelProblemType));
+    std::string feasCheckSolver(model_->MibSPar_->entry
+				(MibSParams::feasCheckSolver));
+    MibSBranchingStrategy branchPar = static_cast<MibSBranchingStrategy>
+	(model_->MibSPar_->entry(MibSParams::branchStrategy));
+    int computeBestUBWhenXVarsInt(model_->MibSPar_->entry
+			      (MibSParams::computeBestUBWhenXVarsInt));
+    int computeBestUBWhenLVarsInt(model_->MibSPar_->entry
+				     (MibSParams::computeBestUBWhenLVarsInt));
+    int computeBestUBWhenLVarsFixed(model_->MibSPar_->entry
+				    (MibSParams::computeBestUBWhenLVarsFixed));
+    int useLinkingSolutionPool(model_->MibSPar_->entry
+			    (MibSParams::useLinkingSolutionPool));
+    double timeLimit(model_->AlpsPar()->entry(AlpsParams::timeLimit));
+    double remainingTime(0.0), startTimeVF(0.0), startTimeUB(0.0);
+    MibSSolType storeSol(MibSNoSol);
+    int truncLN(model_->truncLowerDim_);;
+    int lN(model_->lowerDim_); // lower-level dimension
+    int uN(model_->upperDim_); // upper-level dimension
+    int i(0), j(0), k(0), index(0), pos(0), begPos(0); //unused: length(0), 
+    // int lpStat;
+    int sizeFixedInd(model_->sizeFixedInd_);
+    double etol(model_->etol_), objVal(0.0), lowerObj(0.0);
+    int * fixedInd = model_->fixedInd_;
+    int * lowerColInd = model_->getLowerColInd();
+    int * upperColInd = model_->getUpperColInd();
+    CoinPackedMatrix *truncMatrixG2 = NULL;
+    double *multA2XOpt = NULL;
+    OsiSolverInterface *UBSolver = 0;
+	
+	// YX: target optimality gap for bounded rationality
+	double targetGap(5.0);
+
+    //saharSto: fix it later
+    if(numScenarios == 1){
+		truncLN = lN;
+    }
+	
+    //saharSto: fix it later
+    bool shouldStoreSolution(false);
+
+    if(numScenarios == 1){
+		shouldStoreSolution = true;
+    }
+
+    //saharSto: Check these changes
+    double *lowerSol = NULL;
+    std::vector<double> shouldStoreValuesLowerSol(1);
+    std::vector<double> shouldStoreValuesUBSol(1);
+    std::vector<double> shouldStoreObjValues;
+    
+    if(shouldStoreSolution == true){
+        shouldStoreValuesLowerSol.resize(lN);
+        shouldStoreValuesUBSol.resize(lN + uN);
+    }
+
+	// YX: get solution from previously solved (LR)
+    const double * sol = model_->solver()->getColSolution();
+    
+    std::vector<double> linkSol; // YX: keep using linking var pool?
+    for(i = 0; i < uN; i++){
+		index = upperColInd[i];
+		if(fixedInd[index] == 1){
+			linkSol.push_back(upperSolutionOrd_[i]);
+		}
+    }
+	// YX: in BR only used when y^t is not feasible and needs to resolve SL-MILP?
+    isProvenOptimal_ = true;
+
+    if(!isContainedInLinkingPool_){ // YX: line 7; checked in caller function?
+	
+		for(i = 0; i < numScenarios; i++){
+			remainingTime = timeLimit - model_->broker_->subTreeTimer().getTime();
+			if(remainingTime <= etol){ // YX: no remaining time -> exit 
+				shouldPrune_ = true;
+				storeSol = MibSNoSol;
+				goto TERM_CHECKBILEVELFEAS;
+			}
+
+			// YX: set up (SL-MILP) and solver params
+			if(warmStartLL && (feasCheckSolver == "SYMPHONY") && lSolver_){
+				lSolver_ = setUpModel(oSolver, false, i);
+			}
+			else{
+				if(lSolver_){
+					delete lSolver_;
+				}
+				lSolver_ = setUpModel(oSolver, true, i);
+			}
+			
+			OsiSolverInterface *lSolver = lSolver_;
+
+			if(0)
+				lSolver->writeLp("lSolver"); //YX: write problem to file if true
+			// YX: check time remained
+			remainingTime = timeLimit - model_->broker_->subTreeTimer().getTime();
+			if(remainingTime <= etol){
+				shouldPrune_ = true;
+				storeSol = MibSNoSol;
+				goto TERM_CHECKBILEVELFEAS;
+			}
+		
+			remainingTime = CoinMax(remainingTime, 0.00);
+
+			if (feasCheckSolver == "Cbc"){
+			dynamic_cast<OsiCbcSolverInterface *>
+				(lSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
+			}else if (feasCheckSolver == "SYMPHONY"){
+	#if COIN_HAS_SYMPHONY
+				sym_environment *env = dynamic_cast<OsiSymSolverInterface *>
+					(lSolver)->getSymphonyEnvironment();
+			
+				if (warmStartLL){
+					sym_set_int_param(env, "keep_warm_start", TRUE);
+					if (probType == 1){ //Interdiction
+						sym_set_int_param(env, "should_use_rel_br", FALSE);
+						sym_set_int_param(env, "use_hot_starts", FALSE);
+						sym_set_int_param(env, "should_warmstart_node", TRUE);
+						sym_set_int_param(env, "sensitivity_analysis", TRUE);
+						sym_set_int_param(env, "sensitivity_bounds", TRUE);
+						sym_set_int_param(env, "set_obj_upper_lim", FALSE);
+					}
+				}
+				//Always uncomment for debugging!!
+				sym_set_dbl_param(env, "time_limit", remainingTime);
+				sym_set_dbl_param(env, "gap_limit", targetGap); // YX: for bounded rationality
+				sym_set_int_param(env, "do_primal_heuristic", FALSE);
+				sym_set_int_param(env, "verbosity", -2);
+				//sym_set_int_param(env, "prep_level", -1);
+				sym_set_int_param(env, "max_active_nodes", maxThreadsLL);
+				sym_set_int_param(env, "tighten_root_bounds", FALSE);
+				sym_set_int_param(env, "max_sp_size", 100);
+				sym_set_int_param(env, "do_reduced_cost_fixing", FALSE);
+				if (whichCutsLL == 0){
+					sym_set_int_param(env, "generate_cgl_cuts", FALSE);
+				}else{
+					sym_set_int_param(env, "generate_cgl_gomory_cuts", GENERATE_DEFAULT);
+				}
+				if (whichCutsLL == 1){
+				sym_set_int_param(env, "generate_cgl_knapsack_cuts",
+						DO_NOT_GENERATE);
+				sym_set_int_param(env, "generate_cgl_probing_cuts",
+						DO_NOT_GENERATE);
+				sym_set_int_param(env, "generate_cgl_clique_cuts",
+						DO_NOT_GENERATE);
+				sym_set_int_param(env, "generate_cgl_twomir_cuts",
+						DO_NOT_GENERATE);
+				sym_set_int_param(env, "generate_cgl_flowcover_cuts",
+						DO_NOT_GENERATE);
+				}
+	#endif
+			}else if (feasCheckSolver == "CPLEX"){
+	#ifdef COIN_HAS_CPLEX
+				lSolver->setHintParam(OsiDoReducePrint);
+				lSolver->messageHandler()->setLogLevel(0);
+				CPXENVptr cpxEnv =
+					dynamic_cast<OsiCpxSolverInterface*>(lSolver)->getEnvironmentPtr();
+				assert(cpxEnv);
+				CPXsetintparam(cpxEnv, CPX_PARAM_SCRIND, CPX_OFF);
+				CPXsetintparam(cpxEnv, CPX_PARAM_THREADS, maxThreadsLL);
+				CPXsetintparam(cpxEnv, CPX_PARAM_CLOCKTYPE, 1);
+				CPXsetdblparam(cpxEnv, CPX_PARAM_TILIM, remainingTime);
+	#endif
+			}
+			// YX: line 8; solve (SL-MILP); lSolver stores solution for MILP
+			if (warmStartLL && feasCheckSolver == "SYMPHONY"){
+				lSolver->resolve();
+				setWarmStart(lSolver->getWarmStart());
+			} else {
+				startTimeVF = model_->broker_->subTreeTimer().getTime();
+				lSolver->branchAndBound();
+				if(0)
+					lSolver->writeLp("lSolverAfter");
+				model_->timerVF_ += model_->broker_->subTreeTimer().getTime() - startTimeVF;
+			}
+			// TODO: have another counter set up for BR solving?
+			//model_->counterVF_ ++; // YX: in BR mode, not solve to optimality
+
+			if (i == numScenarios - 1){
+				isLowerSolved_ = true; // YX: 1st set; May be reset twice when resolved. where to put this?
+			}
+		
+			if (feasCheckSolver == "SYMPHONY"){
+	#ifdef COIN_HAS_SYMPHONY
+				if (sym_is_time_limit_reached(dynamic_cast<OsiSymSolverInterface *>
+								(lSolver)->getSymphonyEnvironment())){
+					shouldPrune_ = true; // YX: system time limit reached; no soln
+					storeSol = MibSNoSol;
+					goto TERM_CHECKBILEVELFEAS;
+				}
+	#endif
+			}
+			else if (feasCheckSolver == "CPLEX"){
+	#ifdef COIN_HAS_CPLEX
+				lpStat = CPXgetstat(dynamic_cast<OsiCpxSolverInterface*>
+							(lSolver)->getEnvironmentPtr(),
+							dynamic_cast<OsiCpxSolverInterface*>
+							(lSolver)->getLpPtr());
+				if((lpStat == CPXMIP_TIME_LIM_FEAS) ||
+					(lpStat == CPXMIP_TIME_LIM_INFEAS)){
+					shouldPrune_ = true;
+					storeSol = MibSNoSol;
+					goto TERM_CHECKBILEVELFEAS;
+				}
+	#endif
+			}
+			// YX: line 9; if SL-MILP is infeasible, return "second level infeasible" and prune set to true
+			//if(!lSolver->isProvenOptimal()){
+				// dynamic cast here
+#ifdef COIN_HAS_SYMPHONY
+			if(!(dynamic_cast<OsiSymSolverInterface *>(lSolver)->isTargetGapReached())){ 
+				LPSolStatus_ = MibSLPSolStatusInfeasible;
+				isProvenOptimal_ = false; // YX: MAY need to take it out
+				if(useLinkingSolutionPool){
+					//step 10
+					//Adding x_L to set E
+					shouldStoreObjValues.push_back(0);
+					addSolutionToSeenLinkingSolutionPool
+						(MibSLinkingPoolTagLowerIsInfeasible, shouldStoreValuesLowerSol,
+						shouldStoreObjValues); // YX: line 10
+					shouldStoreObjValues.clear();
+				}
+				if(isLinkVarsFixed_){ // YX: line 11
+					useBilevelBranching_ = false;
+					shouldPrune_ = true;
+				}
+				break;
+			}
+			else{
+			// YX: if SL-MILP is feasible, follow the procedure
+			/* 
+				1. check bound: d^2y^t \leq? the bound from SL_MILP (objVal);
+				2. if \leq; update as before and go to next step; no need to obtain exact solution \yhat^t
+				3. if >, solve to optimality again (using warm start) to find
+					the exact SL obj d^2\yhat + \delta;
+				DOUBLE CHECK TO CONFRIM INFEASIBILITY;
+			*/
+			// YX: once (SL-MILP) solved to target gap; compare the BR bound obtained and SL objval d^2y^t
+			// YX: get BR bound U_SecondLevel; sense if not 1?
+			objVal = lSolver->getObjValue() * model_->getLowerObjSense();
+			// isProvenOptimal_ = true; // YX: reset; really need this variable?
+
+			// YX: moved BR related check and resolve here
+			lowerObj = getLowerObj(sol, model_->getLowerObjSense(), i); // YX: obtain d^2y^t (y^t is sol of LR)
+
+			// YX: two part checking: first -> integrality, second -> inequality
+			// if(!isIntegral_){ 
+			// 	// assert((objVal - lowerObj) <= etol);  // YX: originally used to set when sol is int; 
+			// 	// std::cout << "isintegral" << std::endl; 
+			// 	// assert(lowerObj <= objVal); 
+			// }
+		
+			LPSolStatus_ = MibSLPSolStatusInfeasible;
+
+			// YX: update to comparison of bound; 
+			if ((lowerObj <= objVal) && (isIntegral_)){ // YX: pass check; store (LR) sol y^t
+				std::cout << "Check1: LRsol Feasible" << std::endl; 
+				if(i == numScenarios - 1){
+					LPSolStatus_ = MibSLPSolStatusFeasible;
+					useBilevelBranching_ = false;
+					shouldPrune_ = true;
+					storeSol = MibSRelaxationSol; // YX: line 18; updata solution type
+				}
+			}
+			else{
+				// YX: resolve (SL-MILP) to optimality; use SYMPHONY warm start from previous step
+				// YX: the same solver pointer to (SL-MILP) (if condition scope change can be reused)
+				// OsiSolverInterface *lSolver = lSolver_;
+				// YX: check time remained as before
+				remainingTime = timeLimit - model_->broker_->subTreeTimer().getTime();
+				if(remainingTime <= etol){
+					shouldPrune_ = true;
+					storeSol = MibSNoSol;
+					goto TERM_CHECKBILEVELFEAS;
+				}
+			
+				remainingTime = CoinMax(remainingTime, 0.00);
+
+				// YX: No Cbc setting yet
+				// if (feasCheckSolver == "Cbc"){
+				// dynamic_cast<OsiCbcSolverInterface *>
+				// 	(lSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
+				// }else 
+				if (feasCheckSolver == "SYMPHONY"){
+	#if COIN_HAS_SYMPHONY
+					sym_environment *env = dynamic_cast<OsiSymSolverInterface *>
+						(lSolver)->getSymphonyEnvironment();
+				
+					// YX: warm starting from last solve; check if condtion if not solved already earlier 
+					//sym_set_int_param(env, "keep_warm_start", TRUE); // YX: no need if continues from last solving
+				
+					// YX: with modified params
+					sym_set_dbl_param(env, "time_limit", remainingTime); // update remaining time
+					sym_set_dbl_param(env, "gap_limit", -1.0); // set to zero gap
+	#endif
+				}else if (feasCheckSolver == "CPLEX"){
+					// YX: No CPLEX setting yet
+	#ifdef COIN_HAS_CPLEX
+					lSolver->setHintParam(OsiDoReducePrint);
+					lSolver->messageHandler()->setLogLevel(0);
+					CPXENVptr cpxEnv =
+						dynamic_cast<OsiCpxSolverInterface*>(lSolver)->getEnvironmentPtr();
+					assert(cpxEnv);
+					// CPXsetintparam(cpxEnv, CPX_PARAM_SCRIND, CPX_OFF);
+					// CPXsetintparam(cpxEnv, CPX_PARAM_THREADS, maxThreadsLL);
+					// CPXsetintparam(cpxEnv, CPX_PARAM_CLOCKTYPE, 1);
+					CPXsetdblparam(cpxEnv, CPX_PARAM_TILIM, remainingTime);
+	#endif
+				}
+				// YX: resolve (SL-MILP) to optimality; lSolver stores solution for MILP
+				if (feasCheckSolver == "SYMPHONY"){
+					// TODO: CHECK start time and timer setting; since it continues to solve for value function
+					startTimeVF = model_->broker_->subTreeTimer().getTime();
+					lSolver->resolve(); // calling sym_warm_solve(env)
+					model_->timerVF_ += model_->broker_->subTreeTimer().getTime() - startTimeVF;
+					// setWarmStart(lSolver->getWarmStart());
+				}else{
+					// TODO: other solvers' settings should be the same
+					// startTimeVF = model_->broker_->subTreeTimer().getTime();
+					// lSolver->branchAndBound();
+					// if(0)
+					// 	lSolver->writeLp("lSolverAfter");
+					// model_->timerVF_ += model_->broker_->subTreeTimer().getTime() - startTimeVF;
+				}
+		
+				model_->counterVF_ ++; //YX: VF+1 when solve to optimality
+
+				if(i == numScenarios - 1){
+					isLowerSolved_ = true; // YX: TODO check where this is used
+				}
+			
+				if(feasCheckSolver == "SYMPHONY"){
+	#ifdef COIN_HAS_SYMPHONY
+					if(sym_is_time_limit_reached(dynamic_cast<OsiSymSolverInterface *>
+									(lSolver)->getSymphonyEnvironment())){
+						shouldPrune_ = true; // YX: system time limit reached; no soln
+						storeSol = MibSNoSol;
+						goto TERM_CHECKBILEVELFEAS;
+					}
+	#endif
+				}
+				else if(feasCheckSolver == "CPLEX"){
+	#ifdef COIN_HAS_CPLEX
+					lpStat = CPXgetstat(dynamic_cast<OsiCpxSolverInterface*>
+								(lSolver)->getEnvironmentPtr(),
+								dynamic_cast<OsiCpxSolverInterface*>
+								(lSolver)->getLpPtr());
+					if((lpStat == CPXMIP_TIME_LIM_FEAS) ||
+					(lpStat == CPXMIP_TIME_LIM_INFEAS)){
+						shouldPrune_ = true;
+						storeSol = MibSNoSol;
+						goto TERM_CHECKBILEVELFEAS;
+					}
+	#endif
+				}
+
+				// YX: if problem still not solved from warm starting; repeat the same procedure for infeasibility
+				if(!lSolver->isProvenOptimal()){ 
+					LPSolStatus_ = MibSLPSolStatusInfeasible;
+					isProvenOptimal_ = false; // YX: infeasibility
+					//storeSol = MibSNoSol; // YX: ?? double check the use 
+					if(useLinkingSolutionPool){
+						//step 10
+						//Adding x_L to set E
+						shouldStoreObjValues.push_back(0);
+						addSolutionToSeenLinkingSolutionPool
+							(MibSLinkingPoolTagLowerIsInfeasible, shouldStoreValuesLowerSol,
+							shouldStoreObjValues); // YX: line 10
+						shouldStoreObjValues.clear();
+					}
+					if(isLinkVarsFixed_){ // YX: line 11
+						useBilevelBranching_ = false;
+						shouldPrune_ = true;
+					}
+					break;
+				} else { // YX: SL-MILP solved to optimality
+					objVal = lSolver->getObjValue() * model_->getLowerObjSense();
+
+					// YX: if deterministic & nonempty
+					// if((i == 0) && (!objValVec_.empty())){
+					// 	objValVec_.clear();
+					// }
+					// objValVec_.push_back(objVal);
+					// shouldStoreObjValues.push_back(objVal);
+
+					// // YX: check if d^2y^t is within the gap range: NEED TO SOLVE AROUND ZERO 
+					// if(lowerObj <= objVal+(fabs(objVal)*targetGap/200)){
+					// 	// YX: if yes, using relaxation sol
+					// 	if(i == numScenarios - 1){
+					// 		LPSolStatus_ = MibSLPSolStatusFeasible;
+					// 		useBilevelBranching_ = false;
+					// 		shouldPrune_ = true;
+					// 		storeSol = MibSRelaxationSol; // YX: line 18; updata solution type
+					// 	}
+					
+					// 	// // YX: get optimal SL solution \yhat^t (may not be optimal)
+					// 	// const double * values = lSolver->getColSolution();
+					// 	// if(useLinkingSolutionPool){
+					// 	// 	begPos = i * truncLN; // YX: determinstic i==0 && lower level dim
+					// 	// 	if(shouldStoreSolution == true){ // YX: true only when numscenario = 1 (deterministic)
+					// 	// 		std::copy(values, values + lN, shouldStoreValuesLowerSol.begin() + begPos);
+					// 	// 	}
+					// 	// 	else{
+					// 	// 		if(lowerSol == NULL){
+					// 	// 			lowerSol = new double[lN];
+					// 	// 			CoinFillN(lowerSol, lN, 0.0);
+					// 	// 		}
+					// 	// 		CoinDisjointCopyN(values, truncLN, lowerSol + begPos);
+					// 	// 	}
+					// 	// 	// YX: add solution to linking sol pool; but should we use \yhat^t? 
+					// 	// 	//Adding x_L to set E
+					// 	// 	if(i == numScenarios - 1){
+					// 	// 		addSolutionToSeenLinkingSolutionPool
+					// 	// 		(MibSLinkingPoolTagLowerIsFeasible, shouldStoreValuesLowerSol,
+					// 	// 		shouldStoreObjValues); // YX: line 14; mark (SL-MILP) to feasible (gap reached)
+					// 	// 		shouldStoreValuesLowerSol.clear();
+					// 	// 		shouldStoreObjValues.clear();
+					// 	// 	}
+					// 	// }
+					// 	// else{ // YX: if not using linking var pool; create a container if not existed yet
+					// 	// 	if(lowerSol == NULL){
+					// 	// 		lowerSol = new double[lN];
+					// 	// 		CoinFillN(lowerSol, lN, 0.0);
+					// 	// 	}
+					// 	// 	//memcpy(lowerSol, values, sizeof(double) * lN);
+					// 	// 	begPos = i * truncLN;
+					// 	// 	CoinDisjointCopyN(values, truncLN, lowerSol + begPos);
+					// 	// }
+					// 	// YX: reset node LowerUB(objVal) as in the previous part?
+					// } else { 
+					// 	// YX: confirmed d^2y^t is not in the range, solution is not valid; using MILP sol
+					// }
+				}
+			} // YX: end BR Resolving block
+
+			//____________________work zone;_clean later__________________
+
+			// YX: ready to store solution
+			// YX: if deterministic & nonempty
+			if((i == 0) && (!objValVec_.empty())){
+				objValVec_.clear();
+			}
+			objValVec_.push_back(objVal);
+			shouldStoreObjValues.push_back(objVal);
+
+			// YX: get current SL solution \yhat^t (may not be optimal)
+			const double * values = lSolver->getColSolution();
+
+			if(useLinkingSolutionPool){ // YX: since it's BR result, should we store anything here in this bracket?
+				begPos = i * truncLN; // YX: determinstic i==0 && lower level dim
+				if(shouldStoreSolution == true){ // YX: true only when numscenario = 1 (deterministic)
+					std::copy(values, values + lN, shouldStoreValuesLowerSol.begin() + begPos);
+				}
+				else{
+					if(lowerSol == NULL){
+						lowerSol = new double[lN];
+						CoinFillN(lowerSol, lN, 0.0);
+					}
+					CoinDisjointCopyN(values, truncLN, lowerSol + begPos);
+				}
+
+				// YX: add solution to linking sol;   
+				//Adding x_L to set E
+				if(i == numScenarios - 1){
+					addSolutionToSeenLinkingSolutionPool
+					(MibSLinkingPoolTagLowerIsFeasible, shouldStoreValuesLowerSol,
+					shouldStoreObjValues); // YX: line 14; mark (SL-MILP) to feasible (gap reached)
+					shouldStoreValuesLowerSol.clear();
+					shouldStoreObjValues.clear();
+				}
+			}
+			else{ // YX: if not using linking var pool; createa container if not existed yet
+				if(lowerSol == NULL){
+					lowerSol = new double[lN];
+					CoinFillN(lowerSol, lN, 0.0);
+				}
+				//memcpy(lowerSol, values, sizeof(double) * lN);
+				begPos = i * truncLN;
+				CoinDisjointCopyN(values, truncLN, lowerSol + begPos);
+			}
+			// YX: line 18? deterministic case; i == 0 and numScenario = 1
+			if(i == numScenarios - 1){ 
+				MibSTreeNode * node = static_cast<MibSTreeNode *>(model_->activeNode_);
+				MibSTreeNode * parent =
+					static_cast<MibSTreeNode *>(model_->activeNode_->getParent());
+			
+				if((!node->isBoundSet())
+				&& (node->getIndex() != 0)){ // YX: not root node, SL bound not set
+					double parentBound = parent->getLowerUB();
+					node->setLowerUB(parentBound); // YX: set SL upper bound to its parent's SL UB
+					node->setIsBoundSet(true);
+				}
+			
+				if(objVal > node->getLowerUB()){ //YX: if SL UB > parent SL UB
+					node->setLowerUB(objVal); // YX: update SL upper bound
+					node->setIsBoundSet(true);
+				}
+			}
+			} // end block if SL-MILP target gap reached block, 
+#else
+		throw CoinError("SYMPHONY chosen as solver, but it has not been enabled",
+			"setUpTargetGapforSLMILP", "MibsBilevel");
+#endif
+			/*if (!warmStartLL){
+				delete solver_;
+			}*/
+		} // YX: end; stochastic scenario block
+    } // YX: end; isContainedinLinkingPool block
+
+    // YX: line 15; if linking pool is used and solution existed at line 7 also leads here
+   	if(((!useLinkingSolutionPool) && (isProvenOptimal_)) ||
+       ((tagInSeenLinkingPool_ == MibSLinkingPoolTagLowerIsFeasible) ||
+	(tagInSeenLinkingPool_ == MibSLinkingPoolTagUBIsSolved)))
+    {  // YX: isProvenOptimal here used for gap reached; otherwise jump to (UB) block
+	
+		// YX: if pool is used, retreive SL obj (into objValVec) and solution(into lowerSol)
+		// YX: LinkingPool setting turned off temporarily
+		if(useLinkingSolutionPool){
+			//get optimal value  of (VF) from solution pool
+			shouldStoreObjValues = model_->seenLinkingSolutions[linkSol].lowerObjValue; 
+
+			if(!objValVec_.empty()){
+				objValVec_.clear();
+			}
+			objValVec_ = model_->seenLinkingSolutions[linkSol].lowerObjValue;
+			
+			if(shouldStoreSolution == true){
+				if(lowerSol == NULL){
+					lowerSol = new double[lN];
+					CoinFillN(lowerSol, lN, 0.0);
+				}
+				std::copy(model_->seenLinkingSolutions[linkSol].lowerSolution.begin(),
+					model_->seenLinkingSolutions[linkSol].lowerSolution.end(), lowerSol);
+			}
+		}
+
+		// YX: regular fesibility check for bound obtained in the last block
+		// YX: two possible results: BR or exact obj
+		for(i = 0; i < numScenarios; i++){
+
+			// YX: obtain d^2y^t (y^t is sol of LR); var does not change from previous part
+			//lowerObj = getLowerObj(sol, model_->getLowerObjSense(), i); 
+			objVal = shouldStoreObjValues[i]; // YX: obtain SL bound
+
+			// YX: two part checking: first -> integrality, second -> inequality
+			if(!isIntegral_){ 
+				// assert((objVal - lowerObj) <= etol);  // YX: originally used to set when sol is int; 
+			}
+		
+			LPSolStatus_ = MibSLPSolStatusInfeasible;
+			
+			//step 15
+			/** Current solution is bilevel feasible **/
+			// YX: copied original setting
+			// if ((fabs(objVal - lowerObj) < etol) && (isIntegral_)){ 
+			if (((lowerObj - objVal)/fabs(lowerObj)*100 <= targetGap) && (isIntegral_)){	
+				std::cout << "Check2: LRsol Feasible" << std::endl; 
+				if(i == numScenarios - 1){
+					LPSolStatus_ = MibSLPSolStatusFeasible;
+					useBilevelBranching_ = false;
+					shouldPrune_ = true;
+					storeSol = MibSRelaxationSol; // YX: line 18; using (LR) solution type
+				}
+			}
+			else{
+				if(lowerSol != NULL){
+					memcpy(optLowerSolutionOrd_, lowerSol, sizeof(double) * lN);
+				}
+				break;
+			} // YX: end else
+		} // YX: end fesibility check, stochacstic block
+		
+		/*** Original place for checking and solving (UB) ***/
+		// YX: line 20 - line 28
+		if(!shouldPrune_){	// YX: means SL feasible? or y^t is proven infeasible
+			//std::cout <<"ShouldPrune == False" << std::endl; 
+			//step 18
+			if((tagInSeenLinkingPool_ != MibSLinkingPoolTagUBIsSolved) &&
+			(((branchPar == MibSBranchingStrategyLinking) &&
+			(isIntegral_) && (isLinkVarsFixed_)) ||
+			((computeBestUBWhenXVarsInt == PARAM_ON) && (isUpperIntegral_)) ||
+			((computeBestUBWhenLVarsInt == PARAM_ON)) ||
+			((computeBestUBWhenLVarsFixed == PARAM_ON) && (isLinkVarsFixed_)))){
+			/*if(UBSolver_){
+				UBSolver_ = setUpUBModel(model_->getSolver(), shouldStoreObjValues,
+							false);
+			}
+			else{
+				UBSolver_ =setUpUBModel(model_->getSolver(), shouldStoreObjValues,
+							true);
+			}
+
+			UBSolver = UBSolver_;*/
+			double *valuesUB = new double[uN + lN];
+			objVal = 0.0;
+			bool isUBProvenOptimal(true);
+			//In the stochastic case, when all first-level variables are linking,
+			//we can decompose the giant problem UB to smaller MIPs
+			int numDecomposedProbs(1);
+			bool useUBDecompose(model_->MibSPar_->entry
+					(MibSParams::useUBDecompose));
+			if((numScenarios > 1) && (useUBDecompose == true) && (sizeFixedInd == uN)){
+			numDecomposedProbs = numScenarios;
+			const double *relaxSol = oSolver->getColSolution();
+			const double * uObjCoeffs = oSolver->getObjCoefficients();
+			double uObjSense = oSolver->getObjSense();
+			CoinDisjointCopyN(relaxSol, uN, valuesUB);
+			for(i = 0; i < uN; i++){
+				objVal += relaxSol[i] * uObjCoeffs[i] * uObjSense;
+			}
+			}
+
+			for(i = 0; i < numDecomposedProbs; i++){
+			remainingTime = timeLimit - model_->broker_->subTreeTimer().getTime();
+			if(remainingTime <= etol){
+				shouldPrune_ = true;
+				storeSol = MibSNoSol;
+				goto TERM_CHECKBILEVELFEAS;
+			}
+			
+			if(numDecomposedProbs == 1){
+			UBSolver = setUpUBModel(oSolver, shouldStoreObjValues, true);
+			}
+			else{
+				if(i == 0){
+				CoinPackedMatrix coefMatrix = *model_->origConstCoefMatrix_;
+				int truncNumCols = uN + truncLN;
+				int uRowNum = model_->getOrigUpperRowNum();
+				CoinPackedVector col1;
+				CoinPackedVector col2;
+				int *colInd = NULL;
+				double *colElem = NULL;
+				int colNumElem(0);
+				truncMatrixG2 = new CoinPackedMatrix(true, 0, 0);
+				truncMatrixG2->setDimensions(model_->getTruncLowerRowNum(), 0);
+				for(j = uN; j < truncNumCols; j++){
+					col1 = coefMatrix.getVector(j);
+					colInd = col1.getIndices();
+					colElem = col1.getElements();
+					colNumElem = col1.getNumElements();
+					for(k = 0; k < colNumElem; k++){
+					col2.insert(colInd[k] - uRowNum, colElem[k]);
+					}
+					truncMatrixG2->appendCol(col2);
+					col1.clear();
+					col2.clear();
+				}
+				int isA2Random(model_->MibSPar_->entry(MibSParams::isA2Random));
+				if(isA2Random == PARAM_OFF){
+					multA2XOpt = new double[model_->getTruncLowerRowNum()];
+				}
+				else{
+					multA2XOpt = new double[model_->getLowerRowNum()];
+				}
+				const double *lpSol = oSolver->getColSolution();
+				double *optUpperSol = new double[uN];
+				CoinDisjointCopyN(lpSol, uN, optUpperSol);
+				model_->getStocA2Matrix()->times(optUpperSol, multA2XOpt);
+				delete [] optUpperSol;
+				}
+				UBSolver = setUpDecomposedUBModel(oSolver, shouldStoreObjValues, i,
+								truncMatrixG2, multA2XOpt);
+			}
+			
+			if(0)
+				UBSolver->writeLp("UBSolver");
+
+			remainingTime = timeLimit - model_->broker_->subTreeTimer().getTime();
+
+			if(remainingTime <= etol){
+				shouldPrune_ = true;
+				storeSol = MibSNoSol;
+				goto TERM_CHECKBILEVELFEAS;
+			}
+			
+			remainingTime = CoinMax(remainingTime, 0.00);
+
+					if (feasCheckSolver == "Cbc"){
+				dynamic_cast<OsiCbcSolverInterface *>
+				(UBSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
+			}else if (feasCheckSolver == "SYMPHONY"){
+	#if COIN_HAS_SYMPHONY
+				//dynamic_cast<OsiSymSolverInterface *>
+				// (lSolver)->setSymParam("prep_level", -1);
+				sym_environment *env = dynamic_cast<OsiSymSolverInterface *>
+				(UBSolver)->getSymphonyEnvironment();
+				//Always uncomment for debugging!!
+				sym_set_dbl_param(env, "time_limit", remainingTime);
+				sym_set_int_param(env, "do_primal_heuristic", FALSE);
+				sym_set_int_param(env, "verbosity", -2);
+				//sym_set_int_param(env, "prep_level", -1);
+				sym_set_int_param(env, "max_active_nodes", maxThreadsLL);
+				sym_set_int_param(env, "tighten_root_bounds", FALSE);
+				sym_set_int_param(env, "max_sp_size", 100);
+				sym_set_int_param(env, "do_reduced_cost_fixing", FALSE);
+				if (whichCutsLL == 0){
+				sym_set_int_param(env, "generate_cgl_cuts", FALSE);
+				}else{
+				sym_set_int_param(env, "generate_cgl_gomory_cuts", GENERATE_DEFAULT);
+				}
+				if (whichCutsLL == 1){
+				sym_set_int_param(env, "generate_cgl_knapsack_cuts",
+						DO_NOT_GENERATE);
+				sym_set_int_param(env, "generate_cgl_probing_cuts",
+						DO_NOT_GENERATE);
+				sym_set_int_param(env, "generate_cgl_clique_cuts",
+						DO_NOT_GENERATE);
+				sym_set_int_param(env, "generate_cgl_twomir_cuts",
+						DO_NOT_GENERATE);
+				sym_set_int_param(env, "generate_cgl_flowcover_cuts",
+						DO_NOT_GENERATE);
+				}
+	#endif
+			}else if (feasCheckSolver == "CPLEX"){
+	#ifdef COIN_HAS_CPLEX
+				UBSolver->setHintParam(OsiDoReducePrint);
+				UBSolver->messageHandler()->setLogLevel(0);
+				CPXENVptr cpxEnv =
+				dynamic_cast<OsiCpxSolverInterface*>(UBSolver)->getEnvironmentPtr();
+				assert(cpxEnv);
+				CPXsetintparam(cpxEnv, CPX_PARAM_SCRIND, CPX_OFF);
+				CPXsetintparam(cpxEnv, CPX_PARAM_THREADS, maxThreadsLL);
+				CPXsetintparam(cpxEnv, CPX_PARAM_CLOCKTYPE, 1);
+				CPXsetdblparam(cpxEnv, CPX_PARAM_TILIM, remainingTime);
+	#endif
+			}
+
+			//step 19
+			startTimeUB = model_->broker_->subTreeTimer().getTime(); 
+			UBSolver->branchAndBound(); // YX: set up to solving UB
+			model_->timerUB_ += model_->broker_->subTreeTimer().getTime() - startTimeUB;
+			model_->counterUB_ ++;
+			if(i == numDecomposedProbs - 1){
+			isUBSolved_ = true;
+			}
+
+			if(feasCheckSolver == "SYMPHONY"){
+	#ifdef COIN_HAS_SYMPHONY
+				if(sym_is_time_limit_reached(dynamic_cast<OsiSymSolverInterface *>
+							(UBSolver)->getSymphonyEnvironment())){
+				shouldPrune_ = true;
+				storeSol = MibSNoSol;
+				goto TERM_CHECKBILEVELFEAS;
+				}
+	#endif
+			}
+			else if(feasCheckSolver == "CPLEX"){
+	#ifdef COIN_HAS_CPLEX
+				lpStat = CPXgetstat(dynamic_cast<OsiCpxSolverInterface*>
+						(UBSolver)->getEnvironmentPtr(),
+						dynamic_cast<OsiCpxSolverInterface*>
+						(UBSolver)->getLpPtr());
+				if((lpStat == CPXMIP_TIME_LIM_FEAS) ||
+				(lpStat == CPXMIP_TIME_LIM_INFEAS)){
+				shouldPrune_ = true;
+				storeSol = MibSNoSol;
+				goto TERM_CHECKBILEVELFEAS;
+				}
+	#endif
+			}
+
+				if(UBSolver->isProvenOptimal()){ // YX: line 22
+					isUBProvenOptimal = true;
+					const double *partialValuesUB = UBSolver->getColSolution();
+					if(numDecomposedProbs == 1){
+					CoinDisjointCopyN(partialValuesUB, lN + uN, valuesUB);
+					}
+					else{
+					int begPos = uN + i * truncLN;
+					CoinDisjointCopyN(partialValuesUB, truncLN, valuesUB + begPos);
+					}
+					objVal += UBSolver->getObjValue() * model_->solver()->getObjSense();  // YX:  +?
+				}
+				else{ // YX: prepare for line 24
+					isUBProvenOptimal = false;
+					//when all first-level variables are linking,
+					//UBSolver cannot be infeasible
+					if(numDecomposedProbs > 1){
+					throw CoinError("When all first-level variables are linking, problem UB cannot be infeasible",
+							"checkBilevelFeasiblity", "MibSBilevel");
+					}
+				}
+				if(UBSolver){
+					delete UBSolver;
+				}
+			}
+
+				if(isUBProvenOptimal){ // YX: line 24
+					isProvenOptimal_ = true;
+					if(shouldStoreSolution == true){
+					std::copy(valuesUB, valuesUB + uN + lN, shouldStoreValuesUBSol.begin());
+					}
+					for (i = 0; i < uN + lN; i++){
+					pos = binarySearch(0, uN - 1, i, upperColInd);
+					if (pos >= 0){
+						if ((oSolver->isInteger(i)) &&
+						(((valuesUB[i] - floor(valuesUB[i])) < etol) ||
+						((ceil(valuesUB[i]) - valuesUB[i]) < etol))){
+						optUpperSolutionOrd_[pos] = (double) floor(valuesUB[i] + 0.5);
+						}else{
+						optUpperSolutionOrd_[pos] = (double) valuesUB[i];
+						}
+					}else{
+						if(numScenarios == 1){
+						pos = binarySearch(0, lN - 1, i, lowerColInd);
+						}
+						else{
+						pos = i - uN;
+						}
+						if ((oSolver->isInteger(i)) &&
+						(((valuesUB[i] - floor(valuesUB[i])) < etol) ||
+						((ceil(valuesUB[i]) - valuesUB[i]) < etol))){
+						optLowerSolutionOrd_[pos] = (double) floor(valuesUB[i] + 0.5);
+						}else{
+						optLowerSolutionOrd_[pos] = (double) valuesUB[i];
+						}
+					}
+					}
+					shouldStoreObjValues.push_back(0);
+					shouldStoreObjValues.clear();
+					shouldStoreObjValues.push_back(objVal);
+					storeSol = MibSHeurSol;
+				}else{
+					shouldStoreObjValues.push_back(0);
+					isProvenOptimal_ = false;
+				}
+				//step 22
+				//Adding x_L to set E
+				if(useLinkingSolutionPool){ // YX: line 24, part 2
+					addSolutionToSeenLinkingSolutionPool
+					(MibSLinkingPoolTagUBIsSolved, shouldStoreValuesUBSol,
+					shouldStoreObjValues);
+				}
+				shouldStoreValuesUBSol.clear();
+				shouldStoreObjValues.clear();
+			
+				//step 23
+				if(isLinkVarsFixed_){ // YX: line 25 - line 26
+					useBilevelBranching_ = false;
+					//isProvenOptimal_ = false;
+					shouldPrune_ = true;
+				}
+				delete [] valuesUB;
+				if(truncMatrixG2){
+					delete truncMatrixG2;
+				}
+				if(multA2XOpt){
+					delete [] multA2XOpt;
+				}
+			}
+			else if ((tagInSeenLinkingPool_ != MibSLinkingPoolTagUBIsSolved) ||
+				((!useLinkingSolutionPool) && (isUBSolved_))){  // YX: still check solution \yhat; line 27?
+				if(lowerSol != NULL){
+					for (i = 0; i < lN; i++){
+						if(numScenarios == 1){
+							index = lowerColInd[i];
+						}else{
+							index = uN + i;
+						}
+						if ((model_->solver()->isInteger(index)) &&
+							(((lowerSol[i] - floor(lowerSol[i])) < etol) ||
+							((ceil(lowerSol[i]) - lowerSol[i]) < etol))){
+							optLowerSolutionOrd_[i] = (double) floor(lowerSol[i] + 0.5);
+						}else{
+							optLowerSolutionOrd_[i] = (double) lowerSol[i];
+						}
+					}
+					if(isUpperIntegral_){
+						storeSol = MibSHeurSol;
+					}
+				}
+			}
+		} //YX: end of !shouldPrune_
+    } 
+ // YX: after Line 28; Upper bound updated in branching process; need to check the tree node call
+ TERM_CHECKBILEVELFEAS:
+    
+    delete [] lowerSol;
+
+    return storeSol;
+}
+	    
 //#############################################################################
 void 
 MibSBilevel::gutsOfDestructor()
