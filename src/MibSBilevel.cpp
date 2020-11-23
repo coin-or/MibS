@@ -2041,7 +2041,6 @@ MibSBilevel::checkBilevelFeasiblityBR(bool isRoot)
 					break;
 				} else { // YX: SL-MILP solved to optimality
 					objVal = lSolver->getObjValue() * model_->getLowerObjSense();
-
 					// YX: if deterministic & nonempty
 					// if((i == 0) && (!objValVec_.empty())){
 					// 	objValVec_.clear();
@@ -2209,8 +2208,8 @@ MibSBilevel::checkBilevelFeasiblityBR(bool isRoot)
 			objVal = shouldStoreObjValues[i]; // YX: obtain SL bound
 
 			// YX: two part checking: first -> integrality, second -> inequality
-			if(!isIntegral_){ 
-				// assert((objVal - lowerObj) <= etol);  // YX: originally used to set when sol is int; 
+			if(isIntegral_){ 
+				assert((objVal - lowerObj) <= etol);  // YX: originally used to set when sol is int; 
 			}
 		
 			LPSolStatus_ = MibSLPSolStatusInfeasible;
@@ -2219,7 +2218,7 @@ MibSBilevel::checkBilevelFeasiblityBR(bool isRoot)
 			/** Current solution is bilevel feasible **/
 			// YX: copied original setting
 			// if ((fabs(objVal - lowerObj) < etol) && (isIntegral_)){ 
-			if (((lowerObj - objVal)/fabs(lowerObj)*100 <= targetGap) && (isIntegral_)){	
+			if ((((lowerObj - objVal)/fabs(lowerObj)*100) <= targetGap) && (isIntegral_)){	
 				std::cout << "Check2: LRsol Feasible" << std::endl; 
 				if(i == numScenarios - 1){
 					LPSolStatus_ = MibSLPSolStatusFeasible;
