@@ -62,7 +62,8 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
   int lN(model_->lowerDim_); // lower-level dimension
   int uN(model_->upperDim_); // upper-level dimension
   double etol(model_->BlisPar()->entry(BlisParams::integerTol));
-  
+  double targetGap = model_->SLgap;
+
   MibSBranchingStrategy branchPar = static_cast<MibSBranchingStrategy>
       (model_->MibSPar_->entry(MibSParams::branchStrategy));
 
@@ -323,8 +324,10 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
 #ifdef _OPENMPMIBS
 	storeSol = checkBilevelFeasiblityParallel(mibs->isRoot_);
 #else
-	// storeSol = checkBilevelFeasiblity(mibs->isRoot_); // YX: solve (SL-MILP) and (UB)
-	storeSol = checkBilevelFeasiblityBR(mibs->isRoot_);  // YX: BR solving; under construction
+	if (model_->SLgap + 1 < etol)
+		storeSol = checkBilevelFeasiblity(mibs->isRoot_); // YX: solve (SL-MILP) and (UB)
+	else
+		storeSol = checkBilevelFeasiblityBR(mibs->isRoot_);  // YX: BR solving; under construction
 #endif
       }
   }
@@ -1695,7 +1698,7 @@ MibSBilevel::checkBilevelFeasiblityBR(bool isRoot)
     OsiSolverInterface *UBSolver = 0;
 	
 	// YX: target optimality gap for bounded rationality
-	double targetGap(5.0);
+	double targetGap = model_->SLgap;
 
     //saharSto: fix it later
     if(numScenarios == 1){
@@ -2106,7 +2109,7 @@ MibSBilevel::checkBilevelFeasiblityBR(bool isRoot)
 				objValVec_.clear();
 			}
 			objValVec_.push_back(objVal);
-			shouldStoreObjValues.push_back(objVal);
+			shouldStoreObjValues.push_back(objVal); // YX: used in setup UB problem; TRACK THIS VAR!
 
 			// YX: get current SL solution \yhat^t (may not be optimal)
 			const double * values = lSolver->getColSolution();
@@ -2216,9 +2219,8 @@ MibSBilevel::checkBilevelFeasiblityBR(bool isRoot)
 			
 			//step 15
 			/** Current solution is bilevel feasible **/
-			// YX: copied original setting
-			// if ((fabs(objVal - lowerObj) < etol) && (isIntegral_)){ 
-			if ((((lowerObj - objVal)/fabs(lowerObj)*100) <= targetGap) && (isIntegral_)){	
+			// YX: copied original setting 
+			if ((((lowerObj - objVal)/fabs(lowerObj))*100 <= targetGap)   && (isIntegral_)){	
 				std::cout << "Check2: LRsol Feasible" << std::endl; 
 				if(i == numScenarios - 1){
 					LPSolStatus_ = MibSLPSolStatusFeasible;
@@ -2256,8 +2258,8 @@ MibSBilevel::checkBilevelFeasiblityBR(bool isRoot)
 			}
 
 			UBSolver = UBSolver_;*/
-			double *valuesUB = new double[uN + lN];
-			objVal = 0.0;
+			double *valuesUB = new double[uN + lN]; // YX: to store sol for (UB)
+			objVal = 0.0; // YX: reset from (SL-MILP) optimal obj
 			bool isUBProvenOptimal(true);
 			//In the stochastic case, when all first-level variables are linking,
 			//we can decompose the giant problem UB to smaller MIPs
@@ -2265,14 +2267,14 @@ MibSBilevel::checkBilevelFeasiblityBR(bool isRoot)
 			bool useUBDecompose(model_->MibSPar_->entry
 					(MibSParams::useUBDecompose));
 			if((numScenarios > 1) && (useUBDecompose == true) && (sizeFixedInd == uN)){
-			numDecomposedProbs = numScenarios;
-			const double *relaxSol = oSolver->getColSolution();
-			const double * uObjCoeffs = oSolver->getObjCoefficients();
-			double uObjSense = oSolver->getObjSense();
-			CoinDisjointCopyN(relaxSol, uN, valuesUB);
-			for(i = 0; i < uN; i++){
-				objVal += relaxSol[i] * uObjCoeffs[i] * uObjSense;
-			}
+				numDecomposedProbs = numScenarios;
+				const double *relaxSol = oSolver->getColSolution();
+				const double * uObjCoeffs = oSolver->getObjCoefficients();
+				double uObjSense = oSolver->getObjSense();
+				CoinDisjointCopyN(relaxSol, uN, valuesUB);
+				for(i = 0; i < uN; i++){
+					objVal += relaxSol[i] * uObjCoeffs[i] * uObjSense;
+				}
 			}
 
 			for(i = 0; i < numDecomposedProbs; i++){
@@ -2283,10 +2285,10 @@ MibSBilevel::checkBilevelFeasiblityBR(bool isRoot)
 				goto TERM_CHECKBILEVELFEAS;
 			}
 			
-			if(numDecomposedProbs == 1){
-			UBSolver = setUpUBModel(oSolver, shouldStoreObjValues, true);
+			if(numDecomposedProbs == 1){ // YX: in deterministic case
+				UBSolver = setUpUBModel(oSolver, shouldStoreObjValues, true);
 			}
-			else{
+			else{ // YX: start decomposition solver set up
 				if(i == 0){
 				CoinPackedMatrix coefMatrix = *model_->origConstCoefMatrix_;
 				int truncNumCols = uN + truncLN;
@@ -2325,7 +2327,7 @@ MibSBilevel::checkBilevelFeasiblityBR(bool isRoot)
 				}
 				UBSolver = setUpDecomposedUBModel(oSolver, shouldStoreObjValues, i,
 								truncMatrixG2, multA2XOpt);
-			}
+			} // YX: end decomposition solver set up
 			
 			if(0)
 				UBSolver->writeLp("UBSolver");
@@ -2340,7 +2342,7 @@ MibSBilevel::checkBilevelFeasiblityBR(bool isRoot)
 			
 			remainingTime = CoinMax(remainingTime, 0.00);
 
-					if (feasCheckSolver == "Cbc"){
+			if (feasCheckSolver == "Cbc"){
 				dynamic_cast<OsiCbcSolverInterface *>
 				(UBSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
 			}else if (feasCheckSolver == "SYMPHONY"){
@@ -2513,28 +2515,28 @@ MibSBilevel::checkBilevelFeasiblityBR(bool isRoot)
 					delete [] multA2XOpt;
 				}
 			}
-			else if ((tagInSeenLinkingPool_ != MibSLinkingPoolTagUBIsSolved) ||
-				((!useLinkingSolutionPool) && (isUBSolved_))){  // YX: still check solution \yhat; line 27?
-				if(lowerSol != NULL){
-					for (i = 0; i < lN; i++){
-						if(numScenarios == 1){
-							index = lowerColInd[i];
-						}else{
-							index = uN + i;
-						}
-						if ((model_->solver()->isInteger(index)) &&
-							(((lowerSol[i] - floor(lowerSol[i])) < etol) ||
-							((ceil(lowerSol[i]) - lowerSol[i]) < etol))){
-							optLowerSolutionOrd_[i] = (double) floor(lowerSol[i] + 0.5);
-						}else{
-							optLowerSolutionOrd_[i] = (double) lowerSol[i];
-						}
-					}
-					if(isUpperIntegral_){
-						storeSol = MibSHeurSol;
-					}
-				}
-			}
+			// else if ((tagInSeenLinkingPool_ != MibSLinkingPoolTagUBIsSolved) ||
+			// 	((!useLinkingSolutionPool) && (isUBSolved_))){  // YX: still check solution \yhat; line 27?
+			// 	if(lowerSol != NULL){
+			// 		for (i = 0; i < lN; i++){
+			// 			if(numScenarios == 1){
+			// 				index = lowerColInd[i];
+			// 			}else{
+			// 				index = uN + i;
+			// 			}
+			// 			if ((model_->solver()->isInteger(index)) &&
+			// 				(((lowerSol[i] - floor(lowerSol[i])) < etol) ||
+			// 				((ceil(lowerSol[i]) - lowerSol[i]) < etol))){
+			// 				optLowerSolutionOrd_[i] = (double) floor(lowerSol[i] + 0.5);
+			// 			}else{
+			// 				optLowerSolutionOrd_[i] = (double) lowerSol[i];
+			// 			}
+			// 		}
+			// 		if(isUpperIntegral_){
+			// 			storeSol = MibSHeurSol;
+			// 		}
+			// 	}
+			// }
 		} //YX: end of !shouldPrune_
     } 
  // YX: after Line 28; Upper bound updated in branching process; need to check the tree node call
@@ -2763,6 +2765,10 @@ MibSBilevel::setUpUBModel(OsiSolverInterface * oSolver,
     int truncColNum(uCols + truncLCols);
     int * uColIndices(model_->getUpperColInd());
 
+	double etol(model_->etol_);
+	double targetGap = model_->SLgap; // YX: added SL gap
+	double objUb(0.0);
+
     if(newOsi){
 	double objSense(model_->getLowerObjSense());
 	double uObjSense(1);
@@ -2891,7 +2897,15 @@ MibSBilevel::setUpUBModel(OsiSolverInterface * oSolver,
 		row.insert(index1, newRow[i]);
 	    }
 	    newMat.appendRow(row);
-	    rowUb[rowNum-1] = objValuesVec[0];
+	    if (targetGap > etol){ // YX: added if condition for SL target gap
+			if (objValuesVec[0]/(1 + targetGap/100) > etol) // YX: solve for an objUb provided by gap
+				objUb = objValuesVec[0]/(1 - targetGap/100); // YX: if objUb > 0
+			else 
+				objUb = objValuesVec[0]/(1 + targetGap/100); // YX: if objUb < 0
+			rowUb[rowNum-1] = objUb;
+		}
+		else 
+			rowUb[rowNum-1] = objValuesVec[0]; 
 	    rowLb[rowNum-1] = minusInf;
 	    delete [] newRow;
 	}
