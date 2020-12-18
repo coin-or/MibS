@@ -172,7 +172,10 @@ private:
 
     /** Determines if matrix G2 is positive or not **/
     bool positiveG2_;
-  
+
+    /** The signs of the columns of matrix G2 (used for Benders cut) **/
+    int * colSignsG2_;
+   
     /** the left (negative) slope of the lower-level value function **/
     double leftSlope_;
 
@@ -320,6 +323,13 @@ public:
     MibSModel();
     ~MibSModel();
 
+    enum colSign {
+       colSignPositive,
+       colSignNegative,
+       colSignInconsistent,
+       colSignUnknown
+    };
+   
     /** Read in the problem data **/
     void readInstance(const char * dataFile);
 
@@ -379,6 +389,12 @@ public:
 
     /** Set the interdiction budget **/
     inline void setInterdictBudget(double val) {interdictBudget_ = val;}
+
+    /** Query whether the problem is interdiction **/
+    inline bool isInterdictionProblem() {return isInterdict_;}
+
+    /** Set whether the problem is interdiction **/
+    inline void setInterdictionProblem(bool b = true) {isInterdict_ = b;}
 
     /** Set UL column indices **/
     void setUpperColInd(int *ptr) {upperColInd_ = ptr;} 

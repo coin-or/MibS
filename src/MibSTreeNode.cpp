@@ -672,10 +672,6 @@ MibSTreeNode::process(bool isRoot, bool rampUp)
             goto TERM_BRANCH;
             break;
         default:
-#ifdef BLIS_DEBUG
-            std::cout << "PROCESS: unknown status "  <<  status << std::endl;
-            assert(0);
-#endif
             break;
         }
 
