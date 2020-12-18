@@ -5582,20 +5582,36 @@ MibSCutGenerator::bendersInterdictionOneCut(BcpsConstraintPool &conPool, double 
   int * upperColInd = localModel_->getUpperColInd();
   int * lowerColInd = localModel_->getLowerColInd();
   double * lObjCoeffs = localModel_->getLowerObjCoeffs();
-  double cutub(localModel_->solver()->getInfinity());
-  double cutlb(0.0);
+  double cutlb(-localModel_->solver()->getInfinity());
+  double cutub(0.0);
   std::vector<int> indexList;
   std::vector<double> valsList;
+  int bigM(10000);
+  double valL, valU;
 
   for(i = 0; i < uN; i++){
       indexU = upperColInd[i];
       indexL = lowerColInd[i];
-      indexList.push_back(indexL);
-      valsList.push_back(-lObjCoeffs[i]);
-      cutlb += -1 * lObjCoeffs[i] * lSolution[i];
+      cutub += lObjCoeffs[i] * lSolution[i];
+      valU = 0;
+      valL = lObjCoeffs[i];
       if(lSolution[i] > etol){
-	  indexList.push_back(indexU);
-	  valsList.push_back(-lObjCoeffs[i]*lSolution[i]);
+          if (localModel_->colSignsG2_[i] == MibSModel::colSignPositive){ 
+             valU += std::max(0.0, lObjCoeffs[i]*lSolution[i]);
+          } else {
+             valU -= bigM;
+          }
+      } else if (localModel_->colSignsG2_[i] != MibSModel::colSignPositive){
+         valL -= std::min(0.0, lObjCoeffs[i]);
+      }
+
+      if (valL){
+         indexList.push_back(indexL);
+         valsList.push_back(valL);
+      }
+      if (valU) {
+         indexList.push_back(indexU);
+         valsList.push_back(valU);
       }
   }
   assert(indexList.size() == valsList.size());
@@ -5845,6 +5861,9 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
     int useGeneralNoGoodCut = 
 	localModel_->MibSPar_->entry(MibSParams::useGeneralNoGoodCut);
 
+    int useNoGoodCut = 
+	localModel_->MibSPar_->entry(MibSParams::useNoGoodCut);
+
     bool useIncObjCut
 	= localModel_->MibSPar_->entry(MibSParams::useIncObjCut);
 
@@ -5943,7 +5962,10 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
 	  if (useGeneralNoGoodCut == PARAM_ON){
 	      generalNoGoodCut(conPool);
 	  }
-	  
+
+	  numCuts += feasibilityCuts(conPool) ? true : false;
+      }
+      if (bS->isUpperIntegral_) {
 	  if (useBendersCut == PARAM_ON){
 	      int bendersCutType =
 		  localModel_->MibSPar_->entry(MibSParams::bendersCutType);
@@ -5956,12 +5978,14 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
 	      }		  
 	  }
 	  
+          if(useNoGoodCut == PARAM_ON){
+             return noGoodCut(conPool) ? true : false;
+          }
+          
 	  if (useIncObjCut == true){
 	      numCuts += generalWeakIncObjCutCurrent(conPool);
 	  }
 	  
-	 numCuts += feasibilityCuts(conPool) ? true : false;
-	 
          /*if (useBoundCut){
 	     double tmpArg1 = 0;
 	     bool tmpArg2 = false;
