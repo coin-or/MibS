@@ -517,9 +517,15 @@ MibSModel::loadAuxiliaryData(int lowerColNum, int lowerRowNum,
    }
 
    CoinDisjointCopyN(lowerColInd, lowerColNum, copyLowerColInd);
-   CoinDisjointCopyN(lowerRowInd, lowerRowNum - upperColNum, copyLowerRowInd);
-   CoinIotaN(copyLowerRowInd+(lowerRowNum-upperColNum), upperColNum,
-             lowerRowNum-upperColNum+upperRowNum);
+   if (isInterdict_){
+      CoinDisjointCopyN(lowerRowInd, lowerRowNum - upperColNum,
+                        copyLowerRowInd);
+      CoinIotaN(copyLowerRowInd+(lowerRowNum-upperColNum), upperColNum,
+                lowerRowNum-upperColNum+upperRowNum);
+   }else{
+      CoinDisjointCopyN(lowerRowInd, lowerRowNum, copyLowerRowInd);
+   }
+   
    if (interdictCost){
       CoinIotaN(upperColInd_, upperColNum, lowerColNum);
    }
@@ -3137,7 +3143,7 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix,
       std::cout << numLowerInt << std::endl;
    }
    
-   if (isInterdict_ == false || !getInterdictCost()){
+   if (isInterdict_ == false){
       CoinDisjointCopyN(rowSense, numRows, newRowSense);
    }else{
       for (i = 0; i < numRows; i++){
