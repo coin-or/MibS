@@ -105,9 +105,10 @@ public:
    
     MibSSolType createBilevel(CoinPackedVector *sol,
 		       MibSModel *mibs=0);
-    MibSSolType checkBilevelFeasiblity(bool isRoot);
-    MibSSolType checkBilevelFeasiblityParallel(bool isRoot);
-    MibSSolType checkBilevelFeasiblityBR(bool isRoot);
+    MibSSolType checkBilevelFeasibility(bool isRoot);
+    MibSSolType checkBilevelFeasibilityParallel(bool isRoot);
+    MibSSolType checkBilevelFeasibilityBR(bool isRoot);
+    MibSSolType checkBilevelFeasibilityBRPES(bool isRoot);
     void gutsOfDestructor();
 
 private:

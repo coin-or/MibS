@@ -313,7 +313,18 @@ private:
 
     /** Matrix A2 for all scenarios **/
     CoinPackedMatrix *stocA2Matrix_;
+ 
+    //----*----*----*----*----*----*----*----*----
+    // YX: decides whether to check cut co-prime in biFeasCut 
+    bool cutgcdcheck = false;
     
+    // YX: multiplier to coeff and RHS to test co-prime check
+    int multiplier = 1;
+
+    // YX: target optimality gap for (SL-MILP); off: -1.0; on: < 100 
+    double SLgap = -1.0;
+    //----*----*----*----*----*----*----*----*----
+
 public:
 
     MibSModel();
@@ -442,7 +453,16 @@ public:
 
     /** Set pointer to the matrix of UL vars in LL problem for all scenarios **/
     void setStocA2Matrix(CoinPackedMatrix *ptr) {stocA2Matrix_ = ptr;}
-  
+
+    // YX: set the gcd check param
+    void setCutgcdcheck() {cutgcdcheck = true;}
+
+    // YX: set the multiplier for gcd check
+    void setCoeffMult(int num) {multiplier = num;}
+
+    // YX: set the target gap for SL-MILP
+    void setTargetGap(int num) {SLgap = (double)num;}
+
     /** Get the upper-level file **/
     std::string getUpperFile() {return ulDataFile_;}
   
