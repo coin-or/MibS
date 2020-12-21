@@ -58,16 +58,18 @@ class mcSol{
   double * getColumnSol() {return colSol_;}
 
   
-  mcSol &operator=(mcSol &sol)
+  mcSol &operator=(mcSol &rhs)
   {
-      mcSol tmp;
-      if(len_ > 0){
-	delete [] colSol_;
-	colSol_ = new double[len_];
-	memcpy(colSol_, tmp.colSol_, sizeof(double) * len_);
-      }
-      tmp.objPair_ = sol.objPair_;
-      tmp.len_ = sol.len_;
+     if (this != &rhs){
+        if(len_ > 0){
+           delete [] colSol_;
+           colSol_ = new double[len_];
+           memcpy(colSol_, rhs.colSol_, sizeof(double) * len_);
+        }
+        objPair_ = rhs.objPair_;
+        len_ = rhs.len_;
+     }
+     return *this;
   }
   
 };
@@ -116,19 +118,19 @@ class bfSol{
   void setObjVal(double val) {objVal_ = val;}
   void setColumnSol(double * sol) {colSol_ = sol;}
 
-  bfSol &operator=(bfSol &sol)
+  bfSol &operator=(bfSol &rhs)
   {
-    bfSol tmp;
-    if(len_ > 0){
-      delete [] colSol_;
-      colSol_ = new double[len_];
-      memcpy(colSol_, tmp.colSol_, sizeof(double) * len_);
-    }
-    tmp.objVal_ = sol.objVal_;
-    tmp.len_ = sol.len_;
-  }
-
-
+     if (this != &rhs){
+        if(len_ > 0){
+           delete [] colSol_;
+           colSol_ = new double[len_];
+           memcpy(colSol_, rhs.colSol_, sizeof(double) * len_);
+        }
+        objVal_ = rhs.objVal_;
+        len_ = rhs.len_;
+     }
+     return *this;
+   }
 };
 
 //#############################################################################

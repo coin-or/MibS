@@ -777,8 +777,12 @@ MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
       //------------------------------------------------------
       // Add interdict vars and aux UL rows
       //------------------------------------------------------
-      
+
       double * intCosts = getInterdictCost();
+
+      // Interdiction variables are already added
+      numCols = intCosts ? numCols:numCols/2;
+
       int auxULRows(intCosts ? 1:0);
       int numInterdictNZ(0);
       int interdictRows(numCols);
@@ -800,9 +804,8 @@ MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
          }
       }
       
-      numTotalCols = numCols + numAuxCols + (intCosts ? numCols:0);
+      numTotalCols = 2*numCols + numAuxCols;
       assert (numCols % 2 == 0);
-      numCols = intCosts ? numCols:numCols/2;
       numTotalRows = numRows + auxRows;
 
       if (!structRowInd_){
