@@ -76,7 +76,54 @@ int main(int argc, char* argv[])
               << "================================================" << std::endl
               << std::endl;
            return 0;
-	}
+	    }
+        // YX: to test co-prime check when generating blFeasCut1; defualt=false
+        // multiplier: any integer > 1
+        // eg: -cg 200
+        //else if (strcmp(argv[1], "-cg") == 0)
+        //else if (argc == 3 && strcmp(argv[1], "-cg") == 0)
+        // else if (strstr(argv[1], "-cg") != nullptr)
+		// {
+		// 	argc--;
+		// 	argv++;
+		// 	model.setCutgcdcheck();
+
+        //     // set coefficient multiplier if given
+        //     //char endchar = argv[0][strlen(argv[0]) - 1];
+        //     //int endnum = atoi(argv[0]+strlen(argv[0]) - 1);
+        //     if(isdigit(*argv[1]))
+        //     {
+        //         int numMult = atoi(argv[1]); 
+        //         if (numMult != 0)
+        //         {
+        //             model.setCoeffMult(numMult);
+        //         }
+        //         else
+        //         {
+        //             model.setCoeffMult(1);
+        //         }
+        //         argc--;
+		// 	    argv++;
+        //     }
+		// }
+        else if (strstr(argv[1], "-gp") != nullptr)   // set target gap for (SL-MILP); an int between 0-100
+		{
+			argc--;
+			argv++;
+
+            // set gap if input is between 0:100;
+            if(isdigit(*argv[1]))
+            {
+                int numGap = atoi(argv[1]); 
+                if (numGap > 0 && numGap < 100)
+                    model.setTargetGap(numGap);
+                else
+                    model.setTargetGap(-1);
+                argc--;
+			    argv++;
+            }
+		}
+
         AlpsKnowledgeBrokerSerial broker(argc, argv, model);
 #endif
 
