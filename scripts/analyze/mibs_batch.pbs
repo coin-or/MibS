@@ -1,0 +1,11 @@
+
+#PBS -l nodes=1:ppn=1
+#PBS -l walltime=01:15:00
+#PBS -l mem=4gb
+#PBS -l vmem=4gb
+#PBS -q short
+#PBS -N br_run05
+
+ARGS="-Alps_instance $INSTANCENAME -MibS_auxiliaryInfoFile $AUXNAME $PARAMARG"
+
+$EXECUTABLE $ARGS;
