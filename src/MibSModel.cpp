@@ -1080,12 +1080,108 @@ MibSModel::readProblemData()
    CoinPackedMatrix matrix = *(mps->getMatrixByCol());
    CoinPackedMatrix rowMatrix = *(mps->getMatrixByRow());
 
+    // YX: add functions to amplify the coeffs for co-prime check
+    //----*----*----*----*----*----*----*----*----
+    if (multiplier != 1)
+    {   
+        std::cout<< "Coefficient multiplier set to " << multiplier << std::endl;
+        int numElements = matrix.getNumElements();
+
+        /*
+        // debug print: before modification
+        std::cout<< "Elements before: ";
+        const double * tempList = matrix.getElements();
+
+        for (auto it = tempList; *it; it++)
+        {
+            std::cout<< *it << " ";
+        }
+        std::cout<<std::endl;
+        */
+
+        /* Method 1: use replacevector function: */ 
+        /*
+        // make a copy of original elements
+        double * cpofElements = new double [numElements];
+        memcpy(cpofElements, matrix.getElements(), sizeof(double) * numElements);
+
+        // get the length of each vector
+        const int * vecLen = matrix.getVectorLengths();
+        int sizeVecLen = matrix.getSizeVectorLengths(); // == numcol ?
+
+        // replace vectors in the matrix (by col)
+        auto cpit = cpofElements;
+        for (int vecIdx = 0; vecIdx < sizeVecLen; vecIdx++)
+        {   
+            // initiliaze a new double container
+            double * replaceVec = new double [*vecLen];
+            
+            // for each element, multiply by factor
+            // auto it = replaceVec;
+            // for (int j = 0; j < *vecLen; j++)
+            // {
+            //     *it = *cpit * (double)multiplier;
+            //     it++;
+            //     cpit++;
+            // }
+
+            // for each element, multiply by factor: no loop version using transform
+            std::transform(cpit, cpit + *vecLen, replaceVec, 
+                [&multiplier = multiplier](auto& coeff){return coeff * (double)multiplier;});
+            cpit = cpit + *vecLen;
+
+            // call replaceVector(const int index, const int numReplace,const double *newElements)	
+            matrix.replaceVector(vecIdx, *vecLen, replaceVec);
+            delete [] replaceVec;
+           
+            // iterate to the next vector
+            vecLen++;
+        }
+        delete [] cpofElements;
+        */
+        
+        /* Method 2: use non const method: double* getMutableElements() const */ 
+        // document: use with caution for column generation etc; 
+        double * mtxElements = matrix.getMutableElements();
+        std::transform(mtxElements, mtxElements + numElements, mtxElements, 
+            [&multiplier = multiplier](auto& coeff){return coeff * (double)multiplier;});
+
+        double * rowMtxElements = rowMatrix.getMutableElements();
+        std::transform(rowMtxElements, rowMtxElements + numElements, rowMtxElements, 
+            [&multiplier = multiplier](auto& coeff){return coeff * (double)multiplier;});
+
+        // debug print: after modification
+        /*
+        std::cout<< "1. Elements after: ";
+        const double * tempList = matrix.getElements();
+        //tempList = matrix.getElements();
+        for (auto it = tempList; *it; it++)
+        {
+            std::cout<< *it << " ";
+        }
+        std::cout<<std::endl;
+
+        // debug print: after modification
+        std::cout<< "2. Elements after: ";
+        tempList = rowMatrix.getElements();
+        for (auto it = tempList; *it; it++)
+        {
+            std::cout<< *it << " ";
+        }
+        std::cout<<std::endl;
+        */
+    
+    }
+    //----*----*----*----*----*----*----*----*----
+
+
    double objSense(1.0);
    
    char * colType = NULL;
 
    int numCols = mps->getNumCols(); 
    int numRows = mps->getNumRows();
+   //std::cout << "numcol: " << numCols << "numrow: "<< numRows <<std::endl;
 
    std::string tmpString;
    
@@ -1116,6 +1212,53 @@ MibSModel::readProblemData()
    
    memcpy(conLB, mps->getRowLower(), sizeof(double) * numRows);
    memcpy(conUB, mps->getRowUpper(), sizeof(double) * numRows);
+
+    
+    // YX: add functions to match the RHS of constraints for co-prime check
+    //----*----*----*----*----*----*----*----*----
+    if(multiplier != 1)
+    {
+        // modify constraints lower bounds
+        auto it = conLB;
+        for (int i = 0; i < numRows; i++)
+        {
+            if(*it != -mps->getInfinity())
+            *it = *it *(double)multiplier;
+            it++;
+        }
+
+       // modify constraints upper bounds
+        it = conUB;
+        for (int i = 0; i < numRows; i++)
+        {
+            if(*it != mps->getInfinity())
+            *it = *it *(double)multiplier;
+            it++;
+        }
+        
+        // print result for debug
+        /*
+        int ctr = 0;
+        std::cout << "conLB:";
+
+        for (auto it = conLB; ctr < numRows; it++)
+        {
+            std::cout<< *it << " ";
+            ctr++;
+        }
+        std::cout<<std::endl;
+        ctr = 0; 
+        std::cout << "conUB:";
+        for (auto it = conUB; ctr < numRows; it++)
+        {
+            std::cout<< *it << " ";
+            ctr++;
+        }
+        std::cout<<std::endl;  
+        */
+
+    }
+    //----*----*----*----*----*----*----*----*----
    
    //------------------------------------------------------
    // Set colType_
@@ -1185,7 +1328,9 @@ MibSModel::readProblemData()
        }
    }
    
-   
+   // construct problem from data into mathematical formulation: specify variables and constraints
+   // if need to add variables for bound cuts, start from here...
+   // turn off other cuts in param setting
    loadProblemData(matrix, rowMatrix, varLB, varUB, objCoef, conLB, conUB, colType, 
 		   objSense, mps->getInfinity(), rowSense);
 
@@ -3599,16 +3744,16 @@ MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
 	      structRowNum_ = numRows;
 	  }
 	  
-	  //Make copies of the data
-	  newMatrix = new CoinPackedMatrix();
-          *newMatrix = matrix;
+        //Make copies of the data
+        newMatrix = new CoinPackedMatrix();
+            *newMatrix = matrix;
 
-	  varLB = new double [numCols];
-	  varUB = new double [numCols];
-	  conLB = new double [numRows];
-	  conUB = new double [numRows];
-	  objCoef = new double [numCols];
-	  colType = new char [numCols];
+        varLB = new double [numCols];
+        varUB = new double [numCols];
+        conLB = new double [numRows];
+        conUB = new double [numRows];
+        objCoef = new double [numCols];
+        colType = new char [numCols];
  
           CoinDisjointCopyN(colLB, numCols, varLB);
           CoinDisjointCopyN(colUB, numCols, varUB);
@@ -4508,7 +4653,7 @@ MibSModel::setupSelf()
       if (heuristics_[j]->strategy() != BlisHeurStrategyNone) {
 	 // Doesn't matter what's the strategy, we just want to 
 	 // call heuristics.
-	 heurStrategy_ = BlisHeurStrategyAuto;
+	 heurStrategy_ = BlisHeurStrategyNone; //YX: turn off temporarily; heurStrategy_ = BlisHeurStrategyAuto;
 	 break;
       }
    }
@@ -4934,7 +5079,7 @@ MibSModel::userFeasibleSolution(const double * solution, bool &userFeasible)
   if(0)
     solver()->writeLp("userfeasible");
 
-  solType = createBilevel(sol);
+  solType = createBilevel(sol); // YX: construct (SL-MILP) with LP(x,y)
 
   if(solType != MibSNoSol){
       lpSolution = new double[getNumCols()];
@@ -4963,7 +5108,7 @@ MibSModel::userFeasibleSolution(const double * solution, bool &userFeasible)
       userFeasible = true;
   }
 
-  if(userFeasible == true){
+  if(userFeasible == true){ // 
       mibSol = new MibSSolution(getNumCols(),
 				lpSolution,
 				upperObj, this);
@@ -6858,7 +7003,7 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix,
     //Setting "saveSeenLinkingSols" parameter
     
     if (MibSPar_->entry(MibSParams::useLinkingSolutionPool) == PARAM_NOTSET){
-       MibSPar()->setEntry(MibSParams::useLinkingSolutionPool, PARAM_ON);
+       MibSPar()->setEntry(MibSParams::useLinkingSolutionPool, PARAM_OFF); //YX: change to off temporarily for testing
     }
     
     if (printProblemInfo == true){
@@ -6868,6 +7013,14 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix,
        else{
           std::cout << "Linking solution pool will not be used." << std::endl;
 	}
+    }
+    
+    //YX: set second lower duality gap for bounded rationality setting; deterministic case only
+    if (printProblemInfo == true){
+    if(MibSPar_->entry(MibSParams::slTargetGap) > -1){
+        std::cout << "Second level target gap set to ";
+        std::cout << MibSPar_->entry(MibSParams::slTargetGap) <<"%."<< std::endl;
+    }
     }
     std::cout << std::endl;
     

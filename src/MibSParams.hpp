@@ -119,6 +119,7 @@ class MIBSLIB_EXPORT MibSParams : public AlpsParameterSet {
   enum dblParams{
       boundCutTimeLim,
       optimalRelGapLimitPHSubprob,
+      slTargetGap,
       endOfDblParams
   };
 

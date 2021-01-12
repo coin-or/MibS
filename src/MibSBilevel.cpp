@@ -62,7 +62,7 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
   int lN(model_->lowerDim_); // lower-level dimension
   int uN(model_->upperDim_); // upper-level dimension
   double etol(model_->BlisPar()->entry(BlisParams::integerTol));
-  double targetGap = model_->SLgap;
+  //double targetGap = model_->SLgap; // YX: changed to MibSParams; clean up later
 
   MibSBranchingStrategy branchPar = static_cast<MibSBranchingStrategy>
       (model_->MibSPar_->entry(MibSParams::branchStrategy));
@@ -83,6 +83,8 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
 
   int maxActiveNodes(model_->MibSPar_->entry
 		     (MibSParams::maxActiveNodes)); 
+  
+  double targetGap(model_->MibSPar_->entry(MibSParams::slTargetGap));
 
   MibSSolType storeSol(MibSNoSol);
 
@@ -324,7 +326,7 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
 #ifdef _OPENMPMIBS
 	storeSol = checkBilevelFeasibilityParallel(mibs->isRoot_);
 #else
-	if (model_->SLgap + 1 < etol){
+	if (targetGap + 1 < etol){
 		storeSol = checkBilevelFeasibility(mibs->isRoot_); // YX: solve (SL-MILP) and (UB)
 	}
 	else{
@@ -1700,7 +1702,8 @@ MibSBilevel::checkBilevelFeasibilityBR(bool isRoot)
     OsiSolverInterface *UBSolver = 0;
 	
 	// YX: target optimality gap for bounded rationality
-	double targetGap = model_->SLgap;
+	//double targetGap = model_->SLgap;
+	double targetGap(model_->MibSPar_->entry(MibSParams::slTargetGap));
 
     //saharSto: fix it later
     if(numScenarios == 1){
@@ -3527,7 +3530,8 @@ MibSBilevel::setUpUBModel(OsiSolverInterface * oSolver,
     int * uColIndices(model_->getUpperColInd());
 
 	double etol(model_->etol_);
-	double gap = (model_->SLgap < etol) ? 0.0 : model_->SLgap; // YX: added SL gap
+	double targetGap(model_->MibSPar_->entry(MibSParams::slTargetGap));
+	double gap = (targetGap < etol) ? 0.0 : targetGap; // YX: added SL gap
 	double objUb(0.0);
 
     if(newOsi){

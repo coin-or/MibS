@@ -112,16 +112,16 @@ int main(int argc, char* argv[])
 			argv++;
 
             // set gap if input is between 0:100;
-            if(isdigit(*argv[1]))
-            {
-                int numGap = atoi(argv[1]); 
-                if (numGap > 0 && numGap < 100)
-                    model.setTargetGap(numGap);
-                else
-                    model.setTargetGap(-1);
-                argc--;
-			    argv++;
-            }
+            // if(isdigit(*argv[1]))
+            // {
+            //     int numGap = atoi(argv[1]); 
+            //     if (numGap > 0 && numGap < 100)
+            //         model.setTargetGap(numGap);
+            //     else
+            //         model.setTargetGap(-1);
+            //     argc--;
+			//     argv++;
+            // }
 		}
 
         AlpsKnowledgeBrokerSerial broker(argc, argv, model);

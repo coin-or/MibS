@@ -327,7 +327,10 @@ MibSParams::createKeywordList() {
    //For progressive hedging
    keys_.push_back(make_pair(std::string("MibS_optimalRelGapLimitPHSubprob"),
 			     AlpsParameter(AlpsDoublePar, optimalRelGapLimitPHSubprob)));
-
+   
+   // YX: param for setting SL gap
+   keys_.push_back(make_pair(std::string("MibS_slTargetGap"),
+			     AlpsParameter(AlpsDoublePar, slTargetGap)));
 }
 
 //#############################################################################
@@ -506,7 +509,9 @@ MibSParams::setDefaultEntries() {
    setEntry(boundCutTimeLim, 3600);
 
    setEntry(optimalRelGapLimitPHSubprob, 1.0e-4);
-   
+
+   setEntry(slTargetGap, -1); //YX: SL gap default set to -1
+
    //-------------------------------------------------------------
    // String Parameters
    //-------------------------------------------------------------
