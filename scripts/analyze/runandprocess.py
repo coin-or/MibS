@@ -291,7 +291,7 @@ def processTable(df, gaps, displayCols):
     """
         Print a summary table for required columns and gaps.
         Input:
-            df_r: a dataframe with all info from parseOutput
+            df: a dataframe with all info from parseOutput
             gaps: a list of int
             displayCol: columns to print
     """
@@ -302,7 +302,6 @@ def processTable(df, gaps, displayCols):
     # then in each dictionaries, there is another dict of data for different gaps
     # each data field can print to a table; 
     # or print a summary table where instance by row, gaps by column
-
 
     # obtain the list of instances
     instList = list(df.instance.unique())
@@ -348,14 +347,16 @@ def processTable(df, gaps, displayCols):
 
     return df_forprint
 
-def plotSelected(df, gaps, plotCols, plotScns):
+def plotBarChart(df, gaps, plotCols, plotScns):
     """
-        Make some plots for given gaps and columns.
+        Make some plots for given gaps and columns for quick observation.
         Use the measures for the smallest gap as 1.
+        #plot = len(plotCol)* len(plotScns)
         Input:
-            df: (processed!) pandas dataframe from processTable
+            df: pandas dataframe output from processTable
             gaps: a list of int
             plotCol: columns to make single plots
+            plotScns: scenarios 
     """
     # markers = itertools.cycle(('X', '+', '.', 'o', '*')) 
     # colors = itertools.cycle(('dodgerblue', 'slateblue', 'blueviolet', 'palevioletred','lightcoral',
@@ -363,63 +364,149 @@ def plotSelected(df, gaps, plotCols, plotScns):
     colors = ['dodgerblue', 'slateblue', 'blueviolet', 'palevioletred','lightcoral',
         'sandybrown', 'gold', 'yellowgreen', 'darkturquoise']
 
-    # lambda function used to create new columns
-    def computeRatio(r):
-        # check unsolved cases
-        if isinstance(r[g], str) or isinstance(r[gaps[0]], str): # and 'text' in r[g]: 
-            return -1 
-        # check rounded-to-zero cases
-        elif r[gaps[0]] == 0 and r[g] == 0:
-            return 1
-        elif r[gaps[0]] == 0 and r[g] > 0:
-            return r[g]/0.001
-        elif r[g] == 0 and r[gaps[0]] > 0:
-            return 0.001/r[gaps[0]]
-        # otherwise, normal division
-        else:
-            return r[g]/r[gaps[0]]
-
-    # plot some bar chart for summarized result
     for col in plotCols:
         for scn in plotScns:
-            # get columns to print using cross-section then flatten column index
-            # df_sub = df.xs((scn, col), level=['fields'], axis=1, drop_level=True)
+            # get columns to print using cross-section
             df_sub = df.xs((scn, col), level=[0, 'fields'], axis=1, drop_level=True)
-            df_sub.columns = df_sub.columns.to_flat_index()
-    
-            for g in gaps: # revesed order to drop cols? gaps[::-1]
-                # handle the unsolved cases
-                df_sub[str(g)+'_r'] = df_sub.apply(computeRatio, axis=1)
+            # df_sub.columns = df_sub.columns.to_flat_index()
 
-            df_plot = df_sub.loc[df_sub[str(gaps[0])+'_r'] >= 0, [str(g)+'_r' for g in gaps]]
-            
+            plot_series = []
+            df_sub['base'] = pd.to_numeric(df_sub[gaps[0]], errors='coerce').replace(np.nan, -0.01)
+
+            for g in gaps:
+                # handle the unsolved cases
+                df_sub[g] = df_sub[g].apply(lambda x: 100 if isinstance(x, str) else x)
+                plot_series.append((df_sub[g]+0.0001)/(df_sub['base']+0.0001))
+
             # begin plotting
             fig, ax = plt.subplots(1,1, figsize=(30,5)) #figsize=(7.5,5)
             # obtain xlocs and shifts
-            xloc = np.arange(len(df_plot.index))
+            xloc = np.arange(len(df_sub.index))
             mid = int(len(gaps) / 2)
             bar_width = 1/(len(gaps)+1)
             for i,g in enumerate(gaps):
-                ax.bar(xloc+(i-mid)*(bar_width*0.6), df_plot[str(g)+'_r'], 
+                ax.bar(xloc+(i-mid)*(bar_width*0.6), plot_series[i], 
                     label='TargetGap ='+str(g), color=colors[i], width=bar_width, alpha=0.5)
-            # set other elements
-            ax.set_title("Performance Plot for "+ plotCols[col])
-            ax.set_ylabel("Percentage of (base?) Case")
-            ax.set_xlabel("Instances")
-            ax.legend(loc='upper right', ncol=len(gaps), fontsize='x-small')
-            ax.grid(axis='y',alpha=0.2)
+            
+            # set tickers and lims
             ax.set_xticks(xloc)
-            ax.set_xticklabels(df_plot.index, rotation=90, fontsize='x-small')
+            ax.set_xticklabels(df_sub.index, rotation=90, fontsize='x-small')
             l_xlim = xloc[0] - (mid+1)*bar_width
             r_xlim = xloc[-1] + (mid+1)*bar_width
             ax.set_xlim(l_xlim, r_xlim)
             # set special ylims
             'time' in col and ax.set_ylim(bottom=-1,top=5) # only for cpu_time/check_feas_time
             'solved' in col and ax.set_ylim(bottom=-1,top=3) # only for vf/ub solved
+            
+            # set other figure elements
+            ax.set_title("Performance for "+ plotCols[col])
+            ax.set_ylabel("Percentage of Base Case (gap=10)")
+            ax.set_xlabel("Instances")
+            ax.legend(loc='upper right', ncol=len(gaps), fontsize='x-small')
+            ax.grid(axis='y',alpha=0.2)
 
             fig.tight_layout()
-            # fig.savefig("./performance/test_"+col, dpi=fig.dpi)
-            fig.savefig("./performance/test_"+col+'.eps', format='eps', dpi=600)
+            fig.savefig("./performance/barchart/"+scn+col, dpi=fig.dpi)
+            # Note: transparency is not supported in .eps format
+            # fig.savefig("./performance/barchart/"+scn+col+'.eps', format='eps', dpi=600)
+
+def perfProf(df, plotname=None, fixmin=None, xmin=1, xmax=None, legendnames={}):
+    """
+        Generate a performance profile plot for the given dataframe.
+        Assume data given are in number types.
+        x-axis label: multiple of virtual best;
+        y-axis label: franction of instances.
+        Input:
+            df: instances as index, field-to-plot as columns
+            plotname: name of the plot
+            fixmin: the base value used to compute ratio; using df min if not given
+            xmin: the smallest x-ticker to display; set by xlim
+            xmax: the largest x-ticker to display; set by xlim
+            displaynames: a dictionary contains legend name; using df col name if not given
+    """
+
+    colors = ['dodgerblue', 'slateblue', 'blueviolet', 'palevioletred','lightcoral',
+        'sandybrown', 'gold', 'yellowgreen', 'darkturquoise']
+
+    # if given legend name len != col #, use defualt column name
+    if legendnames and (len(legendnames) != len(df.columns)):
+        legendnames = {}
+        
+    # filter out cases where time is < 5'' or > 3600'' for all methods
+    # assume number types: if not solved, using 36000 or inf to replace nan
+    col_list = df.columns.values.tolist()
+    drop_lessthan = df[(df[col_list] < 5).all(axis=1)].index.tolist()
+    drop_morethan = df[(df[col_list] > 3600).all(axis=1)].index.tolist()
+    drop_list = list(set(drop_lessthan) | set(drop_morethan))
+    df = df.drop(drop_list)
+
+    # find min value in the dataframe
+    if fixmin == None:
+        min_val = df.to_numpy().min()
+    else: 
+        min_val = fixmin
+
+    # start ploting
+    fig, ax = plt.subplots(1,1) # figsize = (6,5)
+    # for each col, compute ratio and plot the series
+    for i, col in enumerate(df.columns):
+        ratios = df[col] / min_val
+        uniq_ratios = ratios.unique()
+        uniq_ratios.sort() # sort in place
+        cum_cnt =  np.sum(np.array([ratios <= ur for ur in uniq_ratios]), axis=1)
+        cum_prob = cum_cnt / len(ratios)
+
+        # form x-tickers: if xmax is not given, use current max and round up
+        if xmax == None:
+            xmax = np.ceil(uniq_ratios[-1])
+        
+        # check xlims; append array if not complete
+        elif uniq_ratios[-1] < xmax:
+            uniq_ratios.append(xmax)
+            np.append(cum_prob, cum_prob[-1])
+        
+        if legendnames:
+            ax.plot(uniq_ratios, cum_prob, label=legendnames[col], color=colors[i])
+        else:
+            ax.plot(uniq_ratios, cum_prob, label=col, color=colors[i])
+        
+    # set plot properties
+    ax.set_xlim(xmin, xmax)
+    ax.set_ylim(0, 1)
+    
+    # set other figure elements
+    ax.set_title("Performance profile: " + plotname[9:])
+    ax.set_xlabel("Multiple of virtual best")
+    ax.set_ylabel("Fraction of instances")
+    ax.legend(loc='lower right')
+
+    fig.tight_layout()
+    if plotname == None:
+        fig.savefig("./performance/perfprof/"+"test", dpi=fig.dpi)
+    else:
+        fig.savefig("./performance/perfprof/"+plotname, dpi=fig.dpi)
+        # fig.savefig("./performance/barchart/"+plotname+'.eps', format='eps', dpi=600)
+
+def plotPerf(df, gaps, plotCols, plotScns):
+    """
+        Prepare data for plotting performance profile.
+        Input:
+            df: pandas dataframe output from processTable
+            gaps: a list of int
+            plotCol: columns to make single plots
+            plotScns: scenarios on one plot
+    """
+    
+    for g in gaps:
+        for col in plotCols:
+            # prepare data and replace unsolved cases by a large number
+            df_sub = df.xs((g, col), level=['gaps', 'fields'], axis=1, drop_level=True).copy()
+            for scn in df_sub.columns:
+                df_sub[scn] = pd.to_numeric(df_sub[scn], errors='coerce').replace(np.nan, 36000)
+            # plot
+            # print(df_sub)
+            perfProf(df_sub, plotname='perfprof_'+col+'_g'+str(g), 
+                fixmin=5, xmax=400, legendnames=plotScns)
 
 def main():
 
@@ -427,19 +514,17 @@ def main():
     gaps = [10, 20, 30, 40, 50, 60, 70, 80, 90]
     # gaps = [10, 20]
     gaps = sorted(gaps)
-
-    # run experiments locally
+    
+    ######################### Run Experimests #########################
+    # local: provide paths in runparams.py
     # runExperiments(exe, instanceDirs, outputDir, mibsParamsInputs, gaps)
     
-    # run experiments on server: change dirs in runparams.py
-    runExperimentsPBS(exe, instanceDirs, outputDir, mibsParamsInputs, pbsfile, gaps)
+    # using pbs file: provide paths in runparams.py
+    # runExperimentsPBS(exe, instanceDirs, outputDir, mibsParamsInputs, pbsfile, gaps)
     
-    # read from output file directly or read from cache
-    # change to arg parser later...
-    args = sys.argv[1:] 
+    ################# Process & Save | Load from CSV ###################
+    args = sys.argv[1:]  # change to arg parser later...
     if len(args) == 0: 
-        # cwd = os.getcwd() #os.path.realpath('..')
-        # outputDir = os.path.join(cwd, '../../output/')
         df_r = parseOutput(outputDir, mibsParamsInputs, gaps, True)
     else:
         try:
@@ -449,7 +534,8 @@ def main():
         else:
             print('read from summary file')
     
-    # the columns that we want to process and print
+    ################### Format Data & Print Table ####################
+    # columns to process and print
     displayCols = {
         'cpu_time': 'CPU Search Time',
         'chk_feas_time': 'Check Feasibility Time',
@@ -458,27 +544,46 @@ def main():
         'objval_cost': 'Object Value'
     }
 
-
-    # print tables
     df_proc = processTable(df_r, gaps, displayCols)
+    
+    ################### Make Bar Charts ####################
+    '''
+    # columns to compare in the plot
+    plotCols = {
+        'cpu_time': 'CPU Search Time',
+        # 'chk_feas_time': 'Check Feasibility Time',
+        # 'vf_solved': 'Number of VF problem solved',
+        # 'ub_solved': 'Number of UB problem solved',
+        # 'objval_cost': 'Object Value'
+    } # this is the same as displayCols or a subset of it
 
-    # # make some plots
-    # plotCols = {
-    #     'cpu_time': 'CPU Search Time',
-    #     'chk_feas_time': 'Check Feasibility Time',
-    #     'vf_solved': 'Number of VF problem solved',
-    #     'ub_solved': 'Number of UB problem solved',
-    #     'objval_cost': 'Object Value'
-    # } # this is the same as the above list or a subset
+    plotScns = mibsParamsInputs.keys()
 
-    # plotScns = mibsParamsInputs.keys()
+    if set(plotCols).issubset(set(displayCols)):
+        plotBarChart(df_proc, gaps, plotCols, plotScns)
+    else:
+        print('plotCols is not a subset of available columns. Try available ones.')
+        plotCols_sub = list(set(displayCols)&set(plotCols))
+        plotBarChart(df_proc, gaps, plotCols_sub, plotScns)
+    '''
+    ################### Make Performance Profile ####################
+    # columns to compare in the plot
+    plotCols = {
+        'cpu_time': 'CPU Search Time',
+    }
 
-    # if set(plotCols).issubset(set(displayCols)):
-    #     plotSelected(df_proc, gaps, plotCols, plotScns)
-    # else:
-    #     print('plotCols is not a subset of available columns. Try available ones.')
-    #     plotCols_sub = list(set(displayCols)&set(plotCols))
-    #     plotSelected(df_proc, gaps, plotCols_sub, plotScns)
+    # scenarios name dict used for legend; if read from .csv check name match
+    # manual input example:
+    plotScns = {}
+    for k in mibsParamsInputs.keys():
+        if '01' in k:
+            plotScns[k] = 'linkingBranchStrategy'
+        else:
+            plotScns[k] = 'fractionalBranchStrategy'    
+    plotGaps = [10, 20]
+    
+    plotPerf(df_proc, plotGaps, plotCols, plotScns)
+
 
 if __name__ == "__main__":
     main()
