@@ -461,7 +461,7 @@ def perfProf(df, plotname=None, fixmin=None, xmin=1, xmax=None, legendnames={}):
         if xmax == None:
             xmax = np.ceil(uniq_ratios[-1])
         elif uniq_ratios[-1] < xmax:
-            uniq_ratios.append(xmax) # append array at the boundary point
+            np.append(uniq_ratios, xmax) # append array at the boundary point
             np.append(cum_prob, cum_prob[-1])
                 
         # add turning points and form series to plot
@@ -481,7 +481,8 @@ def perfProf(df, plotname=None, fixmin=None, xmin=1, xmax=None, legendnames={}):
     # set plot properties
     ax.set_xlim(xmin, xmax)
     ax.set_ylim(0, 1)
-    
+    ax.tick_params(axis='both', direction='in', right=True)
+
     # set other figure elements
     ax.set_title("Performance profile: " + plotname[9:])
     ax.set_xlabel("Multiple of virtual best")
