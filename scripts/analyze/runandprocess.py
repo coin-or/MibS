@@ -448,27 +448,35 @@ def perfProf(df, plotname=None, fixmin=None, xmin=1, xmax=None, legendnames={}):
 
     # start ploting
     fig, ax = plt.subplots(1,1) # figsize = (6,5)
-    # for each col, compute ratio and plot the series
+    
     for i, col in enumerate(df.columns):
+        # for each col, compute ratio
         ratios = df[col] / min_val
         uniq_ratios = ratios.unique()
         uniq_ratios.sort() # sort in place
         cum_cnt =  np.sum(np.array([ratios <= ur for ur in uniq_ratios]), axis=1)
         cum_prob = cum_cnt / len(ratios)
-
+        
         # form x-tickers: if xmax is not given, use current max and round up
         if xmax == None:
             xmax = np.ceil(uniq_ratios[-1])
-        
-        # check xlims; append array if not complete
         elif uniq_ratios[-1] < xmax:
-            uniq_ratios.append(xmax)
+            uniq_ratios.append(xmax) # append array at the boundary point
             np.append(cum_prob, cum_prob[-1])
-        
+                
+        # add turning points and form series to plot
+        x_val = []
+        y_val = []
+        x_val.append(uniq_ratios[0])
+        y_val.append(cum_prob[0])
+        for j, r in enumerate(uniq_ratios[1:]):
+            x_val.extend([r, r])
+            y_val.extend([cum_prob[j], cum_prob[j+1]])
+
         if legendnames:
-            ax.plot(uniq_ratios, cum_prob, label=legendnames[col], color=colors[i])
+            ax.plot(x_val, y_val, label=legendnames[col], color=colors[i])
         else:
-            ax.plot(uniq_ratios, cum_prob, label=col, color=colors[i])
+            ax.plot(x_val, y_val, label=col, color=colors[i])
         
     # set plot properties
     ax.set_xlim(xmin, xmax)
