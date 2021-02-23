@@ -1,6 +1,7 @@
-# Script to set up parameters for MibS instance path. 
+# Script to set up parameters for MibS instance path.
+# Used to run experiments for diffrent cuts 
 # Last edited by yux616
-# Jan 2020
+# Feb 2020: params for Cuts
 
 # Executable path and name
 exe = '/home/usr/coinbrew/build-mibs/bin/mibs'
@@ -8,7 +9,7 @@ pbsfile = 'mibs_batch.pbs'
 
 # Instance path
 # Directory name and path containing test instances in .mps format
-# Name used to construct subdirs in output dir
+# Keys are used to name subdirs in output dir
 instanceDirs = {
     # 'MIBLP-XU': '/home/usr/coinbrew/MibS/testSets/BilevelLib/general/MIBLP-XU',
     # 'dataIBLP-FIS': '/home/usr/coinbrew/MibS/testSets/BilevelLib/general/IBLP-FIS',
@@ -18,28 +19,250 @@ instanceDirs = {
 # Output parent path
 outputDir = '/home/usr/coinbrew/MibS/output'
 
-# Or provide instance name (and path) in string
-# Use for single or small test set
-# instanceNames = ['/home/usr/coinbrew/MibS/data/notInterdiction/linderoth.mps'] # not implemented yet
-
-# Set up senarios: selected params will be written into a .par file for command-line runs
-# name for .par file must be specified
-# eg. 'branchStrategy = linking'
+# Set up senarios
 mibsParamsInputs = {}
 
-mibsParamsInputs['testrun01'] = {
+mibsParamsInputs['intNoGood'] = {
         'Alps_timeLimit': '3600',
-        'Blis_heurStrategy': '0', # turn off for BR runs
-        'MibS_useLinkingSolutionPool': '0', # turn off for BR runs
-        'MibS_branchStrategy': '1', # 0: fractional, 1: linking
+        'Blis_heurStrategy': '0',   # -2: root, -1: auto, 0: disable, any positive integer
+        'Blis_heurRound': '0',   # -2: root, -1: auto, 0: disable, any positive integer
+
+        'MibS_usePreprocessor': '0',          # -1: auto, 0: false, 1: true
+        'MibS_useLowerObjHeuristic': '0',     # -1: auto, 0: false, 1: true
+        'MibS_useObjCutHeuristic': '0',       # -1: auto, 0: false, 1: true
+        'MibS_useWSHeuristic': '0',           # -1: auto, 0: false, 1: true
+        'MibS_useGreedyHeuristic': '0',       # 0: false, 1: true
+
+        'MibS_bilevelProblemType': '0',       # 0: general, 1: interdict
+        'MibS_bilevelCutTypes': '0',          # 0: general, 1: general/interdict, 2: #general/binary UL, 3: binary UL
+        'MibS_whichActiveConMethod': '1',    # 0: simple, 1: basis
+        'MibS_cutStrategy': '2',              # 0: branch only, 1: cut only, 2: use cut and branch
+        'MibS_objBoundStrategy': '0',         # 0: LL obj bound, 1: interdiction bound
+        'MibS_blisCutStrategy': '-1',                 # -2: root, -1: auto, 0: disable, any positive integer
+        'MibS_blisBranchStrategy': '1',      # 0: max inf, 1: pseudocost, 2: relibility, 3: strong
+        'MibS_upperFileFormat': '0',         # 0: mps, 1: AMPL/GMPL (not working, yet)
+        'MibS_branchStrategy': '0',       # 0: fractional, 1: linking
+        'MibS_warmStartLL': '0',
+        'MibS_maxThreadsLL': '1',
+        
+        'MibS_usePureIntegerCut': '1',        # 0: false, 1: true
+        'MibS_turnOffOtherCuts': '1',
+        'MibS_useGeneralNoGoodCut': '0',
+        'MibS_useNoGoodCut': '0', 
+        
+        'MibS_solveSecondLevelWhenXYVarsInt': '0',
+        'MibS_solveSecondLevelWhenXVarsInt': '0',
+        'MibS_solveSecondLevelWhenLVarsInt': '1',
+        'MibS_solveSecondLevelWhenLVarsFixed': '0',
+
+        'MibS_computeBestUBWhenXVarsInt': '0',
+        'MibS_computeBestUBWhenLVarsInt': '1',
+        'MibS_computeBestUBWhenLVarsFixed': '0',
+
+        'MibS_useLinkingSolutionPool': '1'
     }
 
-mibsParamsInputs['testrun02'] = {
+mibsParamsInputs['type1IC'] = {
         'Alps_timeLimit': '3600',
-        'Blis_heurStrategy': '0', # turn off for BR runs
-        'MibS_useLinkingSolutionPool': '0', # turn off for BR runs
-        'MibS_branchStrategy': '0', # 0: fractional, 1: linking
+        'Blis_heurStrategy': '0',   # -2: root, -1: auto, 0: disable, any positive integer
+        'Blis_heurRound': '0',   # -2: root, -1: auto, 0: disable, any positive integer
+
+        'MibS_usePreprocessor': '0',          # -1: auto, 0: false, 1: true
+        'MibS_useLowerObjHeuristic': '0',     # -1: auto, 0: false, 1: true
+        'MibS_useObjCutHeuristic': '0',       # -1: auto, 0: false, 1: true
+        'MibS_useWSHeuristic': '0',           # -1: auto, 0: false, 1: true
+        'MibS_useGreedyHeuristic': '0',       # 0: false, 1: true
+
+        'MibS_bilevelProblemType': '0',       # 0: general, 1: interdict
+        'MibS_bilevelCutTypes': '0',          # 0: general, 1: general/interdict, 2: #general/binary UL, 3: binary UL
+        'MibS_whichActiveConMethod': '1',    # 0: simple, 1: basis
+        'MibS_cutStrategy': '2',              # 0: branch only, 1: cut only, 2: use cut and branch
+        'MibS_objBoundStrategy': '0',         # 0: LL obj bound, 1: interdiction bound
+        'MibS_blisCutStrategy': '-1',                 # -2: root, -1: auto, 0: disable, any positive integer
+        'MibS_blisBranchStrategy': '1',      # 0: max inf, 1: pseudocost, 2: relibility, 3: strong
+        'MibS_upperFileFormat': '0',         # 0: mps, 1: AMPL/GMPL (not working, yet)
+        'MibS_branchStrategy': '0',       # 0: fractional, 1: linking
+        'MibS_warmStartLL': '0',
+        'MibS_maxThreadsLL': '1',
+
+        'MibS_useTypeIC': '1',
+        "MibS_bilevelFreeSetTypeIC": '0',
+        'MibS_turnOffOtherCuts': '1',
+        'MibS_useGeneralNoGoodCut': '0',
+        'MibS_useNoGoodCut': '0', 
+
+        'MibS_solveSecondLevelWhenXYVarsInt': '0',
+        'MibS_solveSecondLevelWhenXVarsInt': '0',
+        'MibS_solveSecondLevelWhenLVarsInt': '1',
+        'MibS_solveSecondLevelWhenLVarsFixed': '0',
+
+        'MibS_computeBestUBWhenXVarsInt': '0',
+        'MibS_computeBestUBWhenLVarsInt': '1',
+        'MibS_computeBestUBWhenLVarsFixed': '0',
+
+        'MibS_useLinkingSolutionPool': '1'
     }
+
+mibsParamsInputs['type2IC'] = {
+        'Alps_timeLimit': '3600',
+        'Blis_heurStrategy': '0',   # -2: root, -1: auto, 0: disable, any positive integer
+        'Blis_heurRound': '0',   # -2: root, -1: auto, 0: disable, any positive integer
+
+        'MibS_usePreprocessor': '0',          # -1: auto, 0: false, 1: true
+        'MibS_useLowerObjHeuristic': '0',     # -1: auto, 0: false, 1: true
+        'MibS_useObjCutHeuristic': '0',       # -1: auto, 0: false, 1: true
+        'MibS_useWSHeuristic': '0',           # -1: auto, 0: false, 1: true
+        'MibS_useGreedyHeuristic': '0',       # 0: false, 1: true
+
+        'MibS_bilevelProblemType': '0',       # 0: general, 1: interdict
+        'MibS_bilevelCutTypes': '0',          # 0: general, 1: general/interdict, 2: #general/binary UL, 3: binary UL
+        'MibS_whichActiveConMethod': '1',    # 0: simple, 1: basis
+        'MibS_cutStrategy': '2',              # 0: branch only, 1: cut only, 2: use cut and branch
+        'MibS_objBoundStrategy': '0',         # 0: LL obj bound, 1: interdiction bound
+        'MibS_blisCutStrategy': '-1',                 # -2: root, -1: auto, 0: disable, any positive integer
+        'MibS_blisBranchStrategy': '1',      # 0: max inf, 1: pseudocost, 2: relibility, 3: strong
+        'MibS_upperFileFormat': '0',         # 0: mps, 1: AMPL/GMPL (not working, yet)
+        'MibS_branchStrategy': '0',       # 0: fractional, 1: linking
+        'MibS_warmStartLL': '0',
+        'MibS_maxThreadsLL': '1',
+
+        'MibS_useTypeIC': '1',
+        "MibS_bilevelFreeSetTypeIC": '1',
+        'MibS_turnOffOtherCuts': '1',
+        'MibS_useGeneralNoGoodCut': '0',
+        'MibS_useNoGoodCut': '0', 
+
+        'MibS_solveSecondLevelWhenXYVarsInt': '0',
+        'MibS_solveSecondLevelWhenXVarsInt': '0',
+        'MibS_solveSecondLevelWhenLVarsInt': '1',
+        'MibS_solveSecondLevelWhenLVarsFixed': '0',
+
+        'MibS_computeBestUBWhenXVarsInt': '0',
+        'MibS_computeBestUBWhenLVarsInt': '1',
+        'MibS_computeBestUBWhenLVarsFixed': '0',
+
+        'MibS_useLinkingSolutionPool': '1'
+    }
+
+mibsParamsInputs['watermelonIC'] = {
+        'Alps_timeLimit': '3600',
+        'Blis_heurStrategy': '0',   # -2: root, -1: auto, 0: disable, any positive integer
+        'Blis_heurRound': '0',   # -2: root, -1: auto, 0: disable, any positive integer
+
+        'MibS_usePreprocessor': '0',          # -1: auto, 0: false, 1: true
+        'MibS_useLowerObjHeuristic': '0',     # -1: auto, 0: false, 1: true
+        'MibS_useObjCutHeuristic': '0',       # -1: auto, 0: false, 1: true
+        'MibS_useWSHeuristic': '0',           # -1: auto, 0: false, 1: true
+        'MibS_useGreedyHeuristic': '0',       # 0: false, 1: true
+
+        'MibS_bilevelProblemType': '0',       # 0: general, 1: interdict
+        'MibS_bilevelCutTypes': '0',          # 0: general, 1: general/interdict, 2: #general/binary UL, 3: binary UL
+        'MibS_whichActiveConMethod': '1',    # 0: simple, 1: basis
+        'MibS_cutStrategy': '2',              # 0: branch only, 1: cut only, 2: use cut and branch
+        'MibS_objBoundStrategy': '0',         # 0: LL obj bound, 1: interdiction bound
+        'MibS_blisCutStrategy': '-1',                 # -2: root, -1: auto, 0: disable, any positive integer
+        'MibS_blisBranchStrategy': '1',      # 0: max inf, 1: pseudocost, 2: relibility, 3: strong
+        'MibS_upperFileFormat': '0',         # 0: mps, 1: AMPL/GMPL (not working, yet)
+        'MibS_branchStrategy': '0',       # 0: fractional, 1: linking
+        'MibS_warmStartLL': '0',
+        'MibS_maxThreadsLL': '1',
+
+        "MibS_useTypeWatermelon": '1',
+        'MibS_turnOffOtherCuts': '1',
+        'MibS_useGeneralNoGoodCut': '0',
+        'MibS_useNoGoodCut': '0', 
+
+        'MibS_solveSecondLevelWhenXYVarsInt': '0',
+        'MibS_solveSecondLevelWhenXVarsInt': '0',
+        'MibS_solveSecondLevelWhenLVarsInt': '1',
+        'MibS_solveSecondLevelWhenLVarsFixed': '0',
+
+        'MibS_computeBestUBWhenXVarsInt': '0',
+        'MibS_computeBestUBWhenLVarsInt': '1',
+        'MibS_computeBestUBWhenLVarsFixed': '0',
+
+        'MibS_useLinkingSolutionPool': '1'
+    }
+
+mibsParamsInputs['hyperIC'] = {
+        'Alps_timeLimit': '3600',
+        'Blis_heurStrategy': '0',   # -2: root, -1: auto, 0: disable, any positive integer
+        'Blis_heurRound': '0',   # -2: root, -1: auto, 0: disable, any positive integer
+
+        'MibS_usePreprocessor': '0',          # -1: auto, 0: false, 1: true
+        'MibS_useLowerObjHeuristic': '0',     # -1: auto, 0: false, 1: true
+        'MibS_useObjCutHeuristic': '0',       # -1: auto, 0: false, 1: true
+        'MibS_useWSHeuristic': '0',           # -1: auto, 0: false, 1: true
+        'MibS_useGreedyHeuristic': '0',       # 0: false, 1: true
+
+        'MibS_bilevelProblemType': '0',       # 0: general, 1: interdict
+        'MibS_bilevelCutTypes': '0',          # 0: general, 1: general/interdict, 2: #general/binary UL, 3: binary UL
+        'MibS_whichActiveConMethod': '1',    # 0: simple, 1: basis
+        'MibS_cutStrategy': '2',              # 0: branch only, 1: cut only, 2: use cut and branch
+        'MibS_objBoundStrategy': '0',         # 0: LL obj bound, 1: interdiction bound
+        'MibS_blisCutStrategy': '-1',                 # -2: root, -1: auto, 0: disable, any positive integer
+        'MibS_blisBranchStrategy': '1',      # 0: max inf, 1: pseudocost, 2: relibility, 3: strong
+        'MibS_upperFileFormat': '0',         # 0: mps, 1: AMPL/GMPL (not working, yet)
+        'MibS_branchStrategy': '0',       # 0: fractional, 1: linking
+        'MibS_warmStartLL': '0',
+        'MibS_maxThreadsLL': '1',
+
+        "MibS_useTypeHypercubeIC": '1',
+        'MibS_turnOffOtherCuts': '1',
+        'MibS_useGeneralNoGoodCut': '0',
+        'MibS_useNoGoodCut': '0', 
+
+        'MibS_solveSecondLevelWhenXYVarsInt': '0',
+        'MibS_solveSecondLevelWhenXVarsInt': '0',
+        'MibS_solveSecondLevelWhenLVarsInt': '1',
+        'MibS_solveSecondLevelWhenLVarsFixed': '0',
+
+        'MibS_computeBestUBWhenXVarsInt': '0',
+        'MibS_computeBestUBWhenLVarsInt': '1',
+        'MibS_computeBestUBWhenLVarsFixed': '0',
+
+        'MibS_useLinkingSolutionPool': '1'
+    }
+# only to 'dataIBLP-FIS'
+mibsParamsInputs['genNoGood'] = {
+        'Alps_timeLimit': '3600',
+        'Blis_heurStrategy': '0',   # -2: root, -1: auto, 0: disable, any positive integer
+        'Blis_heurRound': '0',   # -2: root, -1: auto, 0: disable, any positive integer
+
+        'MibS_usePreprocessor': '0',          # -1: auto, 0: false, 1: true
+        'MibS_useLowerObjHeuristic': '0',     # -1: auto, 0: false, 1: true
+        'MibS_useObjCutHeuristic': '0',       # -1: auto, 0: false, 1: true
+        'MibS_useWSHeuristic': '0',           # -1: auto, 0: false, 1: true
+        'MibS_useGreedyHeuristic': '0',       # 0: false, 1: true
+
+        'MibS_bilevelProblemType': '0',       # 0: general, 1: interdict
+        'MibS_bilevelCutTypes': '0',          # 0: general, 1: general/interdict, 2: #general/binary UL, 3: binary UL
+        'MibS_whichActiveConMethod': '1',    # 0: simple, 1: basis
+        'MibS_cutStrategy': '2',              # 0: branch only, 1: cut only, 2: use cut and branch
+        'MibS_objBoundStrategy': '0',         # 0: LL obj bound, 1: interdiction bound
+        'MibS_blisCutStrategy': '-1',                 # -2: root, -1: auto, 0: disable, any positive integer
+        'MibS_blisBranchStrategy': '1',      # 0: max inf, 1: pseudocost, 2: relibility, 3: strong
+        'MibS_upperFileFormat': '0',         # 0: mps, 1: AMPL/GMPL (not working, yet)
+        'MibS_branchStrategy': '0',       # 0: fractional, 1: linking
+        'MibS_warmStartLL': '0',
+        'MibS_maxThreadsLL': '1',
+
+        'MibS_useGeneralNoGoodCut': '1',
+        'MibS_turnOffOtherCuts': '1',
+        'MibS_useNoGoodCut': '0', 
+
+        'MibS_solveSecondLevelWhenXYVarsInt': '0',
+        'MibS_solveSecondLevelWhenXVarsInt': '0',
+        'MibS_solveSecondLevelWhenLVarsInt': '1',
+        'MibS_solveSecondLevelWhenLVarsFixed': '0',
+
+        'MibS_computeBestUBWhenXVarsInt': '0',
+        'MibS_computeBestUBWhenLVarsInt': '1',
+        'MibS_computeBestUBWhenLVarsFixed': '0',
+
+        'MibS_useLinkingSolutionPool': '1'
+    }
+
 
 # For reference
 # All MibS parameters; see comments for specific params 
@@ -127,13 +350,24 @@ mibsParamsLib = {
     'MibS_branchStrategy': '1',       # 0: fractional, 1: linking
     'MibS_warmStartLL': '0',
     'MibS_maxThreadsLL': '1',
+
     'MibS_useBendersCut': '0',
     'MibS_useGeneralNoGoodCut': '0',
-    'MibS_useIntersectionCut': '0',
-    'MibS_intersectionCutType': '1',
+    'MibS_useIntersectionCut': '0',     # Not used; commented off in code
+    'MibS_intersectionCutType': '1',    # not used aswell?
+    
+    "MibS_useTypeIC": '0',              # PARAM OFF?
+    "MibS_bilevelFreeSetTypeIC": '0',  # 0: Intersection Cut Type I; 1: Intersection Cut Type II; only valid when use intersectionCutTypeIC
+    "MibS_useTypeWatermelon": '0',
+    "MibS_useTypeHypercubeIC": '0',
+    "MibS_useTypeTenderIC": '0',
+    "MibS_useTypeHybridIC": '0',
+
     'MibS_useBoundCut': '0',
     'MibS_boundCutOptimal': '1',
     'MibS_boundCutRelaxUpper': '0',    # This option doesn't work for now
+    'MibS_turnOffOtherCuts': '0',      # MibS cuts not set will be turned off: not affect GeneralNoGoodCut(maybe bug ard L6816)
+
     'MibS_whichCutsLL': '2',           # 0: no cuts, 1: gomory only, 2: all cuts
     'MibS_doDualFixing': '0',
     'MibS_feasCheckSolver': 'SYMPHONY',
