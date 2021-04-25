@@ -1,7 +1,7 @@
 # Script to run MibS with different SL target gap.
 # The script may produce auxiliary folder/files in run directory. 
 # Last edited by yux616
-# Jan 2020 
+# Apr 2020 
 # Script path:  /MibS/scripts/analyze
 # Some os function requires Python 3.5+
 
@@ -9,13 +9,15 @@
 
 import sys, os, collections
 import shutil, subprocess
+# from types import FrameType
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 #import matplotlib 
 #import itertools
 
-from runparams import exe, instanceDirs, outputDir, mibsParamsInputs, pbsfile
+# from runparams import exe, instanceDirs, outputDir, mibsParamsInputs, pbsfile
+from runparams_cuts import exe, instanceDirs, outputDir, mibsParamsInputs, pbsfile
 
     
 def runExperiments(exe, instPaths, outDir, params, gaps=[]):
@@ -86,6 +88,8 @@ def runExperiments(exe, instPaths, outDir, params, gaps=[]):
                                                     stdout=outfile)
                                     outfile.close()
                                     print('Complete {} with gap {}'.format(instance.name, g))
+                else:
+                    pass # add alternative call information
         # remove paramter files created earlier?   
     else:
         # run experiments use command line paramters
@@ -111,7 +115,8 @@ def runExperiments(exe, instPaths, outDir, params, gaps=[]):
                                                     stdout=outfile)
                                     outfile.close()
                                     print('Complete {} with gap {}'.format(instance.name, g))
-                   
+                else:
+                    pass # add alternative call information
     return
 
 def runExperimentsPBS(exe, instPaths, outDir, params, pbsfile, gaps=[]):
@@ -130,35 +135,59 @@ def runExperimentsPBS(exe, instPaths, outDir, params, pbsfile, gaps=[]):
                     else:
                         shutil.rmtree(currsubpath, ignore_errors=True)
                         os.makedirs(currsubpath, exist_ok=True)      
-    
-    # submit experiments use command line paramters
-    # see .pbs file for submission arguments
-    for scenario in params:
-            for testset in instPaths:
-                if gaps: 
-                    for g in gaps:
-                        paramcmd = ' -'.join(' '.join(_) for _ in params[scenario].items())
-                        paramcmd = '-' + paramcmd + ' -MibS_slTargetGap ' + str(g)
-                        # print(paramcmd)
-                        outsubpath = os.path.join(outDir, scenario, testset,'BR' + str(g) + 'Output')
-                        os.chdir(outsubpath)   
-                        with os.scandir(instPaths[testset]) as inst_it: 
-                            for instance in inst_it:
-                                if instance.name.endswith('.mps'):
-                                    outfile = os.path.join(outsubpath, instance.name[:-4]+'.out')
-                                    errfile = os.path.join(outsubpath, instance.name[:-4]+'.err')
-                                    # pbs args: ARGS="-Alps_instance $INSTANCENAME -MibS_auxiliaryInfoFile $AUXNAME $PARAMARG"; $EXECUTABLE $ARGS;
-                                    subprocess.run(["qsub", "-v", 
-                                                    "EXECUTABLE="+exe+","
-                                                    +"INSTANCENAME="+instance.path+","
-                                                    +"AUXNAME="+instance.path[:-4]+".aux"+","
-                                                    +"PARAMARG="+paramcmd,
-                                                    "-o", outfile,
-                                                    "-e", errfile,
-                                                    pbsfile])
-    return                        
+            else:
+                currsubpath = os.path.join(outDir, scenario, testset)
+                if not os.path.exists(currsubpath):
+                    os.makedirs(currsubpath)
+                else:
+                    shutil.rmtree(currsubpath, ignore_errors=True)
+                    os.makedirs(currsubpath, exist_ok=True)  
 
-def parseOutput(outputDir, params, gaps, writeCSV = True):
+    # submit experiments use command line paramters
+    # see .pbs file anc comments for job submission arguments
+    for scenario in params:
+        for testset in instPaths:
+            paramcmd = ' -'.join(' '.join(_) for _ in params[scenario].items())
+            if gaps: 
+                for g in gaps:
+                    paramcmd_g = '-' + paramcmd + ' -MibS_slTargetGap ' + str(g)
+                    # print(paramcmd)
+                    outsubpath = os.path.join(outDir, scenario, testset,'BR' + str(g) + 'Output')
+                    os.chdir(outsubpath)   
+                    with os.scandir(instPaths[testset]) as inst_it: 
+                        for instance in inst_it:
+                            if instance.name.endswith('.mps'):
+                                outfile = os.path.join(outsubpath, instance.name[:-4]+'.out')
+                                errfile = os.path.join(outsubpath, instance.name[:-4]+'.err')
+                                # pbs args: ARGS="-Alps_instance $INSTANCENAME -MibS_auxiliaryInfoFile $AUXNAME $PARAMARG"; $EXECUTABLE $ARGS;
+                                subprocess.run(["qsub", "-v", 
+                                                "EXECUTABLE="+exe+","
+                                                +"INSTANCENAME="+instance.path+","
+                                                +"AUXNAME="+instance.path[:-4]+".aux"+","
+                                                +"PARAMARG="+paramcmd_g,
+                                                "-o", outfile,
+                                                "-e", errfile,
+                                                pbsfile])
+            else:
+                outsubpath = os.path.join(outDir, scenario, testset)
+                os.chdir(outsubpath)   
+                with os.scandir(instPaths[testset]) as inst_it: 
+                    for instance in inst_it:
+                        if instance.name.endswith('.mps'):
+                            outfile = os.path.join(outsubpath, instance.name[:-4]+'.out')
+                            errfile = os.path.join(outsubpath, instance.name[:-4]+'.err')
+                            # pbs args: ARGS="-Alps_instance $INSTANCENAME -MibS_auxiliaryInfoFile $AUXNAME $PARAMARG"; $EXECUTABLE $ARGS;
+                            subprocess.run(["qsub", "-v", 
+                                            "EXECUTABLE="+exe+","
+                                            +"INSTANCENAME="+instance.path+","
+                                            +"AUXNAME="+instance.path[:-4]+".aux"+","
+                                            +"PARAMARG="+paramcmd,
+                                            "-o", outfile,
+                                            "-e", errfile,
+                                            pbsfile])
+    return                    
+
+def parseOutput(outputDir, params, gaps=[], writeCSV=True, filename='summary.csv'):
     """
         The function parse the output file in the given directory.
         Assume the subfolders hierarchy: outputDir/param_scenario_name/testset_name/BR_Output/file.out.
@@ -173,7 +202,7 @@ def parseOutput(outputDir, params, gaps, writeCSV = True):
     # may move those up as input in the future...
     # then need to match keywords and fields
     keywords = [
-        'ALPS did not find a solution',
+        'No solution found',
         'of nodes processed',
         # 'branched',
         'Search CPU time',
@@ -185,7 +214,7 @@ def parseOutput(outputDir, params, gaps, writeCSV = True):
         'fully processed',
         'gap is',
         'integer UL Variables',
-        'integer LL Variables'
+        'integer LL Variables',
         ]
 
     # fields = [
@@ -214,23 +243,104 @@ def parseOutput(outputDir, params, gaps, writeCSV = True):
         # iterate over different datasets available
         with os.scandir(resultDir) as dataset_it:
             for d_entry in dataset_it:
-                for g in gaps:
-                    subDir =  os.path.join(d_entry.path, 'BR'+str(g)+'Output')
+                if gaps:
+                    for g in gaps:
+                        subDir =  os.path.join(d_entry.path, 'BR'+str(g)+'Output')
+                        # iterate over files in the folder
+                        with os.scandir(subDir) as output_it: 
+                            for o_entry in output_it:
+                                if o_entry.name.endswith('.out'):
+                                    # start to write result to the dictionary
+                                    results['given_gap'].append(g)
+                                    results['dataset'].append(d_entry.name)
+                                    results['scenario'].append(scenario)
+                                    results['instance'].append(o_entry.name.split('.')[0])
+                                    
+                                    incomplete = True # mark incomplete output file
+                                    nosoln = False # mark no soluntion found by Alps at termination
+                                    # read value for each field from file
+                                    with open(o_entry.path,'r') as file:
+                                        for line in file:
+                                            if keywords[0] in line:
+                                                nosoln = True
+                                                print("No solution found instance:", o_entry.name)
+                                            
+                                            elif keywords[1] in line or keywords[8] in line:
+                                                results['nodes_proc'].append(int(line.split(':')[1]))
+                                            
+                                            elif keywords[2] in line:
+                                                results['cpu_time'].append(float( (line.split(':')[1]).split()[0] ))
+                                            
+                                            elif keywords[3] in line:
+                                                results['vf_solved'].append(int(line.split('=')[1]))  
+                                                            
+                                            elif keywords[4] in line:
+                                                results['ub_solved'].append(int(line.split('=')[1]))
+                                            
+                                            elif keywords[5] in line:
+                                                results['vf_time'].append(float(line.split('=')[1]))
+                                            
+                                            elif keywords[6] in line:
+                                                results['ub_time'].append(float(line.split('=')[1]))
+                                            
+                                            elif keywords[7] in line:
+                                                results['objval_cost'].append(int(line.split('=')[1]))
+                                            
+                                            elif keywords[9] in line:
+                                                incomplete = False
+                                                if 'infinity' in line:
+                                                    results['prob_gap'].append(1000000) # no soln found
+                                                    results['solved'].append(False)
+                                                else:
+                                                    solgap = float(line.split(' ')[5].strip('%\n'))
+                                                    results['prob_gap'].append(solgap)
+                                                    # mark unsolved instances in given time limit
+                                                    if (solgap - 0.0 < etol):
+                                                        results['solved'].append(True)
+                                                    else:
+                                                        results['solved'].append(False)    
+                                            elif keywords[10] in line:
+                                                results['ul_int_var'].append(int(line.split(':')[1]))
+                                            
+                                            elif keywords[11] in line:
+                                                results['ll_int_var'].append(int(line.split(':')[1]))
+                                            else:
+                                                pass
+                                    if incomplete:
+                                        results['nodes_proc'].append(-1)
+                                        results['cpu_time'].append(-1)
+                                        results['vf_solved'].append(-1)
+                                        results['ub_solved'].append(-1)
+                                        results['vf_time'].append(-1)
+                                        results['ub_time'].append(-1)
+                                        results['objval_cost'].append(-1000000)
+                                        results['prob_gap'].append(-1)
+                                        results['solved'].append(False)
+                                    elif nosoln:
+                                        results['vf_solved'].append(-1)
+                                        results['ub_solved'].append(-1)
+                                        results['vf_time'].append(-1)
+                                        results['ub_time'].append(-1)
+                                        results['objval_cost'].append(-1000000)    
+                else:
+                    subDir = d_entry.path
                     # iterate over files in the folder
                     with os.scandir(subDir) as output_it: 
                         for o_entry in output_it:
                             if o_entry.name.endswith('.out'):
                                 # start to write result to the dictionary
-                                results['given_gap'].append(g)
                                 results['dataset'].append(d_entry.name)
                                 results['scenario'].append(scenario)
                                 results['instance'].append(o_entry.name.split('.')[0])
                                 
+                                incomplete = True # mark incomplete output file
+                                nosoln = False # mark no soluntion found by Alps at termination
                                 # read value for each field from file
                                 with open(o_entry.path,'r') as file:
                                     for line in file:
-                                        if keywords[0] in line: # !!! Need to append "" to pad  
-                                            print("infeasible instance:", o_entry.name)
+                                        if keywords[0] in line:
+                                            nosoln = True
+                                            print("No solution found instance:", o_entry.name)
                                         
                                         elif keywords[1] in line or keywords[8] in line:
                                             results['nodes_proc'].append(int(line.split(':')[1]))
@@ -254,13 +364,18 @@ def parseOutput(outputDir, params, gaps, writeCSV = True):
                                             results['objval_cost'].append(int(line.split('=')[1]))
                                         
                                         elif keywords[9] in line:
-                                            solgap = float(line.split(' ')[5].strip('%\n'))
-                                            results['prob_gap'].append(solgap)
-                                            # mark unsolved instances in given time limit
-                                            if (solgap - 0.0 < etol):
-                                                results['solved'].append(True)
+                                            incomplete = False
+                                            if 'infinity' in line:
+                                                results['prob_gap'].append(1000000) # no soln found
+                                                results['solved'].append(False)
                                             else:
-                                                results['solved'].append(False)    
+                                                solgap = float(line.split(' ')[5].strip('%\n'))
+                                                results['prob_gap'].append(solgap)
+                                                # mark unsolved instances in given time limit
+                                                if (solgap - 0.0 < etol):
+                                                    results['solved'].append(True)
+                                                else:
+                                                    results['solved'].append(False)    
                                         elif keywords[10] in line:
                                             results['ul_int_var'].append(int(line.split(':')[1]))
                                         
@@ -268,6 +383,22 @@ def parseOutput(outputDir, params, gaps, writeCSV = True):
                                             results['ll_int_var'].append(int(line.split(':')[1]))
                                         else:
                                             pass
+                                if incomplete:
+                                    results['nodes_proc'].append(-1)
+                                    results['cpu_time'].append(-1)
+                                    results['vf_solved'].append(-1)
+                                    results['ub_solved'].append(-1)
+                                    results['vf_time'].append(-1)
+                                    results['ub_time'].append(-1)
+                                    results['objval_cost'].append(-1000000)
+                                    results['prob_gap'].append(-1)
+                                    results['solved'].append(False)
+                                elif nosoln:
+                                    results['vf_solved'].append(-1)
+                                    results['ub_solved'].append(-1)
+                                    results['vf_time'].append(-1)
+                                    results['ub_time'].append(-1)
+                                    results['objval_cost'].append(-1000000)             
     
     # for k in results:
     #     print(len(results[k]))
@@ -282,12 +413,12 @@ def parseOutput(outputDir, params, gaps, writeCSV = True):
      
     # write results to .csv file
     if writeCSV: 
-        # df_result.to_csv('test.csv', mode='a')
-        df_result.to_csv('summary.csv')
+        #df_result.to_csv(filename, mode='a', header=False, index=False) # append results only
+        df_result.to_csv(filename, index=False)
     
     return df_result
 
-def processTable(df, gaps, displayCols):
+def processTable(df, displayCols, gaps=[], writeLTX=False, filename='ltx_tb.txt'):
     """
         Print a summary table for required columns and gaps.
         Input:
@@ -306,30 +437,48 @@ def processTable(df, gaps, displayCols):
     # obtain the list of instances
     instList = list(df.instance.unique())
     scnList = list(df.scenario.unique())
-    
+    print(instList)
+
     # collect required info into dict
     rsltDict = {}
-    for inst in instList:
-        rsltDict[inst] = {}
-        for g in gaps:
+    if gaps: # Todo: separate datasets
+        for inst in instList:
+            rsltDict[inst] = {}
+            for g in gaps:
+                for scn in scnList:
+                    cond = (df['scenario'] == scn) & (df['given_gap'] == g) & (df['instance'] == inst) 
+                    df_temp = df[cond]
+                    if df_temp['solved'].values[0]:
+                        # using (outer key, inner key) for table column formatting
+                        # rsltDict[inst].update({(g, col):df_temp[col].values[0] for col in displayCols})
+                        rsltDict[inst].update({(scn, g, col):df_temp[col].values[0] for col in displayCols})
+                    else:
+                        # special color for unsolved cases? but still need to process after print_to_latex
+                        rsltDict[inst].update({(scn, g, col):'textcolor{lightgray}{'+str(df_temp[col].values[0])+'}' for col in displayCols})
+            
+            # for debug print
+            # inst == 'miblp_20_20_50_0110_10_1' and print(rsltDict[inst])
+    else:
+        for inst in instList:
+            rsltDict[inst] = {}
             for scn in scnList:
-                cond = (df['scenario'] == scn) & (df['given_gap'] == g) & (df['instance'] == inst) 
+                cond = (df['scenario'] == scn) & (df['instance'] == inst) 
                 df_temp = df[cond]
+                ds = df_temp['dataset'].values[0]
                 if df_temp['solved'].values[0]:
                     # using (outer key, inner key) for table column formatting
-                    # rsltDict[inst].update({(g, col):df_temp[col].values[0] for col in displayCols})
-                    rsltDict[inst].update({(scn, g, col):df_temp[col].values[0] for col in displayCols})
+                    rsltDict[inst].update({(scn, ds, col):df_temp[col].values[0] for col in displayCols})
                 else:
                     # special color for unsolved cases? but still need to process after print_to_latex
-                    rsltDict[inst].update({(scn, g, col):'textcolor{lightgray}{'+str(df_temp[col].values[0])+'}' for col in displayCols})
+                    rsltDict[inst].update({(scn, ds, col):'textcolor{lightgray}{'+str(df_temp[col].values[0])+'}' for col in displayCols})
         
-        # for debug print
-        # inst == 'miblp_20_20_50_0110_10_1' and print(rsltDict[inst])
     
-    # convert dict to structured df
-    #  change to formal column names?
+    # convert dict to structured df: change to formal column names?
     df_forprint = pd.DataFrame.from_dict(rsltDict, orient='index')
-    df_forprint.columns.names = ['scn','gaps','fields']
+    if gaps:
+        df_forprint.columns.names = ['scn', 'gaps', 'fields']
+    else:
+        df_forprint.columns.names = ['scn', 'datasets', 'fields']
     df_forprint = df_forprint.sort_index()
 
     # OPTION 1: print results to a single table: suggest to use when display col number < 2 
@@ -337,13 +486,17 @@ def processTable(df, gaps, displayCols):
     #     file.write(df_forprint.to_latex())
     
     # OPTION 2: for each displayCol, print a table; using slicer indexing
-    with open('ltx_tb.txt', 'w') as file:
-        for col in displayCols:
-            for scn in scnList:
-                file.write(df_forprint.loc[:, (scn, slice(None), col)].to_latex())
+    if writeLTX:
+        with open(filename, 'w') as file:
+            for col in displayCols:
+                for scn in scnList:
+                    if gaps:
+                        file.write(df_forprint.loc[:, (scn, slice(None), col)].to_latex()) # indices may change after add a column
+                    else:
+                        file.write(df_forprint.loc[:, (scn, slice(None), col)].to_latex())
 
     # OPTION 3: just process table, do not print latex table to file
-    # -- add a parameter for this later
+    # pass
 
     return df_forprint
 
@@ -427,31 +580,25 @@ def perfProf(df, plotname=None, fixmin=None, xmin=1, xmax=None, legendnames={}):
 
     colors = ['dodgerblue', 'slateblue', 'blueviolet', 'palevioletred','lightcoral',
         'sandybrown', 'gold', 'yellowgreen', 'darkturquoise']
-
+    # 'chartreuse'
+    # colors = ['red', 'lime', 'blue', 'fuchsia', 'aqua', 'yellow', 'black', 'gold']
+    
     # if given legend name len != col #, use defualt column name
     if legendnames and (len(legendnames) != len(df.columns)):
         legendnames = {}
         
-    # filter out cases where time is < 5'' or > 3600'' for all methods
-    # assume number types: if not solved, using 36000 or inf to replace nan
-    col_list = df.columns.values.tolist()
-    drop_lessthan = df[(df[col_list] < 5).all(axis=1)].index.tolist()
-    drop_morethan = df[(df[col_list] > 3600).all(axis=1)].index.tolist()
-    drop_list = list(set(drop_lessthan) | set(drop_morethan))
-    df = df.drop(drop_list)
-
     # find min value in the dataframe
-    if fixmin == None:
-        min_val = df.to_numpy().min()
-    else: 
-        min_val = fixmin
+    col_list = df.columns.values.tolist()
+    df['min_val'] = df[col_list].min(axis=1)
+    print(df['min_val'])
 
     # start ploting
     fig, ax = plt.subplots(1,1) # figsize = (6,5)
     
-    for i, col in enumerate(df.columns):
+    for i, col in enumerate(col_list):
         # for each col, compute ratio
-        ratios = df[col] / min_val
+        ratios = df[col] / df['min_val']
+        # i == 1 and print(ratios)
         uniq_ratios = ratios.unique()
         uniq_ratios.sort() # sort in place
         cum_cnt =  np.sum(np.array([ratios <= ur for ur in uniq_ratios]), axis=1)
@@ -487,7 +634,7 @@ def perfProf(df, plotname=None, fixmin=None, xmin=1, xmax=None, legendnames={}):
     ax.set_title("Performance profile: " + plotname[9:])
     ax.set_xlabel("Multiple of virtual best")
     ax.set_ylabel("Fraction of instances")
-    ax.legend(loc='lower right')
+    ax.legend(loc='lower right', markerscale=1.25, frameon=False, labelspacing=0.35)
 
     fig.tight_layout()
     if plotname == None:
@@ -496,33 +643,54 @@ def perfProf(df, plotname=None, fixmin=None, xmin=1, xmax=None, legendnames={}):
         fig.savefig("./performance/perfprof/"+plotname, dpi=fig.dpi)
         # fig.savefig("./performance/barchart/"+plotname+'.eps', format='eps', dpi=600)
 
-def plotPerf(df, gaps, plotCols, plotScns):
+def plotPerf(df, plotCols, plotScns, plotDSs, gaps=[]):
     """
-        Prepare data for plotting performance profile.
+        Prepare data for plotting performance profile; running time only.
         Input:
             df: pandas dataframe output from processTable
-            gaps: a list of int
             plotCol: columns to make single plots
             plotScns: scenarios on one plot
+            gaps: a list of given integer gaps; seen as s type of scenarios 
     """
-    
-    for g in gaps:
-        for col in plotCols:
-            # prepare data and replace unsolved cases by a large number
-            df_sub = df.xs((g, col), level=['gaps', 'fields'], axis=1, drop_level=True).copy()
-            for scn in df_sub.columns:
-                df_sub[scn] = pd.to_numeric(df_sub[scn], errors='coerce').replace(np.nan, 36000)
-            # plot
-            # print(df_sub)
-            perfProf(df_sub, plotname='perfprof_'+col+'_g'+str(g), 
-                fixmin=5, xmax=400, legendnames=plotScns)
+    df = df[list(plotScns.keys())]
+    # replace unsolved cases by a large number
+    for scn in df.columns:
+            df[scn] = pd.to_numeric(df[scn], errors='coerce').replace(np.nan, 1e+11)
+    if gaps:
+        for g in gaps:
+            for col in plotCols:
+                # prepare data and replace unsolved cases by a large number
+                df_sub = df.xs((g, col), level=['gaps', 'fields'], axis=1, drop_level=True).copy()
+                for scn in df_sub.columns:
+                    df_sub[scn] = pd.to_numeric(df_sub[scn], errors='coerce').replace(np.nan, 36000)
+                # call plot function
+                perfProf(df_sub, plotname='perfprof_'+col+'_g'+str(g), xmax=400, legendnames=plotScns)
+    else:
+        for ds in plotDSs:
+            # apply index filter on solution time
+            df_time = df.xs((ds, 'cpu_time'), level=['datasets', 'fields'], axis=1, drop_level=True).copy()
+            # df_time = pd.to_numeric(df_time, errors='coerce').replace(np.nan, 36000)
+            # filter out cases where time is < 5'' or > 3600'' for all methods
+            col_list = df_time.columns.values.tolist()
+            drop_lessthan = df_time[(df_time[col_list] < 5).all(axis=1)].index.tolist()
+            drop_morethan = df_time[(df_time[col_list] > 3600).all(axis=1)].index.tolist()
+            drop_list = list(set(drop_lessthan) | set(drop_morethan))
+            # print(drop_list)
+            # df = df.drop(drop_list)
+            for col in plotCols:
+                df_sub = df.xs((ds, col), level=['datasets', 'fields'], axis=1, drop_level=True).copy()
+                df_sub = df_sub.drop(drop_list)
+                print(df_sub)
+                # call plot function
+                perfProf(df_sub, plotname='perfprof_'+col+'_'+ds, xmax=plotCols[col][1], legendnames=plotScns)
 
 def main():
 
     # choose based on experiment results
-    gaps = [10, 20, 30, 40, 50, 60, 70, 80, 90]
+    # gaps = [10, 20, 30, 40, 50, 60, 70, 80, 90]
     # gaps = [10, 20]
-    gaps = sorted(gaps)
+    # gaps = sorted(gaps)
+    gaps = []
     
     ######################### Run Experimests #########################
     # local: provide paths in runparams.py
@@ -532,28 +700,38 @@ def main():
     # runExperimentsPBS(exe, instanceDirs, outputDir, mibsParamsInputs, pbsfile, gaps)
     
     ################# Process & Save | Load from CSV ###################
+    # specify summary file name
+    file_csv = "summary_cuts.csv"
+
     args = sys.argv[1:]  # change to arg parser later...
     if len(args) == 0: 
-        df_r = parseOutput(outputDir, mibsParamsInputs, gaps, True)
+        df_r = parseOutput(outputDir, mibsParamsInputs, gaps, writeCSV=True, filename=file_csv)
     else:
         try:
-            df_r = pd.read_csv("summary.csv")
+            df_r = pd.read_csv(file_csv)
+            set_cond = (df_r['scenario'].isin(list(mibsParamsInputs.keys()))) | (df_r['dataset'].isin(list(instanceDirs.keys())))
+            df_r = df_r[set_cond]
+
         except FileNotFoundError:
-            print('summary.csv not exist in current directory')
+            print('{} does not exist in current directory.'.format(file_csv))
         else:
-            print('read from summary file')
+            print('Reading from', file_csv)
     
     ################### Format Data & Print Table ####################
+    # specify txt file name to print tables in LATEX
+    file_txt = "ltx_tb_cut.txt"
+
     # columns to process and print
     displayCols = {
         'cpu_time': 'CPU Search Time',
-        'chk_feas_time': 'Check Feasibility Time',
-        'vf_solved': 'Number of VF problem solved',
-        'ub_solved': 'Number of UB problem solved',
-        'objval_cost': 'Object Value'
+        'nodes_proc': 'Number of Processed Nodes'
+        # 'chk_feas_time': 'Check Feasibility Time',
+        # 'vf_solved': 'Number of VF problem solved',
+        # 'ub_solved': 'Number of UB problem solved',
+        # 'objval_cost': 'Object Value'
     }
 
-    df_proc = processTable(df_r, gaps, displayCols)
+    df_proc = processTable(df_r, displayCols, writeLTX=False, filename=file_txt)
     
     ################### Make Bar Charts ####################
     '''
@@ -578,20 +756,25 @@ def main():
     ################### Make Performance Profile ####################
     # columns to compare in the plot
     plotCols = {
-        'cpu_time': 'CPU Search Time',
+        'cpu_time': ['CPU Search Time', 25],
+        'nodes_proc': ['Number of Processed Nodes', 75]
     }
+    # plotGaps = [10, 20]
 
     # scenarios name dict used for legend; if read from .csv check name match
-    # manual input example:
     plotScns = {}
-    for k in mibsParamsInputs.keys():
-        if '01' in k:
-            plotScns[k] = 'linkingBranchStrategy'
-        else:
-            plotScns[k] = 'fractionalBranchStrategy'    
-    plotGaps = [10, 20]
+    # manual input example:
+    # for k in mibsParamsInputs.keys():
+    #     if '01' in k:
+    #         plotScns[k] = 'linkingBranchStrategy'
+    #     else:
+    #         plotScns[k] = 'fractionalBranchStrategy'    
     
-    plotPerf(df_proc, plotGaps, plotCols, plotScns)
+    for k in mibsParamsInputs.keys():
+        plotScns[k] = k
+
+    # plotPerf(df_proc, plotCols, plotScns, plotGaps)
+    plotPerf(df_proc, plotCols, plotScns, instanceDirs)
 
 
 if __name__ == "__main__":
