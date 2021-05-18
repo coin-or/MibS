@@ -326,7 +326,7 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
 #ifdef _OPENMPMIBS
 	storeSol = checkBilevelFeasibilityParallel(mibs->isRoot_);
 #else
-	if (targetGap + 1 < etol){
+	if (targetGap < etol){
 		storeSol = checkBilevelFeasibility(mibs->isRoot_); // YX: solve (SL-MILP) and (UB)
 	}
 	else{
@@ -3662,7 +3662,7 @@ MibSBilevel::setUpUBModel(OsiSolverInterface * oSolver,
 		row.insert(index1, newRow[i]);
 	    }
 	    newMat.appendRow(row);
-		if (objValuesVec[0]/(1 + gap/100) > etol){ // YX: solve for an objUb provided by gap
+		if (objValuesVec[0]/(1 - gap/100) > etol){ // YX: solve for an objUb provided by gap; +/-?
 			objUb = objValuesVec[0]/(1 - gap/100); // YX: if objUb > 0
 		}
 		else{ 
