@@ -6813,7 +6813,7 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix,
 
     //Param: "MibS_useGeneralNoGoodCut"
     if ((turnOffOtherCuts == true) &&
-        (MibSPar_->entry(MibSParams::useNoGoodCut) == PARAM_NOTSET)){
+        (MibSPar_->entry(MibSParams::useGeneralNoGoodCut) == PARAM_NOTSET)){ // was useNoGoodCut
        MibSPar()->setEntry(MibSParams::useGeneralNoGoodCut, PARAM_OFF);
     }
     
@@ -7015,7 +7015,7 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix,
 	}
     }
     
-    //YX: set second lower duality gap for bounded rationality setting; deterministic case only
+    //YX: set second/lower level optimality gap for bounded rationality setting; deterministic case only
     if (printProblemInfo == true){
     if(MibSPar_->entry(MibSParams::slTargetGap) > -1){
         std::cout << "Second level target gap set to ";
