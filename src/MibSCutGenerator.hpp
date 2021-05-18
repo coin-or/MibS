@@ -17,6 +17,8 @@
 #define MibsCutGenerator_h_
 
 #include "MibSConfig.hpp"
+#include <algorithm>
+#include <cstdlib>
 #include "MibSModel.hpp"
 
 //#############################################################################
@@ -34,7 +36,7 @@ class MIBSLIB_EXPORT MibSCutGenerator : public BlisConGenerator {
    double bigMIncObj_;
    OsiSolverInterface * watermelonICSolver_;
    std::vector<int> leafNodeCutTmpHist_; 
-    
+	
  public:
    
    /** Default Constructor **/
@@ -46,10 +48,10 @@ class MIBSLIB_EXPORT MibSCutGenerator : public BlisConGenerator {
    bool generateConstraints(BcpsConstraintPool &conPool);
 
    int addCut(BcpsConstraintPool &conPool,
-	      double cutlb, double cutub,
-	      std::vector<int> & indexList, 
-   	      std::vector<double> &elementList,
-	      bool removable);
+		  double cutlb, double cutub,
+		  std::vector<int> & indexList, 
+   		  std::vector<double> &elementList,
+		  bool removable);
    
    void setLocalModel(MibSModel *mibs) { localModel_ = mibs; }
    
@@ -82,51 +84,51 @@ class MIBSLIB_EXPORT MibSCutGenerator : public BlisConGenerator {
    /** Add Benders-type cuts for zero sum problems **/
    int bendersZeroSumCuts(BcpsConstraintPool &conPool);
 
-    /** Add intersection cuts for general problems (IC: discrete, hypercube, tender: general) **/
-    int intersectionCuts(BcpsConstraintPool &conPool,
+	/** Add intersection cuts for general problems (IC: discrete, hypercube, tender: general) **/
+	int intersectionCuts(BcpsConstraintPool &conPool,
 			 double *optLowerSolution, MibSIntersectionCutType ICType);
-    /** Helper function for IC*/
-    void findLowerLevelSol(double *uselessIneqs, double *lowerLevelSol, const double *sol,
-			   bool &isTimeLimReached);
+	/** Helper function for IC*/
+	void findLowerLevelSol(double *uselessIneqs, double *lowerLevelSol, double *optLowerSol, 
+        const double *sol, bool &isTimeLimReached); // YX: changed to add optLowerSol
 
-    /** Helper function for IC*/
-    bool getAlphaIC(double** extRay, double *uselessIneqs, double* lowerSolution, int numStruct,
-		    int numNonBasic, const double* lpSol, std::vector<double> &alphaVec);
+	/** Helper function for IC*/
+	bool getAlphaIC(double** extRay, double *uselessIneqs, double* lowerSolution, int numStruct,
+			int numNonBasic, const double* lpSol, std::vector<double> &alphaVec);
 
-    /** Helper function for IC*/
-    double solveModelIC(double *uselessIneqs, double *ray, double *rhs, int numNonBasic);
+	/** Helper function for IC*/
+	double solveModelIC(double *uselessIneqs, double *ray, double *rhs, int numNonBasic);
 
-    /** Helper function for watermelon IC **/
-    void findLowerLevelSolWatermelonIC(double *uselessIneqs, double *lowerLevelSol,
-				       double* lpSol, bool &isTimeLimReached);
+	/** Helper function for watermelon IC **/
+	void findLowerLevelSolWatermelonIC(double *uselessIneqs, double *lowerLevelSol,
+					  double *optLowerSol, double* lpSol, bool &isTimeLimReached); // YX: changed to add optLowerSol
 
-    /** Helper function for watermelon IC*/
-    bool getAlphaWatermelonIC(double** extRay, double *uselessIneqs, double* lowerSolution,
-			      int numStruct, int numNonBasic, double* lpSol,
-			      std::vector<double> &alphaVec);
+	/** Helper function for watermelon IC*/
+	bool getAlphaWatermelonIC(double** extRay, double *uselessIneqs, double* lowerSolution,
+				  int numStruct, int numNonBasic, double* lpSol,
+				  std::vector<double> &alphaVec);
 
-    /** Helper function for hypercube IC*/
-    void storeBestSolHypercubeIC(const double* lpSol,
+	/** Helper function for hypercube IC*/
+	void storeBestSolHypercubeIC(const double* lpSol,
 				 std::vector<double> &optLowerObjVec,
 				 bool &isTimeLimReached);
 
-    /** Helper function for hypercube IC*/
-    void storeBestSolHypercubeICParallel(const double* lpSol,
+	/** Helper function for hypercube IC*/
+	void storeBestSolHypercubeICParallel(const double* lpSol,
 					 std::vector<double> &optLowerObjVec,
 					 bool &isTimeLimReached); 
 
-    /** Helper function for hypercube IC*/
-    void getAlphaHypercubeIC(double** extRay, int numStruct, int numNonBasic,
-			     std::vector<double> &alphaVec);
+	/** Helper function for hypercube IC*/
+	void getAlphaHypercubeIC(double** extRay, int numStruct, int numNonBasic,
+				 std::vector<double> &alphaVec);
 
-    /** Helper function for Tender IC*/
-    void storeBestSolTenderIC(const double* lpSol,
-			      double optLowerObj);
+	/** Helper function for Tender IC*/
+	void storeBestSolTenderIC(const double* lpSol,
+				  double optLowerObj);
 
-    /** Helper function for Tender IC*/
-    void getAlphaTenderIC(double** extRay, int numNonBasic,
+	/** Helper function for Tender IC*/
+	void getAlphaTenderIC(double** extRay, int numNonBasic,
 			  std::vector<double> &alphaVec);
-		     
+			 
    /** Add bound cuts for general problems **/
    int boundCuts(BcpsConstraintPool &conPool, double *passedObjCoeff, double &passedRhs,
 		 bool &isInfeasible);
@@ -138,17 +140,17 @@ class MIBSLIB_EXPORT MibSCutGenerator : public BlisConGenerator {
    double getRhsParamBoundCut(bool *isTimeLimReached);
 
    /** Find the leaf nodes of bounding problem **/
-    void findLeafNodes(AlpsTreeNode *node, int *numStoredCuts,
-		       int *numLeafNodes,
-		       std::vector<int> &cutStarts,
-		       std::vector<int> &cutIndices,
-		       std::vector<double> &cutValues,
-		       std::vector<double> &cutBounds,
-		       std::vector<int> &sourceNode,
-		       std::vector<int> &leafNodeCutInf,
-		       std::vector<int> &leafNodeCutStatrs,
-		       std::vector<double> &leafNodeLBs,
-		       std::vector<double> &leafNodeUBs);
+	void findLeafNodes(AlpsTreeNode *node, int *numStoredCuts,
+			   int *numLeafNodes,
+			   std::vector<int> &cutStarts,
+			   std::vector<int> &cutIndices,
+			   std::vector<double> &cutValues,
+			   std::vector<double> &cutBounds,
+			   std::vector<int> &sourceNode,
+			   std::vector<int> &leafNodeCutInf,
+			   std::vector<int> &leafNodeCutStatrs,
+			   std::vector<double> &leafNodeLBs,
+			   std::vector<double> &leafNodeUBs);
 
    /** Solve the leaf nodes of bounding problem **/
   double solveLeafNode(int leafNodeIndex, bool *isTimeLimReached);
@@ -184,8 +186,8 @@ class MIBSLIB_EXPORT MibSCutGenerator : public BlisConGenerator {
 
    /** Use the cut generator LP to find the deepest L and P cut **/
    double * findDeepestLandPCut_IncObj(double * uppersol, 
-				       double * lowersol,
-				       double * optlowersol);
+					   double * lowersol,
+					   double * optlowersol);
    
    /** Find the maximal UL binary solution over current constraint region **/
    const double * findMaximalUpperSol(OsiSolverInterface * si);
@@ -212,6 +214,11 @@ class MIBSLIB_EXPORT MibSCutGenerator : public BlisConGenerator {
 
    /** Get the binding constraints using basis information **/
    int * getBindingConsBasis();
+   
+   // YX: check relatively prime of cut coefficients
+   // or std::round?
+   int checkCutGCD(std::vector<double> coeff, double rhs, int size); 
+ 
 
 };
 
