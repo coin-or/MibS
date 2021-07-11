@@ -131,7 +131,8 @@ linear optimization problems. To solve these problems, there are two ways:
     the end of the time file (see
     [here](https://github.com/tkralphs/BilevelLib/blob/master/stochastic/sslp/bilevel_nonZeroSum_sslp_10_50_50.tim)).
     Then call `mibs` like this: 
-    ``` <build_or_install_dir>/bin/mibs -Alps_instance file.mps -MibS_auxiliaryTimFile file.tim -MibS_auxiliaryStoFile file.sto -MibS_stochasticityType stochasticWithoutSAA -MibS_isSMPSFormat 1 -MibS_isA2Random 1 
+    ``` 
+    <build_or_install_dir>/bin/mibs -Alps_instance file.mps -MibS_auxiliaryTimFile file.tim -MibS_auxiliaryStoFile file.sto -MibS_stochasticityType stochasticWithoutSAA -MibS_isSMPSFormat 1 -MibS_isA2Random 1 
     ``` 
     The parameter `MibS_isA2Random` should be set to 0 in case the coefficients of
     the first-stage variables in the second-stage problem are not random
@@ -142,7 +143,7 @@ linear optimization problems. To solve these problems, there are two ways:
     random variables also should be specified by setting the values of
     corresponding parameters (MibS currently supports only the discrete
     uniform distribution). For a sample parameter file, see
-    `src/mibsStochastic.par.in`.
+    [src/mibsStochastic.par.in].
 
 
 ## Project Links

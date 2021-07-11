@@ -4,8 +4,8 @@ CoinUtils         https://github.com/coin-or/CoinUtils master
 Osi               https://github.com/coin-or/Osi master
 Clp               https://github.com/coin-or/Clp master
 Cgl               https://github.com/coin-or/Cgl master
-Alps              https://github.com/coin-or/CHiPPS-ALPS stable/1.5
-Bcps              https://github.com/coin-or/CHiPPS-BiCePS stable/0.94
+Alps              https://github.com/coin-or/CHiPPS-ALPS stable/1.6
+Bcps              https://github.com/coin-or/CHiPPS-BiCePS stable/0.95
 Blis              https://github.com/coin-or/CHiPPS-BLIS master
 SYMPHONY          https://github.com/coin-or/SYMPHONY WS
 Cbc               https://github.com/coin-or/Cbc master
