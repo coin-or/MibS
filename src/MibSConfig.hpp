@@ -44,15 +44,29 @@
 #endif
 
 #ifdef HAVE_CONFIG_H
-#ifdef MIBS_BUILD
+#ifdef MIBSLIB_BUILD
 #include "config.h"
+
+/* overwrite MIBSLIB_EXPORT from config.h when building Alps
+ * we want it to be __declspec(dllexport) when building a DLL on Windows
+ * we want it to be __attribute__((__visibility__("default"))) when building with GCC,
+ *   so user can compile with -fvisibility=hidden
+ */
+#ifdef DLL_EXPORT
+#undef MIBSLIB_EXPORT
+#define MIBSLIB_EXPORT __declspec(dllexport)
+#elif defined(__GNUC__) && __GNUC__ >= 4
+#undef MIBSLIB_EXPORT
+#define MIBSLIB_EXPORT __attribute__((__visibility__("default")))
+#endif
+
 #else
 #include "config_mibs.h"
 #endif
 
 #else /* HAVE_CONFIG_H */
 
-#ifdef MIBS_BUILD
+#ifdef MIBSLIB_BUILD
 #include "config_default.h"
 #else
 #include "config_mibs_default.h"
@@ -62,7 +76,3 @@
 
 #endif /*__MIBSCONFIG_H__*/
 
-//supporting c++11
-#if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1900)
-#define COIN_HAS_C11
-#endif

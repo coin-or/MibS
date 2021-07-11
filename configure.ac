@@ -16,10 +16,8 @@
 #                       Names and other basic things                        #
 #############################################################################
 
-AC_PREREQ(2.59)
-
 m4_define([gitversion], m4_esyscmd([sh -c "git describe --always | cut -d '=' -f 2 | head --bytes -1"]))
-AC_INIT([MibS],[trunk],[https://github.com/coin-or/MibS/issues/new])
+AC_INIT([MibS],[devel],[https://github.com/coin-or/MibS/issues/new],[coin-or-mibss],[https://github.com/coin-or/MibS])
 
 AC_DEFINE([MIBS_GIT_VERSION], [gitversion], [MibS git version])
 
@@ -44,70 +42,49 @@ AC_COPYRIGHT([
 # whether the package is actually there
 AC_CONFIG_SRCDIR(src/MibSBilevel.hpp)
 
-# Where should everything be installed by default?  Here, we want it
-# to be installed directly in 'bin', 'lib', 'include' subdirectories
-# of the directory where configure is run.  The default would be
-# /usr/local.
-AC_PREFIX_DEFAULT([`pwd`])
+# Do some initialization work (version numbers, change prefix default, ...)
+AC_COIN_INITIALIZE
 
 #############################################################################
 #                         Standard build tool stuff                         #
 #############################################################################
 
-# Get the system type
-AC_CANONICAL_BUILD
-
-# If this project depends on external projects, the Externals file in
-# the source root directory contains definition of where to find those
-# externals.  The following macro ensures that those externals are
-# retrieved by svn if they are not there yet.
-AC_COIN_PROJECTDIR_INIT(MibS)
-
-# Check if user wants to produce debugging code
-AC_COIN_DEBUG_COMPILE(MibS)
-
-# Get the name of the C++ compiler and appropriate compiler options
+# Get the name of the C++ compiler and appropriate compiler options.
 AC_COIN_PROG_CXX
 
-# We filter out the -pedantic-errors flag for C and C++ compiler in
-# case the user wants to use MPI, since otherwise the compilation
-# fails
-if test "${with_mpi_lib+set}" = set; then
-  CFLAGS=`echo $CFLAGS | sed -e s/-pedantic-errors//g`
-  CXXFLAGS=`echo $CXXFLAGS | sed -e s/-pedantic-errors//g`
-fi
+# This is a C++ package, set the language accordingly.
+AC_LANG_PUSH(C++)
 
-# Initialize automake and libtool
-AC_COIN_INIT_AUTO_TOOLS
+# Check for C++11 support
+AX_CXX_COMPILE_STDCXX(11,, [optional])
+
+# Initialize libtool
+AC_COIN_PROG_LIBTOOL
+
+# set RPATH_FLAGS to the compiler link flags required to hardcode location
+# of the shared objects (expanded_libdir is set somewhere in configure before)
+# (use in examples Makefile)
+AC_COIN_RPATH_FLAGS([$expanded_libdir])
 
 #############################################################################
 #                              COIN components                              #
 #############################################################################
 
-AC_COIN_CHECK_PACKAGE(CoinDepend, [alps bcps blis coinutils osi cgl clp osi-clp], [MibSLib])
-if test $coin_has_coindepend != yes ; then
-  AC_MSG_ERROR([Required packages not available.])
-fi
+m4_foreach_w([myvar],[Alps Bcps Blis CoinUtils Osi Cgl Clp SYMPHONY],
+  [ AC_COIN_CHK_PKG(myvar,[MibSLib])
+    if test $coin_has_[]m4_tolower(myvar) != yes ; then
+      AC_MSG_ERROR([Required package myvar is not available.])
+    fi
+  ])
 
-AC_COIN_CHECK_PACKAGE(SYMPHONY, [symphony osi-sym], [MibSLib])
-if test $coin_has_symphony != yes ; then
-  AC_MSG_ERROR([Required package SYMPHONY not available.])
-fi
+AC_COIN_CHK_PKG(Sample,,[coindatasample],,dataonly)
 
-AC_COIN_CHECK_PACKAGE(Cbc, [cbc osi-cbc], [MibSLib])
+AC_COIN_CHK_PKG(Cbc, [MibSLib])
 
-#############################################################################
-#                              check MPI libraries                          #
-#############################################################################
-
-AC_COIN_CHECK_USER_LIBRARY([Mpi], [MPI], [mpi.h], [MPI_Irecv], [], [AlpsLib])
-
-#############################################################################
-#                            Third party solvers                            #
-#############################################################################
-
-# Check which third party solvers are available
-AC_COIN_CHECK_PACKAGE(Cplex,  [osi-cplex],  [MibSLib])
+AC_COIN_CHK_PKG(OsiClp,[MibSLib],[osi-clp])
+AC_COIN_CHK_PKG(OsiCbc,[MibSLib],[osi-cbc])
+AC_COIN_CHK_PKG(OsiCpx,[MibSLib],[osi-cplex])
+AC_COIN_CHK_PKG(OsiSym,[MibSLib],[osi-sym])
 
 #############################################################################
 #                  Check for doxygen                                        #
@@ -130,6 +107,8 @@ AC_CONFIG_FILES([doxydoc/doxygen.conf])
 
 # Here put the location and name of the configuration header file
 AC_CONFIG_HEADER([src/config.h src/config_mibs.h])
+
+AC_COIN_FINALIZE_FLAGS([MibSLib])
 
 # Finally, we let configure write all the output...
 AC_COIN_FINALIZE

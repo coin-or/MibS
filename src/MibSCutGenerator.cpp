@@ -27,23 +27,23 @@
 #include "BlisHelp.h"
 #include "BlisVariable.h"
 
-#ifdef COIN_HAS_SYMPHONY
+#ifdef MIBS_HAS_SYMPHONY
 #include "OsiSymSolverInterface.hpp"
 #include "symphony.h"
 #endif
 
-#ifdef COIN_HAS_CPLEX
+#ifdef MIBS_HAS_CPLEX
 #include "cplex.h"
 #include "OsiCpxSolverInterface.hpp"
 #endif
 
-#if  COIN_HAS_MPI
+#if  MIBS_HAS_MPI
 #include "AlpsKnowledgeBrokerMPI.h"
 #else
 #include "AlpsKnowledgeBrokerSerial.h"
 #endif
 
-//#ifdef COIN_HAS_SYMPHONY
+//#ifdef MIBS_HAS_SYMPHONY
 //#include "OsiSymSolverInterface.hpp"
 //#endif
 //to run in parallel, uncomment this (should be modified later)
@@ -986,14 +986,14 @@ MibSCutGenerator::findLowerLevelSol(double *uselessIneqs, double *lowerLevelSol,
     if(feasCheckSolver == "Cbc"){
         nSolver = new OsiCbcSolverInterface();
     }else if (feasCheckSolver == "SYMPHONY"){
-#ifdef COIN_HAS_SYMPHONY
+#ifdef MIBS_HAS_SYMPHONY
 	nSolver = new OsiSymSolverInterface();
 #else
 	throw CoinError("SYMPHONY chosen as solver, but it has not been enabled",
 			"findLowerLevelSol", "MibSCutGenerator");
 #endif
     }else if (feasCheckSolver == "CPLEX"){
-#ifdef COIN_HAS_CPLEX
+#ifdef MIBS_HAS_CPLEX
 	nSolver = new OsiCpxSolverInterface();
 #else
 	throw CoinError("CPLEX chosen as solver, but it has not been enabled",
@@ -1024,7 +1024,7 @@ MibSCutGenerator::findLowerLevelSol(double *uselessIneqs, double *lowerLevelSol,
 	    dynamic_cast<OsiCbcSolverInterface *>
 		(nSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
 	}else if (feasCheckSolver == "SYMPHONY"){
-#if COIN_HAS_SYMPHONY
+#if MIBS_HAS_SYMPHONY
 	    sym_environment *env = dynamic_cast<OsiSymSolverInterface *>
 		(nSolver)->getSymphonyEnvironment();
 	    sym_set_dbl_param(env, "time_limit", remainingTime);
@@ -1054,7 +1054,7 @@ MibSCutGenerator::findLowerLevelSol(double *uselessIneqs, double *lowerLevelSol,
 	    }
 #endif
 	}else if(feasCheckSolver == "CPLEX"){
-#ifdef COIN_HAS_CPLEX
+#ifdef MIBS_HAS_CPLEX
 	    nSolver->setHintParam(OsiDoReducePrint);
 	    nSolver->messageHandler()->setLogLevel(0);
 	    CPXENVptr cpxEnv =
@@ -1408,14 +1408,14 @@ MibSCutGenerator::findLowerLevelSolWatermelonIC(double *uselessIneqs, double *lo
 	if(feasCheckSolver == "Cbc"){
 	    watermelonICSolver_ = new OsiCbcSolverInterface();
 	}else if (feasCheckSolver == "SYMPHONY"){
-#ifdef COIN_HAS_SYMPHONY
+#ifdef MIBS_HAS_SYMPHONY
 	    watermelonICSolver_ = new OsiSymSolverInterface();
 #else
 	    throw CoinError("SYMPHONY chosen as solver, but it has not been enabled",
 			    "findLowerLevelSolWatermelonIC", "MibSCutGenerator");
 #endif
 	}else if (feasCheckSolver == "CPLEX"){
-#ifdef COIN_HAS_CPLEX
+#ifdef MIBS_HAS_CPLEX
 	    watermelonICSolver_ = new OsiCpxSolverInterface();
 #else
 	    throw CoinError("CPLEX chosen as solver, but it has not been enabled",
@@ -1474,7 +1474,7 @@ MibSCutGenerator::findLowerLevelSolWatermelonIC(double *uselessIneqs, double *lo
 	        dynamic_cast<OsiCbcSolverInterface *>
 		    (nSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
     }else if (feasCheckSolver == "SYMPHONY"){
-#if COIN_HAS_SYMPHONY
+#if MIBS_HAS_SYMPHONY
 	        sym_environment *env = dynamic_cast<OsiSymSolverInterface *>
 		    (nSolver)->getSymphonyEnvironment();
 		sym_set_int_param(env, "use_hot_starts", FALSE);
@@ -1508,7 +1508,7 @@ MibSCutGenerator::findLowerLevelSolWatermelonIC(double *uselessIneqs, double *lo
 #endif
 
     }else if(feasCheckSolver == "CPLEX"){
-#ifdef COIN_HAS_CPLEX
+#ifdef MIBS_HAS_CPLEX
 	nSolver->setHintParam(OsiDoReducePrint);
 	nSolver->messageHandler()->setLogLevel(0);
 	        CPXENVptr cpxEnv =
@@ -1809,7 +1809,7 @@ MibSCutGenerator::storeBestSolHypercubeIC(const double* lpSol,
 	    dynamic_cast<OsiCbcSolverInterface *>
 		(UBSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
 	}else if (feasCheckSolver == "SYMPHONY"){
-#if COIN_HAS_SYMPHONY
+#if MIBS_HAS_SYMPHONY
 	    //dynamic_cast<OsiSymSolverInterface *>
 	    // (lSolver)->setSymParam("prep_level", -1);
 
@@ -1843,7 +1843,7 @@ MibSCutGenerator::storeBestSolHypercubeIC(const double* lpSol,
 	    }
 #endif
 	}else if (feasCheckSolver == "CPLEX"){
-#ifdef COIN_HAS_CPLEX
+#ifdef MIBS_HAS_CPLEX
 	    UBSolver->setHintParam(OsiDoReducePrint);
 	    UBSolver->messageHandler()->setLogLevel(0);
 	    CPXENVptr cpxEnv =
@@ -1862,7 +1862,7 @@ MibSCutGenerator::storeBestSolHypercubeIC(const double* lpSol,
         localModel_->counterUB_ ++;
 
 	if(feasCheckSolver == "SYMPHONY"){
-#ifdef COIN_HAS_SYMPHONY
+#ifdef MIBS_HAS_SYMPHONY
 	    if(sym_is_time_limit_reached(dynamic_cast<OsiSymSolverInterface *>
 					 (UBSolver)->getSymphonyEnvironment())){
 		isTimeLimReached = true;
@@ -1872,7 +1872,7 @@ MibSCutGenerator::storeBestSolHypercubeIC(const double* lpSol,
 #endif
 	}
 	else if(feasCheckSolver == "CPLEX"){
-#ifdef COIN_HAS_CPLEX
+#ifdef MIBS_HAS_CPLEX
 	    lpStat = CPXgetstat(dynamic_cast<OsiCpxSolverInterface*>
 				(UBSolver)->getEnvironmentPtr(),
 				dynamic_cast<OsiCpxSolverInterface*>
@@ -2092,7 +2092,7 @@ MibSCutGenerator::storeBestSolHypercubeICParallel(const double* lpSol,
 	    dynamic_cast<OsiCbcSolverInterface *>
 	      (UBSolverVec[i])->getModelPtr()->messageHandler()->setLogLevel(0);
       }else if (feasCheckSolver == "SYMPHONY"){
-#if COIN_HAS_SYMPHONY
+#if MIBS_HAS_SYMPHONY
 	//dynamic_cast<OsiSymSolverInterface *>
 	// (lSolver)->setSymParam("prep_level", -1);
 
@@ -2126,7 +2126,7 @@ MibSCutGenerator::storeBestSolHypercubeICParallel(const double* lpSol,
 	    }
 #endif
       }else if (feasCheckSolver == "CPLEX"){
-#ifdef COIN_HAS_CPLEX
+#ifdef MIBS_HAS_CPLEX
 	UBSolverVec[i]->setHintParam(OsiDoReducePrint);
 	UBSolverVec[i]->messageHandler()->setLogLevel(0);
 	    CPXENVptr cpxEnv =
@@ -2153,7 +2153,7 @@ MibSCutGenerator::storeBestSolHypercubeICParallel(const double* lpSol,
 
   for(i = 0; i < numDecomposedProbs; i++){
     if(feasCheckSolver == "SYMPHONY"){
-#ifdef COIN_HAS_SYMPHONY
+#ifdef MIBS_HAS_SYMPHONY
       if(sym_is_time_limit_reached(dynamic_cast<OsiSymSolverInterface *>
 				   (UBSolverVec[i])->getSymphonyEnvironment())){
 	isTimeLimReached = true;
@@ -2163,7 +2163,7 @@ MibSCutGenerator::storeBestSolHypercubeICParallel(const double* lpSol,
 #endif
     }
     else if(feasCheckSolver == "CPLEX"){
-#ifdef COIN_HAS_CPLEX
+#ifdef MIBS_HAS_CPLEX
       lpStat = CPXgetstat(dynamic_cast<OsiCpxSolverInterface*>
 			  (UBSolverVec[i])->getEnvironmentPtr(),
 			  dynamic_cast<OsiCpxSolverInterface*>
@@ -2357,7 +2357,7 @@ MibSCutGenerator::storeBestSolTenderIC(const double* lpSol, double optLowerObj)
 
     OsiSolverInterface * nSolver;
 
-#ifndef COIN_HAS_SYMPHONY
+#ifndef MIBS_HAS_SYMPHONY
     nSolver = new OsiCbcSolverInterface();
 #else
     nSolver = new OsiSymSolverInterface();
@@ -2442,7 +2442,7 @@ MibSCutGenerator::storeBestSolTenderIC(const double* lpSol, double optLowerObj)
     //To Do: sahar: write it more efficient
     OsiSolverInterface *nSolver2 = nSolver;
 
-#ifndef COIN_HAS_SYMPHONY
+#ifndef MIBS_HAS_SYMPHONY
     dynamic_cast<OsiCbcSolverInterface *>
 	(nSolver2)->getModelPtr()->messageHandler()->setLogLevel(0);
 #else
@@ -2721,7 +2721,7 @@ MibSCutGenerator::boundCuts(BcpsConstraintPool &conPool, double *passedObjCoeffs
 	char** argv = new char* [1];
 	argv[0] = (char *) "mibs";
 
-#ifdef  COIN_HAS_MPI
+#ifdef  MIBS_HAS_MPI
 	AlpsKnowledgeBrokerMPI broker(argc, argv, *boundModel);
 #else
 	AlpsKnowledgeBrokerSerial broker(argc, argv, *boundModel);
@@ -2838,7 +2838,7 @@ MibSCutGenerator::boundCuts(BcpsConstraintPool &conPool, double *passedObjCoeffs
 	   char** argv1 = new char* [1];
 	   argv1[0] = (char *) "mibs";
 
-#ifdef  COIN_HAS_MPI
+#ifdef  MIBS_HAS_MPI
 	   AlpsKnowledgeBrokerMPI Newbroker(argc1, argv1, NewboundModel);
 #else
 	   AlpsKnowledgeBrokerSerial Newbroker(argc1, argv1, NewboundModel);
@@ -3280,14 +3280,14 @@ MibSCutGenerator::solveLeafNode(int leafNodeIndex, bool *isTimeLimReached)
     if (feasCheckSolver == "Cbc"){
       UBSolver = new OsiCbcSolverInterface();
     }else if (feasCheckSolver == "SYMPHONY"){
-#ifdef COIN_HAS_SYMPHONY
+#ifdef MIBS_HAS_SYMPHONY
       UBSolver = new OsiSymSolverInterface();
 #else
       throw CoinError("SYMPHONY chosen as solver, but it has not been enabled",
 		      "solveLeafNode", "MibSCutGenerator");
 #endif
     }else if (feasCheckSolver == "CPLEX"){
-#ifdef COIN_HAS_CPLEX
+#ifdef MIBS_HAS_CPLEX
       UBSolver = new OsiCpxSolverInterface();
 #else
       throw CoinError("CPLEX chosen as solver, but it has not been enabled",
@@ -3377,14 +3377,14 @@ MibSCutGenerator::solveLeafNode(int leafNodeIndex, bool *isTimeLimReached)
       if (feasCheckSolver == "Cbc"){
 	relaxSolver = new OsiCbcSolverInterface();
       }else if (feasCheckSolver == "SYMPHONY"){
-#ifdef COIN_HAS_SYMPHONY
+#ifdef MIBS_HAS_SYMPHONY
 	relaxSolver = new OsiSymSolverInterface();
 #else
 	throw CoinError("SYMPHONY chosen as solver, but it has not been enabled",
 			"solveLeafNode", "MibSCutGenerator");
 #endif
       }else if (feasCheckSolver == "CPLEX"){
-	#ifdef COIN_HAS_CPLEX
+	#ifdef MIBS_HAS_CPLEX
 	relaxSolver = new OsiCpxSolverInterface();
 #else
 	throw CoinError("CPLEX chosen as solver, but it has not been enabled",
@@ -3550,7 +3550,7 @@ MibSCutGenerator::solveMips(OsiSolverInterface * mipSolver)
         dynamic_cast<OsiCbcSolverInterface *>
 	  (mipSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
   }else if (feasCheckSolver == "SYMPHONY"){
-#if COIN_HAS_SYMPHONY
+#if MIBS_HAS_SYMPHONY
         sym_environment *env = dynamic_cast<OsiSymSolverInterface *>
 	  (mipSolver)->getSymphonyEnvironment();
 	sym_set_dbl_param(env, "time_limit", remainingTime);
@@ -3580,7 +3580,7 @@ MibSCutGenerator::solveMips(OsiSolverInterface * mipSolver)
 	}
 #endif
   }else if (feasCheckSolver == "CPLEX"){
-#ifdef COIN_HAS_CPLEX
+#ifdef MIBS_HAS_CPLEX
     mipSolver->setHintParam(OsiDoReducePrint);
     mipSolver->messageHandler()->setLogLevel(0);
         CPXENVptr cpxEnv =
@@ -4111,7 +4111,7 @@ MibSCutGenerator::findDeepestLandPCut_ValFunc()
   if(0)
     cglpSolver->writeLp("cglp");
 
-#ifndef COIN_HAS_SYMPHONY
+#ifndef MIBS_HAS_SYMPHONY
   dynamic_cast<OsiClpSolverInterface *> 
      (cglpSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
 #else
@@ -4578,7 +4578,7 @@ MibSCutGenerator::findDeepestLandPCut_IncObj(double * upperSol,
     cglpSolver->writeLp("cglp");
   //cglpSolver->writeMps("cglp");
 
-#ifndef COIN_HAS_SYMPHONY
+#ifndef MIBS_HAS_SYMPHONY
   dynamic_cast<OsiClpSolverInterface *> 
      (cglpSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
 #else
@@ -5072,7 +5072,7 @@ MibSCutGenerator::findDeepestLandPCut1()
     cglpSolver->writeLp("cglp");
   //cglpSolver->writeMps("cglp");
 
-#ifndef COIN_HAS_SYMPHONY
+#ifndef MIBS_HAS_SYMPHONY
   dynamic_cast<OsiClpSolverInterface *> 
      (cglpSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
 #else
@@ -5311,14 +5311,14 @@ MibSCutGenerator::findBigMIncObjCut()
     if (feasCheckSolver == "Cbc"){
 	nSolver = new OsiCbcSolverInterface();
     }else if (feasCheckSolver == "SYMPHONY"){
-#ifdef COIN_HAS_SYMPHONY
+#ifdef MIBS_HAS_SYMPHONY
 	nSolver = new OsiSymSolverInterface();
 #else
 	throw CoinError("SYMPHONY chosen as solver, but it has not been enabled",
 			"findBigMIncObjCut", "MibSCutGenerator");
 #endif
     }else if (feasCheckSolver == "CPLEX"){
-#ifdef COIN_HAS_CPLEX
+#ifdef MIBS_HAS_CPLEX
 	nSolver = new OsiCpxSolverInterface();
 #else
 	throw CoinError("CPLEX chosen as solver, but it has not been enabled",
@@ -5359,7 +5359,7 @@ MibSCutGenerator::findBigMIncObjCut()
 	    dynamic_cast<OsiCbcSolverInterface *>
 		(nSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
     }else if (feasCheckSolver == "SYMPHONY"){
-#if COIN_HAS_SYMPHONY
+#if MIBS_HAS_SYMPHONY
 	    sym_environment *env = dynamic_cast<OsiSymSolverInterface *>
 		(nSolver)->getSymphonyEnvironment();
 	    //Always uncomment for debugging!!
@@ -5389,7 +5389,7 @@ MibSCutGenerator::findBigMIncObjCut()
 	    }
 #endif
     }else if (feasCheckSolver == "CPLEX"){
-#ifdef COIN_HAS_CPLEX
+#ifdef MIBS_HAS_CPLEX
 	nSolver->setHintParam(OsiDoReducePrint);
 	nSolver->messageHandler()->setLogLevel(0);
 	    CPXENVptr cpxEnv =
@@ -5446,7 +5446,7 @@ MibSCutGenerator::weakIncObjCutCurrent(BcpsConstraintPool &conPool)
   CoinZeroN(tmpsol, lN + uN);
   OsiSolverInterface * lSolver = bS->setUpModel(solver, 0, false, true, tmpsol);
 
-#ifndef COIN_HAS_SYMPHONY
+#ifndef MIBS_HAS_SYMPHONY
   dynamic_cast<OsiCbcSolverInterface *> 
      (lSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
 #else
@@ -5548,7 +5548,7 @@ MibSCutGenerator::weakIncObjCutMaximal(BcpsConstraintPool &conPool)
   OsiSolverInterface * lSolver = bS->setUpModel(solver, tmpsol);
   delete [] tmpsol;
 
-#ifndef COIN_HAS_SYMPHONY
+#ifndef MIBS_HAS_SYMPHONY
   dynamic_cast<OsiCbcSolverInterface *> 
      (lSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
 #else
@@ -5587,7 +5587,7 @@ MibSCutGenerator::weakIncObjCutMaximal(BcpsConstraintPool &conPool)
   
       OsiSolverInterface * lSolver = bS->setUpModel(solver, sol);  
 
-#ifndef COIN_HAS_SYMPHONY
+#ifndef MIBS_HAS_SYMPHONY
     dynamic_cast<OsiCbcSolverInterface *> 
        (lSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
 #else
@@ -5745,7 +5745,7 @@ MibSCutGenerator::incObjCutMaximal(BcpsConstraintPool &conPool)
   
       OsiSolverInterface * lSolver = bS->setUpModel(solver, maximalupper);  
 
-#ifndef COIN_HAS_SYMPHONY
+#ifndef MIBS_HAS_SYMPHONY
     dynamic_cast<OsiCbcSolverInterface *> 
        (lSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
 #else
@@ -5845,7 +5845,7 @@ MibSCutGenerator::findMaximalUpperSol(OsiSolverInterface * si)
   maxSolver->setObjective(objectives);
   maxSolver->setObjSense(-1); //maximization
 
-#ifndef COIN_HAS_SYMPHONY
+#ifndef MIBS_HAS_SYMPHONY
   dynamic_cast<OsiCbcSolverInterface *> 
      (maxSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
 #else

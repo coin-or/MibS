@@ -15,12 +15,12 @@
 //#include "BlisModel.h"
 #include "MibSConfig.hpp"
 #include "MibSModel.hpp"
-#ifdef COIN_HAS_SYMPHONY
+#ifdef MIBS_HAS_SYMPHONY
 #include "symphony.h"
 #include "SymConfig.h"
 #include "OsiSymSolverInterface.hpp"
 #endif
-#ifdef COIN_HAS_CPLEX
+#ifdef MIBS_HAS_CPLEX
 #include "cplex.h"
 #include "OsiCpxSolverInterface.hpp"
 #endif
@@ -46,7 +46,7 @@
 #include "AlpsKnowledgeBrokerSerial.h"
 #endif
 
-#ifdef COIN_HAS_C11
+#ifdef HAVE_CXX11
 #include <random>
 #endif
 
@@ -2244,7 +2244,7 @@ MibSModel::setupSAA(const CoinPackedMatrix& matrix,
     //saharSto2: we have one assumption: All SAA problems are feasible
     //saharStoSAA: ask about generating samples
     //saharStoSAA: lcm
-    //saharStoSAA: ask about defining symphony then check all COIN_HAS_SYMPHONY
+    //saharStoSAA: ask about defining symphony then check all MIBS_HAS_SYMPHONY
 
     const int clockType = AlpsPar()->entry(AlpsParams::clockType);
     broker_->timer().setClockType(clockType);
@@ -2435,7 +2435,7 @@ MibSModel::setupSAA(const CoinPackedMatrix& matrix,
 			dynamic_cast<OsiCbcSolverInterface *>
 			    (evalLSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
 		    }else if (feasCheckSolver == "SYMPHONY"){
-#if COIN_HAS_SYMPHONY
+#if MIBS_HAS_SYMPHONY
 			sym_environment *env = dynamic_cast<OsiSymSolverInterface*>
 			    (evalLSolver)->getSymphonyEnvironment();
 
@@ -2454,7 +2454,7 @@ MibSModel::setupSAA(const CoinPackedMatrix& matrix,
 			}
 #endif
 		    }else if (feasCheckSolver == "CPLEX"){
-#ifdef COIN_HAS_CPLEX
+#ifdef MIBS_HAS_CPLEX
 			evalLSolver->setHintParam(OsiDoReducePrint);
 			evalLSolver->messageHandler()->setLogLevel(0);
 			CPXENVptr cpxEnv =
@@ -2469,7 +2469,7 @@ MibSModel::setupSAA(const CoinPackedMatrix& matrix,
 
 
 		    if(feasCheckSolver == "SYMPHONY"){
-#if COIN_HAS_SYMPHONY
+#if MIBS_HAS_SYMPHONY
 			if(sym_is_time_limit_reached(dynamic_cast<OsiSymSolverInterface*>
 						     (evalLSolver)->getSymphonyEnvironment())){
 			    isTimeLimReached = true;
@@ -2499,7 +2499,7 @@ MibSModel::setupSAA(const CoinPackedMatrix& matrix,
 			    dynamic_cast<OsiCbcSolverInterface *>
 				(evalBestSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
 			}else if (feasCheckSolver == "SYMPHONY"){
-#if COIN_HAS_SYMPHONY
+#if MIBS_HAS_SYMPHONY
 			    sym_environment *env = dynamic_cast<OsiSymSolverInterface*>
 				(evalBestSolver)->getSymphonyEnvironment();
 
@@ -2518,7 +2518,7 @@ MibSModel::setupSAA(const CoinPackedMatrix& matrix,
 			    }
 #endif
 			}else if (feasCheckSolver == "CPLEX"){
-#ifdef COIN_HAS_CPLEX
+#ifdef MIBS_HAS_CPLEX
 			    evalBestSolver->setHintParam(OsiDoReducePrint);
 			    evalBestSolver->messageHandler()->setLogLevel(0);
 			    CPXENVptr cpxEnv =
@@ -2532,7 +2532,7 @@ MibSModel::setupSAA(const CoinPackedMatrix& matrix,
 			evalBestSolver->branchAndBound();
 
 			if(feasCheckSolver == "SYMPHONY"){
-#if COIN_HAS_SYMPHONY
+#if MIBS_HAS_SYMPHONY
 			    if(sym_is_time_limit_reached(dynamic_cast<OsiSymSolverInterface*>
 							 (evalBestSolver)->getSymphonyEnvironment())){
 				isTimeLimReached = true;
@@ -2634,7 +2634,7 @@ MibSModel::setupSAA(const CoinPackedMatrix& matrix,
 		dynamic_cast<OsiCbcSolverInterface *>
 		    (evalLSolverNew)->getModelPtr()->messageHandler()->setLogLevel(0);
 	    }else if (feasCheckSolver == "SYMPHONY"){
-#if COIN_HAS_SYMPHONY
+#if MIBS_HAS_SYMPHONY
 		sym_environment *env = dynamic_cast<OsiSymSolverInterface*>
 		    (evalLSolverNew)->getSymphonyEnvironment();
 
@@ -2653,7 +2653,7 @@ MibSModel::setupSAA(const CoinPackedMatrix& matrix,
 		}
 #endif
 	    }else if (feasCheckSolver == "CPLEX"){
-#ifdef COIN_HAS_CPLEX
+#ifdef MIBS_HAS_CPLEX
 		evalLSolverNew->setHintParam(OsiDoReducePrint);
 		evalLSolverNew->messageHandler()->setLogLevel(0);
 		CPXENVptr cpxEnv =
@@ -2667,7 +2667,7 @@ MibSModel::setupSAA(const CoinPackedMatrix& matrix,
 	    evalLSolverNew->branchAndBound();
 
 	    if(feasCheckSolver == "SYMPHONY"){
-#if COIN_HAS_SYMPHONY
+#if MIBS_HAS_SYMPHONY
 		if(sym_is_time_limit_reached(dynamic_cast<OsiSymSolverInterface*>
 					     (evalLSolverNew)->getSymphonyEnvironment())){
 		    isTimeLimReached = true;
@@ -2696,7 +2696,7 @@ MibSModel::setupSAA(const CoinPackedMatrix& matrix,
 		    dynamic_cast<OsiCbcSolverInterface *>
 			(evalBestSolverNew)->getModelPtr()->messageHandler()->setLogLevel(0);
 		}else if (feasCheckSolver == "SYMPHONY"){
-#if COIN_HAS_SYMPHONY
+#if MIBS_HAS_SYMPHONY
 		    sym_environment *env = dynamic_cast<OsiSymSolverInterface*>
 			(evalBestSolverNew)->getSymphonyEnvironment();
 
@@ -2715,7 +2715,7 @@ MibSModel::setupSAA(const CoinPackedMatrix& matrix,
 		    }
 #endif
 		}else if (feasCheckSolver == "CPLEX"){
-#ifdef COIN_HAS_CPLEX
+#ifdef MIBS_HAS_CPLEX
 		    evalBestSolverNew->setHintParam(OsiDoReducePrint);
 		    evalBestSolverNew->messageHandler()->setLogLevel(0);
 		    CPXENVptr cpxEnv =
@@ -2729,7 +2729,7 @@ MibSModel::setupSAA(const CoinPackedMatrix& matrix,
 		evalBestSolverNew->branchAndBound();
 
 		if(feasCheckSolver == "SYMPHONY"){
-#if COIN_HAS_SYMPHONY
+#if MIBS_HAS_SYMPHONY
 		    if(sym_is_time_limit_reached(dynamic_cast<OsiSymSolverInterface*>
 						 (evalBestSolverNew)->getSymphonyEnvironment())){
 			isTimeLimReached = true;
@@ -3001,14 +3001,14 @@ MibSModel::setUpEvalModels(CoinPackedMatrix *matrixG2, double *optSol,
     if (feasCheckSolver == "Cbc"){
 	nSolver = new OsiCbcSolverInterface();
     }else if (feasCheckSolver == "SYMPHONY"){
-#ifdef COIN_HAS_SYMPHONY
+#ifdef MIBS_HAS_SYMPHONY
 	nSolver = new OsiSymSolverInterface();
 #else
 	throw CoinError("SYMPHONY chosen as solver, but it has not been enabled",
 			"setUpEvalModels", "MibSModel");
 #endif
     }else if (feasCheckSolver == "CPLEX"){
-#ifdef COIN_HAS_CPLEX
+#ifdef MIBS_HAS_CPLEX
 	nSolver = new OsiCpxSolverInterface();
 #else
 	throw CoinError("CPLEX chosen as solver, but it has not been enabled",
@@ -3272,7 +3272,7 @@ MibSModel::generateSamples(int size, int truncNumCols, int truncNumRows,
     stocMatrixA2 = new CoinPackedMatrix(false, 0, 0);
     stocMatrixA2->setDimensions(0, uColNum);
 
-#ifdef COIN_HAS_C11
+#ifdef HAVE_CXX11
     static unsigned int lastSeed = 123456;
     lastSeed = 1664525 * lastSeed + 1013904223;
     std::default_random_engine generator;
@@ -3282,13 +3282,13 @@ MibSModel::generateSamples(int size, int truncNumCols, int truncNumRows,
     if(isSMPSFormat == PARAM_ON){
 	std::string stoFileName = getStoFile();
 	std::ifstream stoData_stream(stoFileName.c_str());
-#ifdef COIN_HAS_C11
+#ifdef HAVE_CXX11
 	std::uniform_int_distribution<int> distScenIndex(1, allScenariosNum);
 #endif
 
 	int *scenIndex = new int[size];
 	while(numGeneratedSamples < size){
-#ifdef COIN_HAS_C11
+#ifdef HAVE_CXX11
 	    index = distScenIndex(generator);
 #else
 	    index = 1 + int(CoinDrand48() * allScenariosNum);
@@ -3467,7 +3467,7 @@ MibSModel::generateSamples(int size, int truncNumCols, int truncNumRows,
         int tmpB2 = (ubB2 - lbB2) * incB2Denum/incB2Numer + 1;
         int tmpA2 = (ubA2 - lbA2) * incA2Denum/incA2Numer + 1;
 
-#ifdef COIN_HAS_C11
+#ifdef HAVE_CXX11
         std::uniform_int_distribution<int> distB2(1, tmpB2);
         std::uniform_int_distribution<int> distA2(1, tmpA2);
 #endif
@@ -3476,7 +3476,7 @@ MibSModel::generateSamples(int size, int truncNumCols, int truncNumRows,
 	    //generate A2
 	    for(i = 0; i < truncLowerRowNum; i++){
 		for(j = 0; j < uColNum; j++){
-#ifdef COIN_HAS_C11
+#ifdef HAVE_CXX11
 		    tmpVal = (distA2(generator) - 1) * incA2Numer * lcmDenum/incA2Denum + lbA2 * lcmDenum;
 #else
 		    intRandVal = 1 + int(CoinDrand48() * tmpA2);
@@ -3489,7 +3489,7 @@ MibSModel::generateSamples(int size, int truncNumCols, int truncNumRows,
 		}
 		stocMatrixA2->appendRow(row);
 	        row.clear();
-#ifdef COIN_HAS_C11
+#ifdef HAVE_CXX11
 	        tmpVal = (distB2(generator) - 1) * incB2Numer * lcmDenum/incB2Denum + lbB2 * lcmDenum;
 #else
 		intRandVal = 1 + int(CoinDrand48() * tmpB2);

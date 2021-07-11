@@ -25,12 +25,12 @@
 //#include "MibSSolTypes.hpp"
 #include "MibSConfig.hpp"
 
-#ifdef COIN_HAS_SYMPHONY
+#ifdef MIBS_HAS_SYMPHONY
 #include "symphony.h"
 #include "SymConfig.h"
 #include "OsiSymSolverInterface.hpp"
 #endif
-#ifdef COIN_HAS_CPLEX
+#ifdef MIBS_HAS_CPLEX
 #include "cplex.h"
 #include "OsiCpxSolverInterface.hpp"
 #endif
@@ -161,14 +161,14 @@ MibSHeuristic::lowerObjHeuristic()
   if (feasCheckSolver == "Cbc"){
     hSolver = new OsiCbcSolverInterface();
   }else if (feasCheckSolver == "SYMPHONY"){
-#ifdef COIN_HAS_SYMPHONY
+#ifdef MIBS_HAS_SYMPHONY
     hSolver = new OsiSymSolverInterface();
 #else
     throw CoinError("SYMPHONY chosen as solver, but it has not been enabled",
 		    "lowerObjHeuristic", "MibSHeuristic");
 #endif
   }else if (feasCheckSolver == "CPLEX"){
-#ifdef COIN_HAS_CPLEX
+#ifdef MIBS_HAS_CPLEX
     hSolver = new OsiCpxSolverInterface();
 #else
     throw CoinError("CPLEX chosen as solver, but it has not been enabled",
@@ -244,7 +244,7 @@ MibSHeuristic::lowerObjHeuristic()
     dynamic_cast<OsiCbcSolverInterface *>
       (hSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
   }else if (feasCheckSolver == "SYMPHONY"){
-#if COIN_HAS_SYMPHONY
+#if MIBS_HAS_SYMPHONY
     sym_environment *env = dynamic_cast<OsiSymSolverInterface *>
 	  (hSolver)->getSymphonyEnvironment();
 	//Always uncomment for debugging!!
@@ -275,7 +275,7 @@ MibSHeuristic::lowerObjHeuristic()
 	}
 #endif
   }else if (feasCheckSolver == "CPLEX"){
-#ifdef COIN_HAS_CPLEX
+#ifdef MIBS_HAS_CPLEX
     hSolver->setHintParam(OsiDoReducePrint);
     hSolver->messageHandler()->setLogLevel(0);
     CPXENVptr cpxEnv =
@@ -360,7 +360,7 @@ MibSHeuristic::lowerObjHeuristic()
 	dynamic_cast<OsiCbcSolverInterface *>
 	  (lSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
       }else if (feasCheckSolver == "SYMPHONY"){
-#if COIN_HAS_SYMPHONY
+#if MIBS_HAS_SYMPHONY
 	sym_environment *env = dynamic_cast<OsiSymSolverInterface *>
 	  (lSolver)->getSymphonyEnvironment();
         //Always uncomment for debugging!!
@@ -391,7 +391,7 @@ MibSHeuristic::lowerObjHeuristic()
 	}
 #endif
       }else if (feasCheckSolver == "CPLEX"){
-#ifdef COIN_HAS_CPLEX
+#ifdef MIBS_HAS_CPLEX
 	lSolver->setHintParam(OsiDoReducePrint);
         lSolver->messageHandler()->setLogLevel(0);
 	CPXENVptr cpxEnv =
@@ -593,7 +593,7 @@ MibSHeuristic::objCutHeuristic()
       dynamic_cast<OsiCbcSolverInterface *>
 	(lSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
     }else if (feasCheckSolver == "SYMPHONY"){
-#if COIN_HAS_SYMPHONY
+#if MIBS_HAS_SYMPHONY
       sym_environment *env = dynamic_cast<OsiSymSolverInterface *>
 	(lSolver)->getSymphonyEnvironment();
       //Always uncomment for debugging!!
@@ -624,7 +624,7 @@ MibSHeuristic::objCutHeuristic()
       }
 #endif
     }else if (feasCheckSolver == "CPLEX"){
-#ifdef COIN_HAS_CPLEX
+#ifdef MIBS_HAS_CPLEX
       lSolver->setHintParam(OsiDoReducePrint);
       lSolver->messageHandler()->setLogLevel(0);
       CPXENVptr cpxEnv =
@@ -672,14 +672,14 @@ MibSHeuristic::objCutHeuristic()
   if (feasCheckSolver == "Cbc"){
     hSolver = new OsiCbcSolverInterface();
   }else if (feasCheckSolver == "SYMPHONY"){
-#ifdef COIN_HAS_SYMPHONY
+#ifdef MIBS_HAS_SYMPHONY
     hSolver = new OsiSymSolverInterface();
 #else
     throw CoinError("SYMPHONY chosen as solver, but it has not been enabled",
 		    "objCutHeuristic", "MibSHeuristic");
 #endif
   }else if (feasCheckSolver == "CPLEX"){
-#ifdef COIN_HAS_CPLEX
+#ifdef MIBS_HAS_CPLEX
     hSolver = new OsiCpxSolverInterface();
 #else
     throw CoinError("CPLEX chosen as solver, but it has not been enabled",
@@ -723,7 +723,7 @@ MibSHeuristic::objCutHeuristic()
         dynamic_cast<OsiCbcSolverInterface *>
 	  (hSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
   }else if (feasCheckSolver == "SYMPHONY"){
-#if COIN_HAS_SYMPHONY
+#if MIBS_HAS_SYMPHONY
         sym_environment *env = dynamic_cast<OsiSymSolverInterface *>
 	  (hSolver)->getSymphonyEnvironment();
 	//Always uncomment for debugging!!
@@ -754,7 +754,7 @@ MibSHeuristic::objCutHeuristic()
 	}
 #endif
   }else if (feasCheckSolver == "CPLEX"){
-#ifdef COIN_HAS_CPLEX
+#ifdef MIBS_HAS_CPLEX
     hSolver->setHintParam(OsiDoReducePrint);
     hSolver->messageHandler()->setLogLevel(0);
         CPXENVptr cpxEnv =
@@ -839,7 +839,7 @@ MibSHeuristic::objCutHeuristic()
 	dynamic_cast<OsiCbcSolverInterface *>
 	  (lSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
       }else if (feasCheckSolver == "SYMPHONY"){
-	#if COIN_HAS_SYMPHONY
+	#if MIBS_HAS_SYMPHONY
 	sym_environment *env = dynamic_cast<OsiSymSolverInterface *>
 	  (lSolver)->getSymphonyEnvironment();
 	//Always uncomment for debugging!!
@@ -870,7 +870,7 @@ MibSHeuristic::objCutHeuristic()
 	}
 	#endif
       }else if (feasCheckSolver == "CPLEX"){
-	#ifdef COIN_HAS_CPLEX
+	#ifdef MIBS_HAS_CPLEX
 	lSolver->setHintParam(OsiDoReducePrint);
 	lSolver->messageHandler()->setLogLevel(0);
 	CPXENVptr cpxEnv =
@@ -1429,7 +1429,7 @@ MibSHeuristic::checkLowerFeasibility(OsiSolverInterface * si,
   MibSModel * model = MibSModel_;
   OsiSolverInterface * lSolver = model->bS_->setUpModel(si, true, 0, solution);
 
-#ifndef COIN_HAS_SYMPHONY
+#ifndef MIBS_HAS_SYMPHONY
   dynamic_cast<OsiCbcSolverInterface *> 
      (lSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
 #else
@@ -1554,7 +1554,7 @@ MibSHeuristic::getBilevelSolution(const double * sol, double origLower,
       dynamic_cast<OsiCbcSolverInterface *>
 	(lSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
     }else if (feasCheckSolver == "SYMPHONY"){
-      #if COIN_HAS_SYMPHONY
+      #if MIBS_HAS_SYMPHONY
       sym_environment *env = dynamic_cast<OsiSymSolverInterface *>
 	(lSolver)->getSymphonyEnvironment();
       //Always uncomment for debugging!!
@@ -1585,7 +1585,7 @@ MibSHeuristic::getBilevelSolution(const double * sol, double origLower,
       }
       #endif
     }else if (feasCheckSolver == "CPLEX"){
-      #ifdef COIN_HAS_CPLEX
+      #ifdef MIBS_HAS_CPLEX
       lSolver->setHintParam(OsiDoReducePrint);
       lSolver->messageHandler()->setLogLevel(0);
       CPXENVptr cpxEnv =
@@ -1710,7 +1710,7 @@ MibSHeuristic::getBilevelSolution1(const double * sol)
   
   lSolver->setObjective(nObjCoeffs);
 
-#ifndef COIN_HAS_SYMPHONY
+#ifndef MIBS_HAS_SYMPHONY
   dynamic_cast<OsiCbcSolverInterface *> 
      (lSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
 #else
@@ -1774,14 +1774,14 @@ MibSHeuristic::solveSubproblem(double beta, bool &foundSolution)
   if (feasCheckSolver == "Cbc"){
     sSolver = new OsiCbcSolverInterface();
   }else if (feasCheckSolver == "SYMPHONY"){
-#ifdef COIN_HAS_SYMPHONY
+#ifdef MIBS_HAS_SYMPHONY
     sSolver = new OsiSymSolverInterface();
 #else
     throw CoinError("SYMPHONY chosen as solver, but it has not been enabled",
 		    "solveSubproblem", "MibSHeuristic");
 #endif
   }else if (feasCheckSolver == "CPLEX"){
-#ifdef COIN_HAS_CPLEX
+#ifdef MIBS_HAS_CPLEX
     sSolver = new OsiCpxSolverInterface();
 #else
     throw CoinError("CPLEX chosen as solver, but it has not been enabled",
@@ -1848,7 +1848,7 @@ MibSHeuristic::solveSubproblem(double beta, bool &foundSolution)
         dynamic_cast<OsiCbcSolverInterface *>
 	  (sSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
   }else if (feasCheckSolver == "SYMPHONY"){
-#if COIN_HAS_SYMPHONY
+#if MIBS_HAS_SYMPHONY
         sym_environment *env = dynamic_cast<OsiSymSolverInterface *>
 	  (sSolver)->getSymphonyEnvironment();
 	//Always uncomment for debugging!!
@@ -1879,7 +1879,7 @@ MibSHeuristic::solveSubproblem(double beta, bool &foundSolution)
 	}
 #endif
   }else if (feasCheckSolver == "CPLEX"){
-#ifdef COIN_HAS_CPLEX
+#ifdef MIBS_HAS_CPLEX
     sSolver->setHintParam(OsiDoReducePrint);
     sSolver->messageHandler()->setLogLevel(0);
     CPXENVptr cpxEnv =

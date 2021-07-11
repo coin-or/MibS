@@ -15,6 +15,9 @@
 #ifndef __CONFIG_MIBS_H__
 #define __CONFIG_MIBS_H__
 
+/* For DLL import/export */
+#undef MIBSLIB_EXPORT
+
 /* Version number of project */
 #undef MIBS_VERSION
 

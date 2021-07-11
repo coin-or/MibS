@@ -12,16 +12,6 @@
 # accompanying file for terms.                                              #
 #===========================================================================#
 
-AUTOMAKE_OPTIONS = foreign
-
-########################################################################
-#                           Common Flags                               #
-########################################################################
-
-LDADD = $(MIBSLIB_LIBS)
-DEPENDENCIES = $(MIBSLIB_DEPENDENCIES)
-AM_CPPFLAGS = $(MIBSLIB_CFLAGS)
-
 ########################################################################
 #                               libMibS                                #
 ########################################################################
@@ -64,12 +54,10 @@ libMibs_la_SOURCES = \
 	MibSHelper.hpp
 
 # List all additionally required libraries
-if DEPENDENCY_LINKING
-libMibs_la_LIBADD = $(MIBSLIB_LIBS)
-endif
+libMibs_la_LIBADD = $(MIBSLIB_LFLAGS)
 
-# This is for libtool (on Windows)
-libMibs_la_LDFLAGS = $(LT_LDFLAGS)
+# Some common flags
+libMibs_la_CPPFLAGS = $(MIBSLIB_CFLAGS)
 
 ########################################################################
 #                        MibS binary                                   #
@@ -77,19 +65,14 @@ libMibs_la_LDFLAGS = $(LT_LDFLAGS)
 
 bin_PROGRAMS = mibs
 mibs_SOURCES = MibSMain.cpp
-mibs_LDADD = libMibs.la $(MIBSLIB_LIBS)
-mibs_DEPENDENCIES = libMibs.la $(MIBSLIB_DEPENDENCIES)
+mibs_LDADD = libMibs.la 
+mibs_CPPFLAGS = $(MIBSLIB_CFLAGS)
 
 ########################################################################
 #                            Additional flags                          #
 ########################################################################
 
-# Here list all include flags, relative to this "srcdir" directory.  This
-# "cygpath" stuff is necessary to compile with native compilers on Windows.
-# AM_CPPFLAGS = $(MIBSLIB_CFLAGS)
-
-# This line is necessary to allow VPATH compilation
-DEFAULT_INCLUDES = -I. -I`$(CYGPATH_W) $(srcdir)`
+AM_LDFLAGS = $(LT_LDFLAGS)
 
 ########################################################################
 #                Headers that need to be installed                     #
@@ -97,7 +80,7 @@ DEFAULT_INCLUDES = -I. -I`$(CYGPATH_W) $(srcdir)`
 
 # Here list all the header files that are required by a user of the library,
 # and that therefore should be installed in 'install/coin'
-includecoindir = $(includedir)/coin
+includecoindir = $(includedir)/coin-or
 includecoin_HEADERS = \
 	MibSBilevel.hpp \
 	MibSConfig.hpp \
@@ -116,17 +99,6 @@ includecoin_HEADERS = \
 	MibSBranchStrategyStrong.hpp \
 	MibSObjectInt.hpp \
 	MibSHelper.hpp
-
-########################################################################
-#                     Installing manifest (MSVC++)                     #
-########################################################################
-
-if COIN_CXX_IS_CL
-install-exec-hook:
-	test -s mibs.exe.manifest && \
-	mt -manifest mibs.exe.manifest -outputresource:mibs.exe;\
-	cp mibs.exe $(bindir)/mibs.exe
-endif
 
 #############################################################################
 # Create the Config.h file that always defines HAVE_CONFIG_H and install it #

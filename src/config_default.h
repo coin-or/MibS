@@ -23,11 +23,35 @@
 /*    These are only in effect in a setting that doesn't use configure     */
 /***************************************************************************/
 
-/* Define to 1 if the CoinUtils package is used */
-#define COIN_HAS_COINDEPEND 1
+/* Define to 1 if Alps is available. */
+#define MIBS_HAS_ALPS 1
 
-/* Define to 1 if the SYMPHONY package is used */
-#define COIN_HAS_SYMPHONY 1
+/* Define to 1 if Bcps is available. */
+#define MIBS_HAS_BCPS 1
 
-/* Define to 1 if the SYMPHONY package is used */
-#define COIN_HAS_CPLEX 1
+/* Define to 1 if Blis is available. */
+#define MIBS_HAS_BLIS 1
+
+/* Define to 1 if Cbc is available. */
+#define MIBS_HAS_CBC 1
+
+/* Define to 1 if Cgl is available. */
+#define MIBS_HAS_CGL 1
+
+/* Define to 1 if Clp is available. */
+#define MIBS_HAS_CLP 1
+
+/* Define to 1 if CoinUtils is available. */
+#define MIBS_HAS_COINUTILS 1
+
+/* Define to 1 if Cplex is available. */
+/* #undef MIBS_HAS_CPLEX */
+
+/* Define to 1 if Osi is available. */
+#define MIBS_HAS_OSI 1
+
+/* Define to 1 if Sample is available. */
+#define MIBS_HAS_SAMPLE 1
+
+/* Define to 1 if SYMPHONY is available. */
+#define MIBS_HAS_SYMPHONY 1
