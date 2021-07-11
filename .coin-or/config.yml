@@ -37,27 +37,27 @@ Dependencies:
     URL: https://projects.coin-or.org/svn/Osi/stable/0.108/Osi
     Version: master
     Required: Required
-  - Description: Open Solver Interface
+  - Description: COIN-OR Linear Programming Solver
     URL: https://projects.coin-or.org/svn/Clp/stable/1.17/Clp
     Version: master
     Required: Required
-  - Description: Open Solver Interface
+  - Description: Cut Generation Library
     URL: https://projects.coin-or.org/svn/Cgl/stable/0.60/Cgl
     Version: master
     Required: Required
-  - Description: Open Solver Interface
+  - Description: Abstract Library for Parallel Search
     URL: https://github.com/coin-or/CHiPPS-ALPS
     Version: 1.6
     Required: Required
-  - Description: Open Solver Interface
+  - Description: Branch, Constrain, and Price Framework
     URL: https://github.com/coin-or/CHiPPS-BiCePS
     Version: 0.95
     Required: Required
-  - Description: Open Solver Interface
+  - Description: BiCePS Linear Integer Solver
     URL: https://github.com/coin-or/CHiPPS-BLIS
     Version: master
     Required: Required
-  - Description: Open Solver Interface
+  - Description: SYMPHONY Mip Solver
     URL: https://github.com/coin-or/SYMPHONY
     Version: master
     Required: Required
