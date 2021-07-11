@@ -16,8 +16,10 @@
 #ifndef MibSSolTypes_h_
 #define MibSSolTypes_h_
 
+#include "MibSConfig.hpp"
+
 //#############################################################################
-class mcSol{
+class MIBSLIB_EXPORT mcSol{
 
  private:
 
@@ -73,7 +75,7 @@ class mcSol{
 };
 
 //#############################################################################
-class bfSol{
+class MIBSLIB_EXPORT bfSol{
 
  private:
 
@@ -133,7 +135,7 @@ class bfSol{
 
 //#############################################################################
 
-class SolPair{
+class MIBSLIB_EXPORT SolPair{
 
  private:
 

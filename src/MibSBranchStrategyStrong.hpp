@@ -18,10 +18,11 @@
 
 #include "BlisBranchStrategyStrong.h"
 #include "BlisModel.h"
+#include "MibSConfig.hpp"
 
 //#############################################################################
 
-class MibSBranchStrategyStrong : public BlisBranchStrategyStrong {
+class MIBSLIB_EXPORT MibSBranchStrategyStrong : public BlisBranchStrategyStrong {
 
  private:
    

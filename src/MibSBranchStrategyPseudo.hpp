@@ -19,9 +19,11 @@
 #include "BlisBranchStrategyPseudo.h"
 #include "BlisModel.h"
 
+#include "MibSConfig.hpp"
+
 //#############################################################################
 
-class MibSBranchStrategyPseudo : public BlisBranchStrategyPseudo {
+class MIBSLIB_EXPORT MibSBranchStrategyPseudo : public BlisBranchStrategyPseudo {
 
  private:
    

@@ -21,9 +21,11 @@
 
 #include "BlisTreeNode.h"
 
+#include "MibSConfig.hpp"
+
 //#############################################################################
 
-class MibSTreeNode : public BlisTreeNode {
+class MIBSLIB_EXPORT MibSTreeNode : public BlisTreeNode {
 
  private:
    

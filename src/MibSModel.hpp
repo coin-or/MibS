@@ -45,6 +45,7 @@
 
 #include "OsiCbcSolverInterface.hpp"
 
+#include "MibSConfig.hpp"
 #include "MibSBilevel.hpp"
 #include "MibSParams.hpp"
 #include "MibSHelper.hpp"
@@ -55,7 +56,7 @@ class MibSCutGenerator;
 
 //#############################################################################
 
-class MibSModel : public BlisModel {
+class MIBSLIB_EXPORT MibSModel : public BlisModel {
 
     friend class MibSCutGenerator;
     friend class MibSBilevel;

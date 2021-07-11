@@ -16,11 +16,12 @@
 #ifndef MibsCutGenerator_h_
 #define MibsCutGenerator_h_
 
+#include "MibSConfig.hpp"
 #include "MibSModel.hpp"
 
 //#############################################################################
 
-class MibSCutGenerator : public BlisConGenerator {
+class MIBSLIB_EXPORT MibSCutGenerator : public BlisConGenerator {
 
  private:
 

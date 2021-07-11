@@ -19,6 +19,7 @@
 #include "OsiSolverInterface.hpp"
 #include "CoinWarmStart.hpp"
 
+#include "MibSConfig.hpp"
 #include "MibSModel.hpp"
 #include "MibSHeuristic.hpp"
 #include "MibSConstants.hpp"
@@ -31,7 +32,7 @@ class MibSTreeNode;
 
 //#############################################################################
 
-class MibSBilevel {
+class MIBSLIB_EXPORT MibSBilevel {
 
     friend class MibSModel;
     friend class MibSCutGenerator;
