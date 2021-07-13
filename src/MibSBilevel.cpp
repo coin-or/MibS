@@ -23,12 +23,12 @@
 //#include "MibSHeuristic.hpp"
 #include "MibSConfig.hpp"
 
-#ifdef COIN_HAS_SYMPHONY
+#ifdef MIBS_HAS_SYMPHONY
 #include "symphony.h"
 #include "SymConfig.h"
 #include "OsiSymSolverInterface.hpp"
 #endif
-#ifdef COIN_HAS_CPLEX
+#ifdef MIBS_HAS_CPLEX
 #include "cplex.h"
 #include "OsiCpxSolverInterface.hpp"
 #endif
@@ -484,7 +484,7 @@ MibSBilevel::checkBilevelFeasibility(bool isRoot)
 		dynamic_cast<OsiCbcSolverInterface *>
 		    (lSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
 	    }else if (feasCheckSolver == "SYMPHONY"){
-#if COIN_HAS_SYMPHONY
+#if MIBS_HAS_SYMPHONY
 	    //dynamic_cast<OsiSymSolverInterface *> 
 	    // (lSolver)->setSymParam("prep_level", -1);
 
@@ -530,7 +530,7 @@ MibSBilevel::checkBilevelFeasibility(bool isRoot)
 		}
 #endif
 	    }else if (feasCheckSolver == "CPLEX"){
-#ifdef COIN_HAS_CPLEX
+#ifdef MIBS_HAS_CPLEX
 		lSolver->setHintParam(OsiDoReducePrint);
 	        lSolver->messageHandler()->setLogLevel(0);
 		CPXENVptr cpxEnv =
@@ -562,7 +562,7 @@ MibSBilevel::checkBilevelFeasibility(bool isRoot)
 	    }
 	
 	    if(feasCheckSolver == "SYMPHONY"){
-#ifdef COIN_HAS_SYMPHONY
+#ifdef MIBS_HAS_SYMPHONY
 		if(sym_is_time_limit_reached(dynamic_cast<OsiSymSolverInterface *>
 					     (lSolver)->getSymphonyEnvironment())){
 		shouldPrune_ = true;
@@ -572,7 +572,7 @@ MibSBilevel::checkBilevelFeasibility(bool isRoot)
 #endif
 	    }
 	    else if(feasCheckSolver == "CPLEX"){
-#ifdef COIN_HAS_CPLEX
+#ifdef MIBS_HAS_CPLEX
 		lpStat = CPXgetstat(dynamic_cast<OsiCpxSolverInterface*>
 				    (lSolver)->getEnvironmentPtr(),
 				    dynamic_cast<OsiCpxSolverInterface*>
@@ -844,7 +844,7 @@ MibSBilevel::checkBilevelFeasibility(bool isRoot)
 		    dynamic_cast<OsiCbcSolverInterface *>
 			(UBSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
 		}else if (feasCheckSolver == "SYMPHONY"){
-#if COIN_HAS_SYMPHONY
+#if MIBS_HAS_SYMPHONY
 		    //dynamic_cast<OsiSymSolverInterface *>
 		    // (lSolver)->setSymParam("prep_level", -1);
 		    sym_environment *env = dynamic_cast<OsiSymSolverInterface *>
@@ -877,7 +877,7 @@ MibSBilevel::checkBilevelFeasibility(bool isRoot)
 		    }
 #endif
 		}else if (feasCheckSolver == "CPLEX"){
-#ifdef COIN_HAS_CPLEX
+#ifdef MIBS_HAS_CPLEX
 		    UBSolver->setHintParam(OsiDoReducePrint);
 		    UBSolver->messageHandler()->setLogLevel(0);
 		    CPXENVptr cpxEnv =
@@ -900,7 +900,7 @@ MibSBilevel::checkBilevelFeasibility(bool isRoot)
 		}
 
 		if(feasCheckSolver == "SYMPHONY"){
-#ifdef COIN_HAS_SYMPHONY
+#ifdef MIBS_HAS_SYMPHONY
 		    if(sym_is_time_limit_reached(dynamic_cast<OsiSymSolverInterface *>
 						 (UBSolver)->getSymphonyEnvironment())){
 			shouldPrune_ = true;
@@ -910,7 +910,7 @@ MibSBilevel::checkBilevelFeasibility(bool isRoot)
 #endif
 		}
 		else if(feasCheckSolver == "CPLEX"){
-#ifdef COIN_HAS_CPLEX
+#ifdef MIBS_HAS_CPLEX
 		    lpStat = CPXgetstat(dynamic_cast<OsiCpxSolverInterface*>
 					(UBSolver)->getEnvironmentPtr(),
 					dynamic_cast<OsiCpxSolverInterface*>
@@ -1142,7 +1142,7 @@ MibSBilevel::checkBilevelFeasibilityParallel(bool isRoot)
 	dynamic_cast<OsiCbcSolverInterface *>
 	  (lSolverVec[i])->getModelPtr()->messageHandler()->setLogLevel(0);
       }else if (feasCheckSolver == "SYMPHONY"){
-#if COIN_HAS_SYMPHONY
+#if MIBS_HAS_SYMPHONY
 	//dynamic_cast<OsiSymSolverInterface *>
 	// (lSolver)->setSymParam("prep_level", -1);
 
@@ -1176,7 +1176,7 @@ MibSBilevel::checkBilevelFeasibilityParallel(bool isRoot)
 	}
 #endif
       }else if (feasCheckSolver == "CPLEX"){
-#ifdef COIN_HAS_CPLEX
+#ifdef MIBS_HAS_CPLEX
 	lSolverVec[i]->setHintParam(OsiDoReducePrint);
 	lSolverVec[i]->messageHandler()->setLogLevel(0);
 	CPXENVptr cpxEnv =
@@ -1204,7 +1204,7 @@ MibSBilevel::checkBilevelFeasibilityParallel(bool isRoot)
 
     for(i = 0; i < numScenarios; i++){
       if(feasCheckSolver == "SYMPHONY"){
-#ifdef COIN_HAS_SYMPHONY
+#ifdef MIBS_HAS_SYMPHONY
 	if(sym_is_time_limit_reached(dynamic_cast<OsiSymSolverInterface *>
 				     (lSolverVec[i])->getSymphonyEnvironment())){
 	  shouldPrune_ = true;
@@ -1214,7 +1214,7 @@ MibSBilevel::checkBilevelFeasibilityParallel(bool isRoot)
 #endif
       }
       else if(feasCheckSolver == "CPLEX"){
-#ifdef COIN_HAS_CPLEX
+#ifdef MIBS_HAS_CPLEX
 	lpStat = CPXgetstat(dynamic_cast<OsiCpxSolverInterface*>
 			    (lSolverVec[i])->getEnvironmentPtr(),
 			    dynamic_cast<OsiCpxSolverInterface*>
@@ -1467,7 +1467,7 @@ MibSBilevel::checkBilevelFeasibilityParallel(bool isRoot)
 	    dynamic_cast<OsiCbcSolverInterface *>
 	      (UBSolverVec[i])->getModelPtr()->messageHandler()->setLogLevel(0);
 	  }else if (feasCheckSolver == "SYMPHONY"){
-#if COIN_HAS_SYMPHONY
+#if MIBS_HAS_SYMPHONY
 	    //dynamic_cast<OsiSymSolverInterface *>
 	    // (lSolver)->setSymParam("prep_level", -1);
 	    sym_environment *env = dynamic_cast<OsiSymSolverInterface *>
@@ -1500,7 +1500,7 @@ MibSBilevel::checkBilevelFeasibilityParallel(bool isRoot)
 	    }
 #endif
 	  }else if (feasCheckSolver == "CPLEX"){
-#ifdef COIN_HAS_CPLEX
+#ifdef MIBS_HAS_CPLEX
 	    UBSolverVec[i]->setHintParam(OsiDoReducePrint);
 	    UBSolverVec[i]->messageHandler()->setLogLevel(0);
 	    CPXENVptr cpxEnv =
@@ -1529,7 +1529,7 @@ MibSBilevel::checkBilevelFeasibilityParallel(bool isRoot)
 
 	for(i = 0; i < numDecomposedProbs; i++){ 
 	  if(feasCheckSolver == "SYMPHONY"){
-#ifdef COIN_HAS_SYMPHONY
+#ifdef MIBS_HAS_SYMPHONY
 	    if(sym_is_time_limit_reached(dynamic_cast<OsiSymSolverInterface *>
 					 (UBSolverVec[i])->getSymphonyEnvironment())){
 	      shouldPrune_ = true;
@@ -1539,7 +1539,7 @@ MibSBilevel::checkBilevelFeasibilityParallel(bool isRoot)
 #endif
 	  }
 	  else if(feasCheckSolver == "CPLEX"){
-#ifdef COIN_HAS_CPLEX
+#ifdef MIBS_HAS_CPLEX
 	    lpStat = CPXgetstat(dynamic_cast<OsiCpxSolverInterface*>
 				(UBSolverVec[i])->getEnvironmentPtr(),
 				dynamic_cast<OsiCpxSolverInterface *>
@@ -2833,14 +2833,14 @@ MibSBilevel::setUpDecomposedUBModel(OsiSolverInterface * oSolver,
     if(feasCheckSolver == "Cbc"){
 	nSolver = new OsiCbcSolverInterface();
     }else if(feasCheckSolver == "SYMPHONY"){
-	#ifdef COIN_HAS_SYMPHONY
+	#ifdef MIBS_HAS_SYMPHONY
 	nSolver = new OsiSymSolverInterface();
 	#else
 	throw CoinError("SYMPHONY chosen as solver, but it has not been enabled",
 			"setUpDecomposedUBModel", "MibsBilevel");
 	#endif
     }else if(feasCheckSolver == "CPLEX"){
-	#ifdef COIN_HAS_CPLEX
+	#ifdef MIBS_HAS_CPLEX
 	nSolver = new OsiCpxSolverInterface();
 	#else
 	throw CoinError("CPLEX chosen as solver, but it has not been enabled",
@@ -2972,14 +2972,14 @@ MibSBilevel::setUpUBModel(OsiSolverInterface * oSolver,
         if (feasCheckSolver == "Cbc"){
 	    nSolver = new OsiCbcSolverInterface();
 	}else if (feasCheckSolver == "SYMPHONY"){
-#ifdef COIN_HAS_SYMPHONY
+#ifdef MIBS_HAS_SYMPHONY
 	    nSolver = new OsiSymSolverInterface();
 #else
 	    throw CoinError("SYMPHONY chosen as solver, but it has not been enabled",
 			    "setUpUBModel", "MibsBilevel");
 #endif
 	}else if (feasCheckSolver == "CPLEX"){
-#ifdef COIN_HAS_CPLEX
+#ifdef MIBS_HAS_CPLEX
 	    nSolver = new OsiCpxSolverInterface();
 #else
 	    throw CoinError("CPLEX chosen as solver, but it has not been enabled",
@@ -3193,14 +3193,14 @@ MibSBilevel::setUpModel(OsiSolverInterface * oSolver, bool newOsi,
      if (feasCheckSolver == "Cbc"){
 	nSolver = new OsiCbcSolverInterface();
      }else if (feasCheckSolver == "SYMPHONY"){
-#ifdef COIN_HAS_SYMPHONY
+#ifdef MIBS_HAS_SYMPHONY
 	nSolver = new OsiSymSolverInterface();
 #else
 	throw CoinError("SYMPHONY chosen as solver, but it has not been enabled",
 			"setUpModel", "MibsBilevel");
 #endif
      }else if (feasCheckSolver == "CPLEX"){
-#ifdef COIN_HAS_CPLEX
+#ifdef MIBS_HAS_CPLEX
 	nSolver = new OsiCpxSolverInterface();
 #else
 	throw CoinError("CPLEX chosen as solver, but it has not been enabled",
@@ -3303,7 +3303,7 @@ MibSBilevel::setUpModel(OsiSolverInterface * oSolver, bool newOsi,
 	   (nSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
      }
      else{
-#ifdef COIN_HAS_SYMPHONY
+#ifdef MIBS_HAS_SYMPHONY
 	dynamic_cast<OsiSymSolverInterface *> 
 	   (nSolver)->setSymParam("prep_level", -1);
 	

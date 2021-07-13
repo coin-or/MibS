@@ -18,7 +18,7 @@
 /***************************************************************************/
 
 /* Version number of project */
-#define MIBS_VERSION "trunk"
+#define MIBS_VERSION "devel"
 
 /* Major Version number of project */
 #define MIBS_VERSION_MAJOR   9999

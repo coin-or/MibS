@@ -1,0 +1,18 @@
+Alps_instance stocBmilplib_10_10.mps 
+MibS_auxiliaryInfoFile stocBmilplib_10_10.aux
+Alps_timeLimit 18000
+
+MibS_sampSizeSAA 20
+MibS_evalSampSizeSAA 200
+MibS_replNumSAA 10
+MibS_lbDistB2SAA 10
+MibS_ubDistB2SAA 110
+MibS_lbDistA2SAA 0
+MibS_ubDistA2SAA 10
+MibS_incDistB2NumerSAA 1
+MibS_incDistB2DenumSAA 2
+MibS_incDistA2NumerSAA 1
+MibS_incDistA2DenumSAA 2
+MibS_stochasticityType stochasticWithSAA
+MibS_isSMPSFormat 0
+MibS_isA2Random 1

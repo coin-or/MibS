@@ -18,11 +18,12 @@
 
 #include "BlisSolution.h"
 
+#include "MibSConfig.hpp"
 #include "MibSModel.hpp"
 
 //#############################################################################
 
-class MibSSolution : public BlisSolution {
+class MIBSLIB_EXPORT MibSSolution : public BlisSolution {
 
  private:
    

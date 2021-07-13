@@ -19,9 +19,11 @@
 #include "BlisBranchStrategyMaxInf.h"
 #include "BlisModel.h"
 
+#include "MibSConfig.hpp"
+
 //#############################################################################
 
-class MibSBranchStrategyMaxInf : public BlisBranchStrategyMaxInf {
+class MIBSLIB_EXPORT MibSBranchStrategyMaxInf : public BlisBranchStrategyMaxInf {
 
  private:
    

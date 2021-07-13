@@ -16,6 +16,7 @@
 #ifndef MibSHeuristic_h_
 #define MibSHeuristic_h_
 
+#include "MibSConfig.hpp"
 #include "MibSModel.hpp"
 #include "MibSSolTypes.hpp"
 
@@ -25,7 +26,7 @@ class MibSModel;
 
 //#############################################################################
 
-class MibSHeuristic {
+class MIBSLIB_EXPORT MibSHeuristic {
 
  private:
 

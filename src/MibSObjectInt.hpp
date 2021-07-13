@@ -19,9 +19,11 @@
 #include "BlisObjectInt.h"
 #include "BcpsModel.h"
 
+#include "MibSConfig.hpp"
+
 //#############################################################################
 
-class MibSObjectInt : public BlisObjectInt {
+class MIBSLIB_EXPORT MibSObjectInt : public BlisObjectInt {
 
  private:
    

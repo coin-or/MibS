@@ -19,10 +19,12 @@
 #include "AlpsKnowledge.h"
 #include "AlpsParameterBase.h"
 
+#include "MibSConfig.hpp"
+
 //#############################################################################
 
 //** Parameters used in MibS. */
-class MibSParams : public AlpsParameterSet {
+class MIBSLIB_EXPORT MibSParams : public AlpsParameterSet {
  public:
   /** Character parameters. All of these variable are used as booleans
       (true = 1, false = 0). */

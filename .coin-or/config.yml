@@ -1,0 +1,100 @@
+Description:
+  Slug: MibS
+  ShortName: MibS
+  LongName:
+  ShortDescription: Solver for mixed integer bilevel optimization problems.
+  LongDescription: |2
+"    
+    MibS is a solver for mixed integer bilevel optimization problems."
+  Manager: Ted Ralphs, tkralphs at lehigh dot edu
+  Homepage: https://github.com/coin-or/MibS
+  License: Eclipse Public License 2.0
+  LicenseURL: http://www.opensource.org/licenses/eclipse-2.0
+  Zenodo: 39053653
+  IncludedIn: 
+    Package: MibS
+  Language:
+    - C++
+  Categories: 
+    - Interfaces
+    - Optimization bilevel
+    - Optimization deterministic linear discrete
+
+Dependencies:
+  - Description: Sample data files
+    URL: https://projects.coin-or.org/svn/Data/Sample/stable/1.2
+    Version: 1.2
+    Required: Required
+  - Description: miplib3 data files
+    URL: https://projects.coin-or.org/svn/Data/miplib3/stable/1.2
+    Version: 1.2
+    Required: Required
+  - Description: COIN-OR Utilities
+    URL: https://projects.coin-or.org/svn/CoinUtils/stable/2.11/CoinUtils
+    Version: master
+    Required: Required
+  - Description: Open Solver Interface
+    URL: https://projects.coin-or.org/svn/Osi/stable/0.108/Osi
+    Version: master
+    Required: Required
+  - Description: COIN-OR Linear Programming Solver
+    URL: https://projects.coin-or.org/svn/Clp/stable/1.17/Clp
+    Version: master
+    Required: Required
+  - Description: Cut Generation Library
+    URL: https://projects.coin-or.org/svn/Cgl/stable/0.60/Cgl
+    Version: master
+    Required: Required
+  - Description: Abstract Library for Parallel Search
+    URL: https://github.com/coin-or/CHiPPS-ALPS
+    Version: 1.6
+    Required: Required
+  - Description: Branch, Constrain, and Price Framework
+    URL: https://github.com/coin-or/CHiPPS-BiCePS
+    Version: 0.95
+    Required: Required
+  - Description: BiCePS Linear Integer Solver
+    URL: https://github.com/coin-or/CHiPPS-BLIS
+    Version: master
+    Required: Required
+  - Description: SYMPHONY Mip Solver
+    URL: https://github.com/coin-or/SYMPHONY
+    Version: master
+    Required: Required
+  - Description: COIN-OR Branch-and-cut
+    URL: https://projects.coin-or.org/svn/Cbc/stable/2.10/Cbc
+    Version: master
+    Required: Required
+  - Description: Basic Linear Algebra Subroutines (BLAS)
+    URL: http://www.netlib.org/blas
+    Required: Recommended
+  - Description: Linear Algebra Package (LAPACK)
+    URL: http://www.netlib.org/lapack
+    Required: Recommended
+  - Description: GNU Readline
+    Required: Recommended
+  - Description: GNU History
+    Required: Recommended
+
+DevelopmentStatus: 
+  activityStatus: Active
+  maturityLevel: 5
+  testedPlatforms: 
+  - operatingSystem: Linux
+    compiler: gcc
+  - operatingSystem: Mac OS X
+    compiler:
+    - gcc
+    - clang
+  - operatingSystem: Microsoft Windows
+    compiler: cl
+  - operatingSystem: Microsoft Windows with MSys2
+    compiler:
+    - gcc
+    - cl
+    - icl
+  - operatingSystem: Microsoft Windows Subsystem for Linux
+    compiler:
+    - gcc
+    - cl
+    - icl

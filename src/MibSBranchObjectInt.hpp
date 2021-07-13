@@ -19,9 +19,11 @@
 #include "BlisBranchObjectInt.h"
 #include "BcpsModel.h"
 
+#include "MibSConfig.hpp"
+
 //#############################################################################
 
-class MibSBranchObjectInt : public BlisBranchObjectInt {
+class MIBSLIB_EXPORT MibSBranchObjectInt : public BlisBranchObjectInt {
 
  private:
    
