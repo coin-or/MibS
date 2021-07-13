@@ -75,6 +75,9 @@ MibSParams::createKeywordList() {
    keys_.push_back(make_pair(std::string("MibS_useProgresHedg"),
 			     AlpsParameter(AlpsBoolPar, useProgresHedg)));
    
+   //YX: for BR feasibility check test only
+   keys_.push_back(make_pair(std::string("MibS_alwaysSLMILP"),
+			     AlpsParameter(AlpsBoolPar, alwaysSLMILP)));   
 
    //--------------------------------------------------------
    // BoolArrayPar
@@ -369,6 +372,8 @@ MibSParams::setDefaultEntries() {
    setEntry(useNewPureIntCut, false);
 
    setEntry(useProgresHedg, false);
+
+   setEntry(alwaysSLMILP, false);
 
    //-------------------------------------------------------------
    // Int Parameters.

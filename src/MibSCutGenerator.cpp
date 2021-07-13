@@ -6372,6 +6372,10 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
   int numCuts(0);
 
   //OsiSolverInterface * solver = localModel_->solver();
+  
+  // YX: for optimality gap condition check
+  double targetGap(localModel_->MibSPar_->entry(MibSParams::slTargetGap));
+  double etol(localModel_->etol_);
 
   int cutStrategy =
 	localModel_->MibSPar_->entry(MibSParams::cutStrategy);
@@ -6488,12 +6492,22 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
 	  //}
 	  if (useIntersectionCutTypeIC == PARAM_ON){
 		  cutType = MibSIntersectionCutTypeIC;
-		  intersectionCuts(conPool, bS->optLowerSolutionOrd_, cutType);
+		  if (targetGap < etol){ // YX: modified to add gap and SLMILP flag
+		 	intersectionCuts(conPool, bS->optLowerSolutionOrd_, cutType);
+		  }
+		  else if (targetGap > etol && bS->isSLSolved_== true){
+		  	intersectionCuts(conPool, bS->vfLowerSolutionOrd_, cutType);
+		  }
 	  }
 
 	  if (useIntersectionCutTypeWatermelon == PARAM_ON){
 		  cutType = MibSIntersectionCutTypeWatermelon;
-		  intersectionCuts(conPool, bS->optLowerSolutionOrd_, cutType);
+		  if (targetGap < etol){ // YX: modified to add gap and SLMILP flag
+		 	intersectionCuts(conPool, bS->optLowerSolutionOrd_, cutType);
+		  }
+		  else if (targetGap > etol && bS->isSLSolved_== true){
+		  	intersectionCuts(conPool, bS->vfLowerSolutionOrd_, cutType);
+		  }
 	  }
 
 	  if (useIntersectionCutTypeHypercubeIC == PARAM_ON){
