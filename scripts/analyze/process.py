@@ -4,6 +4,8 @@
 # Dec 2020 
 # Some os function requires Python 3.5+
 
+# NEED TO ADD NONE option for unsolved cases when parsing the result
+
 import sys, os, collections
 import pandas as pd
 import numpy as np
@@ -179,7 +181,7 @@ def processTable(df, gaps, displayCols):
     #     file.write(df_forprint.to_latex())
     
     # OPTION 2: for each displayCol, print a table; using slicer indexing
-    with open('ltx_tb2.txt', 'a') as file:
+    with open('ltx_tb2.txt', 'w') as file:
         for col in displayCols:
             file.write(df_forprint.loc[:, (slice(None), col)].to_latex())
 
@@ -256,7 +258,8 @@ def plotSelected(df, gaps, plotCols):
         'solved' in col and ax.set_ylim(bottom=-1,top=3) # only for vf/ub solved
 
         fig.tight_layout()
-        fig.savefig("./performance/test_"+col, dpi=fig.dpi)
+        # fig.savefig("./performance/test_"+col, dpi=fig.dpi)
+        fig.savefig("./performance/test_"+col+'.eps', format='eps', dpi=600)
 
 def main():
 
