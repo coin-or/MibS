@@ -7003,7 +7003,7 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix,
     //Setting "saveSeenLinkingSols" parameter
     
     if (MibSPar_->entry(MibSParams::useLinkingSolutionPool) == PARAM_NOTSET){
-       MibSPar()->setEntry(MibSParams::useLinkingSolutionPool, PARAM_OFF); //YX: change to off temporarily for testing
+       MibSPar()->setEntry(MibSParams::useLinkingSolutionPool, PARAM_ON); //YX: changed to off temporarily for testing
     }
     
     if (printProblemInfo == true){
