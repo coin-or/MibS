@@ -322,7 +322,8 @@ private:
     // YX: multiplier to coeff and RHS to test co-prime check
     int multiplier = 1;
 
-    // YX: target optimality gap for (SL-MILP); off: -1.0; on: < 100 
+    // YX: target optimality gap for (SL-MILP); off: -1.0; on: < 100
+    // not used; see MibSParameter 
     double SLgap = -1.0;
     //----*----*----*----*----*----*----*----*----
 

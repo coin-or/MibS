@@ -43,6 +43,7 @@ class MIBSLIB_EXPORT MibSParams : public AlpsParameterSet {
      allowRemoveCut,
      useNewPureIntCut,
      useProgresHedg,
+     alwaysSLMILP,  // YX: for BR feasibility check test only
      endOfBoolParams
   };
   

@@ -57,6 +57,8 @@ private:
     /** should prune the node or not **/
     bool shouldPrune_;
     bool isContainedInLinkingPool_;
+    // YX: mark if (SL-MILP) is solved to optimality in chkblfeas
+    bool isSLSolved_;
     MibSLinkingPoolTag tagInSeenLinkingPool_;
 
     MibSLPSolStatus LPSolStatus_;
@@ -71,6 +73,8 @@ private:
     //double *optLowerSolution_;
     double *optUpperSolutionOrd_;// result of solving (UB)
     double *optLowerSolutionOrd_;
+    // YX: =opt in original case; for cut generation in gap setting
+    double *vfLowerSolutionOrd_; 
    
     MibSModel *model_;
     MibSHeuristic *heuristic_;
@@ -85,6 +89,7 @@ public:
 		    isLinkVarsFixed_(true), isProvenOptimal_(false),
 		    isLowerSolved_(false), isUBSolved_(false),
 		    shouldPrune_(false), isContainedInLinkingPool_(false),
+            isSLSolved_(false), // YX: SL-MILP
 		    tagInSeenLinkingPool_(MibSLinkingPoolTagIsNotSet),
 		    LPSolStatus_(MibSLPSolStatusUnknown),
 		    linkIntegralCount_(0){
@@ -93,6 +98,7 @@ public:
 	//optLowerSolution_ = 0;
 	optUpperSolutionOrd_ = 0;
 	optLowerSolutionOrd_ = 0;
+    vfLowerSolutionOrd_ = 0; // YX: for cut generation with gap 
 	model_ = 0;
 	heuristic_= 0;
 	lSolver_ = 0;

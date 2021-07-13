@@ -106,23 +106,6 @@ int main(int argc, char* argv[])
 		// 	    argv++;
         //     }
 		// }
-        else if (strstr(argv[1], "-gp") != nullptr)   // set target gap for (SL-MILP); an int between 0-100
-		{
-			argc--;
-			argv++;
-
-            // set gap if input is between 0:100;
-            // if(isdigit(*argv[1]))
-            // {
-            //     int numGap = atoi(argv[1]); 
-            //     if (numGap > 0 && numGap < 100)
-            //         model.setTargetGap(numGap);
-            //     else
-            //         model.setTargetGap(-1);
-            //     argc--;
-			//     argv++;
-            // }
-		}
 
         AlpsKnowledgeBrokerSerial broker(argc, argv, model);
 #endif
