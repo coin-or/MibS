@@ -116,7 +116,7 @@ MibSTreeNode::process(bool isRoot, bool rampUp)
     int numIntInfs = 0;
     int numObjInfs = 0;
 
-    int voilatedNumCons = 0;
+    int voilatedNumCons = 0; //YX: ?violated
     int origNumOldCons = 0;
     int currNumOldCons = 0;
     int newNumCons = 0;
@@ -346,7 +346,7 @@ MibSTreeNode::process(bool isRoot, bool rampUp)
             getKnowledgeBroker()->tempTimer().start();
         }
 
-        lpStatus = static_cast<BlisLpStatus> (bound(model));
+        lpStatus = static_cast<BlisLpStatus> (bound(model)); //YX: line 3
 
 	if (model->boundingPass_ == 1) {
 	    int iter = model->solver()->getIterationCount();
@@ -363,10 +363,10 @@ MibSTreeNode::process(bool isRoot, bool rampUp)
                 }
             }
 	}
-        
+        // YX: line 5-6
         switch(lpStatus) {
         case BlisLpStatusOptimal:
-	  if (quality_ > cutoff) {
+	  if (quality_ > cutoff) { // YX: check if L^t > U
 	      setStatus(AlpsNodeStatusFathomed);
 	      goto TERM_PROCESS;
 	  }
@@ -381,38 +381,38 @@ MibSTreeNode::process(bool isRoot, bool rampUp)
 	  //}
 
 	  // Check if IP feasible 
-	  ipSol = model->feasibleSolution(numIntInfs, numObjInfs);
+	  ipSol = model->feasibleSolution(numIntInfs, numObjInfs); //YX: line 8; create bilevel obj to check feasibility
 
 	  //if((bS->useBilevelBranching_ == false) &&
 	  // (bS->LPSolStatus_ != MibSLPSolStatusFeasible)){
 	  if((((branchPar == MibSBranchingStrategyLinking) && (bS->isLinkVarsFixed_)) ||
 	      (branchPar == MibSBranchingStrategyFractional)) && (bS->isIntegral_)){
-	      tailOffTol = -1000;
+	      tailOffTol = -1000; //YX: tailoff tolerance set to neg: always branch as strategy satisfied
 	  }
 	  else{
-	      tailOffTol = BlisPar->entry(BlisParams::tailOff);
+	      tailOffTol = BlisPar->entry(BlisParams::tailOff); //YX:? need to check conditions
 	  }
 
 	  if((!ipSol) && (bS->shouldPrune_)){
-	      setStatus(AlpsNodeStatusFathomed);
+	      setStatus(AlpsNodeStatusFathomed); // YX: Line 11-12? x_L fixed; no branch anymore
 	      goto TERM_PROCESS;
 	  }
 	      
-	  if (ipSol) {
+	  if (ipSol) { // YX: line 15
 		// IP feasible
-		model->storeSolution(BlisSolutionTypeHeuristic, ipSol);
+		model->storeSolution(BlisSolutionTypeHeuristic, ipSol); // YX: line 16, store \yhat
 		//model->storeSolution(BlisSolutionTypeRounding, ipSol);
                 // Update cutoff
-                cutoff = model->getCutoff();
+                cutoff = model->getCutoff(); // YX: linw 18; update global U ?
                 setStatus(AlpsNodeStatusFathomed);
 		goto TERM_PROCESS;
-            }
-            else {
+        }
+        else { // YX: line 29-34
                 if (quality_ > cutoff) {
                     setStatus(AlpsNodeStatusFathomed);
                     goto TERM_PROCESS;
                 }
-                needBranch = true;
+                needBranch = true; 
                 //reducedCostFix(model);
                 
                 //------------------------------------------
@@ -440,7 +440,7 @@ MibSTreeNode::process(bool isRoot, bool rampUp)
                     keepOn = true;
                 }
                 // Update previous objective value.
-                preObjValue = quality_;
+                preObjValue = quality_; // YX: update L
 
                 //------------------------------------------
                 // Remove non-core slack constraints. 
