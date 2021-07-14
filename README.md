@@ -27,10 +27,6 @@ It is distributed under the auspices of the [COIN-OR Foundation](https://www.coi
 
 The MibS development site is https://github.com/coin-or/MibS.
 
-## CITE
-
-[![DOI](https://zenodo.org/badge/39053653.svg)](https://zenodo.org/badge/latestdoi/39053653)
-
 ## CURRENT BUILD STATUS
 
 [![Windows Builds](https://github.com/coin-or/MibS/actions/workflows/windows-ci.yml/badge.svg?branch=master)](https://github.com/coin-or/MibS/actions/workflows/windows-ci.yml?query=branch%3Amaster)
