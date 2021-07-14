@@ -1,15 +1,14 @@
 Description:
   Slug: MibS
   ShortName: MibS
-  LongName:
+  LongName: Mixed Integer Bilevel Solver
   ShortDescription: Solver for mixed integer bilevel optimization problems.
   LongDescription: |2
-"    
-    MibS is a solver for mixed integer bilevel optimization problems."
-  Manager: Ted Ralphs, tkralphs at lehigh dot edu
+    MibS is a solver for mixed integer bilevel optimization problems.
+  Manager: Ted Ralphs, ted at lehigh dot edu
   Homepage: https://github.com/coin-or/MibS
   License: Eclipse Public License 2.0
-  LicenseURL: http://www.opensource.org/licenses/eclipse-2.0
+  LicenseURL: http://www.opensource.org/licenses/EPL-2.0
   Zenodo: 39053653
   IncludedIn: 
     Package: MibS
@@ -19,7 +18,7 @@ Description:
     - Interfaces
     - Optimization bilevel
     - Optimization deterministic linear discrete
-
+  PaperCite: https://doi.org/10.1007/s12532-020-00183-6
 Dependencies:
   - Description: Sample data files
     URL: https://projects.coin-or.org/svn/Data/Sample/stable/1.2

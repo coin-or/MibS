@@ -9,10 +9,6 @@ _This file is auto-generated from [config.yml](.coin-or/config.yml) using the
 To make changes, please edit [config.yml](.coin-or/config.yml) or the generation scripts
 [here](.coin-or/generate_readme) and [here](https://github.com/coin-or/coinbrew/blob/master/scripts/generate_readme)._
 
-## CITE
-
-[![DOI](https://zenodo.org/badge/39053653.svg)](https://zenodo.org/badge/latestdoi/39053653)
-
 MibS is a solver for stochastic mixed integer bilevel linear optimization problems. For an
 introduction to bilevel optimization, see [this slide
 deck](http://coral.ie.lehigh.edu/~ted/files/talks/BILEVEL-IWOBIP16.pdf). A
@@ -21,11 +17,18 @@ somewhat outdated but still useful introduction to MibS is
 A paper that contains a complete technical description of the algorithms in MibS is 
 [here](http://coral.ie.lehigh.edu/~ted/files/papers/MIBLP16.pdf).
 
-MibS is written in C++ and is released as open source under the [Eclipse Public License 2.0](http://www.opensource.org/licenses/eclipse-2.0).
+
+MibS is written in C++ and is released as open source under the [Eclipse Public License 2.0](http://www.opensource.org/licenses/EPL-2.0).
 
 It is distributed under the auspices of the [COIN-OR Foundation](https://www.coin-or.org)
 
 The MibS development site is https://github.com/coin-or/MibS.
+
+## CITE
+
+Code: [![DOI](https://zenodo.org/badge/39053653.svg)](https://zenodo.org/badge/latestdoi/39053653)
+
+Paper: https://doi.org/10.1007/s12532-020-00183-6
 
 ## CURRENT BUILD STATUS
 
@@ -66,6 +69,17 @@ Source code can be obtained either by
 Below is a quick start guide for building on common platforms. More detailed
 build instructions are
 [here](https://coin-or.github.io/user_introduction.html).
+
+### Dependencies
+
+MibS has a number of dependencies, which are detailed in
+[config.yml](.coin-or/config.yml). Dependencies on other COIN-OR projects are
+automatically downloaded when obtaining the source with `coinbrew`. For some
+of the remaining third-party dependencies, automatic download scripts and
+build wrappers are provided (and will also be automatically run for required
+and recommended dependencies), while other libraries that are aeasy to obtain
+must be installed using an appropriate package manager (or may come with your
+OS by default). 
 
 ## BUILDING from source
 
