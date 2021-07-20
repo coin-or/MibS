@@ -6495,7 +6495,9 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
 		  if (targetGap < etol){ // YX: modified to add gap and SLMILP flag
 		 	intersectionCuts(conPool, bS->optLowerSolutionOrd_, cutType);
 		  }
-		  else if (targetGap > etol && bS->isSLSolved_== true){
+		  else if ((targetGap > etol) && ((bS->isLowerSolved_ == true) ||
+		   (bS->tagInSeenLinkingPool_ != MibSLinkingPoolTagIsNotSet))){
+		    assert(bS->tagInSeenLinkingPool_ == MibSLinkingPoolTagLowerIsInfeasible);
 		  	intersectionCuts(conPool, bS->vfLowerSolutionOrd_, cutType);
 		  }
 	  }
@@ -6505,7 +6507,9 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
 		  if (targetGap < etol){ // YX: modified to add gap and SLMILP flag
 		 	intersectionCuts(conPool, bS->optLowerSolutionOrd_, cutType);
 		  }
-		  else if (targetGap > etol && bS->isSLSolved_== true){
+		  else if ((targetGap > etol) && ((bS->isLowerSolved_ == true) ||
+		   (bS->tagInSeenLinkingPool_ != MibSLinkingPoolTagIsNotSet))){
+		    assert(bS->tagInSeenLinkingPool_ == MibSLinkingPoolTagLowerIsInfeasible);
 		  	intersectionCuts(conPool, bS->vfLowerSolutionOrd_, cutType);
 		  }
 	  }
