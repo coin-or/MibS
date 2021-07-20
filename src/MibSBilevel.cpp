@@ -136,10 +136,9 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
   LPSolStatus_ = MibSLPSolStatusUnknown;
   isLinkVarsFixed_ = true;
   shouldPrune_ = false;
-  isLowerSolved_ = false;
+  isLowerSolved_ = false; // YX: used in BR intersection cut generation
   isUBSolved_ = false;
   isContainedInLinkingPool_ = false;
-  isSLSolved_ = false; // YX: mark if (SL-MILP) is solved to optimality
   useBilevelBranching_ = true;
   isProvenOptimal_ = true;
   tagInSeenLinkingPool_ = MibSLinkingPoolTagIsNotSet;
@@ -1791,16 +1790,13 @@ MibSBilevel::checkBilevelFeasibilityBR(bool isRoot)
 					(lSolver)->getModelPtr()->messageHandler()->setLogLevel(0);
 				}else if (feasCheckSolver == "SYMPHONY"){
 		#if MIBS_HAS_SYMPHONY
-				//dynamic_cast<OsiSymSolverInterface *> 
-				// (lSolver)->setSymParam("prep_level", -1);
-
 				sym_environment *env = dynamic_cast<OsiSymSolverInterface *>
 					(lSolver)->getSymphonyEnvironment();
 				
 					if (warmStartLL){
 					sym_set_int_param(env, "keep_warm_start", TRUE);
 					if (probType == 1){ //Interdiction
-					sym_set_int_param(env, "should_use_rel_br", FALSE);
+						sym_set_int_param(env, "should_use_rel_br", FALSE);
 						sym_set_int_param(env, "use_hot_starts", FALSE);
 						sym_set_int_param(env, "should_warmstart_node", TRUE);
 						sym_set_int_param(env, "sensitivity_analysis", TRUE);
@@ -1810,6 +1806,7 @@ MibSBilevel::checkBilevelFeasibilityBR(bool isRoot)
 				}
 				//Always uncomment for debugging!!
 					sym_set_dbl_param(env, "time_limit", remainingTime);
+					sym_set_dbl_param(env, "gap_limit", -1.0); // YX: reset to zero gap
 					sym_set_int_param(env, "do_primal_heuristic", FALSE);
 					sym_set_int_param(env, "verbosity", -2);
 					//sym_set_int_param(env, "prep_level", -1);
@@ -1837,15 +1834,15 @@ MibSBilevel::checkBilevelFeasibilityBR(bool isRoot)
 		#endif
 				}else if (feasCheckSolver == "CPLEX"){
 		#ifdef MIBS_HAS_CPLEX
-				lSolver->setHintParam(OsiDoReducePrint);
+					lSolver->setHintParam(OsiDoReducePrint);
 					lSolver->messageHandler()->setLogLevel(0);
-				CPXENVptr cpxEnv =
-					dynamic_cast<OsiCpxSolverInterface*>(lSolver)->getEnvironmentPtr();
+					CPXENVptr cpxEnv =
+						dynamic_cast<OsiCpxSolverInterface*>(lSolver)->getEnvironmentPtr();
 					assert(cpxEnv);
 					CPXsetintparam(cpxEnv, CPX_PARAM_SCRIND, CPX_OFF);
 					CPXsetintparam(cpxEnv, CPX_PARAM_THREADS, maxThreadsLL);
-				CPXsetintparam(cpxEnv, CPX_PARAM_CLOCKTYPE, 1);
-				CPXsetdblparam(cpxEnv, CPX_PARAM_TILIM, remainingTime);
+					CPXsetintparam(cpxEnv, CPX_PARAM_CLOCKTYPE, 1);
+					CPXsetdblparam(cpxEnv, CPX_PARAM_TILIM, remainingTime);
 		#endif
 				}
 				// YX: line 8; solve (SL-MILP); lSolver stores solution for MILP
@@ -1860,7 +1857,6 @@ MibSBilevel::checkBilevelFeasibilityBR(bool isRoot)
 				}
 		
 				model_->counterVF_ ++;
-				isSLSolved_ = true; // YX: SLMILP solved to optimality; may not need
 
 				if(i == numScenarios - 1){
 					isLowerSolved_ = true; // YX: used to determine solution storing/cut generation
@@ -1870,7 +1866,7 @@ MibSBilevel::checkBilevelFeasibilityBR(bool isRoot)
 		#ifdef MIBS_HAS_SYMPHONY
 				if(sym_is_time_limit_reached(dynamic_cast<OsiSymSolverInterface *>
 								(lSolver)->getSymphonyEnvironment())){
-				shouldPrune_ = true;
+					shouldPrune_ = true;
 					storeSol = MibSNoSol;
 					goto TERM_CHECKBILEVELFEAS;
 				}
@@ -1895,24 +1891,22 @@ MibSBilevel::checkBilevelFeasibilityBR(bool isRoot)
 					LPSolStatus_ = MibSLPSolStatusInfeasible;
 					isProvenOptimal_ = false;
 					if(useLinkingSolutionPool){
-					//step 10
-					//Adding x_L to set E
-					shouldStoreObjValues.push_back(0);
-					addSolutionToSeenLinkingSolutionPool
-					(MibSLinkingPoolTagLowerIsInfeasible, shouldStoreValuesLowerSol,
-					shouldStoreObjValues); // YX: line 10
-					shouldStoreObjValues.clear();
+						//step 10
+						//Adding x_L to set E
+						shouldStoreObjValues.push_back(0);
+						addSolutionToSeenLinkingSolutionPool
+						(MibSLinkingPoolTagLowerIsInfeasible, shouldStoreValuesLowerSol,
+						shouldStoreObjValues); // YX: line 10
+						shouldStoreObjValues.clear();
 					}
 					if(isLinkVarsFixed_){ // YX: line 11
 						useBilevelBranching_ = false;
 						shouldPrune_ = true;
 					}
 					break;
-				}
-				else{
-				//const double * sol = model_->solver()->getColSolution();
-				objVal = lSolver->getObjValue() * model_->getLowerObjSense();
-
+				} else {
+					objVal = lSolver->getObjValue() * model_->getLowerObjSense();
+				//} close bracket?
 				if((i == 0) && (!objValVec_.empty())){
 					objValVec_.clear();
 				}
@@ -1928,26 +1922,26 @@ MibSBilevel::checkBilevelFeasibilityBR(bool isRoot)
 						std::copy(values, values + lN, shouldStoreValuesLowerSol.begin() + begPos);
 					}
 					else{
-					if(lowerSol == NULL){
-						lowerSol = new double[lN];
-						CoinFillN(lowerSol, lN, 0.0);
-					}
-					CoinDisjointCopyN(values, truncLN, lowerSol + begPos);
+						if(lowerSol == NULL){
+							lowerSol = new double[lN];
+							CoinFillN(lowerSol, lN, 0.0);
+						}
+						CoinDisjointCopyN(values, truncLN, lowerSol + begPos);
 					}
 
 					//step 12
 					//Adding x_L to set E
 					if(i == numScenarios - 1){ // YX: line 14
-					addSolutionToSeenLinkingSolutionPool
+						addSolutionToSeenLinkingSolutionPool
 						(MibSLinkingPoolTagLowerIsFeasible, shouldStoreValuesLowerSol,
 						shouldStoreObjValues);
-					shouldStoreValuesLowerSol.clear();
+						shouldStoreValuesLowerSol.clear();
 						shouldStoreObjValues.clear();
 					}
 				}
 				else{
 					if(lowerSol == NULL){
-					lowerSol = new double[lN];
+						lowerSol = new double[lN];
 						CoinFillN(lowerSol, lN, 0.0);
 					}
 					//memcpy(lowerSol, values, sizeof(double) * lN);
@@ -2155,7 +2149,7 @@ MibSBilevel::checkBilevelFeasibilityBR(bool isRoot)
 				
 					// YX: with modified params
 					sym_set_dbl_param(env, "time_limit", remainingTime); // update remaining time
-					sym_set_dbl_param(env, "gap_limit", -1.0); // set to zero gap
+					sym_set_dbl_param(env, "gap_limit", -1.0); // YX: reset to zero gap
 	#endif
 				}else if (feasCheckSolver == "CPLEX"){
 					// YX: No CPLEX setting yet
@@ -2188,7 +2182,6 @@ MibSBilevel::checkBilevelFeasibilityBR(bool isRoot)
 				}
 		
 				model_->counterVF_ ++; //YX: VF+1 when solve to optimality
-				isSLSolved_ = true; // YX: SLMILP solved to optimality
 
 				if(i == numScenarios - 1){
 					isLowerSolved_ = true; // YX: 2nd time BR setting; TODO check where this is used
@@ -2348,7 +2341,7 @@ MibSBilevel::checkBilevelFeasibilityBR(bool isRoot)
 		for(i = 0; i < numScenarios; i++){
 
 			// YX: obtain d^2y^t (y^t is sol of LR); var does not change from previous part
-			//lowerObj = getLowerObj(sol, model_->getLowerObjSense(), i); 
+			lowerObj = getLowerObj(sol, model_->getLowerObjSense(), i); // YX: repeated request in some case  
 			objVal = shouldStoreObjValues[i]; // YX: obtain SL bound
 
 			// YX: objVal has to be the lower bound since it is the optimal value
@@ -2659,7 +2652,6 @@ MibSBilevel::checkBilevelFeasibilityBR(bool isRoot)
 			store the solution to SL-MILP to vfLowerSolutionOrd_ w/o heuristic solution tag: 
 			if SL-MILP is solved in this iteration and not saved before.
 		*/
-		// isSLSolved_ == true; //YX: for debug
 		if(lowerSol != NULL){
 			for (i = 0; i < lN; i++){
 				if(numScenarios == 1){
