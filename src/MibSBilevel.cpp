@@ -1860,10 +1860,10 @@ MibSBilevel::checkBilevelFeasibilityBR(bool isRoot)
 				}
 		
 				model_->counterVF_ ++;
-				isSLSolved_ = true; // YX: SLMILP solved to optimality
+				isSLSolved_ = true; // YX: SLMILP solved to optimality; may not need
 
 				if(i == numScenarios - 1){
-					isLowerSolved_ = true;
+					isLowerSolved_ = true; // YX: used to determine solution storing/cut generation
 				}
 			
 				if(feasCheckSolver == "SYMPHONY"){
@@ -2048,9 +2048,9 @@ MibSBilevel::checkBilevelFeasibilityBR(bool isRoot)
 			// TODO: have another counter set up for BR solving?
 			//model_->counterVF_ ++; // YX: in BR mode, not solve to optimality
 
-			if (i == numScenarios - 1){
-				isLowerSolved_ = true; // YX: 1st set; May be reset twice when resolved. TODO check where this is used
-			}
+			// if (i == numScenarios - 1){
+			// 	isLowerSolved_ = true; // YX: 1st set; May be reset twice when resolved. TODO check where this is used
+			// }
 		
 			if (feasCheckSolver == "SYMPHONY"){
 	#ifdef MIBS_HAS_SYMPHONY
@@ -2191,7 +2191,7 @@ MibSBilevel::checkBilevelFeasibilityBR(bool isRoot)
 				isSLSolved_ = true; // YX: SLMILP solved to optimality
 
 				if(i == numScenarios - 1){
-					isLowerSolved_ = true; // YX: TODO check where this is used
+					isLowerSolved_ = true; // YX: 2nd time BR setting; TODO check where this is used
 				}
 			
 				if(feasCheckSolver == "SYMPHONY"){
@@ -2653,39 +2653,36 @@ MibSBilevel::checkBilevelFeasibilityBR(bool isRoot)
 					delete [] multA2XOpt;
 				}
 			} // YX: end of UB not solved and branching linking block
-			/* 
-				YX: Since the solution stored in optLowerSolutionOrd_ will be used to generate cut,
-				always store the solution to SL-MILP to vfLowerSolutionOrd_ if the problem is solved, 
-				w/o heuristic solution tag.
-			*/
-			// else if ((tagInSeenLinkingPool_ != MibSLinkingPoolTagUBIsSolved) ||
-			// 	((!useLinkingSolutionPool) && (isUBSolved_))){  // YX: line 27 check SLMILP solution \yhat; isUBSolved==false?
-				assert(isSLSolved_ == true); //YX: for debug
-				if(lowerSol != NULL){
-					for (i = 0; i < lN; i++){
-						if(numScenarios == 1){
-							index = lowerColInd[i];
-						}else{
-							index = uN + i;
-						}
-						if ((model_->solver()->isInteger(index)) &&
-							(((lowerSol[i] - floor(lowerSol[i])) < etol) ||
-							((ceil(lowerSol[i]) - lowerSol[i]) < etol))){
-							// optLowerSolutionOrd_[i] = (double) floor(lowerSol[i] + 0.5);
-							vfLowerSolutionOrd_[i] = (double) floor(lowerSol[i] + 0.5);
-						}else{
-							// optLowerSolutionOrd_[i] = (double) lowerSol[i];
-							vfLowerSolutionOrd_[i] = (double) lowerSol[i];
-						}
-					}
-					// if(isUpperIntegral_){
-					// 	storeSol = MibSHeurSol;
-					// }
-				}
-			// }
 		} //YX: end of !shouldPrune_; see Line 31 Algo2
-    } 
- // YX: after Line 28; Upper bound updated in branching process during tree node call
+		/* 
+			YX: Since the solution stored in optLowerSolutionOrd_ will be used to generate cut,
+			store the solution to SL-MILP to vfLowerSolutionOrd_ w/o heuristic solution tag: 
+			if SL-MILP is solved in this iteration and not saved before.
+		*/
+		// isSLSolved_ == true; //YX: for debug
+		if(lowerSol != NULL){
+			for (i = 0; i < lN; i++){
+				if(numScenarios == 1){
+					index = lowerColInd[i];
+				}else{
+					index = uN + i;
+				}
+				if ((model_->solver()->isInteger(index)) &&
+					(((lowerSol[i] - floor(lowerSol[i])) < etol) ||
+					((ceil(lowerSol[i]) - lowerSol[i]) < etol))){
+					// optLowerSolutionOrd_[i] = (double) floor(lowerSol[i] + 0.5);
+					vfLowerSolutionOrd_[i] = (double) floor(lowerSol[i] + 0.5);
+				}else{
+					// optLowerSolutionOrd_[i] = (double) lowerSol[i];
+					vfLowerSolutionOrd_[i] = (double) lowerSol[i];
+				}
+			}
+			// if(isUpperIntegral_){
+			// 	storeSol = MibSHeurSol;
+			// }
+		} // YX: end of store SL-MILP solution
+    } // YX: after Line 28; end of feasibility checking + solving UB
+	// YX: node upper bound updated in branching process during tree node call
  TERM_CHECKBILEVELFEAS:
     
     delete [] lowerSol;
