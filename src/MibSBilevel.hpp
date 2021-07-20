@@ -57,8 +57,6 @@ private:
     /** should prune the node or not **/
     bool shouldPrune_;
     bool isContainedInLinkingPool_;
-    // YX: mark if (SL-MILP) is solved to optimality in chkblfeas
-    bool isSLSolved_;
     MibSLinkingPoolTag tagInSeenLinkingPool_;
 
     MibSLPSolStatus LPSolStatus_;
@@ -89,7 +87,6 @@ public:
 		    isLinkVarsFixed_(true), isProvenOptimal_(false),
 		    isLowerSolved_(false), isUBSolved_(false),
 		    shouldPrune_(false), isContainedInLinkingPool_(false),
-            isSLSolved_(false), // YX: SL-MILP
 		    tagInSeenLinkingPool_(MibSLinkingPoolTagIsNotSet),
 		    LPSolStatus_(MibSLPSolStatusUnknown),
 		    linkIntegralCount_(0){
