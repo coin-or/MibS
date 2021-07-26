@@ -1906,7 +1906,7 @@ MibSBilevel::checkBilevelFeasibilityBR(bool isRoot)
 					break;
 				} else {
 					objVal = lSolver->getObjValue() * model_->getLowerObjSense();
-				//} close bracket?
+
 				if((i == 0) && (!objValVec_.empty())){
 					objValVec_.clear();
 				}

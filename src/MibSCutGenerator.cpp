@@ -1016,8 +1016,10 @@ MibSCutGenerator::findLowerLevelSol(double *uselessIneqs, double *lowerLevelSol,
 	for(i = 0; i < lCols; i++){
 	index = lColInd[i];
 	lObjVal += lObjCoeff[i] * sol[index];
+	// std::cout << "sol[" << index << "]: " << sol[index] << std::endl;
 	}
 	newRowUb[0] = lObjVal * lObjSense - 1;
+	// std::cout << "d2yhat:" << lObjVal*lObjSense << std::endl;
 
 	for(i = 0; i < lRows; i++){
 	index = lRowInd[i];
@@ -1034,15 +1036,21 @@ MibSCutGenerator::findLowerLevelSol(double *uselessIneqs, double *lowerLevelSol,
 
 	//YX: if targetGap, add an additional constraint: d^2y >= d^2y^*(1+gap); Converto to ROW sense L
 	if (targetGap > etol){
-		for (i = 0; i < lCols; i++){ 
+		for (i = 0; i < lCols; i++){
 			templObj += lObjSense * lObjCoeff[i] * optLowerSol[i];
+			// std::cout << "optsol[" << i << "]: " << optLowerSol[i] << std::endl;
 		}
+		// std::cout << "d2y*:" << templObj << std::endl;
 		if (templObj/(1 - targetGap/100) > etol){
-			newRowUb[newNumRows] = -floor(templObj/(1 - targetGap/100)); // YX: if lower obj > 0
+			// YX: is it necessary to add buffer before rounding? eg. + 0.01
+			newRowUb[newNumRows-1] = -floor(templObj/(1 - targetGap/100)); // YX: if lower obj > 0
+			// std::cout << "d2y*+delta:" << -newRowUb[newNumRows-1] << std::endl;
 		}
 		else{
-			newRowUb[newNumRows] = -floor(templObj/(1 + targetGap/100)); // YX: if lower obj < 0
+			newRowUb[newNumRows-1] = -floor(templObj/(1 + targetGap/100)); // YX: if lower obj < 0
+			// std::cout << "d2y*+delta:" << -newRowUb[newNumRows-1] << std::endl;
 		}
+		
 	}
 
 	//filling col bounds
@@ -1154,7 +1162,7 @@ MibSCutGenerator::findLowerLevelSol(double *uselessIneqs, double *lowerLevelSol,
 
 	nSolver->branchAndBound();
 
-		if((feasCheckSolver == "SYMPHONY") && (sym_is_time_limit_reached
+	if((feasCheckSolver == "SYMPHONY") && (sym_is_time_limit_reached
 						   (dynamic_cast<OsiSymSolverInterface *>
 						(nSolver)->getSymphonyEnvironment()))){
 		isTimeLimReached = true;
@@ -1491,9 +1499,8 @@ MibSCutGenerator::findLowerLevelSolWatermelonIC(double *uselessIneqs, double *lo
 	//YX: if targetGap, add an additional constraint: d^2\yhat + d^2 \delta y >= d^2y^*(1+gap)
 	if (targetGap > etol){
 		for(i = 0; i < lCols; i++){
-		addedRow.insert(i, -lObjCoeff[i] * lObjSense);
+			addedRow.insert(i, -lObjCoeff[i] * lObjSense);
 		}
-
 		newMatrix->appendRow(addedRow);
 		addedRow.clear();
 	}
@@ -1582,14 +1589,14 @@ MibSCutGenerator::findLowerLevelSolWatermelonIC(double *uselessIneqs, double *lo
 	if (targetGap > etol){
 		for (i = 0; i < lCols; i++){ 
 			colIndex = lColInd[i];
-			lObjVal += lObjCoeff[i] * lpSol[colIndex]; //YX: d^2 \yhat; lower obj with relaxation sol
+			lObjVal += lObjSense * lObjCoeff[i] * lpSol[colIndex]; //YX: d^2 \yhat; lower obj with relaxation sol
 			templObj += lObjSense * lObjCoeff[i] * optLowerSol[i];
 		}
 		if (templObj/(1 - targetGap/100) > etol){			
-			nSolver->setRowUpper(newNumRows, -floor(templObj/(1 - targetGap/100)) + lObjVal); // YX: if lower obj > 0
+			nSolver->setRowUpper(newNumRows-1, -floor(templObj/(1 - targetGap/100)) + lObjVal); // YX: if lower obj > 0
 		}
 		else {
-			nSolver->setRowUpper(newNumRows, -floor(templObj/(1 + targetGap/100)) + lObjVal); // YX: if lower obj < 0
+			nSolver->setRowUpper(newNumRows-1, -floor(templObj/(1 + targetGap/100)) + lObjVal); // YX: if lower obj < 0
 		}
 	}
 
@@ -6497,7 +6504,7 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
 		  }
 		  else if ((targetGap > etol) && ((bS->isLowerSolved_ == true) ||
 		   (bS->tagInSeenLinkingPool_ != MibSLinkingPoolTagIsNotSet))){
-		    assert(bS->tagInSeenLinkingPool_ == MibSLinkingPoolTagLowerIsInfeasible);
+		    assert(bS->tagInSeenLinkingPool_ != MibSLinkingPoolTagLowerIsInfeasible);
 		  	intersectionCuts(conPool, bS->vfLowerSolutionOrd_, cutType);
 		  }
 	  }
@@ -6509,7 +6516,7 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
 		  }
 		  else if ((targetGap > etol) && ((bS->isLowerSolved_ == true) ||
 		   (bS->tagInSeenLinkingPool_ != MibSLinkingPoolTagIsNotSet))){
-		    assert(bS->tagInSeenLinkingPool_ == MibSLinkingPoolTagLowerIsInfeasible);
+		    assert(bS->tagInSeenLinkingPool_ != MibSLinkingPoolTagLowerIsInfeasible);
 		  	intersectionCuts(conPool, bS->vfLowerSolutionOrd_, cutType);
 		  }
 	  }
@@ -6888,7 +6895,9 @@ MibSCutGenerator::getBindingConsSimple()
   /** Set the upper bound for the current cut **/ 
   setCutUpperBound(upper);
   
-  delete [] slackVal;  
+  delete [] slackVal;
+  delete [] colStatus; // YX: potential memory leaks
+  delete [] rowStatus; // YX: potential memory leaks
 
   return binding;
   
