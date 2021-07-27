@@ -682,6 +682,8 @@ MibSCutGenerator::intersectionCuts(BcpsConstraintPool &conPool,
 			//YX: function signature changed; if targetgap, use optlowerSolution to add a constraint 
 			findLowerLevelSolWatermelonIC(uselessIneqs, lowerLevelSol, optLowerSolution, lpSol, isTimeLimReached);
 		if(isTimeLimReached == true){
+			delete [] uselessIneqs; // YX: potential memory leak
+			delete [] lowerLevelSol; // YX: potential memory leak
 			goto TREM_INTERSECTIONCUT;
 		}
 		intersectionFound = getAlphaWatermelonIC(extRay, uselessIneqs, lowerLevelSol,
@@ -1405,7 +1407,8 @@ MibSCutGenerator::findLowerLevelSolWatermelonIC(double *uselessIneqs, double *lo
 	int i, j;
 	int rowIndex(0), colIndex(0), numElements(0), pos(0), cntInt(0);
 	double rhs(0.0), lObjVal(0.0), value(0.0);
-	double templObj(0.0);   	// YX: if target gap > 0, store d^2y^* to compute upper bound
+	double templObj(0.0);   	// YX: if target gap > 0, store d^2y^* to compute upper bound'
+	double tempRhs(0.0); // YX: if store rhs of the additional row for condition checking
 	int numCols(localModel_->getNumCols());
 	int lCols(localModel_->getLowerDim());
 	int lRows(localModel_->getLowerRowNum());
@@ -1593,13 +1596,17 @@ MibSCutGenerator::findLowerLevelSolWatermelonIC(double *uselessIneqs, double *lo
 			templObj += lObjSense * lObjCoeff[i] * optLowerSol[i];
 		}
 		if (templObj/(1 - targetGap/100) > etol){			
-			nSolver->setRowUpper(newNumRows-1, -floor(templObj/(1 - targetGap/100)) + lObjVal); // YX: if lower obj > 0
+			tempRhs = -floor(templObj/(1 - targetGap/100)) + lObjVal; // YX: if lower obj > 0
+			nSolver->setRowUpper(newNumRows-1, tempRhs); 
+			
 		}
 		else {
-			nSolver->setRowUpper(newNumRows-1, -floor(templObj/(1 + targetGap/100)) + lObjVal); // YX: if lower obj < 0
+			tempRhs = -floor(templObj/(1 + targetGap/100)) + lObjVal; // YX: if lower obj < 0
+			nSolver->setRowUpper(newNumRows-1, tempRhs); 
 		}
 	}
 
+	if ((targetGap < etol) || (tempRhs >= 1)){ // YX: skip cut generation if 
 	//modifying col bounds
 	for(i = 0; i < lCols; i++){
 	colIndex = lColInd[i];
@@ -1681,6 +1688,11 @@ MibSCutGenerator::findLowerLevelSolWatermelonIC(double *uselessIneqs, double *lo
 	std::cout << "current time = " << timeLimit - localModel_->broker_->subTreeTimer().getTime() << std::endl;
 	throw CoinError("The MIP which is solved for watermelon IC, cannot be infeasible!",
 			"findLowerLevelSolWatermelonIC", "MibSCutGenerator");
+	}
+	} // YX: end of additional MILP feasibility check
+	else{
+		std::cout << "Watermelon MILP INF "<< std::endl;
+		localModel_->bS_->shouldPrune_ = true;
 	}
 	delete [] lCoeffsTimesLpSol;
 
