@@ -4242,6 +4242,10 @@ MibSModel::setUpperRowData()
        origUpperRowNum_ = upperRowNum_;
 
        if(origUpperRowNum_ > 0){
+            if(origUpperRowInd_ != NULL){   // YX: modified for potential memory leak
+                delete [] origUpperRowInd_;
+                origUpperRowInd_ = NULL;
+            }
 	   origUpperRowInd_ = new int[origUpperRowNum_];
        }
        
