@@ -1674,7 +1674,7 @@ MibSCutGenerator::findLowerLevelSolWatermelonIC(double *uselessIneqs, double *lo
 						(nSolver)->getSymphonyEnvironment())))
 	   || (timeLimit - localModel_->broker_->subTreeTimer().getTime() < 3)){
 	isTimeLimReached = true;
-	localModel_->bS_->shouldPrune_ = true;
+	localModel_->bS_->shouldPrune_ = true; // YX: SEE L1695
 	}
 	else if(nSolver->isProvenOptimal()){
 	const double *optSol = nSolver->getColSolution();
@@ -1692,7 +1692,8 @@ MibSCutGenerator::findLowerLevelSolWatermelonIC(double *uselessIneqs, double *lo
 	} // YX: end of additional MILP feasibility check
 	else{
 		std::cout << "Watermelon MILP INF "<< std::endl;
-		localModel_->bS_->shouldPrune_ = true;
+		// YX: CHECK IF PRUNE IS NECESSARY
+		// localModel_->bS_->shouldPrune_ = true;
 	}
 	delete [] lCoeffsTimesLpSol;
 

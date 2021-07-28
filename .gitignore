@@ -6,3 +6,4 @@ autom4te.cache*
 scripts/*
 output/*
 data/*
+vgoutput/*
