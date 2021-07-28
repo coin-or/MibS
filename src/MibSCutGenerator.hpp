@@ -16,6 +16,8 @@
 #ifndef MibsCutGenerator_h_
 #define MibsCutGenerator_h_
 
+#include <algorithm>
+#include <cstdlib>
 #include "MibSConfig.hpp"
 #include <algorithm>
 #include <cstdlib>
