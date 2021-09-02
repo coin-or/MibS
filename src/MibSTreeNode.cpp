@@ -765,6 +765,9 @@ MibSTreeNode::process(bool isRoot, bool rampUp)
 		    setStatus(AlpsNodeStatusFathomed);
 		    quality_ = -ALPS_OBJ_MAX;
 		    goto TERM_PROCESS;
+            // goto BRANCH_PROCESS; // YX: consider when time limit reached in cut generation
+            // YX: the workflow may have error: want to keep the completeness of the 
+            //  tree just in case other blocks may use the info; reasonable node removal only
 		}
 		    
             

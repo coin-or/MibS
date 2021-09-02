@@ -2675,6 +2675,7 @@ MibSBilevel::checkBilevelFeasibilityBR(bool isRoot)
 		} // YX: end of store SL-MILP solution
     } // YX: after Line 28; end of feasibility checking + solving UB
 	// YX: node upper bound updated in branching process during tree node call
+	// YX: add another term for feasibility check one? with condition bracket is better, go to only for exit
  TERM_CHECKBILEVELFEAS:
     
     delete [] lowerSol;
