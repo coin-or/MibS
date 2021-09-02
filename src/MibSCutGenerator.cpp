@@ -208,14 +208,14 @@ MibSCutGenerator::bilevelFeasCut1(BcpsConstraintPool &conPool)
 	//----*----*----*----*----*----*----*----*----
 	if (localModel_->cutgcdcheck == true)
 	{
-		// Check relatively prime between "upper" and "valList"
+		// Check relatively prime between "upper" and "valsList"
 		int gcdivisor = checkCutGCD(valsList, upper, valsList.size());
 		// output for debug
 		std::cout<< "Coprime checked: gcd = "<< gcdivisor << std::endl;
 		// divide the coeffs and rhs with returned common divisor; pass by const ref?
 		// use transform in <algorithm> with lambda expression or loop?
 		std::transform(valsList.begin(), valsList.end(), valsList.begin(), 
-			[&gcdivisor](auto& coeff){return coeff/(double)gcdivisor;});
+			[&gcdivisor](double& coeff){return coeff/(double)gcdivisor;}); // compiler compatible
 		//std::cout<< "Modified Coeff ";
 		/*
 		for (auto it = valsList.cbegin(); it!= valsList.cend(); it++)
@@ -569,7 +569,7 @@ MibSCutGenerator::intersectionCuts(BcpsConstraintPool &conPool,
 		}
 		cnt++;
 		}
-	}
+	} // YX: end of loop setting rays; cnt = numNonBasic - 1
 
 	for(i = 0; i < numStruct; i++){
 		if(cstat[i] == VAR_AT_LB){
@@ -648,7 +648,7 @@ MibSCutGenerator::intersectionCuts(BcpsConstraintPool &conPool,
 			CoinZeroN(uselessIneqs, lRows);
 			CoinZeroN(lowerLevelSol, lCols);
 			isTimeLimReached = false;
-			//YX: function signature changed; if targetgap, use optlowerSolution to add a constraint 
+			//YX: if targetgap, added computation inside the call
 			findLowerLevelSol(uselessIneqs, lowerLevelSol, optLowerSolution, sol, isTimeLimReached);
 			if(isTimeLimReached == true){
 			goto TREM_INTERSECTIONCUT;
@@ -679,7 +679,7 @@ MibSCutGenerator::intersectionCuts(BcpsConstraintPool &conPool,
 			CoinZeroN(uselessIneqs, lRows);
 			CoinZeroN(lowerLevelSol, lCols);
 		isTimeLimReached = false;
-			//YX: function signature changed; if targetgap, use optlowerSolution to add a constraint 
+			//YX: if targetgap, added computation inside the call
 			findLowerLevelSolWatermelonIC(uselessIneqs, lowerLevelSol, optLowerSolution, lpSol, isTimeLimReached);
 		if(isTimeLimReached == true){
 			delete [] uselessIneqs; // YX: potential memory leak
@@ -807,6 +807,7 @@ MibSCutGenerator::intersectionCuts(BcpsConstraintPool &conPool,
 		}
 
 		for(i = 0; i < numStruct; i++){
+			// std::cout << tmpValsList[i] << "," << std::endl;
 		if(fabs(tmpValsList[i]) >= etol){
 			indexList.push_back(i);
 			valsList.push_back(-1*tmpValsList[i]);

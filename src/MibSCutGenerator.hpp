@@ -19,8 +19,6 @@
 #include <algorithm>
 #include <cstdlib>
 #include "MibSConfig.hpp"
-#include <algorithm>
-#include <cstdlib>
 #include "MibSModel.hpp"
 
 //#############################################################################
