@@ -5246,8 +5246,8 @@ MibSCutGenerator::generalWeakIncObjCutCurrent(BcpsConstraintPool &conPool)
     std::vector<double> valsList;
 
     if(!isBigMIncObjSet_){
-    bigMIncObj_ = findBigMIncObjCut();
-    isBigMIncObjSet_ = true;
+       bigMIncObj_ = findBigMIncObjCut();
+       isBigMIncObjSet_ = true;
     }
 
     bigM = bigMIncObj_ - lObjVal + 1;
@@ -6026,6 +6026,7 @@ MibSCutGenerator::bendersInterdictionOneCut(BcpsConstraintPool &conPool, double 
   int bigM(10000);
   double valL, valU;
 
+  // This exactly matches the form in the MibS cuts paper 
   for(i = 0; i < uN; i++){
       indexU = upperColInd[i];
       indexL = lowerColInd[i];
@@ -6034,12 +6035,12 @@ MibSCutGenerator::bendersInterdictionOneCut(BcpsConstraintPool &conPool, double 
       valL = lObjCoeffs[i];
       if(lSolution[i] > etol){
           if (localModel_->colSignsG2_[i] == MibSModel::colSignPositive){ 
-             valU += std::max(0.0, lObjCoeffs[i]*lSolution[i]);
-          } else {
              valU -= bigM;
+          } else {
+             valU += lObjCoeffs[i]*lSolution[i];
           }
-      } else if (localModel_->colSignsG2_[i] != MibSModel::colSignPositive){
-         valL -= std::min(0.0, lObjCoeffs[i]);
+      } else if (localModel_->colSignsG2_[i] == MibSModel::colSignPositive){
+         valL -= lObjCoeffs[i];
       }
 
       if (valL){
