@@ -307,11 +307,14 @@ MibSModel::readAuxiliaryData(int numCols, int numRows)
   double dValue(0.0);
   int j(0), k(0), m(0), p(0), pos(0);
   int lowerColNum(0), lowerRowNum(0);
+  // Find out if we are reading an interdiction problem in legacy format
+  double * intCosts = getInterdictCost();
 
   while (data_stream >> key){
      if(key == "N"){ 
 	   data_stream >> iValue;
 	   setLowerDim(iValue);
+           lowerColNum = iValue;
      }
      else if(key == "M"){
 	   data_stream >> iValue;
@@ -323,7 +326,13 @@ MibSModel::readAuxiliaryData(int numCols, int numRows)
 
        if(inputFormat == "indexBased"){
 	data_stream >> iValue;
-	lowerColInd_[i] = iValue;
+        // Previously, the interdiction variables were assumed to come first
+        // Now we assume they come second so that the lower-level variables
+        // have the same indices as in the lower level MPS file. But the
+        // auxiliary files shifted the indices, this is lunacy!
+        // The solutions is just not to use index based anymore, which never
+        // made much sense.
+	lowerColInd_[i] = intCosts ? iValue : iValue - lowerColNum;
        }
        else{
 	   data_stream >> cValue;
@@ -901,7 +910,7 @@ MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
          for(i = 0; i < auxULRows; i++){
             CoinPackedVector row;
             for(j = 0; j < numCols; j++){
-               row.insert(j, intCosts[j]);
+               row.insert(j+numCols, intCosts[j]);
             }
             newMatrix->appendRow(row);
          }
@@ -914,8 +923,7 @@ MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
 	 start = matStarts[i];
 	 end = start + rowMatrix.getVectorSize(i);
 	 for(j = start; j < end; j++){
-	    index = matIndices[j];
-	    row.insert(index, matElements[j]);
+	    row.insert(matIndices[j], matElements[j]);
 	 }
 	 newMatrix->appendRow(row);
       }
@@ -925,8 +933,8 @@ MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
       
       for (i = 0; i < numCols; i++){
 	 CoinPackedVector row;
-	 row.insert(i, colUB[i]);
-	 row.insert(i + numCols, 1.0);
+	 row.insert(i + numCols, colUB[i]);
+	 row.insert(i, 1.0);
 	 newMatrix->appendRow(row);
          lowerRowInd_[numRows+i];
       }
@@ -940,7 +948,12 @@ MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
                 interdictRows, 'L');
       
       if (intCosts){
+         upperColInd_ = new int[numCols];
+         CoinIotaN(upperColInd_, numCols, numCols);
+         upperDim_ = numCols;
+         upperRowInd_ = new int[1];
          upperRowInd_[0] = 0;
+         upperRowNum_ = 1;
       }
 
       // store the indices of the structural constraints
@@ -3216,7 +3229,8 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix,
    const int * matStarts = newMatrix->getVectorStarts();
    colSignsG2_ = new int[numCols];
    //Signs of matrices A1, A2, G1 and G2 are determined
-   //based on converting the row senses to 'L'.  
+   //based on converting the row senses to 'G' in order to match the
+   //MibS cuts paper.
    for (i = 0; i < numCols; i++){
       counterStart = matStarts[i];
       counterEnd = matStarts[i+1];
@@ -3227,10 +3241,10 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix,
             continue;
          }
          if(newRowSense[rowIndex] == 'L'){
-            mult = 1;
+            mult = -1;
          }
          else{
-            mult = -1;
+            mult = 1;
          }
          upperRow = binarySearch(0, lRows - 1,
                                  rowIndex, lRowIndices) < 0 ? true:false;
@@ -3448,7 +3462,7 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix,
     paramValue = MibSPar_->entry(MibSParams::useBendersCut);
 
     if (paramValue == PARAM_NOTSET){
-	if (isInterdict_){
+	if (!isInterdict_){
 	    MibSPar()->setEntry(MibSParams::useBendersCut, PARAM_OFF);
 	}else{
 	    MibSPar()->setEntry(MibSParams::useBendersCut, PARAM_ON);
