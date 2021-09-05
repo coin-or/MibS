@@ -6669,10 +6669,12 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix,
     
     paramValue = MibSPar_->entry(MibSParams::useIncObjCut);
     
-    if (paramValue == PARAM_NOTSET){
-	MibSPar()->setEntry(MibSParams::useIncObjCut, PARAM_OFF);
+    if (allLinkingBin_ == true){
+       if (paramValue == PARAM_NOTSET){
+          MibSPar()->setEntry(MibSParams::useIncObjCut, PARAM_ON);
+       }
     }else if (paramValue == PARAM_ON){
-       if ((allLinkingBin_ == false) || (positiveA2_ == false)){
+       if (allLinkingBin_ == false){
           std::cout << "The increasing objective cut is not valid for this problem.";
           std::cout << std::endl;
           MibSPar()->setEntry(MibSParams::useIncObjCut, PARAM_OFF);
