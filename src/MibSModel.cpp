@@ -3839,7 +3839,6 @@ MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
       }
       
       numTotalCols = 2*numCols + numAuxCols;
-      assert (numCols % 2 == 0);
       numTotalRows = numRows + auxRows;
 
       if (!structRowInd_){
