@@ -173,10 +173,13 @@ private:
     /** Determines if matrix G2 is positive or not **/
     bool positiveG2_;
 
-    /** The signs of the columns of matrix G2 (used for Benders cut) **/
+    /** The signs of columns of matrix G2 (for Benders interdiction cut) **/
     int * colSignsG2_;
    
-    /** the left (negative) slope of the lower-level value function **/
+    /** The signs of columns of matrix A2 (for Benders binary cut) **/
+    int * colSignsA2_;
+
+   /** the left (negative) slope of the lower-level value function **/
     double leftSlope_;
 
     /** the right (positive) slope of the lower-level value function **/
