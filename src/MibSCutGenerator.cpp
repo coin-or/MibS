@@ -4817,9 +4817,19 @@ MibSCutGenerator::generalWeakIncObjCutCurrent(BcpsConstraintPool &conPool)
 
     for(i = 0; i < uN; i++){
 	index = upperColInd[i];
-	if((fixedInd[index] == 1) && (sol[index] < etol)){
-	    indexList.push_back(index);
-	    valsList.push_back(-bigM);
+	if (fixedInd[index]){
+           if (sol[index] < etol){
+               if (localModel_->colSignsA2_[i] != MibSModel::colSignPositive){
+                  indexList.push_back(index);
+                  valsList.push_back(-bigM);
+               }
+           } else {
+               if (localModel_->colSignsA2_[i] != MibSModel::colSignNegative){
+                  indexList.push_back(index);
+                  valsList.push_back(bigM);
+                  cutub += bigM;
+               }
+           }
 	}
     }
 
@@ -4831,7 +4841,7 @@ MibSCutGenerator::generalWeakIncObjCutCurrent(BcpsConstraintPool &conPool)
 	}
     }
 
-    cutub = lObjVal;
+    cutub += lObjVal;
 
     assert(indexList.size() == valsList.size());
     numCuts += addCut(conPool, cutlb, cutub, indexList, valsList, allowRemoveCut);
