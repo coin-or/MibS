@@ -215,8 +215,7 @@ MibSBranchStrategyPseudo::createCandBranchObjects(int numPassesLeft, double ub)
                 if (intObject) {
                     infObjects.push_back(intObject);
                     
-                    //if (!selectNow) {
-                    if (1){
+                    if (!selectNow) {
                         minCount = 
                             ALPS_MIN(intObject->pseudocost().getDownCount(),
                                      intObject->pseudocost().getUpCount());
@@ -328,8 +327,7 @@ MibSBranchStrategyPseudo::createCandBranchObjects(int numPassesLeft, double ub)
         CoinWarmStart * ws = solver->getWarmStart();
         solver->getIntParam(OsiMaxNumIterationHotStart, saveLimit);
 	aveIterations = ALPS_MIN(50, aveIterations);
-        //solver->setIntParam(OsiMaxNumIterationHotStart, aveIterations);
-        solver->setIntParam(OsiMaxNumIterationHotStart, 1000);
+        solver->setIntParam(OsiMaxNumIterationHotStart, aveIterations);
         
         solver->markHotStart();
         
@@ -410,7 +408,6 @@ MibSBranchStrategyPseudo::createCandBranchObjects(int numPassesLeft, double ub)
 	
         for (i = 0; i < numInfs; ++i) {
 
-#if 0
             if (infObjects[i]->pseudocost().getUpCost() < 
                 infObjects[i]->pseudocost().getDownCost()) {
                 preferDir = 1;
@@ -418,8 +415,6 @@ MibSBranchStrategyPseudo::createCandBranchObjects(int numPassesLeft, double ub)
             else {
                 preferDir = -1;
             }
-#endif
-            preferDir = 1;
             branchObjects_[i] = infObjects[i]->createBranchObject(model,
                                                                   preferDir);
             score = infObjects[i]->pseudocost().getScore();
