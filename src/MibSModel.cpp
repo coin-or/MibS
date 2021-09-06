@@ -89,6 +89,7 @@ MibSModel::~MibSModel()
   if(G2Matrix_) delete G2Matrix_;
   if(bS_) delete bS_;
   if(colSignsG2_) delete [] colSignsG2_;
+  if(colSignsA2_) delete [] colSignsA2_;
 }
 
 //#############################################################################
@@ -133,6 +134,7 @@ MibSModel::initialize()
   positiveG1_ = true;
   positiveG2_ = true;
   colSignsG2_ = NULL;
+  colSignsA2_ = NULL;
   upperColInd_ = NULL;
   lowerColInd_ = NULL;
   upperRowInd_ = NULL;
@@ -3228,6 +3230,7 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix,
    const int * matIndices = newMatrix->getIndices();           
    const int * matStarts = newMatrix->getVectorStarts();
    colSignsG2_ = new int[numCols];
+   colSignsA2_ = new int[numCols];
    //Signs of matrices A1, A2, G1 and G2 are determined
    //based on converting the row senses to 'G' in order to match the
    //MibS cuts paper.
@@ -3235,6 +3238,7 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix,
       counterStart = matStarts[i];
       counterEnd = matStarts[i+1];
       colSignsG2_[i] = MibSModel::colSignUnknown;
+      colSignsA2_[i] = MibSModel::colSignUnknown;
       for (j = counterStart; j < counterEnd; j++){                          
          rowIndex = matIndices[j];
          if (binarySearch(0, structRowNum_-1, rowIndex, structRowInd_) < 0){
@@ -3269,6 +3273,11 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix,
             }else{  
                if (upperCol){
                   positiveA2_ = false;
+                  if (colSignsA2_[i] == MibSModel::colSignUnknown){
+                     colSignsA2_[i] = MibSModel::colSignNegative;
+                  }else if (colSignsA2_[i] == MibSModel::colSignPositive){
+                     colSignsA2_[i] = MibSModel::colSignInconsistent;
+                  }
                }else{
                   positiveG2_ = false;
                   if (colSignsG2_[i] == MibSModel::colSignUnknown){
@@ -3278,7 +3287,13 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix,
                   }
                }
             }
-         } else if (!upperCol) {
+         } else if (upperCol) {
+            if (colSignsA2_[i] == MibSModel::colSignUnknown){
+               colSignsA2_[i] = MibSModel::colSignPositive;
+            }else if (colSignsA2_[i] == MibSModel::colSignNegative){
+               colSignsA2_[i] = MibSModel::colSignInconsistent;
+            }
+         }else{
             if (colSignsG2_[i] == MibSModel::colSignUnknown){
                colSignsG2_[i] = MibSModel::colSignPositive;
             }else if (colSignsG2_[i] == MibSModel::colSignNegative){
