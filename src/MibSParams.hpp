@@ -72,8 +72,6 @@ class MIBSLIB_EXPORT MibSParams : public AlpsParameterSet {
      useIncObjCut,
      useBendersCut,
      bendersCutType,
-     useIntersectionCut,
-     //intersectionCutType,
      useTypeIC,
      useTypeWatermelon,
      useTypeHypercubeIC,

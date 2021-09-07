@@ -348,13 +348,7 @@ MibSModel::readAuxiliaryData(const CoinPackedMatrix& rowMatrix,
 
 	     if(inputFormat == "indexBased"){
 		 data_stream >> iValue;
-         // Previously, the interdiction variables were assumed to come first
-         // Now we assume they come second so that the lower-level variables
-         // have the same indices as in the lower level MPS file. But the
-         // auxiliary files shifted the indices, this is lunacy!
-         // The solutions is just not to use index based anymore, which never
-         // made much sense.
-	     lowerColInd_[i] = intCosts ? iValue : iValue - lowerColNum;
+	     lowerColInd_[i] = iValue;
 	     }
 	     else{
 		 data_stream >> cValue;
@@ -467,7 +461,19 @@ MibSModel::readAuxiliaryData(const CoinPackedMatrix& rowMatrix,
 	     }
 	 }
      }
-
+    
+  //A ridiculous hack for a legacy data format that was poorly designed
+  if (getInterdictCost() && inputFormat == "indexBased"){
+     // Previously, the interdiction variables were assumed to come first
+     // Now we assume they come second so that the lower-level variables
+     // have the same indices as in the lower level MPS file. But the
+     // auxiliary files shifted the indices, this is lunacy!
+     // The solutions is just not to use index based anymore, which never
+     // made much sense.
+     for (i = 0; i < lowerColNum; i++){
+        lowerColInd_[i] -= lowerColNum;
+     }
+  }
      data_stream.close();
   
      std::cout << "LL Data File: " << getLowerFile() << "\n";
@@ -6635,21 +6641,8 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix,
     std::cout << "=======================================" <<std::endl;
     std::cout << std::endl;
    
-   
-    //MibSIntersectionCutType cutType(MibSIntersectionCutTypeNotSet);
-    //bool isHypercubeOn(false);
-    
     bool turnOffOtherCuts(MibSPar_->entry(MibSParams::turnOffOtherCuts));
     bool defaultCutIsOn(false);
-    
-    /*//Check if hypercube IC is on or off
-      paramValue = MibSPar_->entry(MibSParams::useIntersectionCut);
-      cutType =  MibSPar_->entry(MibSParams::intersectionCutType);
-      
-      if((paramValue == PARAM_ON) && (cutType == 2)){
-      isHypercubeOn = true;
-      }*/
-   
     
     //Param: "MibS_usePreprocessor" 
     paramValue = MibSPar_->entry(MibSParams::usePreprocessor);
@@ -6689,34 +6682,13 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix,
        }
     }else if (paramValue == PARAM_ON){
        if (allLinkingBin_ == false){
-          std::cout << "The increasing objective cut is not valid for this problem.";
+          std::cout << "The increasing objective cut is only valid when "
+                    << "linking variables are binary.";
           std::cout << std::endl;
           MibSPar()->setEntry(MibSParams::useIncObjCut, PARAM_OFF);
        }
     }
     
-    //Param: "MibS_useInterSectionCut" (MibSIntersectionCutTypeIC)
-    paramValue = MibSPar_->entry(MibSParams::useTypeIC);
-    //cutType = static_cast<MibSIntersectionCutType>
-    //	(MibSPar_->entry(MibSParams::intersectionCutType));
-    
-    if (paramValue == PARAM_NOTSET){
-       MibSPar()->setEntry(MibSParams::useTypeIC, PARAM_OFF);
-    }else if (paramValue == PARAM_ON){
-       if ((isPureInteger_ == false) || (isLowerCoeffInt_ == false)){
-          std::cout << "The intersection cut IC is not valid for this problem.";
-          std::cout << std::endl;
-          MibSPar()->setEntry(MibSParams::useTypeIC, PARAM_OFF);
-       }
-    }
-    /*if((paramValue == PARAM_ON) && (cutType == MibSIntersectionCutTypeIC)){
-      if((isPureInteger_ == false) || (isLowerCoeffInt_ == false)){
-	    std::cout << "The intersection cut IC is not valid problem.";
-	    std::cout << std::endl;
-	    MibSPar()->setEntry(MibSParams::useIntersectionCut, PARAM_NOTSET);
-	}
-    }*/    
-
     //Param: "MibS_useNoGoodCut"
     paramValue = MibSPar_->entry(MibSParams::useNoGoodCut);
 
@@ -6808,7 +6780,20 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix,
 	defaultCutIsOn = true;
     }
 
-    //Param: "MibS_useInterSectionCut" (MibSIntersectionCutTypeHypercubeIC) 
+    //Param: "MibS_useTypeIC" 
+    paramValue = MibSPar_->entry(MibSParams::useTypeIC);
+    
+    if (paramValue == PARAM_NOTSET){
+       MibSPar()->setEntry(MibSParams::useTypeIC, PARAM_OFF);
+    }else if (paramValue == PARAM_ON){
+       if ((isPureInteger_ == false) || (isLowerCoeffInt_ == false)){
+          std::cout << "The intersection cut IC is not valid for this problem.";
+          std::cout << std::endl;
+          MibSPar()->setEntry(MibSParams::useTypeIC, PARAM_OFF);
+       }
+    }
+
+    //Param: "MibS_useTypeHyperCubeIC"
     if ((turnOffOtherCuts == true) &&
         (MibSPar_->entry(MibSParams::useTypeHypercubeIC) == PARAM_NOTSET)){
        MibSPar()->setEntry(MibSParams::useTypeHypercubeIC, PARAM_OFF);
@@ -6819,8 +6804,6 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix,
     if (paramValue == PARAM_NOTSET){
 	if(defaultCutIsOn == false){
            MibSPar()->setEntry(MibSParams::useTypeHypercubeIC, PARAM_ON);
-           /*MibSPar()->setEntry(MibSParams::intersectionCutType,
-             MibSIntersectionCutTypeHypercubeIC);*/
 	}
     }
     
@@ -6883,7 +6866,6 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix,
            std::cout << "Generalized no-good cut generator is on."<< std::endl;
 	}
 
-        //if(MibSPar_->entry(MibSParams::useIntersectionCut) == PARAM_ON){
 	if (MibSPar_->entry(MibSParams::useTypeIC) == PARAM_ON){
            std::cout << "Intersection cut IC generator is on." << std::endl;
 	}

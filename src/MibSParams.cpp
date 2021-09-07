@@ -158,12 +158,6 @@ MibSParams::createKeywordList() {
    keys_.push_back(make_pair(std::string("MibS_bendersCutType"),
 			     AlpsParameter(AlpsIntPar, bendersCutType)));
 
-   keys_.push_back(make_pair(std::string("MibS_useIntersectionCut"),
-                             AlpsParameter(AlpsIntPar, useIntersectionCut)));
-
-   //keys_.push_back(make_pair(std::string("MibS_intersectionCutType"),
-   //			     AlpsParameter(AlpsIntPar, intersectionCutType)));
-
    keys_.push_back(make_pair(std::string("MibS_useTypeIC"),
 			     AlpsParameter(AlpsIntPar, useTypeIC)));
 
@@ -418,10 +412,6 @@ MibSParams::setDefaultEntries() {
    setEntry(useBendersCut, PARAM_NOTSET);
 
    setEntry(bendersCutType, MibSBendersCutTypeJustOneCut);
-
-   setEntry(useIntersectionCut, PARAM_NOTSET);
-
-   //setEntry(intersectionCutType, MibSIntersectionCutTypeNotSet);
 
    setEntry(useTypeIC, PARAM_NOTSET);
 
