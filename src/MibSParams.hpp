@@ -68,8 +68,6 @@ class MibSParams : public AlpsParameterSet {
      useIncObjCut,
      useBendersCut,
      bendersCutType,
-     useIntersectionCut,
-     //intersectionCutType,
      useTypeIC,
      useTypeWatermelon,
      useTypeHypercubeIC,
