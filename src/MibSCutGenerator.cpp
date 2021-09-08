@@ -1607,7 +1607,7 @@ MibSCutGenerator::findLowerLevelSolWatermelonIC(double *uselessIneqs, double *lo
 		}
 	}
 
-	if ((targetGap < etol) || (tempRhs >= 1)){ // YX: skip cut generation if 
+	if ((targetGap < etol) || (tempRhs >= 1)){ // YX: skip cut generation if implies infeasible
 	//modifying col bounds
 	for(i = 0; i < lCols; i++){
 	colIndex = lColInd[i];
@@ -1682,18 +1682,23 @@ MibSCutGenerator::findLowerLevelSolWatermelonIC(double *uselessIneqs, double *lo
 	CoinDisjointCopyN(optSol, lCols, lowerLevelSol);
 	CoinDisjointCopyN(optSol + lCols, numContCols, uselessIneqs);
 	}
-	else{//this case should not happen when we use intersection cut for removing
-	//the optimal solution of relaxation which satisfies integrality requirements
-	std::cout << "iteration = " << localModel_->countIteration_ << std::endl;
-	std::cout << "remaining time = " << remainingTime << std::endl;
-	std::cout << "current time = " << timeLimit - localModel_->broker_->subTreeTimer().getTime() << std::endl;
-	throw CoinError("The MIP which is solved for watermelon IC, cannot be infeasible!",
-			"findLowerLevelSolWatermelonIC", "MibSCutGenerator");
+	else{
+		if (targetGap > etol){
+			std::cout << "Watermelon MILP with optimality gap is infeasible. "<< std::endl;
+		}
+		else {//this case should not happen when we use intersection cut for removing
+			//the optimal solution of relaxation which satisfies integrality requirements
+			std::cout << "iteration = " << localModel_->countIteration_ << std::endl;
+			std::cout << "remaining time = " << remainingTime << std::endl;
+			std::cout << "current time = " << timeLimit - localModel_->broker_->subTreeTimer().getTime() << std::endl;
+			throw CoinError("The MIP which is solved for watermelon IC, cannot be infeasible!",
+					"findLowerLevelSolWatermelonIC", "MibSCutGenerator");
+		}
 	}
 	} // YX: end of additional MILP feasibility check
 	else{
-		std::cout << "Watermelon MILP INF "<< std::endl;
-		// YX: CHECK IF PRUNE IS NECESSARY
+		std::cout << "Watermelon MILP with optimality gap is infeasible. "<< std::endl;
+		// YX: CHECK IF PRUNE IS NECESSARY; the tree will be incomplete
 		// localModel_->bS_->shouldPrune_ = true;
 	}
 	delete [] lCoeffsTimesLpSol;
