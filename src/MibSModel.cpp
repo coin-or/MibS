@@ -388,9 +388,10 @@ MibSModel::readAuxiliaryData(int numCols, int numRows)
      }
      else if(key == "IB"){
 	 isInterdict_ = true;
-       //FIXME: ALLOW MORE THAN ONE ROW
-	data_stream >> dValue;
-	interdictBudget_ = dValue;
+         MibSPar()->setEntry(MibSParams::bilevelProblemType, INTERDICT);
+         //FIXME: ALLOW MORE THAN ONE ROW
+         data_stream >> dValue;
+         interdictBudget_ = dValue;
      }
      else if(key == "@VARSBEGIN"){
 	 pos = -1;
@@ -587,7 +588,6 @@ MibSModel::loadAuxiliaryData(int lowerColNum, int lowerRowNum,
       setStructRowInd(copyStructRowInd);
    }
    if (interdictCost != NULL){
-       isInterdict_ = true;
       setInterdictBudget(interdictBudget);
       setInterdictCost(copyInterdictCost);
    }

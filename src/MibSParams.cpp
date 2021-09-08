@@ -281,7 +281,7 @@ MibSParams::setDefaultEntries() {
 
    setEntry(maxNumActiveCons, BIGCONSTANT);
 
-   setEntry(bilevelProblemType, PARAM_NOTSET);
+   setEntry(bilevelProblemType, GENERAL);
 
    setEntry(bilevelCutTypes, GENERALONLY);
 
