@@ -408,6 +408,7 @@ MibSModel::readAuxiliaryData(const CoinPackedMatrix& rowMatrix,
 	 }
 	 else if(key == "IB"){
 	     isInterdict_ = true;
+         MibSPar()->setEntry(MibSParams::bilevelProblemType, INTERDICT);
 	     //FIXME: ALLOW MORE THAN ONE ROW
 	     data_stream >> dValue;
 	     interdictBudget_ = dValue;
@@ -1069,7 +1070,6 @@ MibSModel::loadAuxiliaryData(int lowerColNum, int lowerRowNum,
       setStructRowInd(copyStructRowInd);
    }
    if (interdictCost != NULL){
-       isInterdict_ = true;
       setInterdictBudget(interdictBudget);
       setInterdictCost(copyInterdictCost);
    }
