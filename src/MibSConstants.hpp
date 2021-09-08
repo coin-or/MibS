@@ -57,6 +57,7 @@ enum MibSLPSolStatus{
 enum MibSLinkingPoolTag{
     MibSLinkingPoolTagIsNotSet = -4,
     MibSLinkingPoolTagLowerIsInfeasible,
+    MibSLinkingPoolTagLowerIsBRFeasible, // YX: add tag for SL optimality gap
     MibSLinkingPoolTagLowerIsFeasible,
     MibSLinkingPoolTagUBIsSolved
 };

@@ -21,8 +21,10 @@
 struct LINKING_SOLUTION{
     int tag;
     std::vector<double> lowerObjValue;
+    std::vector<double> brLowerObjValue; // YX: container for SL-MILP with gap results; vector for stochastic case?
     double UBObjValue;
     std::vector<double> lowerSolution;
+    std::vector<double> brLowerSolution; // YX: container for SL-MILP with gap results;
     std::vector<double> UBSolution;
 };
 
