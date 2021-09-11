@@ -214,37 +214,37 @@ MibSBranchStrategyPseudo::createCandBranchObjects(int numPassesLeft, double ub)
             
          if (candidate[i] == 1) {
                
-               ++numInfs;
-               intObject = dynamic_cast<BlisObjectInt *>(object);
+            ++numInfs;
+            intObject = dynamic_cast<BlisObjectInt *>(object);
+            
+            if (intObject) {
+               infObjects.push_back(intObject);
                
-               if (intObject) {
-                  infObjects.push_back(intObject);
+               if (!selectNow) {
+                  minCount = 
+                        ALPS_MIN(intObject->pseudocost().getDownCount(),
+                                 intObject->pseudocost().getUpCount());
                   
-                  if (!selectNow) {
-                     minCount = 
-                           ALPS_MIN(intObject->pseudocost().getDownCount(),
-                                    intObject->pseudocost().getUpCount());
-                     
-                     if (minCount < 1) {
-                           firstObjects.push_back(intObject);
-                     }
+                  if (minCount < 1) {
+                        firstObjects.push_back(intObject);
                   }
+               }
 
 #ifdef BLIS_DEBUG
-                  if (intObject->columnIndex() == 40) {
-                     std::cout << "x[40] = " << saveSolution[40] 
-                                 << std::endl;
-                  }
+               if (intObject->columnIndex() == 40) {
+                  std::cout << "x[40] = " << saveSolution[40] 
+                              << std::endl;
+               }
 #endif
 
-                  intObject = NULL;
-               }
-               else {
-                  // TODO: currently all are integer objects.
+               intObject = NULL;
+            }
+            else {
+               // TODO: currently all are integer objects.
 #ifdef BLIS_DEBU
-                  assert(0);
+               assert(0);
 #endif
-               }
+            }
                 
          }
       }

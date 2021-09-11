@@ -2365,6 +2365,9 @@ MibSBilevel::checkBilevelFeasibilityBR(bool isRoot)
                   shouldStoreObjValues.pop_back(); // YX: remove the BR obj stored earlier; attention in stochastic case
                   objValVec_.push_back(objVal);
                   shouldStoreObjValues.push_back(objVal); // YX: used in setup UB problem
+                  if (shouldStoreValuesLowerSol.empty()){
+                     shouldStoreValuesLowerSol.resize(lN); // YX: allocate space if the vector was clear before 
+                  }
 
                   // YX: get current SL solution \yhat^t
                   const double * values = lSolver->getColSolution();
