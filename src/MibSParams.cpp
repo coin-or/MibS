@@ -164,6 +164,9 @@ MibSParams::createKeywordList() {
    keys_.push_back(make_pair(std::string("MibS_useTypeWatermelon"),
 			     AlpsParameter(AlpsIntPar, useTypeWatermelon)));
 
+   keys_.push_back(make_pair(std::string("MibS_useTypeFractionalWatermelon"),
+			     AlpsParameter(AlpsIntPar, useTypeFractionalWatermelon)));
+
    keys_.push_back(make_pair(std::string("MibS_useTypeHypercubeIC"),
 			     AlpsParameter(AlpsIntPar, useTypeHypercubeIC)));
 
@@ -416,6 +419,8 @@ MibSParams::setDefaultEntries() {
    setEntry(useTypeIC, PARAM_NOTSET);
 
    setEntry(useTypeWatermelon, PARAM_NOTSET);
+
+   setEntry(useTypeFractionalWatermelon, PARAM_NOTSET);
 
    setEntry(useTypeHypercubeIC, PARAM_NOTSET);
 

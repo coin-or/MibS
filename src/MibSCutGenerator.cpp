@@ -6317,6 +6317,9 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
   int useIntersectionCutTypeWatermelon =
      localModel_->MibSPar_->entry(MibSParams::useTypeWatermelon);
   
+  int useIntersectionCutTypeFractionalWatermelon =
+     localModel_->MibSPar_->entry(MibSParams::useTypeFractionalWatermelon);
+  
   int useIntersectionCutTypeHypercubeIC =
      localModel_->MibSPar_->entry(MibSParams::useTypeHypercubeIC);
   
@@ -6482,7 +6485,7 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
      numCuts += binaryCuts(conPool);
      return (numCuts ? true : false);
   }else {
-     if (useIntersectionCutTypeWatermelon == PARAM_ON){
+     if (useIntersectionCutTypeFractionalWatermelon == PARAM_ON){
         cutType = MibSIntersectionCutTypeWatermelon;
         intersectionCuts(conPool, bS->optLowerSolutionOrd_, cutType);
      }

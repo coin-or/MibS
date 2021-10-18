@@ -74,6 +74,7 @@ class MIBSLIB_EXPORT MibSParams : public AlpsParameterSet {
      bendersCutType,
      useTypeIC,
      useTypeWatermelon,
+     useTypeFractionalWatermelon,
      useTypeHypercubeIC,
      useTypeTenderIC,
      useTypeHybridIC,
