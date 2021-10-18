@@ -3560,8 +3560,8 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix,
        }
     }
 
-    //Param: "MibS_useTypeIC" 
-    paramValue = MibSPar_->entry(MibSParams::useTypeIC);
+    //Param: "MibS_useTypeWatermelon" 
+    paramValue = MibSPar_->entry(MibSParams::useTypeWatermelon);
     
     if (paramValue == PARAM_NOTSET){
        MibSPar()->setEntry(MibSParams::useTypeWatermelon, PARAM_OFF);
@@ -3570,14 +3570,33 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix,
           std::cout << "The watermelon cut is only valid for pure integer "
                     << "problems with integer lover-level constraints matrix.";
           std::cout << std::endl;
-          MibSPar()->setEntry(MibSParams::useTypeIC, PARAM_OFF);
+          MibSPar()->setEntry(MibSParams::useTypeWatermelon, PARAM_OFF);
        }
-       if (MibSPar_->entry(MibSParams::bilevelFreeSetTypeIC) == 1 &&
-           isLowerObjInt_ == false){
-          std::cout << "The watermelong cut is only valid for problems "
+       if (isLowerObjInt_ == false){
+          std::cout << "The watermelon cut is only valid for problems "
                     << "with integer lover-level objective coefficients.";
           std::cout << std::endl;
-          MibSPar()->setEntry(MibSParams::useTypeIC, PARAM_OFF);
+          MibSPar()->setEntry(MibSParams::useTypeWatermelon, PARAM_OFF);
+       }
+    }
+
+    //Param: "MibS_useTypeWatermelon" 
+    paramValue = MibSPar_->entry(MibSParams::useTypeFractionalWatermelon);
+    
+    if (paramValue == PARAM_NOTSET){
+       MibSPar()->setEntry(MibSParams::useTypeFractionalWatermelon, PARAM_OFF);
+    }else if (paramValue == PARAM_ON){
+       if ((isPureInteger_ == false) || (isLowerCoeffInt_ == false)){
+          std::cout << "The (fractional) watermelon cut is only valid for pure integer "
+                    << "problems with integer lover-level constraints matrix.";
+          std::cout << std::endl;
+          MibSPar()->setEntry(MibSParams::useTypeFractionalWatermelon, PARAM_OFF);
+       }
+       if (isLowerObjInt_ == false){
+          std::cout << "The (fractional) watermelon cut is only valid for problems "
+                    << "with integer lover-level objective coefficients.";
+          std::cout << std::endl;
+          MibSPar()->setEntry(MibSParams::useTypeFractionalWatermelon, PARAM_OFF);
        }
     }
 
@@ -3658,10 +3677,13 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix,
            std::cout << "Intersection cut IC generator is on." << std::endl;
 	}
 	if (MibSPar_->entry(MibSParams::useTypeWatermelon) == PARAM_ON){
-           std::cout << "watermelon IC generator is on." << std::endl;
+           std::cout << "Watermelon IC generator is on." << std::endl;
+	}
+	if (MibSPar_->entry(MibSParams::useTypeFractionalWatermelon) == PARAM_ON){
+           std::cout << "Fractional watermelon IC generator is on." << std::endl;
 	}
 	if (MibSPar_->entry(MibSParams::useTypeHypercubeIC) == PARAM_ON){
-           std::cout << "hypercube IC generator is on." << std::endl;
+           std::cout << "Hypercube IC generator is on." << std::endl;
 	}
         //}
     }
