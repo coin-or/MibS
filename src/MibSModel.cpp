@@ -3553,7 +3553,28 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix,
        }
        if (MibSPar_->entry(MibSParams::bilevelFreeSetTypeIC) == 1 &&
            isLowerObjInt_ == false){
-          std::cout << "Type II intersection cut is only valid for problems "
+          std::cout << "Type II intersection cuts are only valid for problems "
+                    << "with integer lover-level objective coefficients.";
+          std::cout << std::endl;
+          MibSPar()->setEntry(MibSParams::useTypeIC, PARAM_OFF);
+       }
+    }
+
+    //Param: "MibS_useTypeIC" 
+    paramValue = MibSPar_->entry(MibSParams::useTypeIC);
+    
+    if (paramValue == PARAM_NOTSET){
+       MibSPar()->setEntry(MibSParams::useTypeWatermelon, PARAM_OFF);
+    }else if (paramValue == PARAM_ON){
+       if ((isPureInteger_ == false) || (isLowerCoeffInt_ == false)){
+          std::cout << "The watermelon cut is only valid for pure integer "
+                    << "problems with integer lover-level constraints matrix.";
+          std::cout << std::endl;
+          MibSPar()->setEntry(MibSParams::useTypeIC, PARAM_OFF);
+       }
+       if (MibSPar_->entry(MibSParams::bilevelFreeSetTypeIC) == 1 &&
+           isLowerObjInt_ == false){
+          std::cout << "The watermelong cut is only valid for problems "
                     << "with integer lover-level objective coefficients.";
           std::cout << std::endl;
           MibSPar()->setEntry(MibSParams::useTypeIC, PARAM_OFF);

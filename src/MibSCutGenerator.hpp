@@ -96,7 +96,7 @@ class MibSCutGenerator : public BlisConGenerator {
     double solveModelIC(double *uselessIneqs, double *ray, double *rhs, int numNonBasic);
 
     /** Helper function for watermelon IC **/
-    void findLowerLevelSolWatermelonIC(double *uselessIneqs, double *lowerLevelSol,
+    bool findLowerLevelSolWatermelonIC(double *uselessIneqs, double *lowerLevelSol,
 				       double* lpSol, bool &isTimeLimReached);
 
     /** Helper function for watermelon IC*/

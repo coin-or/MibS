@@ -605,7 +605,10 @@ MibSCutGenerator::intersectionCuts(BcpsConstraintPool &conPool,
 	        CoinZeroN(uselessIneqs, lRows);
 	        CoinZeroN(lowerLevelSol, lCols);
 		isTimeLimReached = false;
-	        findLowerLevelSolWatermelonIC(uselessIneqs, lowerLevelSol, lpSol, isTimeLimReached);
+	        if (!findLowerLevelSolWatermelonIC(uselessIneqs, lowerLevelSol, lpSol,
+                                                   isTimeLimReached)){
+		    goto TERM_INTERSECTIONCUT;
+                }                   
 		if(isTimeLimReached == true){
 		    goto TERM_INTERSECTIONCUT;
 		}
@@ -1263,7 +1266,7 @@ MibSCutGenerator::solveModelIC(double *uselessIneqs, double *ray, double *rhs,
 }
 
 //#############################################################################
-void
+bool
 MibSCutGenerator::findLowerLevelSolWatermelonIC(double *uselessIneqs, double *lowerLevelSol,
 						double* lpSol, bool &isTimeLimReached)
 {
@@ -1275,6 +1278,7 @@ MibSCutGenerator::findLowerLevelSolWatermelonIC(double *uselessIneqs, double *lo
 		    (MibSParams::whichCutsLL));
     double timeLimit(localModel_->AlpsPar()->entry(AlpsParams::timeLimit));
     double remainingTime(0.0);
+    bool foundSolution = false;
     
     OsiSolverInterface *oSolver = localModel_->solver();
     double infinity(oSolver->getInfinity());
@@ -1524,17 +1528,18 @@ MibSCutGenerator::findLowerLevelSolWatermelonIC(double *uselessIneqs, double *lo
 	const double *optSol = nSolver->getColSolution();
 	CoinDisjointCopyN(optSol, lCols, lowerLevelSol);
 	CoinDisjointCopyN(optSol + lCols, numContCols, uselessIneqs);
+        foundSolution = true;
     }
     else{//this case should not happen when we use intersection cut for removing
 	//the optimal solution of relaxation which satisfies integrality requirements
-	std::cout << "iteration = " << localModel_->countIteration_ << std::endl;
-	std::cout << "remaining time = " << remainingTime << std::endl;
-	std::cout << "current time = " << timeLimit - localModel_->broker_->subTreeTimer().getTime() << std::endl;
-	throw CoinError("The MIP which is solved for watermelon IC, cannot be infeasible!",
-			"findLowerLevelSolWatermelonIC", "MibSCutGenerator");
+	//std::cout << "iteration = " << localModel_->countIteration_ << std::endl;
+	//std::cout << "remaining time = " << remainingTime << std::endl;
+	//std::cout << "current time = " << timeLimit - localModel_->broker_->subTreeTimer().getTime() << std::endl;
+	//throw CoinError("The MIP which is solved for watermelon IC, cannot be infeasible!",
+	//		"findLowerLevelSolWatermelonIC", "MibSCutGenerator");
     }
     delete [] lCoeffsTimesLpSol;
-
+    return foundSolution;
 }
 
 //#############################################################################
@@ -5893,6 +5898,17 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
   bool useIncObjCut
      = localModel_->MibSPar_->entry(MibSParams::useIncObjCut);
   
+  double relaxedObjVal = localModel_->bS_->getLowerObj(
+                         localModel_->solver()->getColSolution(),
+                         localModel_->getLowerObjSense());
+
+  bool haveSecondLevelSol = ((useLinkingSolutionPool == PARAM_ON &&
+                              bS->tagInSeenLinkingPool_ != MibSLinkingPoolTagIsNotSet &&
+                              bS->tagInSeenLinkingPool_ != MibSLinkingPoolTagLowerIsInfeasible) ||
+                             (useLinkingSolutionPool != PARAM_ON &&
+                              bS->isLowerSolved_ != false &&
+                              bS->isProvenOptimal_ != false));
+           
   if ((useBoundCut) && (localModel_->boundingPass_ <= 1)){
      
      int boundCutFreq(localModel_->MibSPar_->entry(MibSParams::boundCutFreq));
@@ -6004,30 +6020,37 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
         //interdiction problem
         numCuts += interdictionCuts(conPool);
      }
-     if (useIntersectionCutTypeIC == PARAM_ON &&
-         ((useLinkingSolutionPool == PARAM_ON &&
-           bS->tagInSeenLinkingPool_ != MibSLinkingPoolTagIsNotSet &&
-           bS->tagInSeenLinkingPool_ != MibSLinkingPoolTagLowerIsInfeasible) ||
-          (useLinkingSolutionPool != PARAM_ON &&
-           bS->isLowerSolved_ != false &&
-           bS->isProvenOptimal_ != false))){
-        double relaxedObjVal = localModel_->bS_->getLowerObj(
-                               localModel_->solver()->getColSolution(),
-                               localModel_->getLowerObjSense());
-        if (relaxedObjVal > localModel_->bS_->objVal_ + localModel_->etol_ ||
-            localModel_->MibSPar_->entry(MibSParams::bilevelFreeSetTypeIC) == 1){ 
-           cutType = MibSIntersectionCutTypeIC;
-           intersectionCuts(conPool, bS->optLowerSolutionOrd_, cutType);
-        }
+     if (useIntersectionCutTypeIC == PARAM_ON && haveSecondLevelSol &&
+         (relaxedObjVal > localModel_->bS_->objVal_ + localModel_->etol_ ||
+          localModel_->MibSPar_->entry(MibSParams::bilevelFreeSetTypeIC) == 1)){ 
+        cutType = MibSIntersectionCutTypeIC;
+        intersectionCuts(conPool, bS->optLowerSolutionOrd_, cutType);
      }
+
+     if (useIntersectionCutTypeWatermelon == PARAM_ON &&
+         relaxedObjVal > localModel_->bS_->objVal_ + localModel_->etol_){
+        cutType = MibSIntersectionCutTypeWatermelon;
+        intersectionCuts(conPool, bS->optLowerSolutionOrd_, cutType);
+     }
+     
+     if (useIntersectionCutTypeHypercubeIC == PARAM_ON && haveSecondLevelSol){
+        cutType = MibSIntersectionCutTypeHypercubeIC;
+        intersectionCuts(conPool, bS->optLowerSolutionOrd_, cutType);
+     }
+
      return (numCuts ? true : false);
   }else if(bS->isUpperIntegral_ && localModel_->allUpperBin_){
      //problem with binary UL variables and integer LL variables
      numCuts += binaryCuts(conPool);
      return (numCuts ? true : false);
+  }else {
+     if (useIntersectionCutTypeWatermelon == PARAM_ON){
+        cutType = MibSIntersectionCutTypeWatermelon;
+        intersectionCuts(conPool, bS->optLowerSolutionOrd_, cutType);
+     }
   }
   
-     //delete sol;
+  //delete sol;
 
   return numCuts ? true : false;
 }
