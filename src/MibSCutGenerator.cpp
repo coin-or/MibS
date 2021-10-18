@@ -6018,6 +6018,7 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
      numCuts += feasibilityCuts(conPool) ? true : false;
      
      return (numCuts ? true : false);
+
   }else if(bS->isUpperIntegral_){
      if (localModel_->isInterdict_){
         //interdiction problem
@@ -6041,12 +6042,21 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
         intersectionCuts(conPool, bS->optLowerSolutionOrd_, cutType);
      }
 
+     if (localModel_->allUpperBin_){
+        //problem with binary UL variables and integer LL variables
+        if (useGeneralNoGoodCut == PARAM_ON){
+           numCuts += generalNoGoodCut(conPool);
+        }
+        if (!numCuts && useIncObjCut == PARAM_ON &&
+            relaxedObjVal > localModel_->bS_->objVal_ + localModel_->etol_){
+           numCuts += incObjCut(conPool);
+        }
+     }
+
      return (numCuts ? true : false);
-  }else if(bS->isUpperIntegral_ && localModel_->allUpperBin_){
-     //problem with binary UL variables and integer LL variables
-     numCuts += binaryCuts(conPool);
-     return (numCuts ? true : false);
+
   }else {
+     
      if (useIntersectionCutTypeFractionalWatermelon == PARAM_ON){
         cutType = MibSIntersectionCutTypeWatermelon;
         intersectionCuts(conPool, bS->optLowerSolutionOrd_, cutType);
