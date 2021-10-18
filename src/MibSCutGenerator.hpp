@@ -85,7 +85,7 @@ class MibSCutGenerator : public BlisConGenerator {
     int intersectionCuts(BcpsConstraintPool &conPool,
 			 double *optLowerSolution, MibSIntersectionCutType ICType);
     /** Helper function for IC*/
-    void findLowerLevelSol(double *uselessIneqs, double *lowerLevelSol, const double *sol,
+    bool findLowerLevelSol(double *uselessIneqs, double *lowerLevelSol, const double *sol,
 			   bool &isTimeLimReached);
 
     /** Helper function for IC*/
