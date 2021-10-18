@@ -152,6 +152,9 @@ private:
     /** Determines if all lower-level coefficients are integer or not**/
     bool isLowerCoeffInt_;  
 
+    /** Determines if all lower-level objective coeffs are integer or not**/
+    bool isLowerObjInt_;  
+
     /** Determines if all variables of upper-level problem are binary or not **/
     bool allUpperBin_;
 
