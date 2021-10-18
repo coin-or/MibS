@@ -574,7 +574,7 @@ MibSCutGenerator::intersectionCuts(BcpsConstraintPool &conPool,
 		    isTimeLimReached = false;
 		    findLowerLevelSol(uselessIneqs, lowerLevelSol, sol, isTimeLimReached);
 		    if(isTimeLimReached == true){
-			goto TREM_INTERSECTIONCUT;
+			goto TERM_INTERSECTIONCUT;
 		    }
 		    intersectionFound = getAlphaIC(extRay, uselessIneqs, lowerLevelSol,
 						   numStruct, numNonBasic, sol, alpha);
@@ -605,7 +605,7 @@ MibSCutGenerator::intersectionCuts(BcpsConstraintPool &conPool,
 		isTimeLimReached = false;
 	        findLowerLevelSolWatermelonIC(uselessIneqs, lowerLevelSol, lpSol, isTimeLimReached);
 		if(isTimeLimReached == true){
-		    goto TREM_INTERSECTIONCUT;
+		    goto TERM_INTERSECTIONCUT;
 		}
 		intersectionFound = getAlphaWatermelonIC(extRay, uselessIneqs, lowerLevelSol,
 							 numStruct, numNonBasic, lpSol, alpha);
@@ -618,7 +618,7 @@ MibSCutGenerator::intersectionCuts(BcpsConstraintPool &conPool,
 		isTimeLimReached = false;
 		storeBestSolHypercubeIC(sol, bS->objVal_, isTimeLimReached);
 		if(isTimeLimReached == true){
-		    goto TREM_INTERSECTIONCUT;
+		    goto TERM_INTERSECTIONCUT;
 		}
 	    }
 	    getAlphaHypercubeIC(extRay, numStruct, numNonBasic, alpha);
@@ -776,7 +776,7 @@ MibSCutGenerator::intersectionCuts(BcpsConstraintPool &conPool,
 	    valsList.clear();
 	}
 
- TREM_INTERSECTIONCUT:
+ TERM_INTERSECTIONCUT:
 	solver->disableSimplexInterface();
 
 	delete ws;
@@ -927,7 +927,9 @@ MibSCutGenerator::findLowerLevelSol(double *uselessIneqs, double *lowerLevelSol,
 	index = lColInd[i];
 	lObjVal += lObjCoeff[i] * sol[index];
     }
-    newRowUb[0] = ceil(lObjVal * lObjSense - 1);
+    newRowUb[0] = ceil(lObjVal * lObjSense - 1 - localModel_->etol_);
+
+    assert(lObjVal - newRowUb[0] >= localModel_->etol_);
 
     for(i = 0; i < lRows; i++){
 	index = lRowInd[i];
@@ -6003,8 +6005,9 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
           (useLinkingSolutionPool != PARAM_ON &&
            bS->isLowerSolved_ != false &&
            bS->isProvenOptimal_ != false))){
-        double relaxedObjVal = localModel_->bS_->getLowerObj(localModel_->solver()->getColSolution(),
-                                                             localModel_->getLowerObjSense());
+        double relaxedObjVal = localModel_->bS_->getLowerObj(
+                               localModel_->solver()->getColSolution(),
+                               localModel_->getLowerObjSense());
         if (relaxedObjVal > localModel_->bS_->objVal_ + 0.1){ 
            cutType = MibSIntersectionCutTypeIC;
            intersectionCuts(conPool, bS->optLowerSolutionOrd_, cutType);
