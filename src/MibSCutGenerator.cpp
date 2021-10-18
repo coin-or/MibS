@@ -585,7 +585,9 @@ MibSCutGenerator::intersectionCuts(BcpsConstraintPool &conPool,
 		    CoinZeroN(uselessIneqs, lRows);
 		    CoinZeroN(lowerLevelSol, lCols);
 		    isTimeLimReached = false;
-		    findLowerLevelSol(uselessIneqs, lowerLevelSol, sol, isTimeLimReached);
+		    if (!findLowerLevelSol(uselessIneqs, lowerLevelSol, sol, isTimeLimReached)){
+                       goto TERM_INTERSECTIONCUT;
+                    }
 		    if(isTimeLimReached == true){
 			goto TERM_INTERSECTIONCUT;
 		    }
@@ -809,7 +811,7 @@ MibSCutGenerator::intersectionCuts(BcpsConstraintPool &conPool,
 }
 
 //#############################################################################
-void
+bool
 MibSCutGenerator::findLowerLevelSol(double *uselessIneqs, double *lowerLevelSol,
 				    const double *sol, bool &isTimeLimReached)
 {
@@ -821,6 +823,8 @@ MibSCutGenerator::findLowerLevelSol(double *uselessIneqs, double *lowerLevelSol,
     int whichCutsLL(localModel_->MibSPar_->entry
 		    (MibSParams::whichCutsLL));
 
+    bool foundSolution(false);
+    
     double timeLimit(localModel_->AlpsPar()->entry(AlpsParams::timeLimit));
     double remainingTime(0.0);
 
@@ -1076,11 +1080,12 @@ MibSCutGenerator::findLowerLevelSol(double *uselessIneqs, double *lowerLevelSol,
 	    const double *optSol = nSolver->getColSolution();
 	    CoinDisjointCopyN(optSol, lCols, lowerLevelSol);
 	    CoinDisjointCopyN(optSol + lCols, numBinCols, uselessIneqs);
+            foundSolution = true;
 	}
 	else{//this case should not happen when we use intersection cut for removing
 	    //the optimal solution of relaxation which satisfies integrality requirements
-	    throw CoinError("The MIP which gives the best lower-level sol, cannot be infeasible!",
-			    "findLowerLevelSol", "MibSCutGenerator");
+	    //throw CoinError("The MIP which gives the best lower-level sol, cannot be infeasible!",
+           //		    "findLowerLevelSol", "MibSCutGenerator");
 	}
     }
 
@@ -1099,7 +1104,8 @@ MibSCutGenerator::findLowerLevelSol(double *uselessIneqs, double *lowerLevelSol,
     delete [] newObjCoeff;
     delete [] integerVars;
     delete nSolver;
-    
+
+    return foundSolution;
 }
     
 //#############################################################################
@@ -6446,7 +6452,8 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
                                localModel_->solver()->getColSolution(),
                                localModel_->getLowerObjSense(), 0);
         // if (relaxedObjVal > localModel_->bS_->objVal_ + 0.1){ 
-        if (relaxedObjVal > localModel_->bS_->objValVec_[0] + 0.1){ 
+        if (relaxedObjVal > localModel_->bS_->objValVec_[0] + localModel_->etol_ ||
+            localModel_->MibSPar_->entry(MibSParams::bilevelFreeSetTypeIC) == 1){ 
            cutType = MibSIntersectionCutTypeIC;
            intersectionCuts(conPool, bS->optLowerSolutionOrd_, cutType);
         }
