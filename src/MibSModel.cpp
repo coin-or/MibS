@@ -126,6 +126,7 @@ MibSModel::initialize()
   isPureInteger_ = true;
   isUpperCoeffInt_ = true;
   isLowerCoeffInt_ = true;
+  isLowerObjInt_ = true;
   allUpperBin_ = true;
   allLowerBin_ = true;
   allLinkingBin_ = true;
@@ -3141,6 +3142,7 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix,
    int * uColIndices = getUpperColInd();         
    int * lColIndices = getLowerColInd();
    int * lRowIndices = getLowerRowInd();
+   double * lObjCoeffs  = getLowerObjCoeffs();
    char * newRowSense = new char[numRows];
    
    for(i = 0; i < uCols; i++){
@@ -3237,6 +3239,15 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix,
    const int * matStarts = newMatrix->getVectorStarts();
    colSignsG2_ = new int[numCols];
    colSignsA2_ = new int[numCols];
+
+   for (i = 0; i < lCols; i++){
+      if ((fabs(lObjCoeffs[i] - floor(lObjCoeffs[i])) > etol_) &&
+          (fabs(lObjCoeffs[i] - ceil(lObjCoeffs[j])) > etol_)){
+         isLowerObjInt_ = false;
+         break;
+      }
+   }
+   
    //Signs of matrices A1, A2, G1 and G2 are determined
    //based on converting the row senses to 'G' in order to match the
    //MibS cuts paper.
@@ -3440,7 +3451,8 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix,
     if (paramValue == PARAM_NOTSET){
 	MibSPar()->setEntry(MibSParams::useNoGoodCut, PARAM_OFF);
     } else if ((paramValue == PARAM_ON) && (allUpperBin_ == false)){
-       std::cout << "The no-good cut is not valid for this problem.";
+       std::cout << "The no-good cut is only valid when "
+                 << "all upper level variables are binary.";
        std::cout << std::endl;
        MibSPar()->setEntry(MibSParams::useNoGoodCut, PARAM_OFF);
     }
@@ -3477,7 +3489,7 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix,
 
     //Param: "MibS_useGeneralNoGoodCut"
     if ((turnOffOtherCuts == true) &&
-        (MibSPar_->entry(MibSParams::useNoGoodCut) == PARAM_NOTSET)){
+        (MibSPar_->entry(MibSParams::useGeneralNoGoodCut) == PARAM_NOTSET)){
        MibSPar()->setEntry(MibSParams::useGeneralNoGoodCut, PARAM_OFF);
     }
     
@@ -3490,7 +3502,8 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix,
           MibSPar()->setEntry(MibSParams::useGeneralNoGoodCut, PARAM_ON);
        }
     }else if ((paramValue == PARAM_ON) && (allLinkingBin_ == false)){
-       std::cout << "Generalized no-good cut is not valid for this problem.";
+       std::cout << "The generalized no-good cut is only valid when "
+                 << "all linking variables are binary.";
        std::cout << std::endl;
        MibSPar()->setEntry(MibSParams::useGeneralNoGoodCut, PARAM_OFF);
     }
@@ -3517,7 +3530,8 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix,
              ((isPureInteger_ == false) ||
               (isUpperCoeffInt_ == false) ||
               (isLowerCoeffInt_ == false))){
-       std::cout << "The pure integer cut is not valid for this problem.";
+       std::cout << "The pure integer cut is only valid for pure integer"
+                 << "problems with integer constraint matrices";
        std::cout << std::endl;
        MibSPar()->setEntry(MibSParams::usePureIntegerCut, PARAM_OFF);
     }
@@ -3532,7 +3546,15 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix,
        MibSPar()->setEntry(MibSParams::useTypeIC, PARAM_OFF);
     }else if (paramValue == PARAM_ON){
        if ((isPureInteger_ == false) || (isLowerCoeffInt_ == false)){
-          std::cout << "The intersection cut IC is only valid or this problem.";
+          std::cout << "The intersection cut is only valid for pure integer "
+                    << "problems with integer lover-level constraints matrix.";
+          std::cout << std::endl;
+          MibSPar()->setEntry(MibSParams::useTypeIC, PARAM_OFF);
+       }
+       if (MibSPar_->entry(MibSParams::bilevelFreeSetTypeIC) == 1 &&
+           isLowerObjInt_ == false){
+          std::cout << "Type II intersection cut is only valid for problems "
+                    << "with integer lover-level objective coefficients.";
           std::cout << std::endl;
           MibSPar()->setEntry(MibSParams::useTypeIC, PARAM_OFF);
        }

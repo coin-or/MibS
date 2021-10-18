@@ -587,11 +587,12 @@ MibSCutGenerator::intersectionCuts(BcpsConstraintPool &conPool,
 		    delete [] lowerLevelSol;
 		}
 		else{
-		    intersectionFound = getAlphaIC(extRay, NULL, optLowerSolution,
-						   numStruct, numNonBasic, sol, alpha);
-		    if(intersectionFound == false){
-			localModel_->bS_->shouldPrune_ = true;
-		    }
+                   intersectionFound = getAlphaIC(extRay, NULL, optLowerSolution,
+                                                  numStruct, numNonBasic, sol,
+                                                  alpha);
+                   if(intersectionFound == false){
+                      localModel_->bS_->shouldPrune_ = true;
+                   }
 		}
 		break;
 	    }
@@ -926,7 +927,7 @@ MibSCutGenerator::findLowerLevelSol(double *uselessIneqs, double *lowerLevelSol,
 	index = lColInd[i];
 	lObjVal += lObjCoeff[i] * sol[index];
     }
-    newRowUb[0] = lObjVal * lObjSense - 1;
+    newRowUb[0] = ceil(lObjVal * lObjSense - 1);
 
     for(i = 0; i < lRows; i++){
 	index = lRowInd[i];
@@ -3158,9 +3159,6 @@ int
 MibSCutGenerator::generalNoGoodCut(BcpsConstraintPool &conPool)
 {
 
-    /** Add specialized bilevel feasibility cuts, as appropriate **/
-
-    //std::cout << "Generating No-Good Cuts." << std::endl;
     int useLinkingSolutionPool(localModel_->MibSPar_->entry
 		   (MibSParams::useLinkingSolutionPool));
 
@@ -3187,6 +3185,12 @@ MibSCutGenerator::generalNoGoodCut(BcpsConstraintPool &conPool)
 
     bool shouldFindBestSol(true);
 
+    if ((useLinkingSolutionPool == PARAM_ON &&
+         bS->tagInSeenLinkingPool_ == MibSLinkingPoolTagIsNotSet) ||
+        (useLinkingSolutionPool != PARAM_ON && bS->isLowerSolved_ == true)){
+       goto TERM_GENERALNOGOOD;
+    }
+    
     if(((useLinkingSolutionPool != PARAM_ON) && ((bS->isUBSolved_ == true) ||
 				     ((bS->isLowerSolved_ == true) &&
 				      (bS->isProvenOptimal_ == false)))) ||
@@ -3224,7 +3228,7 @@ MibSCutGenerator::generalNoGoodCut(BcpsConstraintPool &conPool)
 
     numCuts += addCut(conPool, cutlb, cutub, indexList, valsList, allowRemoveCut);
 
-    TERM_GENERALNOGOOD:
+ TERM_GENERALNOGOOD:
 
     return numCuts;
 
@@ -4788,7 +4792,6 @@ MibSCutGenerator::generalWeakIncObjCutCurrent(BcpsConstraintPool &conPool)
     int numCuts(0);
     double cutub(0.0), cutlb(-solver->getInfinity()), bigM(0.0);
     double lObjVal(localModel_->bS_->objVal_);
-    //double bigM(10000);
     double etol(localModel_->etol_);
     int uN(localModel_->getUpperDim());
     int lN(localModel_->getLowerDim());
@@ -4799,9 +4802,22 @@ MibSCutGenerator::generalWeakIncObjCutCurrent(BcpsConstraintPool &conPool)
     double lowerObjSense(localModel_->getLowerObjSense());
     const double *sol(solver->getColSolution());
 
+    int useLinkingSolutionPool(localModel_->MibSPar_->entry
+		   (MibSParams::useLinkingSolutionPool));
+
+    MibSBilevel *bS = localModel_->bS_;
+
+    bool shouldFindBestSol(true);
+
     std::vector<int> indexList;
     std::vector<double> valsList;
 
+    if ((useLinkingSolutionPool == PARAM_ON &&
+         bS->tagInSeenLinkingPool_ == MibSLinkingPoolTagIsNotSet) ||
+        (useLinkingSolutionPool != PARAM_ON && bS->isLowerSolved_ == false)){
+       goto TERM_INCOBJ;
+    }
+    
     if(!isBigMIncObjSet_){
        bigMIncObj_ = findBigMIncObjCut();
        isBigMIncObjSet_ = true;
@@ -4840,6 +4856,8 @@ MibSCutGenerator::generalWeakIncObjCutCurrent(BcpsConstraintPool &conPool)
     assert(indexList.size() == valsList.size());
     numCuts += addCut(conPool, cutlb, cutub, indexList, valsList, allowRemoveCut);
 
+ TERM_INCOBJ:
+    
     return numCuts;
 
 }
@@ -5210,28 +5228,23 @@ int
 MibSCutGenerator::binaryCuts(BcpsConstraintPool &conPool)
 {
 
-  //FIXME: NEED TO CHECK FOR ROW TYPES FOR CGLP.  
-  //COMING FROM KNAP SOLVER THEY ARE RANGED.
-
-  int useNoGoodCut 
-    = localModel_->MibSPar_->entry(MibSParams::useNoGoodCut);
-
+   int useGeneralNoGoodCut 
+      = localModel_->MibSPar_->entry(MibSParams::useGeneralNoGoodCut);
+   
    bool useIncObjCut 
-    = localModel_->MibSPar_->entry(MibSParams::useIncObjCut);
+      = localModel_->MibSPar_->entry(MibSParams::useIncObjCut);
 
-  if(useNoGoodCut && !useIncObjCut){
-    return noGoodCut(conPool) ? true : false;
-  }
-  else if(!useNoGoodCut && useIncObjCut){
-    return incObjCut(conPool) ? true : false;
-  }
-  else if(useNoGoodCut && useIncObjCut){
-    return (noGoodCut(conPool) && 
-	    incObjCut(conPool)) ? true : false;
-  }
-  else{
-    //std::cout << "No BINARY Cuts generated" << std::endl;
-    return 0;
+   if(useGeneralNoGoodCut && !useIncObjCut){
+      return generalNoGoodCut(conPool) ? true : false;
+   }
+   else if(!useGeneralNoGoodCut && useIncObjCut){
+      return incObjCut(conPool) ? true : false;
+   }else if(useGeneralNoGoodCut && useIncObjCut){
+      return (generalNoGoodCut(conPool) && 
+              incObjCut(conPool)) ? true : false;
+   }else{
+      //std::cout << "No BINARY Cuts generated" << std::endl;
+      return 0;
   }
 }
 
@@ -5246,7 +5259,7 @@ MibSCutGenerator::incObjCut(BcpsConstraintPool &conPool)
 
   //numCuts += incObjCutMaximal(conPool);
 
-  numCuts += weakIncObjCutCurrent(conPool);
+  numCuts += generalWeakIncObjCutCurrent(conPool);
   
   //if(!maximalCutCount_)
   //numCuts += weakIncObjCutMaximal(conPool);
@@ -5824,6 +5837,9 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
   int cutStrategy =
     localModel_->MibSPar_->entry(MibSParams::cutStrategy);
 
+  int useLinkingSolutionPool(localModel_->MibSPar_->entry
+                             (MibSParams::useLinkingSolutionPool));
+
   MibSTreeNode * node =
       dynamic_cast<MibSTreeNode *>(localModel_->activeNode_);
 
@@ -5869,140 +5885,139 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
   bool useIncObjCut
      = localModel_->MibSPar_->entry(MibSParams::useIncObjCut);
   
-  CoinPackedVector *sol = localModel_->getSolution();
-  
-  if (cutTypes == GENERALONLY){
-     //general type of problem, no specialized cuts
-     delete sol;
+  if ((useBoundCut) && (localModel_->boundingPass_ <= 1)){
      
-     if ((useBoundCut) && (localModel_->boundingPass_ <= 1)){
-        
-        int boundCutFreq(localModel_->MibSPar_->entry(MibSParams::boundCutFreq));
-        
-        int boundCutDepthLb(localModel_->MibSPar_->entry
-                            (MibSParams::boundCutDepthLb));
-        
-        int boundCutDepthUb(localModel_->MibSPar_->entry
-                            (MibSParams::boundCutDepthUb));
-        
-        int depth = static_cast<MibSTreeNode *>(localModel_->activeNode_)->getDepth();
-        
-        bool boundCutOptimal
-           = localModel_->MibSPar_->entry(MibSParams::boundCutOptimal);
-        
-        int boundCutOptimalType =
-           localModel_->MibSPar_->entry(MibSParams::boundCutOptimalType);
-        
-        useBoundCut = false;
-        
-        if((boundCutDepthLb >= 0) && (boundCutDepthUb >= 0)){
-           if((depth >= boundCutDepthLb) && (depth <= boundCutDepthUb)){
-              useBoundCut = true;
-           }
-        }
-        else if(boundCutDepthLb >= 0){
-           if(depth >= boundCutDepthLb){
-              useBoundCut = true;
-           }
-        }
-        else if(boundCutDepthUb >= 0){
-           if(depth <= boundCutDepthUb){
-              useBoundCut = true;
-           }
-        }
-        else{
+     int boundCutFreq(localModel_->MibSPar_->entry(MibSParams::boundCutFreq));
+     
+     int boundCutDepthLb(localModel_->MibSPar_->entry
+                         (MibSParams::boundCutDepthLb));
+     
+     int boundCutDepthUb(localModel_->MibSPar_->entry
+                         (MibSParams::boundCutDepthUb));
+     
+     int depth = static_cast<MibSTreeNode *>(localModel_->activeNode_)->getDepth();
+     
+     bool boundCutOptimal
+        = localModel_->MibSPar_->entry(MibSParams::boundCutOptimal);
+     
+     int boundCutOptimalType =
+        localModel_->MibSPar_->entry(MibSParams::boundCutOptimalType);
+     
+     useBoundCut = false;
+     
+     if((boundCutDepthLb >= 0) && (boundCutDepthUb >= 0)){
+        if((depth >= boundCutDepthLb) && (depth <= boundCutDepthUb)){
            useBoundCut = true;
         }
-        
-        if(node->getIndex() == 0){
-           if((boundCutOptimal == true) &&
-              (boundCutOptimalType == MibSBoundCutOptimalTypeParametric)){
-              useBoundCut = true;
-           }
+     }
+     else if(boundCutDepthLb >= 0){
+        if(depth >= boundCutDepthLb){
+           useBoundCut = true;
         }
-        
-        if(useBoundCut == true){
-           numCalledBoundCut_ ++;
+     }
+     else if(boundCutDepthUb >= 0){
+        if(depth <= boundCutDepthUb){
+           useBoundCut = true;
         }
-        
-        if(((numCalledBoundCut_%boundCutFreq) == 0) && (useBoundCut == true)){
-           double tmpArg1 = 0;
-           bool tmpArg2 = false;
-           boundCuts(conPool, NULL, tmpArg1, tmpArg2);
+     }
+     else{
+        useBoundCut = true;
+     }
+     
+     if(node->getIndex() == 0){
+        if((boundCutOptimal == true) &&
+           (boundCutOptimalType == MibSBoundCutOptimalTypeParametric)){
+           useBoundCut = true;
         }
      }
      
-     if (bS->isIntegral_){
-        if (useIntersectionCutTypeIC == PARAM_ON){
+     if(useBoundCut == true){
+        numCalledBoundCut_ ++;
+     }
+     
+     if(((numCalledBoundCut_%boundCutFreq) == 0) && (useBoundCut == true)){
+        double tmpArg1 = 0;
+        bool tmpArg2 = false;
+        boundCuts(conPool, NULL, tmpArg1, tmpArg2);
+     }
+  }
+  
+  if (bS->isIntegral_){
+     if (useIntersectionCutTypeIC == PARAM_ON){
+        cutType = MibSIntersectionCutTypeIC;
+        intersectionCuts(conPool, bS->optLowerSolutionOrd_, cutType);
+     }
+     
+     if (useIntersectionCutTypeWatermelon == PARAM_ON){
+        cutType = MibSIntersectionCutTypeWatermelon;
+        intersectionCuts(conPool, bS->optLowerSolutionOrd_, cutType);
+     }
+     
+     if (useIntersectionCutTypeHypercubeIC == PARAM_ON){
+        cutType = MibSIntersectionCutTypeHypercubeIC;
+        intersectionCuts(conPool, bS->optLowerSolutionOrd_, cutType);
+     }
+     
+     if (useIntersectionCutTypeTenderIC == PARAM_ON){
+        cutType = MibSIntersectionCutTypeTenderIC;
+        intersectionCuts(conPool, bS->optLowerSolutionOrd_, cutType);
+     }
+     
+     if (useIntersectionCutTypeHybridIC == PARAM_ON){
+        cutType = MibSIntersectionCutTypeHybridIC;
+        intersectionCuts(conPool, bS->optLowerSolutionOrd_, cutType);
+     }
+     
+     if (useGeneralNoGoodCut == PARAM_ON){
+        generalNoGoodCut(conPool);
+     }
+     
+     if (useBendersCut == PARAM_ON){
+        int bendersCutType =
+           localModel_->MibSPar_->entry(MibSParams::bendersCutType);
+        if(bendersCutType == MibSBendersCutTypeJustOneCut){
+           numCuts += bendersInterdictionOneCut(conPool,
+                                                bS->optLowerSolutionOrd_);
+        }
+        else{
+           numCuts += bendersInterdictionMultipleCuts(conPool);
+        }		  
+     }
+     
+     if (useIncObjCut == PARAM_ON){
+        numCuts += generalWeakIncObjCutCurrent(conPool);
+     }
+     
+     numCuts += feasibilityCuts(conPool) ? true : false;
+     
+     return (numCuts ? true : false);
+  }else if(bS->isUpperIntegral_){
+     if (localModel_->isInterdict_){
+        //interdiction problem
+        numCuts += interdictionCuts(conPool);
+     }
+     if (useIntersectionCutTypeIC == PARAM_ON &&
+         ((useLinkingSolutionPool == PARAM_ON &&
+           bS->tagInSeenLinkingPool_ != MibSLinkingPoolTagIsNotSet &&
+           bS->tagInSeenLinkingPool_ != MibSLinkingPoolTagLowerIsInfeasible) ||
+          (useLinkingSolutionPool != PARAM_ON &&
+           bS->isLowerSolved_ != false &&
+           bS->isProvenOptimal_ != false))){
+        double relaxedObjVal = localModel_->bS_->getLowerObj(localModel_->solver()->getColSolution(),
+                                                             localModel_->getLowerObjSense());
+        if (relaxedObjVal > localModel_->bS_->objVal_ + 0.1){ 
            cutType = MibSIntersectionCutTypeIC;
            intersectionCuts(conPool, bS->optLowerSolutionOrd_, cutType);
         }
-        
-        if (useIntersectionCutTypeWatermelon == PARAM_ON){
-           cutType = MibSIntersectionCutTypeWatermelon;
-           intersectionCuts(conPool, bS->optLowerSolutionOrd_, cutType);
-        }
-        
-        if (useIntersectionCutTypeHypercubeIC == PARAM_ON){
-           cutType = MibSIntersectionCutTypeHypercubeIC;
-           intersectionCuts(conPool, bS->optLowerSolutionOrd_, cutType);
-        }
-        
-        if (useIntersectionCutTypeTenderIC == PARAM_ON){
-           cutType = MibSIntersectionCutTypeTenderIC;
-           intersectionCuts(conPool, bS->optLowerSolutionOrd_, cutType);
-        }
-        
-        if (useIntersectionCutTypeHybridIC == PARAM_ON){
-           cutType = MibSIntersectionCutTypeHybridIC;
-           intersectionCuts(conPool, bS->optLowerSolutionOrd_, cutType);
-        }
-        
-        if (useGeneralNoGoodCut == PARAM_ON){
-           generalNoGoodCut(conPool);
-        }
-        
-        if (useBendersCut == PARAM_ON){
-           int bendersCutType =
-              localModel_->MibSPar_->entry(MibSParams::bendersCutType);
-           if(bendersCutType == MibSBendersCutTypeJustOneCut){
-              numCuts += bendersInterdictionOneCut(conPool,
-                                                   bS->optLowerSolutionOrd_);
-           }
-           else{
-              numCuts += bendersInterdictionMultipleCuts(conPool);
-           }		  
-        }
-        
-        if (useIncObjCut == PARAM_ON){
-           numCuts += generalWeakIncObjCutCurrent(conPool);
-        }
-        
-        numCuts += feasibilityCuts(conPool) ? true : false;
-
      }
-     return (numCuts ? true : false);
-  }else if(bS->isUpperIntegral_ && localModel_->isInterdict_){
-     //interdiction problem
-     delete sol;
-     int status = false;
-     if (bS->isIntegral_){
-        numCuts += feasibilityCuts(conPool);
-     }
-     numCuts += interdictionCuts(conPool);
      return (numCuts ? true : false);
   }else if(bS->isUpperIntegral_ && localModel_->allUpperBin_){
      //problem with binary UL variables and integer LL variables
-     delete sol;
-     int status = false;
-     if (bS->isIntegral_ && localModel_->isPureInteger_){
-        status = feasibilityCuts(conPool) ? true : false;
-     }
      numCuts += binaryCuts(conPool);
      return (numCuts ? true : false);
   }
   
-  delete sol;
+     //delete sol;
 
   return numCuts ? true : false;
 }
