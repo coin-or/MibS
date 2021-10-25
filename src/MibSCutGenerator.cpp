@@ -6469,8 +6469,7 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
         intersectionCuts(conPool, bS->optLowerSolutionOrd_, cutType);
      }
 
-     if (useIntersectionCutTypeWatermelon == PARAM_ON &&
-         relaxedObjVal > localModel_->bS_->objValVec_[0] + localModel_->etol_){
+     if (useIntersectionCutTypeWatermelon == PARAM_ON){
         cutType = MibSIntersectionCutTypeWatermelon;
         intersectionCuts(conPool, bS->optLowerSolutionOrd_, cutType);
      }
@@ -6486,7 +6485,7 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
            numCuts += generalNoGoodCut(conPool);
         }
         if (!numCuts && useIncObjCut == PARAM_ON &&
-            relaxedObjVal > localModel_->bS_->objVal_ + localModel_->etol_){
+            relaxedObjVal > localModel_->bS_->objValVec_[0] + localModel_->etol_){
            numCuts += incObjCut(conPool);
         }
      }

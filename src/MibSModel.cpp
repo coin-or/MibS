@@ -166,15 +166,6 @@ MibSModel::initialize()
   //bindingMethod_ = "BASIS"; //FIXME: should make this a parameter
   MibSPar_ = new MibSParams;
   //maxAuxCols_ = 0; //FIXME: should make this a parameter
-
-  MibSCutGenerator *cg = new MibSCutGenerator(this);
-
-  cg->setStrategy(BlisCutStrategyPeriodic);
-  cg->setCutGenerationFreq(1);  // Generate cuts at every node
-
-  addCutGenerator(cg);
-
-  setBlisParameters();
 }
 
 //#############################################################################
@@ -187,6 +178,8 @@ MibSModel::readParameters(const int argnum, const char * const * arglist)
     AlpsPar_->readFromArglist(argnum, arglist); 
     BlisPar_->readFromArglist(argnum, arglist);
     MibSPar_->readFromArglist(argnum, arglist);
+
+    setBlisParameters();
 }
 
 //#############################################################################
@@ -240,9 +233,9 @@ MibSModel::setBlisParameters()
   int blisbranch(MibSPar_->entry(MibSParams::blisBranchStrategy));
 
   /* Set Blis Parameters to keep cutting until no cut is found */
-  BlisPar()->setEntry(BlisParams::cutFactor, ALPS_DBL_MAX);
+  //BlisPar()->setEntry(BlisParams::cutFactor, ALPS_DBL_MAX);
   BlisPar()->setEntry(BlisParams::cutPass, ALPS_INT_MAX);
-  BlisPar()->setEntry(BlisParams::tailOff, -10000);
+  //BlisPar()->setEntry(BlisParams::tailOff, -10000);
   BlisPar()->setEntry(BlisParams::denseConFactor, ALPS_DBL_MAX);
  
   /* Set cut generation frequency to 1 */
@@ -4683,7 +4676,17 @@ MibSModel::setupSelf()
    //------------------------------------------------------
    // Add cut generators.
    //------------------------------------------------------
-   
+
+   if (MibSPar_->entry(MibSParams::cutStrategy) != BRANCHONLY){
+
+      MibSCutGenerator *cg = new MibSCutGenerator(this);
+
+      cg->setStrategy(BlisCutStrategyPeriodic);
+      cg->setCutGenerationFreq(1);  // Generate cuts at every node
+      
+      addCutGenerator(cg);
+
+   }
    
    //----------------------------------
    // Add probe cut generator.
@@ -6766,64 +6769,19 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix,
        defaultCutIsOn = true;
     }
     
-    //Param: "MibS_usePureIntegerCut"
-    if ((turnOffOtherCuts == true) &&
-        (MibSPar_->entry(MibSParams::usePureIntegerCut) == PARAM_NOTSET)){
-       MibSPar()->setEntry(MibSParams::usePureIntegerCut, PARAM_OFF);
-    }
-    
-    paramValue = MibSPar_->entry(MibSParams::usePureIntegerCut);
-
-    if (paramValue == PARAM_NOTSET){
-       if ((isPureInteger_ == false) || (isUpperCoeffInt_ == false)
-           || (isLowerCoeffInt_ == false)){
-          MibSPar()->setEntry(MibSParams::usePureIntegerCut, PARAM_OFF);
-       }else if (defaultCutIsOn == false){
-          MibSPar()->setEntry(MibSParams::usePureIntegerCut, PARAM_ON);
-       }
-    }else if((paramValue == PARAM_ON) &&
-             ((isPureInteger_ == false) ||
-              (isUpperCoeffInt_ == false) ||
-              (isLowerCoeffInt_ == false))){
-       std::cout << "The pure integer cut is only valid for pure integer"
-                 << "problems with integer constraint matrices";
-       std::cout << std::endl;
-       MibSPar()->setEntry(MibSParams::usePureIntegerCut, PARAM_OFF);
-    }
-    if (MibSPar_->entry(MibSParams::usePureIntegerCut) == PARAM_ON){
-	defaultCutIsOn = true;
-    }
-
-    //Param: "MibS_useTypeIC" 
-    paramValue = MibSPar_->entry(MibSParams::useTypeIC);
-    
-    if (paramValue == PARAM_NOTSET){
-       MibSPar()->setEntry(MibSParams::useTypeIC, PARAM_OFF);
-    }else if (paramValue == PARAM_ON){
-       if ((isPureInteger_ == false) || (isLowerCoeffInt_ == false)){
-          std::cout << "The intersection cut is only valid for pure integer "
-                    << "problems with integer lover-level constraints matrix.";
-          std::cout << std::endl;
-          MibSPar()->setEntry(MibSParams::useTypeIC, PARAM_OFF);
-       }
-       if (MibSPar_->entry(MibSParams::bilevelFreeSetTypeIC) == 1 &&
-           isLowerObjInt_ == false){
-          std::cout << "Type II intersection cuts are only valid for problems "
-                    << "with integer lower-level objective coefficients.";
-          std::cout << std::endl;
-          MibSPar()->setEntry(MibSParams::useTypeIC, PARAM_OFF);
-       }
-    }
-
     //Param: "MibS_useTypeWatermelon" 
     paramValue = MibSPar_->entry(MibSParams::useTypeWatermelon);
     
     if (paramValue == PARAM_NOTSET){
-       MibSPar()->setEntry(MibSParams::useTypeWatermelon, PARAM_OFF);
+       if ((isPureInteger_ == false) || (isLowerCoeffInt_ == false)){
+          MibSPar()->setEntry(MibSParams::useTypeWatermelon, PARAM_OFF);
+       }else if (defaultCutIsOn == false){
+          MibSPar()->setEntry(MibSParams::useTypeWatermelon, PARAM_ON);
+       }
     }else if (paramValue == PARAM_ON){
        if ((isPureInteger_ == false) || (isLowerCoeffInt_ == false)){
           std::cout << "The watermelon cut is only valid for pure integer "
-                    << "problems with integer lover-level constraints matrix.";
+                    << "problems with integer lower-level constraints matrix.";
           std::cout << std::endl;
           MibSPar()->setEntry(MibSParams::useTypeWatermelon, PARAM_OFF);
        }
@@ -6833,6 +6791,9 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix,
           std::cout << std::endl;
           MibSPar()->setEntry(MibSParams::useTypeWatermelon, PARAM_OFF);
        }
+    }
+    if (MibSPar_->entry(MibSParams::useTypeWatermelon) == PARAM_ON){
+	defaultCutIsOn = true;
     }
 
     //Param: "MibS_useTypeFractionalWatermelon" 
@@ -6855,6 +6816,27 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix,
        }
     }
 
+    //Param: "MibS_useTypeIC" 
+    paramValue = MibSPar_->entry(MibSParams::useTypeIC);
+    
+    if (paramValue == PARAM_NOTSET){
+       MibSPar()->setEntry(MibSParams::useTypeIC, PARAM_OFF);
+    }else if (paramValue == PARAM_ON){
+       if ((isPureInteger_ == false) || (isLowerCoeffInt_ == false)){
+          std::cout << "The intersection cut is only valid for pure integer "
+                    << "problems with integer lower-level constraints matrix.";
+          std::cout << std::endl;
+          MibSPar()->setEntry(MibSParams::useTypeIC, PARAM_OFF);
+       }
+       if (MibSPar_->entry(MibSParams::bilevelFreeSetTypeIC) == 1 &&
+           isLowerObjInt_ == false){
+          std::cout << "Type II intersection cuts are only valid for problems "
+                    << "with integer lower-level objective coefficients.";
+          std::cout << std::endl;
+          MibSPar()->setEntry(MibSParams::useTypeIC, PARAM_OFF);
+       }
+    }
+
     //Param: "MibS_useTypeHyperCubeIC"
     if ((turnOffOtherCuts == true) &&
         (MibSPar_->entry(MibSParams::useTypeHypercubeIC) == PARAM_NOTSET)){
@@ -6869,6 +6851,26 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix,
 	}
     }
     
+    //Param: "MibS_usePureIntegerCut"
+    if ((turnOffOtherCuts == true) &&
+        (MibSPar_->entry(MibSParams::usePureIntegerCut) == PARAM_NOTSET)){
+       MibSPar()->setEntry(MibSParams::usePureIntegerCut, PARAM_OFF);
+    }
+    
+    paramValue = MibSPar_->entry(MibSParams::usePureIntegerCut);
+
+    if (paramValue == PARAM_NOTSET){
+       MibSPar()->setEntry(MibSParams::usePureIntegerCut, PARAM_OFF);
+    }else if((paramValue == PARAM_ON) &&
+             ((isPureInteger_ == false) ||
+              (isUpperCoeffInt_ == false) ||
+              (isLowerCoeffInt_ == false))){
+       std::cout << "The pure integer cut is only valid for pure integer"
+                 << "problems with integer constraint matrices";
+       std::cout << std::endl;
+       MibSPar()->setEntry(MibSParams::usePureIntegerCut, PARAM_OFF);
+    }
+
     //Param: "MibS_branchProcedure"
     MibSBranchingStrategy branchPar = static_cast<MibSBranchingStrategy>
 	  (MibSPar_->entry(MibSParams::branchStrategy));
