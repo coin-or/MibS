@@ -288,7 +288,7 @@ MibSParams::setDefaultEntries() {
 
    setEntry(bilevelCutTypes, GENERALONLY);
 
-   setEntry(cutStrategy, CUTONLY);
+   setEntry(cutStrategy, BRANCHANDCUT);
 
    setEntry(objBoundStrategy, LPBOUND);
 

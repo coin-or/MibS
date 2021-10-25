@@ -6031,8 +6031,7 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
         intersectionCuts(conPool, bS->optLowerSolutionOrd_, cutType);
      }
 
-     if (useIntersectionCutTypeWatermelon == PARAM_ON &&
-         relaxedObjVal > localModel_->bS_->objVal_ + localModel_->etol_){
+     if (useIntersectionCutTypeWatermelon == PARAM_ON){
         cutType = MibSIntersectionCutTypeWatermelon;
         intersectionCuts(conPool, bS->optLowerSolutionOrd_, cutType);
      }
