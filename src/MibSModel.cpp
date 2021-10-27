@@ -233,7 +233,7 @@ MibSModel::setBlisParameters()
   int blisbranch(MibSPar_->entry(MibSParams::blisBranchStrategy));
 
   /* Set Blis Parameters to keep cutting until no cut is found */
-  //BlisPar()->setEntry(BlisParams::cutFactor, ALPS_DBL_MAX);
+  BlisPar()->setEntry(BlisParams::cutFactor, ALPS_DBL_MAX);
   BlisPar()->setEntry(BlisParams::cutPass, ALPS_INT_MAX);
   //BlisPar()->setEntry(BlisParams::tailOff, -10000);
   BlisPar()->setEntry(BlisParams::denseConFactor, ALPS_DBL_MAX);
@@ -6770,6 +6770,11 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix,
     }
     
     //Param: "MibS_useTypeWatermelon" 
+    if ((turnOffOtherCuts == true) &&
+        (MibSPar_->entry(MibSParams::useTypeWatermelon) == PARAM_NOTSET)){
+       MibSPar()->setEntry(MibSParams::useTypeWatermelon, PARAM_OFF);
+    }
+
     paramValue = MibSPar_->entry(MibSParams::useTypeWatermelon);
     
     if (paramValue == PARAM_NOTSET){
