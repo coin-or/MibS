@@ -497,7 +497,7 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 	lowerObj = getLowerObj(sol, model_->getLowerObjSense());
 	
 	if(isIntegral_){
-	    assert((objVal - lowerObj) <= etol);
+           //assert((objVal - lowerObj) <= etol);
 	}
 	
 	LPSolStatus_ = MibSLPSolStatusInfeasible;
