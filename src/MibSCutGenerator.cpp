@@ -1459,9 +1459,9 @@ MibSCutGenerator::findLowerLevelSolWatermelonIC(double *uselessIneqs, double *lo
     for(i = 0; i < lCols; i++){
 	colIndex = lColInd[i];
 	value = lpSol[colIndex];
-	nSolver->setColLower(i, floor(origColLb[colIndex] - value +
+	nSolver->setColLower(i, ceil(origColLb[colIndex] - value -
                                       localModel_->etol_));
-        nSolver->setColUpper(i, ceil(origColUb[colIndex] - value -
+        nSolver->setColUpper(i, floor(origColUb[colIndex] - value +
                                      localModel_->etol_));
     }
 
@@ -1621,7 +1621,7 @@ MibSCutGenerator::getAlphaWatermelonIC(double** extRay, double *uselessIneqs,
     }
 
     for(i = 0; i < sizeRhs - lCols; i++){
-	assert(rhs[i] > 0);
+       assert(rhs[i] > 0);
     }
 	
     for(i = 0; i < numNonBasic; i++){
