@@ -1475,15 +1475,15 @@ MibSCutGenerator::findLowerLevelSolWatermelonIC(double *uselessIneqs, double *lo
 #if COIN_HAS_SYMPHONY
 	        sym_environment *env = dynamic_cast<OsiSymSolverInterface *>
 		    (nSolver)->getSymphonyEnvironment();
-		//sym_set_int_param(env, "use_hot_starts", FALSE);
+		sym_set_int_param(env, "use_hot_starts", FALSE);
 		sym_set_dbl_param(env, "time_limit", remainingTime);
-		//sym_set_int_param(env, "do_primal_heuristic", FALSE);
+		sym_set_int_param(env, "do_primal_heuristic", FALSE);
 		sym_set_int_param(env, "verbosity", -2);
-		//sym_set_int_param(env, "prep_level", -1);
+		sym_set_int_param(env, "prep_level", -1);
 		sym_set_int_param(env, "max_active_nodes", maxThreadsLL);
-		//sym_set_int_param(env, "tighten_root_bounds", FALSE);
-		//sym_set_int_param(env, "max_sp_size", 100);
-		//sym_set_int_param(env, "do_reduced_cost_fixing", FALSE);
+		sym_set_int_param(env, "tighten_root_bounds", FALSE);
+		sym_set_int_param(env, "max_sp_size", 100);
+		sym_set_int_param(env, "do_reduced_cost_fixing", FALSE);
 		if (whichCutsLL == 0){
 		    sym_set_int_param(env, "generate_cgl_cuts", FALSE);
 		}else{
@@ -1517,7 +1517,7 @@ MibSCutGenerator::findLowerLevelSolWatermelonIC(double *uselessIneqs, double *lo
 #endif
     }
 
-    nSolver->writeLp("water");
+    //nSolver->writeLp("water");
     nSolver->branchAndBound();
 
     if(((feasCheckSolver == "SYMPHONY") && (sym_is_time_limit_reached
