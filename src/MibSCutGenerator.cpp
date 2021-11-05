@@ -6410,36 +6410,8 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
   }
   
   if (bS->isIntegral_){
-     if (useIntersectionCutTypeIC == PARAM_ON){
-        cutType = MibSIntersectionCutTypeIC;
-        intersectionCuts(conPool, bS->optLowerSolutionOrd_, cutType);
-     }
-     
-     if (useIntersectionCutTypeWatermelon == PARAM_ON){
-        cutType = MibSIntersectionCutTypeWatermelon;
-        intersectionCuts(conPool, bS->optLowerSolutionOrd_, cutType);
-     }
-     
-     if (useIntersectionCutTypeHypercubeIC == PARAM_ON){
-        cutType = MibSIntersectionCutTypeHypercubeIC;
-        intersectionCuts(conPool, bS->optLowerSolutionOrd_, cutType);
-     }
-     
-     if (useIntersectionCutTypeTenderIC == PARAM_ON){
-        cutType = MibSIntersectionCutTypeTenderIC;
-        intersectionCuts(conPool, bS->optLowerSolutionOrd_, cutType);
-     }
-     
-     if (useIntersectionCutTypeHybridIC == PARAM_ON){
-        cutType = MibSIntersectionCutTypeHybridIC;
-        intersectionCuts(conPool, bS->optLowerSolutionOrd_, cutType);
-     }
-     
-     if (useGeneralNoGoodCut == PARAM_ON){
-        generalNoGoodCut(conPool);
-     }
-     
-     if (useBendersCut == PARAM_ON){
+
+     if (localModel_->isInterdict_ && useBendersCut == PARAM_ON){
         int bendersCutType =
            localModel_->MibSPar_->entry(MibSParams::bendersCutType);
         if(bendersCutType == MibSBendersCutTypeJustOneCut){
@@ -6451,6 +6423,35 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
         }		  
      }
      
+     if (useIntersectionCutTypeIC == PARAM_ON){
+        cutType = MibSIntersectionCutTypeIC;
+        numCuts += intersectionCuts(conPool, bS->optLowerSolutionOrd_, cutType);
+     }
+     
+     if (useIntersectionCutTypeWatermelon == PARAM_ON){
+        cutType = MibSIntersectionCutTypeWatermelon;
+        numCuts += intersectionCuts(conPool, bS->optLowerSolutionOrd_, cutType);
+     }
+     
+     if (useIntersectionCutTypeHypercubeIC == PARAM_ON){
+        cutType = MibSIntersectionCutTypeHypercubeIC;
+        numCuts += intersectionCuts(conPool, bS->optLowerSolutionOrd_, cutType);
+     }
+     
+     if (useIntersectionCutTypeTenderIC == PARAM_ON){
+        cutType = MibSIntersectionCutTypeTenderIC;
+        numCuts += intersectionCuts(conPool, bS->optLowerSolutionOrd_, cutType);
+     }
+     
+     if (useIntersectionCutTypeHybridIC == PARAM_ON){
+        cutType = MibSIntersectionCutTypeHybridIC;
+        numCuts += intersectionCuts(conPool, bS->optLowerSolutionOrd_, cutType);
+     }
+     
+     if (useGeneralNoGoodCut == PARAM_ON){
+        numCuts += generalNoGoodCut(conPool);
+     }
+     
      if (useIncObjCut == PARAM_ON){
         numCuts += generalWeakIncObjCutCurrent(conPool);
      }
@@ -6460,26 +6461,33 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
      return (numCuts ? true : false);
 
   }else if(bS->isUpperIntegral_){
-     if (localModel_->isInterdict_){
-        //interdiction problem
-        numCuts += interdictionCuts(conPool);
+     if (localModel_->isInterdict_ && useBendersCut == PARAM_ON){
+        int bendersCutType =
+           localModel_->MibSPar_->entry(MibSParams::bendersCutType);
+        if(bendersCutType == MibSBendersCutTypeJustOneCut){
+           numCuts += bendersInterdictionOneCut(conPool,
+                                                bS->optLowerSolutionOrd_);
+        }
+        else{
+           numCuts += bendersInterdictionMultipleCuts(conPool);
+        }		  
      }
 
      if (useIntersectionCutTypeIC == PARAM_ON && haveSecondLevelSol &&
          (relaxedObjVal > localModel_->bS_->objValVec_[0] + localModel_->etol_ ||
           localModel_->MibSPar_->entry(MibSParams::bilevelFreeSetTypeIC) == 1)){ 
         cutType = MibSIntersectionCutTypeIC;
-        intersectionCuts(conPool, bS->optLowerSolutionOrd_, cutType);
+        numCuts += intersectionCuts(conPool, bS->optLowerSolutionOrd_, cutType);
      }
 
      if (useIntersectionCutTypeWatermelon == PARAM_ON){
         cutType = MibSIntersectionCutTypeWatermelon;
-        intersectionCuts(conPool, bS->optLowerSolutionOrd_, cutType);
+        numCuts += intersectionCuts(conPool, bS->optLowerSolutionOrd_, cutType);
      }
      
      if (useIntersectionCutTypeHypercubeIC == PARAM_ON && haveSecondLevelSol){
         cutType = MibSIntersectionCutTypeHypercubeIC;
-        intersectionCuts(conPool, bS->optLowerSolutionOrd_, cutType);
+        numCuts += intersectionCuts(conPool, bS->optLowerSolutionOrd_, cutType);
      }
 
      if (localModel_->allUpperBin_){
@@ -6487,7 +6495,7 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
         if (useGeneralNoGoodCut == PARAM_ON){
            numCuts += generalNoGoodCut(conPool);
         }
-        if (!numCuts && useIncObjCut == PARAM_ON &&
+        if (useIncObjCut == PARAM_ON &&
             relaxedObjVal > localModel_->bS_->objValVec_[0] + localModel_->etol_){
            numCuts += incObjCut(conPool);
         }
@@ -6499,7 +6507,7 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
      
      if (useIntersectionCutTypeFractionalWatermelon == PARAM_ON){
         cutType = MibSIntersectionCutTypeWatermelon;
-        intersectionCuts(conPool, bS->optLowerSolutionOrd_, cutType);
+        numCuts += intersectionCuts(conPool, bS->optLowerSolutionOrd_, cutType);
      }
   }
   
