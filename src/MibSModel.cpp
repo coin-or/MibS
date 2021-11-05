@@ -235,7 +235,7 @@ MibSModel::setBlisParameters()
   /* Set Blis Parameters to keep cutting until no cut is found */
   BlisPar()->setEntry(BlisParams::cutFactor, ALPS_DBL_MAX);
   BlisPar()->setEntry(BlisParams::cutPass, ALPS_INT_MAX);
-  //BlisPar()->setEntry(BlisParams::tailOff, -10000);
+  BlisPar()->setEntry(BlisParams::tailOff, 1);
   BlisPar()->setEntry(BlisParams::denseConFactor, ALPS_DBL_MAX);
  
   /* Set cut generation frequency to 1 */
@@ -3426,6 +3426,10 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix,
           std::cout << std::endl; 
        }
     }
+
+    if (MibSPar_->entry(MibSParams::cutStrategy) == BRANCHONLY){
+       turnOffOtherCuts = true;
+    }
     
     //Param: "MibS_useIncObjCut"
     if ((turnOffOtherCuts == true) &&
@@ -3436,7 +3440,7 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix,
     paramValue = MibSPar_->entry(MibSParams::useIncObjCut);
     
     if (allLinkingBin_ == true){
-       if (paramValue == PARAM_NOTSET){
+       if (turnOffOtherCuts == false && paramValue == PARAM_NOTSET){
           MibSPar()->setEntry(MibSParams::useIncObjCut, PARAM_ON);
        }
     }else if (paramValue == PARAM_ON){
@@ -3681,7 +3685,12 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix,
 	}
 
 	if (MibSPar_->entry(MibSParams::useTypeIC) == PARAM_ON){
-           std::cout << "Intersection cut IC generator is on." << std::endl;
+           if (MibSPar_->entry(MibSParams::bilevelFreeSetTypeIC) ==
+               MibSBilevelFreeSetTypeICWithNewLLSol){
+              std::cout << "Intersection cut IC generator (Type I) is on." << std::endl;
+           }else{
+              std::cout << "Intersection cut IC generator (Type II) is on." << std::endl;
+           }              
 	}
 	if (MibSPar_->entry(MibSParams::useTypeWatermelon) == PARAM_ON){
            std::cout << "Watermelon IC generator is on." << std::endl;
