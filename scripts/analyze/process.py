@@ -233,6 +233,8 @@ def processTable(df, displayCols, writeLTX=False, filename="ltx_tb.txt"):
     rsltDict = {}
     for inst in instList:
         rsltDict[inst] = {}
+        if 'nw04' in inst:
+            continue
         for scn in scnList:
             for v in versionList:
                 cond = (
@@ -245,14 +247,6 @@ def processTable(df, displayCols, writeLTX=False, filename="ltx_tb.txt"):
                 rsltDict[inst].update(
                     {(scn, v, ds, col): df_temp[col].values[0] for col in displayCols}
                 )
-                # if df_temp['solved'].values[0]:
-                #     # using (outer key, inner key) for table column formatting
-                #     rsltDict[inst].update({(scn, v, ds, col):df_temp[col].values[0]
-                #                            for col in displayCols})
-                # else:
-                #     # special color for unsolved cases? but still need to process after print_to_latex
-                #     rsltDict[inst].update({(scn, v, ds, col):'textcolor{lightgray}{'+str(df_temp[col].values[0])+'}'
-                #                            for col in displayCols})
 
     # convert dict to structured df: change to formal column names?
     df_forprint = pd.DataFrame.from_dict(rsltDict, orient="index")
@@ -303,7 +297,7 @@ def dropFilter(df, scenarios, ds):
     drop_easy = df_time[(df_time[col_list] < 5).all(axis=1)].index.tolist()
     drop_unsolved = df_solved[(df_solved[col_list] != True).all(axis=1)].index.tolist()
     drop_list_time = list(set(drop_easy) | set(drop_unsolved))
-    drop_list_time.append("cap6000-0.900000")
+    drop_list_time.extend(["cap6000-0.100000","cap6000-0.500000","cap6000-0.900000"])
     print(drop_list_time)
     df_solved = df.drop(drop_list_time)
     print(df_solved)
@@ -313,6 +307,7 @@ def dropFilter(df, scenarios, ds):
     ).copy()
     drop_no_gap = df_gap[(df_gap[col_list] >= 1000000).all(axis=1)].index.tolist()
     drop_list_gap = list(drop_no_gap)
+    drop_list_gap.extend(["cap6000-0.100000","cap6000-0.500000","cap6000-0.900000"])
     print(drop_list_gap)
     df_has_soln = df.drop(drop_list_gap)
     print(df_has_soln)
@@ -321,7 +316,7 @@ def dropFilter(df, scenarios, ds):
 
 
 def plotPerfProf(
-    df, plotname="perf_profile", fixmin=None, xmin=1, xmax=None, legendnames={}
+    df, plotname="perf_profile", xmin=0.0, xmax=None, legendnames={}
 ):
     """
     Generate a performance profile plot for the given dataframe.
@@ -337,11 +332,6 @@ def plotPerfProf(
         displaynames: a dictionary contains legend name; using df col name if not given
     """
 
-    # colors = ['dodgerblue', 'slateblue', 'blueviolet', 'palevioletred','lightcoral',
-    #    'sandybrown', 'gold', 'yellowgreen', 'darkturquoise']
-    # 'chartreuse'
-    # colors = ['red', 'lime', 'blue', 'fuchsia', 'aqua', 'yellow', 'black', 'gold']
-
     fig, ax = plt.subplots(1, 1)
 
     # if given legend name len != col #, use defualt column name
@@ -350,13 +340,12 @@ def plotPerfProf(
 
     # find min value in the dataframe
     col_list = df.columns.values.tolist()
-    df["min_val"] = df[col_list].min(axis=1)
-    print(df["min_val"])
+    df["virtual_best"] = df[col_list].min(axis=1)
 
     for col in col_list:
         print(col)
         # for each col, compute ratio
-        ratios = df[col] / df["min_val"]
+        ratios = df[col] / df["virtual_best"]
         uniq_ratios = ratios.unique()
         uniq_ratios.sort()  # sort in place
         print(uniq_ratios)
@@ -395,7 +384,7 @@ def plotPerfProf(
             plt.plot(x_val, y_val, label=col)  # , color=colors[i])
 
     # set plot properties
-    ax.set_xlim(0.0, xmax)
+    ax.set_xlim(xmin, xmax)
     ax.set_ylim(-0.02, 1.05)
     ax.tick_params(axis="both", direction="in", right=True)
 
@@ -416,7 +405,7 @@ def plotPerfProf(
     fig.savefig(plotname, dpi=fig.dpi)
 
 
-def plotCum(df, plotname="cum_profile", legendnames={}):
+def plotCumProf(df, plotname="cum_profile", legendnames={}):
 
     fig = plt.figure()
     gs = fig.add_gridspec(1, 2, wspace=0)
@@ -428,16 +417,12 @@ def plotCum(df, plotname="cum_profile", legendnames={}):
     df_gap = df.xs(
         (ds, "gap"), level=["datasets", "fields"], axis=1, drop_level=True
     ).copy()
-    df_solved = df.xs(
-        (ds, "solved"), level=["datasets", "fields"], axis=1, drop_level=True
-    ).copy()
 
     col_list = df_time.columns.values.tolist()
     time_buckets = range(0, 3600)
 
     for col in col_list:
         print(col)
-        # times = df_time[(df_solved[col] == True).all(axis=1)]
         times = df_time[col]
         print(times)
         cum_cnt = np.sum(np.array([times <= t for t in time_buckets]), axis=1)
@@ -464,16 +449,7 @@ def plotCum(df, plotname="cum_profile", legendnames={}):
         fontsize="x-small",
     )
 
-    # xxx = df_gap[col_list[0]]
-    # print (xxx)
-    # print(np.array(np.array([g for g in df_gap[col] if g < 1000000]).max() for col in
-    #               col_list))
-
-    # maxgap = np.max(np.array((df_gap[col] < 1000000).max() for col in col_list))
-
-    # print (maxgap)
-
-    gap_buckets = np.linspace(0, 100, 100)
+    gap_buckets = np.linspace(0, 100, 1000)
 
     for col in col_list:
         print(col)
@@ -489,14 +465,10 @@ def plotCum(df, plotname="cum_profile", legendnames={}):
             ax[1].plot(gap_buckets, cum_frac, label=col)
 
     ax[1].set_xlim(0.0, 100)
-    # ax[1].set_ylim(0.0, 1)
     ax[1].tick_params(axis="both", direction="in", right=True)
 
     # set other figure elements
     ax[1].set_xlabel("Gap")
-    # ax[1].set_ylabel("Fraction of instances")
-    # ax[1].legend(loc='upper left', markerscale=1.25, frameon=True,
-    #               labelspacing=0.35, fontsize='x-small')
     ax[1].label_outer()
 
     fig.suptitle("Cumulative profile")
@@ -504,6 +476,124 @@ def plotCum(df, plotname="cum_profile", legendnames={}):
     fig.savefig(plotname, dpi=fig.dpi)
     # fig.savefig("./performance/barchart/"+plotname+'.eps', format='eps', dpi=600)
 
+def plotBaselineProf(
+        df, baseline, plotname="perf_profile", xmin=0.0, xmax=None, legendnames={}
+):
+    """
+    Generate a performance profile plot for the given dataframe.
+    Assume data given are in number types.
+    x-axis label: multiple of virtual best;
+    y-axis label: franction of instances.
+    Input:
+        df: instances as index, field-to-plot as columns
+        plotname: name of the plot
+        fixmin: the base value used to compute ratio; using df min if not given
+        xmin: the smallest x-ticker to display; set by xlim
+        xmax: the largest x-ticker to display; set by xlim
+        displaynames: a dictionary contains legend name; using df col name if not given
+    """
+
+    fig = plt.figure()
+    gs = fig.add_gridspec(1, 2, wspace=0)
+    ax = gs.subplots(sharey=True)
+
+    # if given legend name len != col #, use defualt column name
+    if legendnames and (len(legendnames) != len(df.columns)):
+        legendnames = {}
+
+    # find min value in the dataframe
+    col_list = df.columns.values.tolist()
+
+    for col in col_list:
+        if col == baseline or col[0] == "virtual_best":
+            continue
+        print(col)
+        # for each col, compute ratio
+        ratios = df[col] / df[baseline]
+        uniq_ratios = ratios.unique()
+        uniq_ratios.sort()  # sort in place
+        cum_cnt = np.sum(np.array([ratios <= ur for ur in uniq_ratios]), axis=1)
+        cum_frac = cum_cnt / len(ratios)
+
+        # form x-tickers: if xmax is not given, use current max and round up
+        if xmax == None:
+            xmax = np.ceil(uniq_ratios[-1])
+        elif uniq_ratios[-1] < xmax:
+            uniq_ratios = np.append(uniq_ratios, xmax)  # append array at the boundary point
+            cum_frac = np.append(cum_frac, cum_frac[-1])
+
+        print(uniq_ratios)
+        print(cum_frac)
+
+        # Values less than one are scaled differently
+        if uniq_ratios[0] < 1:
+            x_val = []
+            y_val = []
+            x_val.append(0.0)
+            y_val.append(0.0)
+            x_val.append(uniq_ratios[0])
+            y_val.append(0)
+            x_val.append(uniq_ratios[0])
+            y_val.append(cum_frac[0])
+            for j, r in enumerate(uniq_ratios[1:]):
+                if r > 1:
+                    x_val.append(r)
+                    y_val.append(cum_frac[j])
+                    break
+                x_val.extend([r, r])
+                # j is indexed starting at zero, not one!
+                y_val.extend([cum_frac[j], cum_frac[j + 1]])
+
+            if legendnames:
+                # , color=colors[i])
+                ax[0].plot(x_val, y_val, label=legendnames[col])
+            else:
+                ax[0].plot(x_val, y_val, label=col)  # , color=colors[i])
+
+        # add turning points and form series to plot
+        x_val = []
+        y_val = []
+        if uniq_ratios[0] >= 1:
+            x_val.append(1.0)
+            y_val.append(0.0)
+            j = 0
+        if uniq_ratios[0] > 1:
+            x_val.append(uniq_ratios[0])
+            y_val.append(0)
+        x_val.append(uniq_ratios[j])
+        y_val.append(cum_frac[j])
+        
+        for k, r in enumerate(uniq_ratios[j+1:]):
+            x_val.extend([r, r])
+            y_val.extend([cum_frac[k+j], cum_frac[k+j+1]])
+
+        if legendnames:
+            # , color=colors[i])
+            ax[1].plot(x_val, y_val, label=legendnames[col])
+        else:
+            ax[1].plot(x_val, y_val, label=col)  # , color=colors[i])
+
+    # set plot properties
+    ax[0].set_xlim(0, 1)
+    ax[0].set_ylim(-0.02, 1.05)
+    ax[0].tick_params(axis="both", direction="in", right=True)
+    ax[0].legend(
+        loc="upper left",
+        markerscale=1.25,
+        frameon=True,
+        labelspacing=0.35,
+        fontsize="x-small",
+    )
+
+    ax[1].set_xlim(1, xmax)
+    ax[1].label_outer()
+    ax[1].tick_params(axis="both", direction="in", right=True)
+
+    fig.supxlabel("Ratio of baseline")
+    fig.supylabel("Fraction of instances")
+    fig.suptitle("Baseline profile")
+    fig.tight_layout()
+    fig.savefig(plotname, dpi=fig.dpi)
 
 if __name__ == "__main__":
 
@@ -516,8 +606,9 @@ if __name__ == "__main__":
     ]
 
     # versions = ['1.1', 'ib']
+    # versions = ["1.2-opt", "rev1"]
     versions = ["1.2-opt"]
-
+    
     # Output parent path
     outputDir = "/mnt/c/Users/tkral/Documents/Projects/MibS/output"
 
@@ -528,23 +619,23 @@ if __name__ == "__main__":
         # 'benders-frac',
         # 'watermelonIC+Type1IC-frac',
         # 'watermelonIC+Type1IC-frac-LV',
-        "incObjCut",
+        #"incObjCut",
         # 'incObjCut-frac',
         "genNoGoodCut",
         # 'genNoGoodCut-frac',
-        # 'pureIntegerCut',
+        'pureIntegerCut',
         # 'pureIntegerCut-frac',
-        # 'hyperIC',
-        # 'hyperIC-frac',
-        # 'watermelonIC',
+        #'hyperIC',
+        #'hyperIC-frac',
+        'watermelonIC',
         # 'watermelonIC-frac',
-        "watermelonIC-frac-LV",
-        # 'fracWatermelonIC',
-        "FracWatermelonIC-frac",
+        # "watermelonIC-frac-LV",
+        #'fracWatermelonIC',
+        # "FracWatermelonIC-frac",
         "Type1IC",
-        "Type1IC-frac",
+        #"Type1IC-frac",
         "Type2IC",
-        "Type2IC-frac",
+        #"Type2IC-frac",
         # 'noCut',
         # 'interdiction',
     ]
@@ -602,6 +693,8 @@ if __name__ == "__main__":
     #     else:
     #         scenarios[k] = 'fractionalBranchStrategy'
 
+    baseline = ("Type1IC", "1.2-opt")
+
     for ds in dataSets:
         df_solved, df_has_soln = dropFilter(df_proc, scenarios, ds)
         for col in plotCols:
@@ -609,6 +702,18 @@ if __name__ == "__main__":
                 (ds, col), level=["datasets", "fields"], axis=1, drop_level=True
             ).copy()
             plotPerfProf(
-                df_sub, plotname="perfprof_" + col + "_" + ds, xmax=plotCols[col][1]
+                df_sub, plotname="perfprof_" + col + "_" + ds, xmin = 0.0, xmax=plotCols[col][1]
             )
-        plotCum(df_has_soln)
+            plotBaselineProf(
+                df_sub, baseline = baseline,
+                plotname="baseprof_" + col + "_" + ds, xmax=plotCols[col][1]
+            )
+        df_gap = df_has_soln.xs(
+            (ds, "gap"), level=["datasets", "fields"], axis=1, drop_level=True
+        ).copy()
+        df_baseline_has_gap = df_gap.drop(df_gap[df_gap[baseline] == 0].index.to_list())
+        plotBaselineProf(
+            df_baseline_has_gap, baseline = ("Type1IC", "1.2-opt"),
+            plotname="baseprof_gap_" + ds, xmax=25
+        )
+        plotCumProf(df_has_soln)
