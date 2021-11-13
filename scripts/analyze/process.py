@@ -76,7 +76,9 @@ def parseOutput(outputDir, versions, params, writeCSV=True, filename="summary.cs
                                 )
 
                                 incomplete = True  # mark incomplete output file
-                                nosoln = False  # mark no soluntion found by Alps at termination
+                                nosoln = False  # mark no soluntion found
+                                results['num_cuts'].append(0)
+                                results['cut_time'].append(0)
                                 # read value for each field from file
                                 with open(o_entry.path, "r") as file:
                                     for line in file.read().splitlines():
@@ -154,12 +156,8 @@ def parseOutput(outputDir, versions, params, writeCSV=True, filename="summary.cs
                                         #    results['ll_int_var'].append(int(line.split(':')[1]))
                                         elif keywords["num_cuts"] in line:
                                             found = True
-                                            results["num_cuts"].append(
-                                                int(line.split(" ")[8])
-                                            )
-                                            results["cut_time"].append(
-                                                float(line.split(" ")[12])
-                                            )
+                                            results["num_cuts"][-1] = int(line.split(" ")[8])
+                                            results["cut_time"][-1] = float(line.split(" ")[12])
                                         elif keywords["infeasible"] in line:
                                             print("Infeasible instance!")
                                         else:
@@ -171,11 +169,9 @@ def parseOutput(outputDir, versions, params, writeCSV=True, filename="summary.cs
                                     results["ub_solved"].append(-1)
                                     results["vf_time"].append(-1)
                                     results["ub_time"].append(-1)
-                                    results["cut_time"].append(-1)
                                     results["objval"].append(-1000000)
                                     results["gap"].append(1000000)
                                     results["solved"].append(False)
-                                    results["num_cuts"].append(-1)
                                     print(
                                         "Incomplete instance:", o_entry.name, scenario
                                     )
@@ -190,9 +186,9 @@ def parseOutput(outputDir, versions, params, writeCSV=True, filename="summary.cs
                                 if results["solved"][-1] == False:
                                     results["cpu_time"][-1] = 3600
 
-    # for k in results:
-    #    print (k)
-    #    print(len(results[k]))
+    for k in results:
+       print (k)
+       print(len(results[k]))
     df_result = pd.DataFrame(results)
 
     # make some adjustment to formats
@@ -297,7 +293,7 @@ def dropFilter(df, scenarios, ds):
     drop_easy = df_time[(df_time[col_list] < 5).all(axis=1)].index.tolist()
     drop_unsolved = df_solved[(df_solved[col_list] != True).all(axis=1)].index.tolist()
     drop_list_time = list(set(drop_easy) | set(drop_unsolved))
-    drop_list_time.extend(["cap6000-0.100000","cap6000-0.500000","cap6000-0.900000"])
+    #drop_list_time.extend(["cap6000-0.100000","cap6000-0.500000","cap6000-0.900000"])
     print(drop_list_time)
     df_solved = df.drop(drop_list_time)
     print(df_solved)
@@ -307,7 +303,7 @@ def dropFilter(df, scenarios, ds):
     ).copy()
     drop_no_gap = df_gap[(df_gap[col_list] >= 1000000).all(axis=1)].index.tolist()
     drop_list_gap = list(drop_no_gap)
-    drop_list_gap.extend(["cap6000-0.100000","cap6000-0.500000","cap6000-0.900000"])
+    #drop_list_gap.extend(["cap6000-0.100000","cap6000-0.500000","cap6000-0.900000"])
     print(drop_list_gap)
     df_has_soln = df.drop(drop_list_gap)
     print(df_has_soln)
@@ -599,8 +595,8 @@ if __name__ == "__main__":
 
     dataSets = [
         # 'MIBLP-XU',
-        "dataIBLP-FIS",
-        # 'dataINTERD-DEN',
+        #"dataIBLP-FIS",
+        'dataINTERD-DEN',
         # 'dataIBLP-DEN',
         # 'dataIBLP-ZHANG'
     ]
@@ -615,28 +611,29 @@ if __name__ == "__main__":
     scenarios = [
         # 'default',
         # 'default-frac',
-        # 'benders',
+        #'benders',
         # 'benders-frac',
         # 'watermelonIC+Type1IC-frac',
         # 'watermelonIC+Type1IC-frac-LV',
-        #"incObjCut",
+        # 'noGood+Type1IC+pureInteger',
+        "incObjCut",
         # 'incObjCut-frac',
         "genNoGoodCut",
-        # 'genNoGoodCut-frac',
+        #'genNoGoodCut-frac',
         'pureIntegerCut',
         # 'pureIntegerCut-frac',
-        #'hyperIC',
+        'hyperIC',
         #'hyperIC-frac',
         'watermelonIC',
         # 'watermelonIC-frac',
         # "watermelonIC-frac-LV",
-        #'fracWatermelonIC',
+        'fracWatermelonIC',
         # "FracWatermelonIC-frac",
         "Type1IC",
         #"Type1IC-frac",
         "Type2IC",
         #"Type2IC-frac",
-        # 'noCut',
+        'noCut',
         # 'interdiction',
     ]
     ################# Process & Save | Load from CSV ###################
@@ -646,7 +643,7 @@ if __name__ == "__main__":
     # if len(args) == 0:
     if 1:
         df_r = parseOutput(
-            outputDir, versions, scenarios, writeCSV=False, filename=file_csv
+            outputDir, versions, scenarios, writeCSV=True, filename=file_csv
         )
     else:
         try:
@@ -693,7 +690,8 @@ if __name__ == "__main__":
     #     else:
     #         scenarios[k] = 'fractionalBranchStrategy'
 
-    baseline = ("Type1IC", "1.2-opt")
+    #baseline = ("Type1IC", "1.2-opt")
+    baseline = None
 
     for ds in dataSets:
         df_solved, df_has_soln = dropFilter(df_proc, scenarios, ds)
@@ -704,16 +702,18 @@ if __name__ == "__main__":
             plotPerfProf(
                 df_sub, plotname="perfprof_" + col + "_" + ds, xmin = 0.0, xmax=plotCols[col][1]
             )
-            plotBaselineProf(
-                df_sub, baseline = baseline,
-                plotname="baseprof_" + col + "_" + ds, xmax=plotCols[col][1]
-            )
-        df_gap = df_has_soln.xs(
-            (ds, "gap"), level=["datasets", "fields"], axis=1, drop_level=True
-        ).copy()
-        df_baseline_has_gap = df_gap.drop(df_gap[df_gap[baseline] == 0].index.to_list())
-        plotBaselineProf(
-            df_baseline_has_gap, baseline = ("Type1IC", "1.2-opt"),
-            plotname="baseprof_gap_" + ds, xmax=25
-        )
+            if baseline is not None: 
+                plotBaselineProf(
+                    df_sub, baseline = baseline,
+                    plotname="baseprof_" + col + "_" + ds, xmax=plotCols[col][1]
+                )
         plotCumProf(df_has_soln)
+        if baseline is not None: 
+            df_gap = df_has_soln.xs(
+                (ds, "gap"), level=["datasets", "fields"], axis=1, drop_level=True
+            ).copy()
+            df_baseline_has_gap = df_gap.drop(df_gap[df_gap[baseline] == 0].index.to_list())
+            plotBaselineProf(
+                df_baseline_has_gap, baseline = ("Type1IC", "1.2-opt"),
+                plotname="baseprof_gap_" + ds, xmax=25
+            )
