@@ -164,9 +164,6 @@ MibSParams::createKeywordList() {
    keys_.push_back(make_pair(std::string("MibS_useTypeWatermelon"),
 			     AlpsParameter(AlpsIntPar, useTypeWatermelon)));
 
-   keys_.push_back(make_pair(std::string("MibS_useTypeFractionalWatermelon"),
-			     AlpsParameter(AlpsIntPar, useTypeFractionalWatermelon)));
-
    keys_.push_back(make_pair(std::string("MibS_useTypeHypercubeIC"),
 			     AlpsParameter(AlpsIntPar, useTypeHypercubeIC)));
 
@@ -179,7 +176,13 @@ MibSParams::createKeywordList() {
    keys_.push_back(make_pair(std::string("MibS_bilevelFreeSetTypeIC"),
 			     AlpsParameter(AlpsIntPar, bilevelFreeSetTypeIC)));
 
+   keys_.push_back(make_pair(std::string("MibS_useFractionalCuts"),
+			     AlpsParameter(AlpsIntPar, useFractionalCuts)));
+
    //solve lower-level Parameters
+   keys_.push_back(make_pair(std::string("MibS_solveSecondLevelEveryIteration"),
+			     AlpsParameter(AlpsIntPar, solveSecondLevelEveryIteration)));
+
    keys_.push_back(make_pair(std::string("MibS_solveSecondLevelWhenXYVarsInt"),
 			     AlpsParameter(AlpsIntPar, solveSecondLevelWhenXYVarsInt)));
 
@@ -232,6 +235,9 @@ MibSParams::createKeywordList() {
    keys_.push_back(make_pair(std::string("MibS_maxActiveNodes"),
 			     AlpsParameter(AlpsIntPar, maxActiveNodes)));
 
+   keys_.push_back(make_pair(std::string("MibS_maxCutDepth"),
+   			     AlpsParameter(AlpsIntPar, maxCutDepth)));
+                 
    //parameters for stochastic and SAA
    //this parameter should be set to false, when the problem is
    //stochastic and A2 is not random.
@@ -420,15 +426,17 @@ MibSParams::setDefaultEntries() {
 
    setEntry(useTypeWatermelon, PARAM_NOTSET);
 
-   setEntry(useTypeFractionalWatermelon, PARAM_NOTSET);
-
    setEntry(useTypeHypercubeIC, PARAM_NOTSET);
 
    setEntry(useTypeTenderIC, PARAM_NOTSET);
 
    setEntry(useTypeHybridIC, PARAM_NOTSET);
 
+   setEntry(useFractionalCuts, 0);
+
    setEntry(bilevelFreeSetTypeIC, MibSBilevelFreeSetTypeICNotSet);
+
+   setEntry(solveSecondLevelEveryIteration, PARAM_NOTSET);
 
    setEntry(solveSecondLevelWhenXYVarsInt, PARAM_NOTSET);
 
@@ -461,6 +469,8 @@ MibSParams::setDefaultEntries() {
    setEntry(boundCutNodeLim, ALPS_INT_MAX);
 
    setEntry(relaxTypeParamBoundCut, MibSRelaxTypeParamBoundCutLP);
+
+   setEntry(maxCutDepth, ALPS_INT_MAX);
 
    setEntry(maxActiveNodes, 1);
 
