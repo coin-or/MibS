@@ -125,9 +125,6 @@ MibSTreeNode::process(bool isRoot, bool rampUp)
     int numAppliedCons = 0;
     int cutStrategy;
     
-    // Only autmatic stategy has depth limit.
-    int maxConstraintDepth = 20;
-
     int numPassesLeft = 0;      
     int bStatus = -1;
  
@@ -173,6 +170,8 @@ MibSTreeNode::process(bool isRoot, bool rampUp)
     BlisParams * BlisPar = model->BlisPar();
 
     int maxPass = BlisPar->entry(BlisParams::cutPass);
+    int maxConstraintDepth = mibsModel->MibSPar_->entry(MibSParams::maxCutDepth);
+
     double tailOffTol = BlisPar->entry(BlisParams::tailOff);
 
     MibSBranchingStrategy branchPar = static_cast<MibSBranchingStrategy>
@@ -244,7 +243,7 @@ MibSTreeNode::process(bool isRoot, bool rampUp)
 
     assert(cutStrategy != BlisCutStrategyNotSet);
     
-    if (cutStrategy == BlisCutStrategyNone) {
+    if (cutStrategy == BlisCutStrategyNone || depth_ > maxConstraintDepth) {
 	genConsHere = false;
     }
     else if (cutStrategy == BlisCutStrategyRoot) {

@@ -174,12 +174,13 @@ MibSModel::initialize()
 void 
 MibSModel::readParameters(const int argnum, const char * const * arglist)
 {
-     //std::cout << "Reading parameters ..." << std::endl;
+    setBlisParameters();
+
+    //std::cout << "Reading parameters ..." << std::endl;
     AlpsPar_->readFromArglist(argnum, arglist);
     BlisPar_->readFromArglist(argnum, arglist);
     MibSPar_->readFromArglist(argnum, arglist);
 
-    setBlisParameters();
 }
 
 //#############################################################################
@@ -3550,26 +3551,6 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix,
 	defaultCutIsOn = true;
     }
 
-    //Param: "MibS_useTypeFractionalWatermelon" 
-    paramValue = MibSPar_->entry(MibSParams::useTypeFractionalWatermelon);
-    
-    if (paramValue == PARAM_NOTSET){
-       MibSPar()->setEntry(MibSParams::useTypeFractionalWatermelon, PARAM_OFF);
-    }else if (paramValue == PARAM_ON){
-       if ((isPureInteger_ == false) || (isLowerCoeffInt_ == false)){
-          std::cout << "The (fractional) watermelon cut is only valid for pure integer "
-                    << "problems with integer lover-level constraints matrix.";
-          std::cout << std::endl;
-          MibSPar()->setEntry(MibSParams::useTypeFractionalWatermelon, PARAM_OFF);
-       }
-       if (isLowerObjInt_ == false){
-          std::cout << "The (fractional) watermelon cut is only valid for problems "
-                    << "with integer lover-level objective coefficients.";
-          std::cout << std::endl;
-          MibSPar()->setEntry(MibSParams::useTypeFractionalWatermelon, PARAM_OFF);
-       }
-    }
-
     //Param: "MibS_useTypeIC" 
     paramValue = MibSPar_->entry(MibSParams::useTypeIC);
     
@@ -3619,13 +3600,13 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix,
              ((isPureInteger_ == false) ||
               (isUpperCoeffInt_ == false) ||
               (isLowerCoeffInt_ == false))){
-       std::cout << "The pure integer cut is only valid for pure integer"
+       std::cout << "The integer no-good cut is only valid for pure integer"
                  << "problems with integer constraint matrices";
        std::cout << std::endl;
        MibSPar()->setEntry(MibSParams::usePureIntegerCut, PARAM_OFF);
     }
 
-    //Param: "MibS_branchProcedure"
+//Param: "MibS_branchProcedure"
     MibSBranchingStrategy branchPar = static_cast<MibSBranchingStrategy>
 	  (MibSPar_->entry(MibSParams::branchStrategy));
     if (branchPar == MibSBranchingStrategyNotSet){
@@ -3686,7 +3667,7 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix,
 
 	if (MibSPar_->entry(MibSParams::useTypeIC) == PARAM_ON){
            if (MibSPar_->entry(MibSParams::bilevelFreeSetTypeIC) ==
-               MibSBilevelFreeSetTypeICWithNewLLSol){
+               MibSBilevelFreeSetTypeICWithLLOptSol){
               std::cout << "Intersection cut IC generator (Type I) is on." << std::endl;
            }else{
               std::cout << "Intersection cut IC generator (Type II) is on." << std::endl;
@@ -3695,16 +3676,17 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix,
 	if (MibSPar_->entry(MibSParams::useTypeWatermelon) == PARAM_ON){
            std::cout << "Watermelon IC generator is on." << std::endl;
 	}
-	if (MibSPar_->entry(MibSParams::useTypeFractionalWatermelon) == PARAM_ON){
-           std::cout << "Fractional watermelon IC generator is on." << std::endl;
-	}
 	if (MibSPar_->entry(MibSParams::useTypeHypercubeIC) == PARAM_ON){
            std::cout << "Hypercube IC generator is on." << std::endl;
 	}
+        if (MibSPar_->entry(MibSParams::useFractionalCuts) == 1){
+           std::cout << "Fractional cuts will be generated.";
+        }
         //}
     }
 	
     //Setting parameters of solving (VF) and (UB)
+    int solveSecondLevelEveryIteration(MibSPar_->entry(MibSParams::solveSecondLevelEveryIteration));
     int solveSecondLevelWhenXYVarsInt(MibSPar_->entry(MibSParams::solveSecondLevelWhenXYVarsInt));
     int solveSecondLevelWhenXVarsInt(MibSPar_->entry(MibSParams::solveSecondLevelWhenXVarsInt));
     int solveSecondLevelWhenLVarsInt(MibSPar_->entry(MibSParams::solveSecondLevelWhenLVarsInt));
@@ -3714,6 +3696,7 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix,
     int computeBestUBWhenLVarsFixed(MibSPar_->entry(MibSParams::computeBestUBWhenLVarsFixed));
 
     if ((solveSecondLevelWhenXYVarsInt == PARAM_NOTSET) &&
+        (solveSecondLevelEveryIteration == PARAM_NOTSET) &&
         (solveSecondLevelWhenXVarsInt == PARAM_NOTSET) &&
         (solveSecondLevelWhenLVarsInt == PARAM_NOTSET) &&
         (solveSecondLevelWhenLVarsFixed == PARAM_NOTSET) &&

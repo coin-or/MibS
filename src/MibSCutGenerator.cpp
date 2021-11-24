@@ -1777,7 +1777,9 @@ MibSCutGenerator::storeBestSolHypercubeIC(const double* lpSol, double optLowerOb
 
 	startTimeUB = localModel_->broker_->subTreeTimer().getTime(); 
         UBSolver->branchAndBound();
-        localModel_->timerUB_ += localModel_->broker_->subTreeTimer().getTime() - startTimeUB;
+        //This time is being double-counted, since it is also included in cut
+        //generation
+        //localModel_->timerUB_ += localModel_->broker_->subTreeTimer().getTime() - startTimeUB;
         localModel_->counterUB_ ++;
 
         if((feasCheckSolver == "SYMPHONY") && (sym_is_time_limit_reached
@@ -5883,9 +5885,6 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
   int useIntersectionCutTypeWatermelon =
      localModel_->MibSPar_->entry(MibSParams::useTypeWatermelon);
   
-  int useIntersectionCutTypeFractionalWatermelon =
-     localModel_->MibSPar_->entry(MibSParams::useTypeFractionalWatermelon);
-  
   int useIntersectionCutTypeHypercubeIC =
      localModel_->MibSPar_->entry(MibSParams::useTypeHypercubeIC);
   
@@ -5903,6 +5902,9 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
   
   bool useIncObjCut
      = localModel_->MibSPar_->entry(MibSParams::useIncObjCut);
+  
+  int useFractionalCuts =
+     localModel_->MibSPar_->entry(MibSParams::useFractionalCuts);
   
   double relaxedObjVal = localModel_->bS_->getLowerObj(
                          localModel_->solver()->getColSolution(),
@@ -6065,10 +6067,16 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
 
      return (numCuts ? true : false);
 
-  }else {
+  }else if (useFractionalCuts){
      
-     if (useIntersectionCutTypeFractionalWatermelon == PARAM_ON){
+     if (useIntersectionCutTypeWatermelon == PARAM_ON){
         cutType = MibSIntersectionCutTypeWatermelon;
+        numCuts += intersectionCuts(conPool, bS->optLowerSolutionOrd_, cutType);
+     }
+     if (useIntersectionCutTypeIC == PARAM_ON && ((haveSecondLevelSol &&
+           relaxedObjVal > localModel_->bS_->objVal_ + localModel_->etol_) ||
+          localModel_->MibSPar_->entry(MibSParams::bilevelFreeSetTypeIC) == 1)){ 
+        cutType = MibSIntersectionCutTypeIC;
         numCuts += intersectionCuts(conPool, bS->optLowerSolutionOrd_, cutType);
      }
   }

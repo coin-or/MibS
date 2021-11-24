@@ -70,11 +70,12 @@ class MibSParams : public AlpsParameterSet {
      bendersCutType,
      useTypeIC,
      useTypeWatermelon,
-     useTypeFractionalWatermelon,
      useTypeHypercubeIC,
      useTypeTenderIC,
      useTypeHybridIC,
+     useFractionalCuts,
      bilevelFreeSetTypeIC,
+     solveSecondLevelEveryIteration,
      solveSecondLevelWhenXYVarsInt,
      solveSecondLevelWhenXVarsInt,
      solveSecondLevelWhenLVarsInt,
@@ -91,6 +92,7 @@ class MibSParams : public AlpsParameterSet {
      boundCutFreq,
      boundCutNodeLim,
      relaxTypeParamBoundCut,
+     maxCutDepth,
      endOfIntParams
   };
 

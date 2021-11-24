@@ -56,14 +56,16 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
   MibSBranchingStrategy branchPar = static_cast<MibSBranchingStrategy>
       (model_->MibSPar_->entry(MibSParams::branchStrategy));
 
-  int solveSecondLevelWhenXYVarsInt(model_->MibSPar_->entry
-			   (MibSParams::solveSecondLevelWhenXYVarsInt));
-  int solveSecondLevelWhenXVarsInt(model_->MibSPar_->entry
-			  (MibSParams::solveSecondLevelWhenXVarsInt));
-  int solveSecondLevelWhenLVarsInt(model_->MibSPar_->entry
-			  (MibSParams::solveSecondLevelWhenLVarsInt));
-  int solveSecondLevelWhenLVarsFixed(model_->MibSPar_->entry
-			    (MibSParams::solveSecondLevelWhenLVarsFixed));
+  bool solveSecondLevelEveryIteration(model_->MibSPar_->entry
+                                     (MibSParams::solveSecondLevelEveryIteration) == PARAM_ON);
+  bool solveSecondLevelWhenXYVarsInt(model_->MibSPar_->entry
+                                     (MibSParams::solveSecondLevelWhenXYVarsInt) == PARAM_ON);
+  bool solveSecondLevelWhenXVarsInt(model_->MibSPar_->entry
+                                    (MibSParams::solveSecondLevelWhenXVarsInt) == PARAM_ON);
+  bool solveSecondLevelWhenLVarsInt(model_->MibSPar_->entry
+                                    (MibSParams::solveSecondLevelWhenLVarsInt) == PARAM_ON);
+  bool solveSecondLevelWhenLVarsFixed(model_->MibSPar_->entry
+                                      (MibSParams::solveSecondLevelWhenLVarsFixed) == PARAM_ON);
   int cutStrategy(model_->MibSPar_->entry
 		  (MibSParams::cutStrategy));
 
@@ -227,20 +229,20 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
 
   //step 7
   if(!shouldPrune_){
-      if(((tagInSeenLinkingPool_ == MibSLinkingPoolTagLowerIsFeasible)
-	  || (tagInSeenLinkingPool_ == MibSLinkingPoolTagUBIsSolved)) ||
-	 ((!isContainedInLinkingPool_) &&
-	  (((branchPar == MibSBranchingStrategyLinking) &&
-	    (isIntegral_) && (isLinkVarsFixed_)) ||
-	   ((branchPar == MibSBranchingStrategyFractional)
-	    && (isIntegral_)) ||
-	   ((solveSecondLevelWhenXYVarsInt == PARAM_ON) && (isIntegral_)) ||
-	   ((solveSecondLevelWhenXVarsInt == PARAM_ON) && (isUpperIntegral_)) ||
-	   ((solveSecondLevelWhenLVarsInt == PARAM_ON) && (isLinkVarsIntegral_)) ||
-	   ((solveSecondLevelWhenLVarsFixed == PARAM_ON) && (isLinkVarsFixed_ ))))){
+     if((tagInSeenLinkingPool_ == MibSLinkingPoolTagLowerIsFeasible ||
+          tagInSeenLinkingPool_ == MibSLinkingPoolTagUBIsSolved) ||
+         (!isContainedInLinkingPool_ &&
+	  ((branchPar == MibSBranchingStrategyLinking && isIntegral_ && isLinkVarsFixed_) ||
+	   (branchPar == MibSBranchingStrategyFractional && isIntegral_) ||
+	   (solveSecondLevelEveryIteration) ||
+	   (solveSecondLevelWhenXYVarsInt && isIntegral_) ||
+	   (solveSecondLevelWhenXVarsInt && isUpperIntegral_) ||
+	   (solveSecondLevelWhenLVarsInt && isLinkVarsIntegral_) ||
+	   (solveSecondLevelWhenLVarsFixed && isLinkVarsFixed_ )))){
 	  storeSol = checkBilevelFeasiblity(mibs->isRoot_);
       }
   }
+  
   if(cutStrategy == 1){
       useBilevelBranching_ = false;
   }
@@ -421,7 +423,7 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 	else if(!lSolver->isProvenOptimal()){
 	    LPSolStatus_ = MibSLPSolStatusInfeasible;
 	    isProvenOptimal_ = false;
-	    if(useLinkingSolutionPool){
+	    if(useLinkingSolutionPool && isLinkVarsIntegral_){
 	    //step 10
 	    //Adding x_L to set E
 		addSolutionToSeenLinkingSolutionPool
@@ -440,7 +442,7 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 
 	    const double * values = lSolver->getColSolution();
 	    
-	    if(useLinkingSolutionPool){
+	    if(useLinkingSolutionPool && isLinkVarsIntegral_){
 		std::copy(values, values + lN, shouldStoreValuesLowerSol.begin());
 		
 		//step 12
@@ -475,7 +477,7 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
     }
 
     //step 13
-    if(((!useLinkingSolutionPool) && (isProvenOptimal_)) ||
+    if(((!useLinkingSolutionPool || !isLinkVarsIntegral_) && (isProvenOptimal_)) ||
        ((tagInSeenLinkingPool_ == MibSLinkingPoolTagLowerIsFeasible) ||
 	(tagInSeenLinkingPool_ == MibSLinkingPoolTagUBIsSolved))){
 
@@ -484,7 +486,7 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 	//double *lowerSol = new double[lN];
 	//CoinFillN(lowerSol, lN, 0.0);
 
-	if(useLinkingSolutionPool){
+	if(useLinkingSolutionPool && isLinkVarsIntegral_){
 	    //get optimal value  of (VF) from solution pool
 	    //model_->it = seenLinkingSolutions.find(linkSol);
 	    //objVal = model_->it->second.lowerObjVal1;
@@ -634,7 +636,7 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 		}
 		//step 22
 		//Adding x_L to set E
-		if(useLinkingSolutionPool){
+		if(useLinkingSolutionPool && isLinkVarsIntegral_){
 		    addSolutionToSeenLinkingSolutionPool
 			(MibSLinkingPoolTagUBIsSolved, shouldStoreValuesUBSol, objVal);
 		}
