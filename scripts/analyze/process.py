@@ -17,7 +17,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 
-def parseOutput(outputDir, versions, params, writeCSV=True, filename="summary.csv"):
+def parseOutput(outputDir, versions, scenarios, writeCSV=True, filename="summary.csv"):
     """
     The function parse the output file in the given directory.
     Assume the subfolders hierarchy: outputDir/param_scenario_name/testset_name/BR_Output/file.out.
@@ -33,9 +33,9 @@ def parseOutput(outputDir, versions, params, writeCSV=True, filename="summary.cs
     # then need to match keywords and fields
     keywords = {
         "solved": "No solution found",
-        "nodes_proc": "of nodes processed",
+        "nodes": "of nodes processed",
         "nodes_full_proc": "fully processed",
-        "cpu_time": "Search CPU time",
+        "cpu": "Search CPU time",
         "vf_solved": "VF) solved",
         "ub_solved": "UB) solved",
         "vf_time": "solving problem (VF)",
@@ -53,23 +53,22 @@ def parseOutput(outputDir, versions, params, writeCSV=True, filename="summary.cs
 
     # iterate over versions, scenarios, datasets, and files in each folder to read results
     for v in versions:
-        for scenario in params:
-            # resultDir = os.path.join(outputDir, "BR"+str(g)+"Output")
-            resultDir = os.path.join(outputDir, v, scenario)
-
+        for s in scenarios:
+            resultDir = os.path.join(outputDir, v, s)
+            if os.path.isdir(resultDir) == False:
+                continue
             # iterate over different datasets available
             with os.scandir(resultDir) as dataset_it:
                 for d_entry in dataset_it:
                     if d_entry.name not in dataSets:
                         continue
-                    subDir = d_entry.path
                     # iterate over files in the folder
-                    with os.scandir(subDir) as output_it:
+                    with os.scandir(d_entry.path) as output_it:
                         for o_entry in output_it:
                             if o_entry.name.endswith(".out"):
                                 # start to write result to the dictionary
                                 results["dataset"].append(d_entry.name)
-                                results["scenario"].append(scenario)
+                                results["scenario"].append(scenarios[s])
                                 results["version"].append(v)
                                 results["instance"].append(
                                     os.path.splitext(o_entry.name)[0]
@@ -87,20 +86,19 @@ def parseOutput(outputDir, versions, params, writeCSV=True, filename="summary.cs
                                             results["solved"].append(False)
                                             print(
                                                 "No solution found instance:",
-                                                o_entry.name,
-                                                scenario,
+                                                o_entry.name, s
                                             )
 
                                         elif (
-                                            keywords["nodes_proc"] in line
+                                            keywords["nodes"] in line
                                             or keywords["nodes_full_proc"] in line
                                         ):
-                                            results["nodes_proc"].append(
+                                            results["nodes"].append(
                                                 int(line.split(":")[1])
                                             )
 
-                                        elif keywords["cpu_time"] in line:
-                                            results["cpu_time"].append(
+                                        elif keywords["cpu"] in line:
+                                            results["cpu"].append(
                                                 float((line.split(":")[1]).split()[0])
                                             )
 
@@ -163,8 +161,8 @@ def parseOutput(outputDir, versions, params, writeCSV=True, filename="summary.cs
                                         else:
                                             pass
                                 if incomplete:
-                                    results["nodes_proc"].append(-1)
-                                    results["cpu_time"].append(3600)
+                                    results["nodes"].append(1000000000)
+                                    results["cpu"].append(3600)
                                     results["vf_solved"].append(-1)
                                     results["ub_solved"].append(-1)
                                     results["vf_time"].append(-1)
@@ -173,7 +171,7 @@ def parseOutput(outputDir, versions, params, writeCSV=True, filename="summary.cs
                                     results["gap"].append(1000000)
                                     results["solved"].append(False)
                                     print(
-                                        "Incomplete instance:", o_entry.name, scenario
+                                        "Incomplete instance:", o_entry.name, s
                                     )
                                 elif nosoln:
                                     results["vf_solved"].append(-1)
@@ -184,11 +182,14 @@ def parseOutput(outputDir, versions, params, writeCSV=True, filename="summary.cs
                                     results["gap"][-1] = 1000000
 
                                 if results["solved"][-1] == False:
-                                    results["cpu_time"][-1] = 3600
+                                    results["cpu"][-1] = 3600
+                                if results["cpu"][-1] < 0.01:
+                                    print ("Bad value! ", results["cpu"][-1])
+                                    results["cpu"][-1] = .01
 
-    for k in results:
-       print (k)
-       print(len(results[k]))
+    #for k in results:
+    #   print (k)
+    #   print(len(results[k]))
     df_result = pd.DataFrame(results)
 
     # make some adjustment to formats
@@ -196,7 +197,7 @@ def parseOutput(outputDir, versions, params, writeCSV=True, filename="summary.cs
     # sum vf+ub time -> feasibility time (or read from output directly?)
     df_result["chk_feas_time"] = df_result["ub_time"] + df_result["vf_time"]
     df_result["chk_feas_time"] = df_result["chk_feas_time"].astype(float).round(2)
-    df_result["cpu_time"] = df_result["cpu_time"].astype(float).round(2)
+    df_result["cpu"] = df_result["cpu"].astype(float).round(2)
 
     # write results to .csv file
     if writeCSV:
@@ -239,9 +240,10 @@ def processTable(df, displayCols, writeLTX=False, filename="ltx_tb.txt"):
                     & (df["version"] == v)
                 )
                 df_temp = df[cond]
-                ds = df_temp["dataset"].values[0]
-                rsltDict[inst].update(
-                    {(scn, v, ds, col): df_temp[col].values[0] for col in displayCols}
+                if len(df_temp["dataset"].values) > 0:
+                    ds = df_temp["dataset"].values[0]
+                    rsltDict[inst].update(
+                        {(scn, v, ds, col): df_temp[col].values[0] for col in displayCols}
                 )
 
     # convert dict to structured df: change to formal column names?
@@ -274,18 +276,17 @@ def dropFilter(df, scenarios, ds):
         plotCol: columns to make single plots
         scenarios: scenarios on one plot
     """
-    df = df[scenarios]
+    df = df[scenarios.values()]
     # replace unsolved cases by a large number
     for scn in df.columns:
         df[scn] = pd.to_numeric(df[scn], errors="coerce").replace(np.nan, 1e11)
     # apply index filter on solution time
     df_time = df.xs(
-        (ds, "cpu_time"), level=["datasets", "fields"], axis=1, drop_level=True
+        (ds, "cpu"), level=["datasets", "fields"], axis=1, drop_level=True
     ).copy()
     df_solved = df.xs(
         (ds, "solved"), level=["datasets", "fields"], axis=1, drop_level=True
     ).copy()
-    print(df_solved)
     # df_time = pd.to_numeric(df_time, errors='coerce').replace(np.nan, 36000)
     # filter out cases where time is < 5'' or > 3600'' for all methods
     col_list = df_time.columns.values.tolist()
@@ -294,7 +295,7 @@ def dropFilter(df, scenarios, ds):
     drop_unsolved = df_solved[(df_solved[col_list] != True).all(axis=1)].index.tolist()
     drop_list_time = list(set(drop_easy) | set(drop_unsolved))
     #drop_list_time.extend(["cap6000-0.100000","cap6000-0.500000","cap6000-0.900000"])
-    print(drop_list_time)
+    #print(drop_list_time)
     df_solved = df.drop(drop_list_time)
     print(df_solved)
 
@@ -304,7 +305,7 @@ def dropFilter(df, scenarios, ds):
     drop_no_gap = df_gap[(df_gap[col_list] >= 1000000).all(axis=1)].index.tolist()
     drop_list_gap = list(drop_no_gap)
     #drop_list_gap.extend(["cap6000-0.100000","cap6000-0.500000","cap6000-0.900000"])
-    print(drop_list_gap)
+    #print(drop_list_gap)
     df_has_soln = df.drop(drop_list_gap)
     print(df_has_soln)
 
@@ -312,7 +313,8 @@ def dropFilter(df, scenarios, ds):
 
 
 def plotPerfProf(
-    df, plotname="perf_profile", xmin=0.0, xmax=None, legendnames={}
+        df, plotname="perf_profile", plottitle="Performance Profile",
+        xmin=0.0, xmax=None, legendnames={}, versionlegend=False
 ):
     """
     Generate a performance profile plot for the given dataframe.
@@ -347,7 +349,7 @@ def plotPerfProf(
         print(uniq_ratios)
         cum_cnt = np.sum(np.array([ratios <= ur for ur in uniq_ratios]), axis=1)
         cum_frac = cum_cnt / len(ratios)
-        print(cum_frac)
+        #print(cum_frac)
 
         # form x-tickers: if xmax is not given, use current max and round up
         if xmax == None:
@@ -376,8 +378,10 @@ def plotPerfProf(
         if legendnames:
             # , color=colors[i])
             plt.plot(x_val, y_val, label=legendnames[col])
-        else:
+        elif versionlegend:
             plt.plot(x_val, y_val, label=col)  # , color=colors[i])
+        else:
+            plt.plot(x_val, y_val, label=col[0])  # , color=colors[i])
 
     # set plot properties
     ax.set_xlim(xmin, xmax)
@@ -385,12 +389,12 @@ def plotPerfProf(
     ax.tick_params(axis="both", direction="in", right=True)
 
     # set other figure elements
-    ax.set_title("Performance profile: " + plotname[9:])
+    ax.set_title(plottitle)
     ax.set_xlabel("Multiple of virtual best")
     ax.set_ylabel("Fraction of instances")
     ax.legend(
-        loc="upper left",
-        bbox_to_anchor=(0.6, 0.9),
+        loc="lower right",
+        #bbox_to_anchor=(0.9, 0.9),
         markerscale=1.25,
         frameon=True,
         labelspacing=0.35,
@@ -401,14 +405,15 @@ def plotPerfProf(
     fig.savefig(plotname, dpi=fig.dpi)
 
 
-def plotCumProf(df, plotname="cum_profile", legendnames={}):
+def plotCumProf(df, plotname="cum_profile", plottitle = "Cumulative Profile",
+                legendnames={}, versionlegend=False):
 
     fig = plt.figure()
     gs = fig.add_gridspec(1, 2, wspace=0)
     ax = gs.subplots(sharey=True)
 
     df_time = df.xs(
-        (ds, "cpu_time"), level=["datasets", "fields"], axis=1, drop_level=True
+        (ds, "cpu"), level=["datasets", "fields"], axis=1, drop_level=True
     ).copy()
     df_gap = df.xs(
         (ds, "gap"), level=["datasets", "fields"], axis=1, drop_level=True
@@ -423,12 +428,14 @@ def plotCumProf(df, plotname="cum_profile", legendnames={}):
         print(times)
         cum_cnt = np.sum(np.array([times <= t for t in time_buckets]), axis=1)
         cum_frac = cum_cnt / len(df)
-        print(cum_frac)
+        #print(cum_frac)
         x_val = []
         if legendnames:
             ax[0].plot(time_buckets, cum_frac, label=legendnames[col])
+        elif versionlegend:
+            ax[0].plot(time_buckets, cum_frac, label=col)  # , color=colors[i])
         else:
-            ax[0].plot(time_buckets, cum_frac, label=col)
+            ax[0].plot(time_buckets, cum_frac, label=col[0])
 
     ax[0].set_xlim(0, 3599)
     ax[0].set_ylim(0.0, 1)
@@ -437,13 +444,6 @@ def plotCumProf(df, plotname="cum_profile", legendnames={}):
     # set other figure elements
     ax[0].set_xlabel("Time")
     ax[0].set_ylabel("Fraction of instances")
-    ax[0].legend(
-        loc="upper left",
-        markerscale=1.25,
-        frameon=True,
-        labelspacing=0.35,
-        fontsize="x-small",
-    )
 
     gap_buckets = np.linspace(0, 100, 1000)
 
@@ -453,27 +453,38 @@ def plotCumProf(df, plotname="cum_profile", legendnames={}):
         print(gaps)
         cum_cnt = np.sum(np.array([gaps <= g for g in gap_buckets]), axis=1)
         cum_frac = cum_cnt / len(df_gap)
-        print(cum_frac)
+        #print(cum_frac)
         x_val = []
         if legendnames:
             ax[1].plot(gap_buckets, cum_frac, label=legendnames[col])
+        elif versionlegend:
+            ax[1].plot(gap_buckets, cum_frac, label=col)  # , color=colors[i])
         else:
-            ax[1].plot(gap_buckets, cum_frac, label=col)
+            ax[1].plot(gap_buckets, cum_frac, label=col[0])
 
     ax[1].set_xlim(0.0, 100)
     ax[1].tick_params(axis="both", direction="in", right=True)
+    ax[1].legend(
+        loc="lower right",
+        #bbox_to_anchor=(0.9, 0.95),
+        markerscale=1.25,
+        frameon=True,
+        labelspacing=0.35,
+        fontsize="x-small",
+    )
 
     # set other figure elements
     ax[1].set_xlabel("Gap")
     ax[1].label_outer()
 
-    fig.suptitle("Cumulative profile")
+    fig.suptitle(plottitle)
     fig.tight_layout()
     fig.savefig(plotname, dpi=fig.dpi)
     # fig.savefig("./performance/barchart/"+plotname+'.eps', format='eps', dpi=600)
 
 def plotBaselineProf(
-        df, baseline, plotname="perf_profile", xmin=0.0, xmax=None, legendnames={}
+        df, baseline, plotname="base_profile", plottitle="Baseline Profile",
+        xmin=0.0, xmax=None, legendnames={}, versionleend=False
 ):
     """
     Generate a performance profile plot for the given dataframe.
@@ -506,8 +517,10 @@ def plotBaselineProf(
         print(col)
         # for each col, compute ratio
         ratios = df[col] / df[baseline]
+        print(df[col])
         uniq_ratios = ratios.unique()
         uniq_ratios.sort()  # sort in place
+        print(uniq_ratios)
         cum_cnt = np.sum(np.array([ratios <= ur for ur in uniq_ratios]), axis=1)
         cum_frac = cum_cnt / len(ratios)
 
@@ -519,7 +532,7 @@ def plotBaselineProf(
             cum_frac = np.append(cum_frac, cum_frac[-1])
 
         print(uniq_ratios)
-        print(cum_frac)
+        #print(cum_frac)
 
         # Values less than one are scaled differently
         if uniq_ratios[0] < 1:
@@ -543,8 +556,10 @@ def plotBaselineProf(
             if legendnames:
                 # , color=colors[i])
                 ax[0].plot(x_val, y_val, label=legendnames[col])
-            else:
+            elif versionlegend:
                 ax[0].plot(x_val, y_val, label=col)  # , color=colors[i])
+            else:
+                ax[0].plot(x_val, y_val, label=col[0])  # , color=colors[i])
 
         # add turning points and form series to plot
         x_val = []
@@ -566,28 +581,31 @@ def plotBaselineProf(
         if legendnames:
             # , color=colors[i])
             ax[1].plot(x_val, y_val, label=legendnames[col])
-        else:
+        elif versionlegend:
             ax[1].plot(x_val, y_val, label=col)  # , color=colors[i])
+        else:
+            ax[1].plot(x_val, y_val, label=col[0])  # , color=colors[i])
 
     # set plot properties
     ax[0].set_xlim(0, 1)
     ax[0].set_ylim(-0.02, 1.05)
     ax[0].tick_params(axis="both", direction="in", right=True)
-    ax[0].legend(
-        loc="upper left",
+
+    ax[1].set_xlim(1, xmax)
+    ax[1].label_outer()
+    ax[1].tick_params(axis="both", direction="in", right=True)
+    ax[1].legend(
+        loc="lower right",
+        #bbox_to_anchor=(0.9, 0.05),
         markerscale=1.25,
         frameon=True,
         labelspacing=0.35,
         fontsize="x-small",
     )
 
-    ax[1].set_xlim(1, xmax)
-    ax[1].label_outer()
-    ax[1].tick_params(axis="both", direction="in", right=True)
-
     fig.supxlabel("Ratio of baseline")
     fig.supylabel("Fraction of instances")
-    fig.suptitle("Baseline profile")
+    fig.suptitle(plottitle)
     fig.tight_layout()
     fig.savefig(plotname, dpi=fig.dpi)
 
@@ -595,50 +613,57 @@ if __name__ == "__main__":
 
     dataSets = [
         # 'MIBLP-XU',
-        #"dataIBLP-FIS",
-        'dataINTERD-DEN',
-        # 'dataIBLP-DEN',
-        # 'dataIBLP-ZHANG'
+        "IBLP-FIS",
+        #'INTERD-DEN',
+        'IBLP-DEN',
+        'IBLP-ZHANG'
     ]
 
     # versions = ['1.1', 'ib']
     # versions = ["1.2-opt", "rev1"]
-    versions = ["1.2-opt"]
+    versions = ["1.2-opt", "1.2-opt-cplex"]
     
     # Output parent path
     outputDir = "/mnt/c/Users/tkral/Documents/Projects/MibS/output"
 
-    scenarios = [
+    scenarios = {
         # 'default',
         # 'default-frac',
-        #'benders',
-        # 'benders-frac',
-        # 'watermelonIC+Type1IC-frac',
-        # 'watermelonIC+Type1IC-frac-LV',
-        # 'noGood+Type1IC+pureInteger',
-        "incObjCut",
-        # 'incObjCut-frac',
-        "genNoGoodCut",
-        #'genNoGoodCut-frac',
-        'pureIntegerCut',
-        # 'pureIntegerCut-frac',
-        'hyperIC',
-        #'hyperIC-frac',
-        'watermelonIC',
-        # 'watermelonIC-frac',
-        # "watermelonIC-frac-LV",
-        'fracWatermelonIC',
-        # "FracWatermelonIC-frac",
-        "Type1IC",
-        #"Type1IC-frac",
-        "Type2IC",
-        #"Type2IC-frac",
-        'noCut',
+        #'benders' : 'BendersInterdict (link)',
+        #'benders-frac' : 'BendersInterdict (frac)',
+        #'watermelon+type1-frac' : 'Watermelon+Type1 (frac)',
+        #'watermelon+type1-frac-LV' : 'Watermelon+Type1 (frac+LV)',
+        #'watermelon+type1+incObj-frac' : "Watermelon+Type1+BendBin (frac)",
+        #'watermelon+type1+incObj-frac-LV' : 'Watermelon+Type1+BendBin (frac+LV)',
+        #'noGood+type1+pureInteger' : 'GenNoGood+Type1+IntNoGood (link)',
+        #'noGood+incObj' : 'GenNoGood+BendBin (link)',
+        #"incObj" : "BendersBinary (link)",
+        #'incObj-frac' : "BendersBinary (frac)",
+        #"genNoGood" : 'GenNoGood (link)',
+        #'genNoGood-frac' : 'GenNoGood (frac)',
+        #'pureInteger' : 'IntNoGood (link)',
+        #'pureInteger-frac' : 'IntNoGood (frac)',
+        #'hyper' : 'Hypercube (link)',
+        #'hyper-frac' : 'Hypercube (frac)',
+        #'watermelon' : 'Watermelon (link)',
+        #'watermelon-frac' : 'Watermelon (frac)',    
+        #"watermelon-frac-LV" : 'Watermelon (frac+LV)',
+        'fracWatermelon' : 'FracWatermelon (link)',
+        "fracWatermelon-frac" : 'FracWatermelon (frac)',
+        #"fracWatermelon-frac-cplex" : 'FracWatermelon (frac)',
+        #"type1" : 'Type1 (link)',
+        #"type1-cplex" : 'Type1 (link)',
+        #"type1-frac" : 'Type1 (frac)',
+        #'type1-WS' : 'Type1 (link+WS)',
+        #"type2" : "Type2 (link)",
+        #"type2-frac" : "Type2 (frac)",
+        #'noCut' : "No Cuts (link)", 
+        #'noCut-WS' : "No Cuts (link+WS)", 
         # 'interdiction',
-    ]
+    }
     ################# Process & Save | Load from CSV ###################
     # specify summary file name
-    file_csv = "summary_cuts.csv"
+    file_csv = "summary_"+dataSets[0]+".csv"
 
     # if len(args) == 0:
     if 1:
@@ -648,7 +673,7 @@ if __name__ == "__main__":
     else:
         try:
             df_r = pd.read_csv(file_csv)
-            set_cond = (df_r["scenario"].isin(scenarios)) | (
+            set_cond = (df_r["scenario"].isin(scenarios.values())) | (
                 df_r["dataset"].isin(dataSets)
             )
             df_r = df_r[set_cond]
@@ -663,8 +688,8 @@ if __name__ == "__main__":
 
     # columns to process and print
     displayCols = {
-        "cpu_time": "CPU Search Time",
-        "nodes_proc": "Number of Processed Nodes",
+        "cpu": "CPU Search Time",
+        "nodes": "Number of Processed Nodes",
         "gap": "Final Gap",
         "solved": "Solved",
         # 'chk_feas_time': 'Check Feasibility Time',
@@ -678,8 +703,8 @@ if __name__ == "__main__":
     ################### Make Performance Profile ####################
     # columns to compare in the plot
     plotCols = {
-        "cpu_time": ["CPU Search Time", 25],
-        "nodes_proc": ["Number of Processed Nodes", 50],
+        "cpu": ["CPU Time", 25],
+        "nodes": ["Nodes Processed", 50],
     }
     # plotCols = {}
 
@@ -690,30 +715,58 @@ if __name__ == "__main__":
     #     else:
     #         scenarios[k] = 'fractionalBranchStrategy'
 
-    #baseline = ("Type1IC", "1.2-opt")
     baseline = None
-
+    #baseline = ("Type1IC", "1.2-opt")
+    #baseline = ('GenNoGood+Type1+IntNoGood (link)', '1.2-opt')
+    #baseline = ('Watermelon (frac+LV)', '1.2-opt')
+    #baseline = ('FracWatermelon (frac)', '1.2-opt')
+    #baseline = ('BendersInterdict (link)', '1.2-opt')
+    if len(versions) > 1:
+        versionlegend = True
+    else:
+        versionlegend = False
+        
     for ds in dataSets:
         df_solved, df_has_soln = dropFilter(df_proc, scenarios, ds)
         for col in plotCols:
             df_sub = df_solved.xs(
                 (ds, col), level=["datasets", "fields"], axis=1, drop_level=True
             ).copy()
+            print("")
+            print("Creating performance profile for "+col)
+            print("")
             plotPerfProf(
-                df_sub, plotname="perfprof_" + col + "_" + ds, xmin = 0.0, xmax=plotCols[col][1]
+                df_sub, plotname="perf_" + col + "_" + ds,
+                plottitle = "Performance Profile: "+plotCols[col][0]+" ("+ds+")",
+                xmin = 0.0, xmax=plotCols[col][1],
+                versionlegend = versionlegend
             )
             if baseline is not None: 
+                print("")
+                print("Creating baseline profile for "+col)
+                print("")
                 plotBaselineProf(
                     df_sub, baseline = baseline,
-                    plotname="baseprof_" + col + "_" + ds, xmax=plotCols[col][1]
+                    plotname="base_"+baseline[0]+"_"+col+"_"+ds,
+                    plottitle = "Baseline Profile: "+plotCols[col][0]+" ("+ds+")",
+                    xmax=plotCols[col][1],
+                    versionlegend = versionlegend
                 )
-        plotCumProf(df_has_soln)
+            plotCumProf(df_has_soln, plotname="cum_" + col + "_" + ds,
+                        plottitle="Cumulative Profile: "+plotCols[col][0]+" ("+ds+")",
+                        versionlegend = versionlegend
+)
         if baseline is not None: 
+            print("")
+            print("Creating baseline profile for gap")
+            print("")
             df_gap = df_has_soln.xs(
                 (ds, "gap"), level=["datasets", "fields"], axis=1, drop_level=True
             ).copy()
             df_baseline_has_gap = df_gap.drop(df_gap[df_gap[baseline] == 0].index.to_list())
-            plotBaselineProf(
-                df_baseline_has_gap, baseline = ("Type1IC", "1.2-opt"),
-                plotname="baseprof_gap_" + ds, xmax=25
-            )
+            # plotBaselineProf(
+            #     df_baseline_has_gap, baseline = baseline,
+            #     plotname="base_" + baseline[0] + "_" + "gap_" + ds,
+            #     plottitle = "Baseline Profile: Gap ("+ds+")",
+            #     xmax=25, versionlegend = versionlegend
+            # )
