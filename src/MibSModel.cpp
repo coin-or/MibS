@@ -6624,10 +6624,9 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix,
     for (i = 0; i < numCols; i++){
        if (fixedInd_[i] == 1){
           if (colType_[i] == 'C'){
-             std::cout << "All linking variables should be discrete";
-             std::cout << std::endl;
-             i = -1;
-             assert(i > 0);
+             throw CoinError("All linking variables should be integer",
+                             "instanceStructure",
+                             "MibSModel");
           }
        }
     }
