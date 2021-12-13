@@ -308,6 +308,7 @@ MibSBranchStrategyPseudo::createCandBranchObjects(int numPassesLeft, double ub)
          else {
             delete ws;
             // YX: remove break (fractional fails); entering the next pass and switch to linking strategy
+            // pass++; // YX: fixed by using a scale factor; see "Blis_scaleConFactor"
             std::cout << "PSEUDO: resolve failed with numInfs = " << numInfs<< std::endl;
             // break;
          }
