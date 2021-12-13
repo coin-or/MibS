@@ -651,7 +651,9 @@ MibSCutGenerator::intersectionCuts(BcpsConstraintPool &conPool,
          //YX: if targetgap, added computation inside the call
          findLowerLevelSol(uselessIneqs, lowerLevelSol, optLowerSolution, sol, isTimeLimReached);
          if(isTimeLimReached == true){
-         goto TREM_INTERSECTIONCUT;
+            delete [] uselessIneqs; // YX: potential memory leak
+            delete [] lowerLevelSol; // YX: potential memory leak
+            goto TREM_INTERSECTIONCUT;
          }
          intersectionFound = getAlphaIC(extRay, uselessIneqs, lowerLevelSol,
                      numStruct, numNonBasic, sol, alpha);
@@ -1178,10 +1180,15 @@ MibSCutGenerator::findLowerLevelSol(double *uselessIneqs, double *lowerLevelSol,
    }
    else{//this case should not happen when we use intersection cut for removing
       //the optimal solution of relaxation which satisfies integrality requirements
+         // if (targetGap > etol){
+         //    std::cout << "Type2IC aux MILP with optimality gap is infeasible with "<< 
+         //       "lObjVal-1 " << newRowUb[0] <<" <? " << "lObjUB " << -newRowUb[newNumRows-1] << std::endl;
+         // }else {
       throw CoinError("The MIP which gives the best lower-level sol, cannot be infeasible!",
             "findLowerLevelSol", "MibSCutGenerator");
    }
    }
+   // }
 
    delete [] multA2XOpt;
    delete [] multA2XLb;
@@ -1275,7 +1282,8 @@ MibSCutGenerator::getAlphaIC(double** extRay, double* uselessIneqs,
       }
       rhs[i] = value + 1 - multG2LSol[i] - multA2XOpt[i];
    }
-
+   // YX: TODO: TYPE2IC should enter which if uselessIneqs & lowerSol were not found? 
+   // YX: Skip or substitute with Type1IC? 
    if ((targetGap < etol) || (uselessIneqs)){ // YX: no optimality gap or type II IC
       for(i = 0; i < lCols; i++){
          colIndex = lColInd[i];
