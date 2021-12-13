@@ -353,11 +353,11 @@ mibsParamsLib = {
 
     'MibS_useBendersCut': '0',
     'MibS_useGeneralNoGoodCut': '0',
-    'MibS_useIntersectionCut': '0',     # Not used; commented off in code
-    'MibS_intersectionCutType': '1',    # not used aswell?
+    'MibS_useIntersectionCut': '0',     # Not used; commented off in code; deprecated Oct 2021
+    'MibS_intersectionCutType': '1',    # not used; deprecated Oct 2021
     
-    "MibS_useTypeIC": '0',              # PARAM OFF?
-    "MibS_bilevelFreeSetTypeIC": '0',  # 0: Intersection Cut Type I; 1: Intersection Cut Type II; only valid when use intersectionCutTypeIC
+    "MibS_useTypeIC": '0',              # 0: IC off, 1: use one of two types of intersection cut; see "bilevelFreeSetTypeIC"
+    "MibS_bilevelFreeSetTypeIC": '0',   # 0: Type1IC, 1: Type2IC; only valid when useTypeIC is on
     "MibS_useTypeWatermelon": '0',
     "MibS_useTypeHypercubeIC": '0',
     "MibS_useTypeTenderIC": '0',
@@ -381,6 +381,6 @@ mibsParamsLib = {
     'MibS_computeBestUBWhenLVarsInt': '1',
     'MibS_computeBestUBWhenLVarsFixed': '0',
 
-    'MibS_useLinkingSolutionPool': '1',
-    'MibS_slTargetGap': '-1' # -1: OFF, 0-100: set SL target gap to given
+    'MibS_useLinkingSolutionPool': '1', 
+    'MibS_slTargetGap': '-1'            # -1: OFF, 0-100: set SL target gap to given
 }
