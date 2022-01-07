@@ -5631,15 +5631,21 @@ MibSCutGenerator::bendersInterdictionOneCut(BcpsConstraintPool &conPool, double 
       cutub += lObjCoeffs[i] * lSolution[i];
       valU = 0;
       valL = lObjCoeffs[i];
-      if(lSolution[i] > etol){
-          if (localModel_->colSignsG2_[i] == MibSModel::colSignPositive){ 
-             valU -= bigM;
-          } else {
-             valU += lObjCoeffs[i]*lSolution[i];
-          }
-      } else if (localModel_->colSignsG2_[i] == MibSModel::colSignPositive){
-         valL -= lObjCoeffs[i];
+      if (lSolution[i] > etol){
+         if (localModel_->colSignsG2_[i] == MibSModel::colSignNegative){ 
+            valU += lObjCoeffs[i]*lSolution[i];
+         } else {
+            valU -= bigM;
+         }
       }
+      //This case is in the paper, but it may not make sense in practice
+      //It only helps if the coefficient is negative, but then the solution
+      //lower-level solution could not be optimal anyway 
+      //else if (localModel_->colSignsG2_[i] == MibSModel::colSignPositive &&
+      //         lObjCoefficient < -etol){
+      //   valL -= lObjCoeffs[i];
+      //}
+
 
       if (valL){
          indexList.push_back(indexL);
@@ -6022,8 +6028,10 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
      }
      
      numCuts += feasibilityCuts(conPool) ? true : false;
-     
-     return (numCuts ? true : false);
+
+     //This return value indicates whether the relaxation needs to be re-solved
+     //and should always be false (see BlisTreeNode.cpp)
+     return (false);
 
   }else if(bS->isUpperIntegral_){
      if (localModel_->isInterdict_ && useBendersCut == PARAM_ON){
@@ -6065,7 +6073,9 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
         }
      }
 
-     return (numCuts ? true : false);
+     //This return value indicates whether the relaxation needs to be re-solved
+     //and should always be false (see BlisTreeNode.cpp)
+     return (false);
 
   }else if (useFractionalCuts){
      
@@ -6083,7 +6093,9 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
   
   //delete sol;
 
-  return numCuts ? true : false;
+  //This return value indicates whether the relaxation needs to be re-solved
+  //and should always be false (see BlisTreeNode.cpp)
+  return false;
 }
 
 //#############################################################################
