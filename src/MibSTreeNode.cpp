@@ -116,7 +116,7 @@ MibSTreeNode::process(bool isRoot, bool rampUp)
     int numIntInfs = 0;
     int numObjInfs = 0;
 
-    int voilatedNumCons = 0;
+    int violatedNumCons = 0;
     int origNumOldCons = 0;
     int currNumOldCons = 0;
     int newNumCons = 0;
@@ -403,6 +403,7 @@ MibSTreeNode::process(bool isRoot, bool rampUp)
 		goto TERM_PROCESS;
             }
             else {
+                cutoff = model->getCutoff();
                 if (quality_ > cutoff) {
                     setStatus(AlpsNodeStatusFathomed);
                     goto TERM_PROCESS;
@@ -744,11 +745,12 @@ MibSTreeNode::process(bool isRoot, bool rampUp)
             tempNumCons = newConPool.getNumConstraints();
 	    getViolatedConstraints(model, currLpSolution, 
 				   *(model->constraintPoolReceive()));
-	    voilatedNumCons = newConPool.getNumConstraints() - tempNumCons;
+	    violatedNumCons = newConPool.getNumConstraints() - tempNumCons;
 	    
 	    // Generate constraints (only if no violated).
-	    if ((voilatedNumCons == 0) && (bS->LPSolStatus_ ==
-					   MibSLPSolStatusInfeasible)) {
+	    if (violatedNumCons == 0
+                //&& bS->LPSolStatus_ == MibSLPSolStatusInfeasible
+                ) {
 		lpStatus = static_cast<BlisLpStatus> 
 		    (generateConstraints(model, newConPool));
 
@@ -802,7 +804,7 @@ MibSTreeNode::process(bool isRoot, bool rampUp)
                     }
 
 		    // Make a copy to send pool if share
-		    if (shareCon && (voilatedNumCons == 0)) {
+		    if (shareCon && (violatedNumCons == 0)) {
 			if (aCon->getValidRegion() == BcpsValidGlobal) {
 			    model->constraintPoolSend()->
 				addConstraint(new BlisConstraint(*aCon));
