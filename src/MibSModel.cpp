@@ -3679,7 +3679,7 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix,
            std::cout << "Hypercube IC generator is on." << std::endl;
 	}
         if (MibSPar_->entry(MibSParams::useFractionalCuts) == 1){
-           std::cout << "Fractional cuts will be generated.";
+           std::cout << "Fractional cuts will be generated." << std::endl;
         }
         //}
     }
