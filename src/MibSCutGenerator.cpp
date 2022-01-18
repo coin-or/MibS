@@ -3205,7 +3205,7 @@ MibSCutGenerator::generalNoGoodCut(BcpsConstraintPool &conPool)
 
     if ((useLinkingSolutionPool == PARAM_ON &&
          bS->tagInSeenLinkingPool_ == MibSLinkingPoolTagIsNotSet) ||
-        (useLinkingSolutionPool != PARAM_ON && bS->isLowerSolved_ == true)){
+        (useLinkingSolutionPool != PARAM_ON && bS->isLowerSolved_ == false)){
        goto TERM_GENERALNOGOOD;
     }
     
@@ -5630,13 +5630,15 @@ MibSCutGenerator::bendersInterdictionOneCut(BcpsConstraintPool &conPool, double 
       indexL = lowerColInd[i];
       cutub += lObjCoeffs[i] * lSolution[i];
       valU = 0;
-      valL = lObjCoeffs[i];
-      if (lSolution[i] > etol){
-         if (localModel_->colSignsG2_[i] == MibSModel::colSignNegative){ 
-            valU += lObjCoeffs[i]*lSolution[i];
-         } else {
-            valU -= bigM;
-         }
+      valL = 0;
+      if(lSolution[i] > etol){
+          if (localModel_->colSignsG2_[i] != MibSModel::colSignNegative){ 
+             valU -= bigM;
+          } else {
+             valU += lObjCoeffs[i]*lSolution[i];
+          }
+      } else if (localModel_->colSignsG2_[i] == MibSModel::colSignPositive){
+         valL -= lObjCoeffs[i];
       }
       //This case is in the paper, but it may not make sense in practice
       //It only helps if the coefficient is negative, but then the solution
