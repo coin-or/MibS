@@ -3819,25 +3819,15 @@ MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
       numCols = intCosts ? numCols:numCols/2;
 
       int auxULRows(intCosts ? 1:0);
-      int numInterdictNZ(0);
       int interdictRows(numCols);
       int auxRows(auxULRows + interdictRows);
       int numTotalCols(0), numTotalRows(0);
       //int numAuxCols(2 * numCols);
       int numAuxCols(1);
       //int numAuxCols(0);//this breaks orig interdiction cut
-      int i(0);
       
       //FIXME:  NEED TO CHANGE THIS AROUND
       //maxAuxCols_ = numAuxCols;
-
-      if (intCosts){
-         for(i = 0; i < numCols; i++){
-            if((intCosts[i] > etol_) || (intCosts[i] < - etol_)){
-               numInterdictNZ++;
-            }
-         }
-      }
       
       numTotalCols = 2*numCols + numAuxCols;
       numTotalRows = numRows + auxRows;
@@ -3868,10 +3858,8 @@ MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
       CoinDisjointCopyN(rowUB, numRows, conUB + auxULRows);
       
       /* Add interdiction budget row */
-      if (intCosts){
-         CoinFillN(conLB, auxULRows, - 1 * infinity);
-         CoinFillN(conUB, auxULRows, getInterdictBudget());
-      }
+      CoinFillN(conLB, auxULRows, - 1 * infinity);
+      CoinFillN(conUB, auxULRows, getInterdictBudget());
       
       /* Add bounds for VUB rows */
       CoinFillN(conLB + (numTotalRows - interdictRows), 
@@ -3925,14 +3913,12 @@ MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
       
       /* Add interdiction budget row */
 
-      if (intCosts){
-         for(i = 0; i < auxULRows; i++){
-            CoinPackedVector row;
-            for(j = 0; j < numCols; j++){
-               row.insert(j+numCols, intCosts[j]);
-            }
-            newMatrix->appendRow(row);
+      for(i = 0; i < auxULRows; i++){
+         CoinPackedVector row;
+         for(j = 0; j < numCols; j++){
+             row.insert(j+numCols, intCosts[j]);
          }
+         newMatrix->appendRow(row);
       }
       
       /* lower-level rows */
@@ -6572,17 +6558,19 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix,
                   }
                }
             }
-         } else if (upperCol) {
-            if (colSignsA2_[i] == MibSModel::colSignUnknown){
-               colSignsA2_[i] = MibSModel::colSignPositive;
-            }else if (colSignsA2_[i] == MibSModel::colSignNegative){
-               colSignsA2_[i] = MibSModel::colSignInconsistent;
-            }
-         }else{
-            if (colSignsG2_[i] == MibSModel::colSignUnknown){
-               colSignsG2_[i] = MibSModel::colSignPositive;
-            }else if (colSignsG2_[i] == MibSModel::colSignNegative){
-               colSignsG2_[i] = MibSModel::colSignInconsistent;
+         } else if (!upperRow) {
+            if (upperCol) {
+               if (colSignsA2_[i] == MibSModel::colSignUnknown){
+                  colSignsA2_[i] = MibSModel::colSignPositive;
+               }else if (colSignsA2_[i] == MibSModel::colSignNegative){
+                  colSignsA2_[i] = MibSModel::colSignInconsistent;
+               }
+            }else{
+               if (colSignsG2_[i] == MibSModel::colSignUnknown){
+                  colSignsG2_[i] = MibSModel::colSignPositive;
+               }else if (colSignsG2_[i] == MibSModel::colSignNegative){
+                  colSignsG2_[i] = MibSModel::colSignInconsistent;
+               }
             }
          }
       }
@@ -6611,7 +6599,7 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix,
           if ((fabs(rhs - floor(rhs)) > etol_) &&
               (fabs(rhs - ceil(rhs)) > etol_)){
              upperRow = binarySearch(0, lRows - 1,
-                                     rowIndex, lRowIndices) < 0 ? true:false;
+                                     i, lRowIndices) < 0 ? true:false;
              if (upperRow){
                 isUpperCoeffInt_ = false;
              }else{
@@ -6699,12 +6687,10 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix,
           MibSPar()->setEntry(MibSParams::useIncObjCut, PARAM_ON);
        }
     }else if (paramValue == PARAM_ON){
-       if (allLinkingBin_ == false){
-          std::cout << "The increasing objective cut is only valid when "
-                    << "linking variables are binary.";
-          std::cout << std::endl;
-          MibSPar()->setEntry(MibSParams::useIncObjCut, PARAM_OFF);
-       }
+       std::cout << "The increasing objective cut is only valid when "
+                 << "linking variables are binary.";
+       std::cout << std::endl;
+       MibSPar()->setEntry(MibSParams::useIncObjCut, PARAM_OFF);
     }
     
     //Param: "MibS_useNoGoodCut"
