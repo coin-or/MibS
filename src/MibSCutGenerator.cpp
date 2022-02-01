@@ -5630,7 +5630,7 @@ MibSCutGenerator::bendersInterdictionOneCut(BcpsConstraintPool &conPool, double 
       indexL = lowerColInd[i];
       cutub += lObjCoeffs[i] * lSolution[i];
       valU = 0;
-      valL = 0;
+      valL = lObjCoeffs[i];
       if(lSolution[i] > etol){
           if (localModel_->colSignsG2_[i] != MibSModel::colSignNegative){ 
              valU -= bigM;
