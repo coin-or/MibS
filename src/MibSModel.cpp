@@ -3858,8 +3858,10 @@ MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
       CoinDisjointCopyN(rowUB, numRows, conUB + auxULRows);
       
       /* Add interdiction budget row */
-      CoinFillN(conLB, auxULRows, - 1 * infinity);
-      CoinFillN(conUB, auxULRows, getInterdictBudget());
+      if (intCosts){
+         CoinFillN(conLB, auxULRows, - 1 * infinity);
+         CoinFillN(conUB, auxULRows, getInterdictBudget());
+      }
       
       /* Add bounds for VUB rows */
       CoinFillN(conLB + (numTotalRows - interdictRows), 
@@ -3912,13 +3914,14 @@ MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
       int start(0), end(0), tmp(0), index(0);
       
       /* Add interdiction budget row */
-
-      for(i = 0; i < auxULRows; i++){
-         CoinPackedVector row;
-         for(j = 0; j < numCols; j++){
-             row.insert(j+numCols, intCosts[j]);
+      if (intCosts){
+         for(i = 0; i < auxULRows; i++){
+            CoinPackedVector row;
+            for(j = 0; j < numCols; j++){
+               row.insert(j+numCols, intCosts[j]);
+            }
+            newMatrix->appendRow(row);
          }
-         newMatrix->appendRow(row);
       }
       
       /* lower-level rows */
@@ -6485,7 +6488,7 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix,
    int nonZero (newMatrix->getNumElements());
    int counterStart, counterEnd;
    int rowIndex;
-   bool upperRow, upperCol;
+   bool lowerRow, upperCol;
    double rhs(0.0);
    
    const double * matElements = newMatrix->getElements();
@@ -6521,27 +6524,20 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix,
          else{
             mult = 1;
          }
-         upperRow = binarySearch(0, lRows - 1,
-                                 rowIndex, lRowIndices) < 0 ? true:false;
+         lowerRow = binarySearch(0, lRows - 1,
+                                 rowIndex, lRowIndices) < 0 ? false:true;
          upperCol = binarySearch(0, lCols - 1,
                                  i, lColIndices) < 0 ? true:false;
          if ((fabs(matElements[j] - floor(matElements[j])) > etol_) &&
             (fabs(matElements[j] - ceil(matElements[j])) > etol_)){
-            if (upperRow){
-               isUpperCoeffInt_ = false;
-            }else{
+            if (lowerRow){
                isLowerCoeffInt_ = false;
+            } else {
+               isUpperCoeffInt_ = false;
             }
          }
          if (mult * matElements[j] < -etol_){
-            if (upperRow){
-               if (upperCol){
-                  positiveA1_ = false;
-               }  
-               else{
-                  positiveG1_ = false;
-               }  
-            }else{  
+            if (lowerRow){
                if (upperCol){
                   positiveA2_ = false;
                   if (colSignsA2_[i] == MibSModel::colSignUnknown){
@@ -6557,19 +6553,27 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix,
                      colSignsG2_[i] = MibSModel::colSignInconsistent;
                   }
                }
-            }
-         } else if (!upperRow) {
-            if (upperCol) {
-               if (colSignsA2_[i] == MibSModel::colSignUnknown){
-                  colSignsA2_[i] = MibSModel::colSignPositive;
-               }else if (colSignsA2_[i] == MibSModel::colSignNegative){
-                  colSignsA2_[i] = MibSModel::colSignInconsistent;
+            } else {
+               if (upperCol){
+                  positiveA1_ = false;
+               } else {
+                  positiveG1_ = false;
                }
-            }else{
-               if (colSignsG2_[i] == MibSModel::colSignUnknown){
-                  colSignsG2_[i] = MibSModel::colSignPositive;
-               }else if (colSignsG2_[i] == MibSModel::colSignNegative){
-                  colSignsG2_[i] = MibSModel::colSignInconsistent;
+            }
+         } else {
+            if (lowerRow) {
+               if (upperCol) {
+                  if (colSignsA2_[i] == MibSModel::colSignUnknown){
+                     colSignsA2_[i] = MibSModel::colSignPositive;
+                  }else if (colSignsA2_[i] == MibSModel::colSignNegative){
+                     colSignsA2_[i] = MibSModel::colSignInconsistent;
+                  }
+               }else{
+                  if (colSignsG2_[i] == MibSModel::colSignUnknown){
+                     colSignsG2_[i] = MibSModel::colSignPositive;
+                  }else if (colSignsG2_[i] == MibSModel::colSignNegative){
+                     colSignsG2_[i] = MibSModel::colSignInconsistent;
+                  }
                }
             }
          }
@@ -6598,12 +6602,12 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix,
           }
           if ((fabs(rhs - floor(rhs)) > etol_) &&
               (fabs(rhs - ceil(rhs)) > etol_)){
-             upperRow = binarySearch(0, lRows - 1,
-                                     i, lRowIndices) < 0 ? true:false;
-             if (upperRow){
-                isUpperCoeffInt_ = false;
-             }else{
+             lowerRow = binarySearch(0, lRows - 1,
+                                     i, lRowIndices) < 0 ? false:true;
+             if (lowerRow){
                 isLowerCoeffInt_ = false;
+             } else {
+                isUpperCoeffInt_ = false;
              }
           }
        }
