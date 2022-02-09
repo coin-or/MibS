@@ -606,11 +606,10 @@ public:
     virtual void decodeToSelf(AlpsEncoded&);
 
     /** Determine the list of first-stage variables participate in second-stage constraints */
-    void setRequiredFixedList(const CoinPackedMatrix *newMatrix);
+    void setRequiredFixedList();
 
     /** Determines the properties of instance. */
-    void instanceStructure(const CoinPackedMatrix *newMatrix, const double* rowLB,
-			   const double* rowUB, const char *newRowSense);
+    void instanceStructure();
                                                                                                                                                                
     AlpsTreeNode * createRoot();
 

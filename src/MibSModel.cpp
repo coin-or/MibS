@@ -1027,8 +1027,8 @@ MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
    //checkProblemType(); // checks if MibS can solve problem entered
    setProblemType(); //determine the type of MIBLP
    //determine the list of first-stage variables participate in second-stage constraints
-   setRequiredFixedList(newMatrix);
-   instanceStructure(newMatrix, conLB, conUB, origRowSense_);
+   setRequiredFixedList();
+   instanceStructure();
 }
 
 //#############################################################################
@@ -3064,16 +3064,16 @@ MibSModel::decodeToSelf(AlpsEncoded& encoded)
 
 //#############################################################################
 void
-MibSModel::setRequiredFixedList(const CoinPackedMatrix *newMatrix)
+MibSModel::setRequiredFixedList()
 {
     int uCols(upperDim_);
     int lRows(lowerRowNum_);
     int * upperColInd = getUpperColInd();
     int * lowerRowInd = getLowerRowInd();
 
-    const double * matElements = newMatrix->getElements();
-    const int * matIndices = newMatrix->getIndices();
-    const int * matStarts = newMatrix->getVectorStarts();
+    const double * matElements = colMatrix_->getElements();
+    const int * matIndices = colMatrix_->getIndices();
+    const int * matStarts = colMatrix_->getVectorStarts();
 
     int index1, rowIndex, posRow, start, end;
     int i, j;
@@ -3087,7 +3087,7 @@ MibSModel::setRequiredFixedList(const CoinPackedMatrix *newMatrix)
 	fixedInd_[i] = 0;
 	if(binarySearch(0, uCols - 1, i, upperColInd) >= 0){
 	    start = matStarts[i];
-	    end = start + newMatrix->getVectorSize(i);
+	    end = start + colMatrix_->getVectorSize(i);
 	    for(j = start; j < end; j++){
 		rowIndex = matIndices[j];
 		posRow = binarySearch(0, lRows - 1, rowIndex, lowerRowInd);
@@ -3104,9 +3104,7 @@ MibSModel::setRequiredFixedList(const CoinPackedMatrix *newMatrix)
 
 //#############################################################################
 void                                                   
-MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix,
-                             const double* rowLB, const double* rowUB,
-                             const char *newRowSense)
+MibSModel::instanceStructure()
 {
    bool printProblemInfo(MibSPar_->entry(MibSParams::printProblemInfo));
    
@@ -3212,9 +3210,9 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix,
    bool lowerRow, lowerCol;
    double rhs(0.0);
    
-   const double * matElements = newMatrix->getElements();
-   const int * matIndices = newMatrix->getIndices();           
-   const int * matStarts = newMatrix->getVectorStarts();
+   const double * matElements = colMatrix_->getElements();
+   const int * matIndices = colMatrix_->getIndices();           
+   const int * matStarts = colMatrix_->getVectorStarts();
    colSignsG2_ = new int[numCols];
    colSignsA2_ = new int[numCols];
 
@@ -3239,7 +3237,7 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix,
          if (binarySearch(0, structRowNum_-1, rowIndex, structRowInd_) < 0){
             continue;
          }
-         if(newRowSense[rowIndex] == 'L'){
+         if(origRowSense_[rowIndex] == 'L'){
             mult = -1;
          }
          else{
@@ -3303,12 +3301,12 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix,
 
     if ((isUpperCoeffInt_ == true) || (isLowerCoeffInt_ == true)){
        for (i = 0; i < numRows; i++){
-          switch(newRowSense[i]){
+          switch(origRowSense_[i]){
            case 'L':
-             rhs = rowUB[i];
+             rhs = conUB_[i];
              break;
            case 'G':
-             rhs = rowLB[i];
+             rhs = conLB_[i];
              break;
            case 'E':
              std::cout << "MibS cannot currently handle equality constraints.";
