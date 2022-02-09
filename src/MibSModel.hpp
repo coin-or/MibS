@@ -692,7 +692,7 @@ public:
 
     /** Determines the properties of instance. */
     void instanceStructure(const CoinPackedMatrix *newMatrix, const double* rowLB,
-			   const double* rowUB, const char *rowSense);
+			   const double* rowUB, const char *newRowSense);
                                                                                                                                                                
     AlpsTreeNode * createRoot();
 
