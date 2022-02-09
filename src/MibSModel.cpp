@@ -305,7 +305,6 @@ MibSModel::readAuxiliaryData(int numCols, int numRows)
   int j(0), k(0), m(0), p(0), pos(0);
   int lowerColNum(0), lowerRowNum(0);
   // Find out if we are reading an interdiction problem in legacy format
-  double * intCosts = getInterdictCost();
 
   while (data_stream >> key){
      if(key == "N"){ 
@@ -895,7 +894,7 @@ MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
       
       newMatrix = new CoinPackedMatrix(false, 0, 0);
       newMatrix->setDimensions(0, numTotalCols);
-      int start(0), end(0), tmp(0), index(0);
+      int start(0), end(0);
       
       /* Add interdiction budget row */
       if (intCosts){
@@ -1029,7 +1028,7 @@ MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
    setProblemType(); //determine the type of MIBLP
    //determine the list of first-stage variables participate in second-stage constraints
    setRequiredFixedList(newMatrix);
-   instanceStructure(newMatrix, conLB, conUB, rowSense);
+   instanceStructure(newMatrix, conLB, conUB, origRowSense_);
 }
 
 //#############################################################################
@@ -3107,7 +3106,7 @@ MibSModel::setRequiredFixedList(const CoinPackedMatrix *newMatrix)
 void                                                   
 MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix,
                              const double* rowLB, const double* rowUB,
-                             const char *rowSense)
+                             const char *newRowSense)
 {
    bool printProblemInfo(MibSPar_->entry(MibSParams::printProblemInfo));
    
@@ -3128,7 +3127,6 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix,
    int numRows(numCons_);
    int uCols(upperDim_);
    int lCols(lowerDim_);
-   int uRows(upperRowNum_);
    int lRows(lowerRowNum_);
    int numUpperInt(0);
    int numLowerInt(0);
@@ -3136,7 +3134,6 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix,
    int * lColIndices = getLowerColInd();
    int * lRowIndices = getLowerRowInd();
    double * lObjCoeffs  = getLowerObjCoeffs();
-   char * newRowSense = new char[numRows];
    
    for(i = 0; i < uCols; i++){
       index = uColIndices[i];
@@ -3157,17 +3154,6 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix,
    if (printProblemInfo == true){
       std::cout <<"Number of integer LL Variables: ";
       std::cout << numLowerInt << std::endl;
-   }
-   
-   if (isInterdict_ == false){
-      CoinDisjointCopyN(rowSense, numRows, newRowSense);
-   }else{
-      for (i = 0; i < numRows; i++){
-         newRowSense[i] = 'L';
-      }
-      for (i = 0; i < lRows-lCols; i++){
-         newRowSense[i+uRows] = rowSense[i];
-      }
    }
    
    //Checks general or interdiction 
@@ -3221,7 +3207,6 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix,
       }
    }
    
-   int nonZero (newMatrix->getNumElements());
    int counterStart, counterEnd;
    int rowIndex;
    bool lowerRow, lowerCol;
@@ -3742,6 +3727,4 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix,
 	}
     }
     std::cout << std::endl;
-    
-    delete [] newRowSense;
 }
