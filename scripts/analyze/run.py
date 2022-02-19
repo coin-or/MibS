@@ -158,7 +158,9 @@ def runExperimentsPBS(instPaths, outDir, versions, params, pbsfile, gaps=[]):
         if v == '1.2-opt':
             #exe = '/home/ted/Projects/build-mibs-1.2/bin/mibs'
             exe = '/home/ted/Projects/build-mibs-cplex-1.2/bin/mibs'
-            
+        if v == 'pr-92':
+            exe = '/home/ted/Projects/build-mibs-pr-92/bin/mibs'
+                
         for scenario in params:
             for testset in instPaths:
                 paramcmd = ' -'.join(' '.join(_) for _ in params[scenario].items())
@@ -214,7 +216,7 @@ if __name__ == "__main__":
     # runExperiments(exe, instanceDirs, outputDir, versions, mibsParamsInputs, gaps)
     
     # using pbs file: provide paths in runparams.py
-    runExperimentsPBS(instanceDirs, outputDir, versions, mibsParamsInputs, pbsfile, gaps)
+    runExperimentsPBS(instanceDirs, outputDir, versions, mibsParamsInputs, pbsfile)
     
 
 

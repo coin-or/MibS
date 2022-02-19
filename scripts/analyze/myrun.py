@@ -11,14 +11,15 @@ pbsfile = '/home/ted/Projects/MibS/scripts/analyze/mibs_batch.pbs'
 # Keys are used to name subdirs in output dir
 instanceDirs = {
     # 'MIBLP-XU': '/home/usr/coinbrew/MibS/testSets/BilevelLib/general/MIBLP-XU',
-    'IBLP-FIS': '/home/sat214/cutPaperMibS/dataPaper/iblpFis',
-    'INTERD-DEN': '/home/sat214/cutPaperMibS/dataPaper/interdDen',
-    'IBLP-DEN': '/home/sat214/cutPaperMibS/dataPaper/iblpDen',
+    #'IBLP-FIS': '/home/sat214/cutPaperMibS/dataPaper/iblpFis',
+    #'INTERD-DEN': '/home/sat214/cutPaperMibS/dataPaper/interdDen',
+    #'IBLP-DEN': '/home/sat214/cutPaperMibS/dataPaper/iblpDen',
     'IBLP-ZHANG': '/home/sat214/MIBS/ozaltinData/convertedData/Testbed1/'
 }
 
 #versions = ['1.1', 'ib']
-versions = ['1.2-opt']
+#versions = ['1.2-opt']
+versions = ['pr-92']
 
 # Output parent path
 outputDir = '/home/ted/Projects/MibS/output'
@@ -140,12 +141,12 @@ commonParams = {
 #     'MibS_feasCheckSolver' : 'CPLEX'
 # }
 
-# mibsParamsInputs['incObj'] = {
-#     'MibS_turnOffOtherCuts': '1',
-#     'MibS_useIncObjCut':'1',
-#     'MibS_branchStrategy': '1',           # 0: fractional, 1: linking
-#     'MibS_solveSecondLevelWhenLVarsInt': '1',
-# }
+mibsParamsInputs['incObj'] = {
+    'MibS_turnOffOtherCuts': '1',
+    'MibS_useIncObjCut':'1',
+    'MibS_branchStrategy': '1',           # 0: fractional, 1: linking
+    'MibS_solveSecondLevelWhenLVarsInt': '1',
+}
 
 # mibsParamsInputs['incObj-frac'] = {
 #     'MibS_turnOffOtherCuts': '1',
@@ -154,12 +155,12 @@ commonParams = {
 #     'MibS_solveSecondLevelWhenLVarsInt': '0',
 # }
 
-# mibsParamsInputs['genNoGood'] = {
-#     'MibS_turnOffOtherCuts': '1',
-#     'MibS_useGeneralNoGoodCut':'1',
-#     'MibS_branchStrategy': '1',           # 0: fractional, 1: linking
-#     'MibS_solveSecondLevelWhenLVarsInt': '1',           # 0: fractional, 1: linking
-# }
+mibsParamsInputs['genNoGood'] = {
+    'MibS_turnOffOtherCuts': '1',
+    'MibS_useGeneralNoGoodCut':'1',
+    'MibS_branchStrategy': '1',           # 0: fractional, 1: linking
+    'MibS_solveSecondLevelWhenLVarsInt': '1',           # 0: fractional, 1: linking
+}
 
 # mibsParamsInputs['genNoGood-frac'] = {
 #     'MibS_turnOffOtherCuts': '1',
@@ -189,13 +190,13 @@ commonParams = {
 #     'MibS_solveSecondLevelWhenLVarsInt': '1',           # 0: fractional, 1: linking
 # }
 
-# mibsParamsInputs['fracWatermelon'] = {
-#     'MibS_turnOffOtherCuts': '1',
-#     'MibS_useTypeWatermelon': '1',
-#     'MibS_useFractionalCuts': '1',
-#     'MibS_branchStrategy': '1',           # 0: fractional, 1: linking
-#     'MibS_solveSecondLevelWhenLVarsInt': '0',           # 0: fractional, 1: linking
-# }
+mibsParamsInputs['fracWatermelon'] = {
+    'MibS_turnOffOtherCuts': '1',
+    'MibS_useTypeWatermelon': '1',
+    'MibS_useFractionalCuts': '1',
+    'MibS_branchStrategy': '1',           # 0: fractional, 1: linking
+    'MibS_solveSecondLevelWhenLVarsInt': '0',           # 0: fractional, 1: linking
+}
 
 # mibsParamsInputs['fracWatermelon-frac'] = {
 #     'MibS_turnOffOtherCuts': '1',
@@ -346,11 +347,11 @@ commonParams = {
 #      'MibS_cutStrategy': '0'
 # }
 
-mibsParamsInputs['noCut-cplex'] = {
-     'MibS_branchStrategy': '1',           # 0: fractional, 1: linking
-     'MibS_cutStrategy': '0',
-     'MibS_feasCheckSolver' : 'CPLEX',
-}
+# mibsParamsInputs['noCut-cplex'] = {
+#      'MibS_branchStrategy': '1',           # 0: fractional, 1: linking
+#      'MibS_cutStrategy': '0',
+#      'MibS_feasCheckSolver' : 'CPLEX',
+# }
 
 # mibsParamsInputs['noCut-WS'] = {
 #     'MibS_branchStrategy': '1',           # 0: fractional, 1: linking
