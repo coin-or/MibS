@@ -7,7 +7,7 @@ on:
       - 'stable/*'
   pull_request:
     branches:
-      - '*'
+      - '**'
   release:
     types:
       - created
@@ -25,7 +25,7 @@ jobs:
         include:
           - os: macos-10.15
             build_static: false
-            flags: CC=clang CXX=clang++ OSX=10.15
+            flags: CC=clang OSX=10.15
             download_requirements: brew install metis bash
           - os: macos-10.15
             build_static: false
@@ -51,13 +51,12 @@ jobs:
         run: |
           export ${{ matrix.flags }}
           ADD_ARGS=()
-          ADD_ARGS+=( --no-prompt )
           ADD_ARGS+=( --skip='ThirdParty/Metis ThirdParty/Mumps ThirdParty/Blas ThirdParty/Lapack' )
           ADD_BUILD_ARGS=()
           ADD_BUILD_ARGS+=( --tests main --enable-relocatable )
           ADD_BUILD_ARGS+=( --verbosity 2 )
           [[ ${{ matrix.build_static }} == "true" ]] && \
-          ADD_BUILD_ARGS+=( --disable-shared )
+          ADD_BUILD_ARGS+=( --static --with-lapack='-llapack -lblas -lgfortran -lquadmath -lm' )
           bash coinbrew/coinbrew fetch ${{ github.event.repository.name }} --skip-update \
           "${ADD_ARGS[@]}"
           bash coinbrew/coinbrew build ${{ github.event.repository.name }} \
