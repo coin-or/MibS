@@ -29,7 +29,7 @@ Dependencies:
     Version: 1.6
     Required: Optional
   - Description: Sample data files
-    URL: https://github.com/coin-or/Data-Sample
+    URL: https://github.com/coin-or-tools/Data-Sample
     Version: 1.2
     Required: Required
   - Description: miplib3 data files
