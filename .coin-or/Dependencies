@@ -1,12 +1,13 @@
-Data/Sample       https://github.com/coin-or-tools/Data-Sample master
-Data/miplib3      https://github.com/coin-or-tools/Data-miplib3 master
+ThirdParty/Mumps  https://github.com/coin-or-tools/ThirdParty-Mumps stable/3.0
+Data/Sample       https://github.com/coin-or-tools/Data-Sample 1.2
+Data/miplib3      https://github.com/coin-or-tools/Data-miplib3 1.2
 CoinUtils         https://github.com/coin-or/CoinUtils master
 Osi               https://github.com/coin-or/Osi master
 Clp               https://github.com/coin-or/Clp master
 Cgl               https://github.com/coin-or/Cgl master
 Alps              https://github.com/coin-or/CHiPPS-ALPS stable/1.6
 Bcps              https://github.com/coin-or/CHiPPS-BiCePS stable/0.95
-Blis              https://github.com/coin-or/CHiPPS-BLIS master
+Blis              https://github.com/coin-or/CHiPPS-BLIS stable/0.95
 SYMPHONY          https://github.com/coin-or/SYMPHONY master
 Cbc               https://github.com/coin-or/Cbc master
 

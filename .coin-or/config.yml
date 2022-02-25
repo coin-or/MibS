@@ -25,27 +25,27 @@ Dependencies:
     Version: 3.0
     Required: Optional
   - Description: Sample data files
-    URL: https://projects.coin-or.org/svn/Data/Sample/stable/1.2
-    Version: master
+    URL: https://github.com/coin-or-tools/Data-Sample
+    Version: 1.2
     Required: Required
-  - Description: miplib3 data files
-    URL: https://projects.coin-or.org/svn/Data/miplib3/stable/1.2
-    Version: master
+  - Description: Miplib3 data files
+    URL: https://github.com/coin-or-tools/Data-miplib3
+    Version: 1.2
     Required: Required
   - Description: COIN-OR Utilities
-    URL: https://projects.coin-or.org/svn/CoinUtils/stable/2.11/CoinUtils
+    URL: https://github.com/coin-orCoinUtils
     Version: master
     Required: Required
   - Description: Open Solver Interface
-    URL: https://projects.coin-or.org/svn/Osi/stable/0.108/Osi
+    URL: https://github.com/coin=-or/Osi
     Version: master
     Required: Required
   - Description: COIN-OR Linear Programming Solver
-    URL: https://projects.coin-or.org/svn/Clp/stable/1.17/Clp
+    URL: https://github.com/coin-or/Clp
     Version: master
     Required: Required
   - Description: Cut Generation Library
-    URL: https://projects.coin-or.org/svn/Cgl/stable/0.60/Cgl
+    URL: https://github.com/coin-or/Cgl
     Version: master
     Required: Required
   - Description: Abstract Library for Parallel Search
@@ -65,7 +65,7 @@ Dependencies:
     Version: master
     Required: Required
   - Description: COIN-OR Branch-and-cut
-    URL: https://projects.coin-or.org/svn/Cbc/stable/2.10/Cbc
+    URL: https://github.com/coin-or/Cbc
     Version: master
     Required: Required
   - Description: Basic Linear Algebra Subroutines (BLAS)
