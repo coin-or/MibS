@@ -12,13 +12,39 @@
 /* accompanying file for terms.                                              */
 /*===========================================================================*/
 
-//#include "BlisModel.h"
 #include "MibSConfig.hpp"
+#include "CoinUtilsConfig.h"
+
+#include "BlisModel.h"
+#include "BlisConstraint.h"
+#include "BlisVariable.h"
+#include "BlisNodeDesc.h"
+#include "BlisConfig.h"
+
+#include "BcpsConfig.h"
+
+#include "BlisBranchStrategyMaxInf.h"
+#include "BlisBranchStrategyPseudo.h"
+#include "BlisBranchStrategyRel.h"
+#include "BlisBranchStrategyStrong.h"
+
+#include "BlisHeurRound.h"
+
+#include "CglGomory.hpp"
+#include "CglProbing.hpp"
+#include "CglKnapsackCover.hpp"
+#include "CglOddHole.hpp"
+#include "CglClique.hpp"
+#include "CglFlowCover.hpp"
+#include "CglMixedIntegerRounding2.hpp"
+#include "CglTwomir.hpp"
+
+#include "OsiCbcSolverInterface.hpp"
+
 #include "MibSModel.hpp"
 #ifdef MIBS_HAS_SYMPHONY
 #include "symphony.h"
 #include "SymConfig.h"
-#include "CoinUtilsConfig.h"
 #include "OsiSymSolverInterface.hpp"
 #endif
 #ifdef MIBS_HAS_CPLEX
