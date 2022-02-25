@@ -12,31 +12,19 @@
 /* accompanying file for terms.                                              */
 /*===========================================================================*/
 
-#include "BlisModel.h"
-#include "BlisConstraint.h"
-#include "BlisVariable.h"
-#include "BlisNodeDesc.h"
-#include "BlisConfig.h"
-
-#include "BcpsConfig.h"
-
-#include "BlisBranchStrategyMaxInf.h"
-#include "BlisBranchStrategyPseudo.h"
-#include "BlisBranchStrategyRel.h"
-#include "BlisBranchStrategyStrong.h"
-
-#include "BlisHeurRound.h"
-
-#include "CglGomory.hpp"
-#include "CglProbing.hpp"
-#include "CglKnapsackCover.hpp"
-#include "CglOddHole.hpp"
-#include "CglClique.hpp"
-#include "CglFlowCover.hpp"
-#include "CglMixedIntegerRounding2.hpp"
-#include "CglTwomir.hpp"
-
-#include "OsiCbcSolverInterface.hpp"
+//#include "BlisModel.h"
+#include "MibSConfig.hpp"
+#include "MibSModel.hpp"
+#ifdef MIBS_HAS_SYMPHONY
+#include "symphony.h"
+#include "SymConfig.h"
+#include "CoinUtilsConfig.h"
+#include "OsiSymSolverInterface.hpp"
+#endif
+#ifdef MIBS_HAS_CPLEX
+#include "cplex.h"
+#include "OsiCpxSolverInterface.hpp"
+#endif
 
 #include "MibSModel.hpp"
 #include "MibSSolution.hpp"
@@ -623,8 +611,13 @@ MibSModel::readProblemData()
      }
    case 1: // ampl/gmpl
      {
+#ifdef COINUTILS_HAS_GLPK
        rc = mps->readGMPL(getUpperAmplModelFile().c_str(), 
 			  getUpperAmplDataFile().c_str());
+#else
+       throw CoinError("Trying to read a GMPL file with when GMPL support is"
+                       "not built in", "readInstance", "MibSModel");
+#endif
        break;
      }
    }
