@@ -33,7 +33,7 @@ Dependencies:
     Version: 1.2
     Required: Required
   - Description: COIN-OR Utilities
-    URL: https://github.com/coin-orCoinUtils
+    URL: https://github.com/coin-or/CoinUtils
     Version: master
     Required: Required
   - Description: Open Solver Interface
