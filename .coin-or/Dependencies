@@ -1,3 +1,4 @@
+ThirdParty/Glpk   https://github.com/coin-or-tools/ThirdParty-Glpk master
 ThirdParty/Mumps  https://github.com/coin-or-tools/ThirdParty-Mumps stable/3.0
 Data/Sample       https://github.com/coin-or-tools/Data-Sample 1.2
 Data/miplib3      https://github.com/coin-or-tools/Data-miplib3 1.2
