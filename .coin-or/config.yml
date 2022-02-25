@@ -20,13 +20,17 @@ Description:
     - Optimization deterministic linear discrete
   PaperCite: https://doi.org/10.1007/s12532-020-00183-6
 Dependencies:
+  - Description: ThirdParty wrapper for building Mumps
+    URL: https://github.com/coin-or-tools/ThirdParty-Mumps
+    Version: 3.0
+    Required: Optional
   - Description: Sample data files
     URL: https://projects.coin-or.org/svn/Data/Sample/stable/1.2
-    Version: 1.2
+    Version: master
     Required: Required
   - Description: miplib3 data files
     URL: https://projects.coin-or.org/svn/Data/miplib3/stable/1.2
-    Version: 1.2
+    Version: master
     Required: Required
   - Description: COIN-OR Utilities
     URL: https://projects.coin-or.org/svn/CoinUtils/stable/2.11/CoinUtils
@@ -54,7 +58,7 @@ Dependencies:
     Required: Required
   - Description: BiCePS Linear Integer Solver
     URL: https://github.com/coin-or/CHiPPS-BLIS
-    Version: master
+    Version: 0.95
     Required: Required
   - Description: SYMPHONY Mip Solver
     URL: https://github.com/coin-or/SYMPHONY
