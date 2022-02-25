@@ -37,7 +37,7 @@ Dependencies:
     Version: master
     Required: Required
   - Description: Open Solver Interface
-    URL: https://github.com/coin=-or/Osi
+    URL: https://github.com/coin-or/Osi
     Version: master
     Required: Required
   - Description: COIN-OR Linear Programming Solver
