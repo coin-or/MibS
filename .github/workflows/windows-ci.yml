@@ -91,6 +91,7 @@ jobs:
         run: |
           filtered_head_ref=$(echo ${{ github.head_ref }} | awk -F'/' '{print $NF}')
           echo "filtered_head_ref=${filtered_head_ref}" >> $GITHUB_ENV
+        shell: msys2 {0}
       - name: Upload artifact
         if: ${{ github.event_name == 'pull_request'}}
         uses: actions/upload-artifact@v2
