@@ -87,11 +87,15 @@ jobs:
           echo "package_suffix=${{ matrix.arch }}-w64-${{ matrix.msystem }}${{ matrix.suffix }}" >> $GITHUB_ENV
         shell: msys2 {0}
         if: ${{ matrix.arch != 'msvc' }}
+      - name: Remove slash from head ref
+        run: |
+          filtered_head_ref=$(echo ${{ github.head_ref }} | awk -F'/' '{print $NF}')
+          echo "filtered_head_ref=${filtered_head_ref}" >> $GITHUB_ENV
       - name: Upload artifact
         if: ${{ github.event_name == 'pull_request'}}
         uses: actions/upload-artifact@v2
         with:
-          name: ${{ github.event.repository.name }}-${{ github.head_ref }}-${{ env.package_suffix }}
+          name: ${{ github.event.repository.name }}-${{ env.filtered_head_ref }}-${{ env.package_suffix }}
           path: dist
           if-no-files-found: error
       - name: Zip up dist contents for release
