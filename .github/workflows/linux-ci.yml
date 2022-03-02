@@ -84,7 +84,7 @@ jobs:
           echo "platform_string=${platform_str}" >> $GITHUB_ENV
       - name: Remove slash from head ref
         run: |
-          filtered_head_ref=$(echo ${{ github.head_ref }} | awk -F'/' '{print $NF}'
+          filtered_head_ref=$(echo ${{ github.head_ref }} | awk -F'/' '{print $NF}')
           echo "filtered_head_ref=${filtered_head_ref}" >> $GITHUB_ENV
       - name: Upload Artifact
         if: ${{ github.event_name == 'pull_request'}}
