@@ -573,9 +573,13 @@ MibSCutGenerator::intersectionCuts(BcpsConstraintPool &conPool,
 		    CoinZeroN(lowerLevelSol, lCols);
 		    isTimeLimReached = false;
 		    if (!findLowerLevelSol(uselessIneqs, lowerLevelSol, sol, isTimeLimReached)){
+                       delete [] uselessIneqs;
+                       delete [] lowerLevelSol;
                        goto TERM_INTERSECTIONCUT;
                     }
 		    if(isTimeLimReached == true){
+			delete [] uselessIneqs;
+			delete [] lowerLevelSol;
 			goto TERM_INTERSECTIONCUT;
 		    }
 		    intersectionFound = getAlphaIC(extRay, uselessIneqs, lowerLevelSol,
@@ -607,9 +611,13 @@ MibSCutGenerator::intersectionCuts(BcpsConstraintPool &conPool,
 		isTimeLimReached = false;
 	        if (!findLowerLevelSolWatermelonIC(uselessIneqs, lowerLevelSol, lpSol,
                                                    isTimeLimReached)){
+		    delete [] uselessIneqs;
+		    delete [] lowerLevelSol;
 		    goto TERM_INTERSECTIONCUT;
                 }                   
 		if(isTimeLimReached == true){
+		    delete [] uselessIneqs;
+		    delete [] lowerLevelSol;
 		    goto TERM_INTERSECTIONCUT;
 		}
 		intersectionFound = getAlphaWatermelonIC(extRay, uselessIneqs, lowerLevelSol,
