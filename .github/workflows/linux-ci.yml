@@ -82,11 +82,15 @@ jobs:
           [[ ${{ matrix.build_static }} == "true" ]] && buildtype=static || buildtype=
           platform_str=`python3 tools/hsf_get_platform.py -b $buildtype`
           echo "platform_string=${platform_str}" >> $GITHUB_ENV
+      - name: Remove slash from head ref
+        run: |
+          filtered_head_ref=$(echo ${{ github.head_ref }} | awk -F'/' '{print $NF}'
+          echo "filtered_head_ref=${filtered_head_ref}" >> $GITHUB_ENV
       - name: Upload Artifact
         if: ${{ github.event_name == 'pull_request'}}
         uses: actions/upload-artifact@v2
         with:
-          name: ${{ github.event.repository.name }}-${{ github.head_ref }}-${{ env.platform_string }}.tar.gz
+          name: ${{ github.event.repository.name }}-${{ env.filtered_head_ref }}-${{ env.platform_string }}.tar.gz
           path: release.tar.gz
           if-no-files-found: error
       - name: Upload package to release
