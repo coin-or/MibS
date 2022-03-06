@@ -442,17 +442,26 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 
 	    const double * values = lSolver->getColSolution();
 	    
+		// YX: round solution before saving or passing
+		for (i = 0; i < lN; i++){			 
+		    index = lowerColInd[i];
+		    if ((lSolver->isInteger(index)) &&
+			(((values[i] - floor(values[i])) < etol) ||
+			 ((ceil(values[i]) - values[i]) < etol))){
+			    lowerSol[i] = (double) floor(values[i] + 0.5);
+		    }else{
+			    lowerSol[i] = (double) values[i];
+		    }
+	    }
+
 	    if(useLinkingSolutionPool && isLinkVarsIntegral_){
-		std::copy(values, values + lN, shouldStoreValuesLowerSol.begin());
+		std::copy(lowerSol, lowerSol + lN, shouldStoreValuesLowerSol.begin());
 		
 		//step 12
 		//Adding x_L to set E  
 		addSolutionToSeenLinkingSolutionPool
 		    (MibSLinkingPoolTagLowerIsFeasible, shouldStoreValuesLowerSol, objVal_);
 		shouldStoreValuesLowerSol.clear();
-	    }
-	    else{
-		memcpy(lowerSol, values, sizeof(double) * lN);
 	    }
 	    
 	    MibSTreeNode * node = static_cast<MibSTreeNode *>(model_->activeNode_);
@@ -477,14 +486,9 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
     }
 
     //step 13
-    if(((!useLinkingSolutionPool || !isLinkVarsIntegral_) && (isProvenOptimal_)) ||
+    if(((!useLinkingSolutionPool || !isContainedInLinkingPool_) && (isProvenOptimal_)) ||
        ((tagInSeenLinkingPool_ == MibSLinkingPoolTagLowerIsFeasible) ||
 	(tagInSeenLinkingPool_ == MibSLinkingPoolTagUBIsSolved))){
-
-	OsiSolverInterface *UBSolver;
-	
-	//double *lowerSol = new double[lN];
-	//CoinFillN(lowerSol, lN, 0.0);
 
 	if(useLinkingSolutionPool && isLinkVarsIntegral_){
 	    //get optimal value  of (VF) from solution pool
@@ -513,7 +517,13 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 	    storeSol = MibSRelaxationSol;
 	}
 	else{
-	    memcpy(optLowerSolutionOrd_, lowerSol, sizeof(double) * lN);
+		for (i = 0; i < lN; i++){			 
+		    pos = binarySearch(0, lN - 1, i, lowerColInd);
+			optLowerSolutionOrd_[pos] = lowerSol[i];
+	    }
+	    if(isUpperIntegral_){
+	        storeSol = MibSHeurSol;
+	    }
 	}
 	
 	if(!shouldPrune_){	
@@ -531,13 +541,12 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 		    UBSolver_ =setUpUBModel(model_->getSolver(), objVal, true);
 		}
 
-		UBSolver = UBSolver_;
+		OsiSolverInterface * UBSolver = UBSolver_;
 
 		remainingTime = timeLimit - model_->broker_->subTreeTimer().getTime();
 
 		if(remainingTime <= etol){
 		    shouldPrune_ = true;
-		    storeSol = MibSNoSol;
 		    goto TERM_CHECKBILEVELFEAS;
 		}
 		
@@ -601,7 +610,6 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 						       (dynamic_cast<OsiSymSolverInterface *>
 							(UBSolver)->getSymphonyEnvironment()))){
 		    shouldPrune_ = true;
-		    storeSol = MibSNoSol;
 		    goto TERM_CHECKBILEVELFEAS;
 		}
 		else if (UBSolver->isProvenOptimal()){
@@ -648,22 +656,6 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 		    //isProvenOptimal_ = false;
 		    shouldPrune_ = true;
 		}	
-	    }
-	    else if ((tagInSeenLinkingPool_ == MibSLinkingPoolTagLowerIsFeasible) ||
-		     ((!useLinkingSolutionPool) && (isUBSolved_))){
-		for (i = 0; i < lN; i++){
-		    index = lowerColInd[i];
-		    if ((model_->solver()->isInteger(index)) &&
-			(((lowerSol[i] - floor(lowerSol[i])) < etol) ||
-			 ((ceil(lowerSol[i]) - lowerSol[i]) < etol))){
-			optLowerSolutionOrd_[i] = (double) floor(lowerSol[i] + 0.5);
-		    }else{
-			optLowerSolutionOrd_[i] = (double) lowerSol[i];
-		    }
-		}
-		if(isUpperIntegral_){
-		    storeSol = MibSHeurSol;
-		}
 	    }
 	}
     }
