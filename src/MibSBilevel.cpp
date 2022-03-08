@@ -517,8 +517,9 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 	    storeSol = MibSRelaxationSol;
 	}
 	else{
-		for (i = 0; i < lN; i++){			 
-		    pos = binarySearch(0, lN - 1, i, lowerColInd);
+		for (i = 0; i < lN; i++){
+			index = lowerColInd[i];
+			pos = binarySearch(0, lN - 1, index, lowerColInd);	
 			optLowerSolutionOrd_[pos] = lowerSol[i];
 	    }
 	    if(isUpperIntegral_){
