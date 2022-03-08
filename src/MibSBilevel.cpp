@@ -486,7 +486,7 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
     }
 
     //step 13
-    if(((!useLinkingSolutionPool || !isContainedInLinkingPool_) && (isProvenOptimal_)) ||
+    if(((!useLinkingSolutionPool || !isLinkVarsIntegral_) && (isProvenOptimal_)) ||
        ((tagInSeenLinkingPool_ == MibSLinkingPoolTagLowerIsFeasible) ||
 	(tagInSeenLinkingPool_ == MibSLinkingPoolTagUBIsSolved))){
 
