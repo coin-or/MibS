@@ -518,9 +518,7 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 	}
 	else{
 		for (i = 0; i < lN; i++){
-			index = lowerColInd[i];
-			pos = binarySearch(0, lN - 1, index, lowerColInd);	
-			optLowerSolutionOrd_[pos] = lowerSol[i];
+			optLowerSolutionOrd_[i] = lowerSol[i];
 	    }
 	    if(isUpperIntegral_){
 	        storeSol = MibSHeurSol;
