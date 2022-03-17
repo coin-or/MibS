@@ -685,7 +685,7 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 	       (((branchPar == MibSBranchingStrategyLinking) &&
 		 (isIntegral_) && (isLinkVarsFixed_)) ||
 		((computeBestUBWhenXVarsInt == PARAM_ON) && (isUpperIntegral_)) ||
-		((computeBestUBWhenLVarsInt == PARAM_ON)) ||
+		((computeBestUBWhenLVarsInt == PARAM_ON)) && (isLinkVarsIntegral_)||
 		((computeBestUBWhenLVarsFixed == PARAM_ON) && (isLinkVarsFixed_)))){
 		/*if(UBSolver_){
 		    UBSolver_ = setUpUBModel(model_->getSolver(), shouldStoreObjValues,
@@ -954,7 +954,7 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 		    delete [] multA2XOpt;
 		}
 	    }
-	    else if ((tagInSeenLinkingPool_ != MibSLinkingPoolTagUBIsSolved) ||
+	    else if ((tagInSeenLinkingPool_ == MibSLinkingPoolTagLowerIsFeasible) ||
 		     ((!useLinkingSolutionPool) && (isUBSolved_))){
 		    for (i = 0; i < lN; i++){
 			if(numScenarios == 1){
