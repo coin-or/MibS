@@ -383,7 +383,7 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
         shouldStoreValuesUBSol.resize(lN + uN);
     }
 
-    const double * sol = model_->solver()->getColSolution();
+    const double * sol = oSolver->getColSolution();
     
     std::vector<double> linkSol;
     for(i = 0; i < uN; i++){
@@ -875,7 +875,7 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 			int begPos = uN + i * truncLN;
 			CoinDisjointCopyN(partialValuesUB, truncLN, valuesUB + begPos);
 		    }
-		    objVal += UBSolver->getObjValue() * model_->solver()->getObjSense();
+		    objVal += UBSolver->getObjValue() * oSolver->getObjSense();
 		}
 		else{
 		    isUBProvenOptimal = false;
@@ -963,7 +963,7 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 			else{
 			    index = uN + i;
 			}
-			if ((model_->solver()->isInteger(index)) &&
+			if ((oSolver->isInteger(index)) &&
 			    (((lowerSol[i] - floor(lowerSol[i])) < etol) ||
 			     ((ceil(lowerSol[i]) - lowerSol[i]) < etol))){
 			    optLowerSolutionOrd_[i] = (double) floor(lowerSol[i] + 0.5);
