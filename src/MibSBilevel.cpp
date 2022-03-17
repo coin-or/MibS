@@ -119,9 +119,9 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
   CoinZeroN(optLowerSolutionOrd_, lN);
   
   if(shouldStoreSolution == true){
-      if(!lowerSolutionOrd_)
-	  lowerSolutionOrd_ = new double[lN];
-  
+      if(!lowerSolutionOrd_){
+         lowerSolutionOrd_ = new double[lN];
+      }  
       CoinZeroN(lowerSolutionOrd_, lN);
   }
   
@@ -195,74 +195,42 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
   /* put the solution in order by integers first */
 
   int pos(0);
-
-  if((shouldStoreSolution == true) && (numScenarios == 1)){
-      for (i = 0; i < numElements; i++){
-	  index = indices[i];
-          pos = binarySearch(0, lN - 1, index, lowerColInd);
-	  if (pos < 0){
-	      pos = binarySearch(0, uN - 1, index, upperColInd);
-	      if ((mibs->solver()->isInteger(index)) &&
-		  (((values[i] - floor(values[i])) < etol) ||
-		   ((ceil(values[i]) - values[i]) < etol))){
-		  upperSolutionOrd_[pos] = (double) floor(values[i] + 0.5);
-	      }else{
-		  upperSolutionOrd_[pos] = values[i];
-	      }
-	      optUpperSolutionOrd_[pos] = upperSolutionOrd_[pos];
-	  }else{
-	      if ((mibs->solver()->isInteger(index)) &&
-		  (((values[i] - floor(values[i])) < etol) ||
-		   ((ceil(values[i]) - values[i]) < etol))){
-		  lowerSolutionOrd_[pos] = (double) floor(values[i] + 0.5);
-	      }else{
-		  lowerSolutionOrd_[pos] = values[i];
-	      }
-	      optLowerSolutionOrd_[pos] = lowerSolutionOrd_[pos];	
-	  }
+   // YX: #Scns==1 always inplies shouldStoreSolution?
+   for (i = 0; i < numElements; i++){
+      index = indices[i];
+      if(numScenarios == 1){                
+         pos = binarySearch(0, lN - 1, index, lowerColInd);
+      }else{
+         if(index < uN){
+            pos = -1;
+         }else{
+            pos = index - uN;
+         }
       }
-  }
-  else{
-      for (i = 0; i < numElements; i++){
-	  index = indices[i];
-	  if(numScenarios == 1){
-	      pos = binarySearch(0, lN - 1, index, lowerColInd);
-	  }
-	  else{
-	      if(index < uN){
-		  pos = -1;
-	      }
-	      else{
-		  pos = index - uN;
-	      }
-	  }
-	  if(pos < 0){
-	      pos = binarySearch(0, uN - 1, index, upperColInd);
-	      if ((mibs->solver()->isInteger(index)) &&
-		  (((values[i] - floor(values[i])) < etol) ||
-		   ((ceil(values[i]) - values[i]) < etol))){
-		  upperSolutionOrd_[pos] = (double) floor(values[i] + 0.5);
-	      }
-	      else{
-		  upperSolutionOrd_[pos] = values[i];
-	      }
-	      optUpperSolutionOrd_[pos] = upperSolutionOrd_[pos];
-	  }
-	  else{
-	      if ((mibs->solver()->isInteger(index)) &&
-		  (((values[i] - floor(values[i])) < etol) ||
-		   ((ceil(values[i]) - values[i]) < etol))){
-		  optLowerSolutionOrd_[pos] = (double) floor(values[i] + 0.5);
-	      }
-	      else{
-		  optLowerSolutionOrd_[pos] = values[i];
-	      }
-	      if(shouldStoreSolution == true){
-		  lowerSolutionOrd_[pos] = lowerSolutionOrd_[pos];
-	      }
-	  }
-      }
-  }
+      if (pos < 0){
+         pos = binarySearch(0, uN - 1, index, upperColInd);
+         if ((mibs->solver()->isInteger(index)) &&
+         (((values[i] - floor(values[i])) < etol) ||
+         ((ceil(values[i]) - values[i]) < etol))){
+            upperSolutionOrd_[pos] = (double) floor(values[i] + 0.5);
+         }else{
+            upperSolutionOrd_[pos] = values[i];
+         }
+         optUpperSolutionOrd_[pos] = upperSolutionOrd_[pos];
+      }else{
+         // YX: swapped LL var assgn cuz of stochastic setting        
+         if ((mibs->solver()->isInteger(index)) &&
+         (((values[i] - floor(values[i])) < etol) ||
+         ((ceil(values[i]) - values[i]) < etol))){
+            optLowerSolutionOrd_[pos] = (double) floor(values[i] + 0.5);
+         }else{
+            optLowerSolutionOrd_[pos] = values[i];
+         }
+         if(shouldStoreSolution == true){
+            lowerSolutionOrd_[pos] = optLowerSolutionOrd_[pos];
+         }
+      }         	
+   }
 
 
   int solType(0);
