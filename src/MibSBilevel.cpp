@@ -370,11 +370,13 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
     }
 
     //saharSto: Check these changes
-    double *lowerSol = NULL;
+   //  double *lowerSol = NULL;
     std::vector<double> shouldStoreValuesLowerSol(1);
     std::vector<double> shouldStoreValuesUBSol(1);
     std::vector<double> shouldStoreObjValues;
-    
+
+   double *lowerSol = new double[lN]; // YX: lowerSol is used in all cases
+   CoinFillN(lowerSol, lN, 0.0);
 
     if(shouldStoreSolution == true){
         shouldStoreValuesLowerSol.resize(lN);
@@ -562,7 +564,6 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 	        break;
 	    }
 	    else{
-		//const double * sol = model_->solver()->getColSolution();
 		objVal = lSolver->getObjValue() * model_->getLowerObjSense();
 
 	        //objVal_ = objVal;
@@ -582,10 +583,6 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 		        std::copy(values, values + lN, shouldStoreValuesLowerSol.begin() + begPos);
 		    }
 		    else{
-			if(lowerSol == NULL){
-			    lowerSol = new double[lN];
-			    CoinFillN(lowerSol, lN, 0.0);
-			}
 			CoinDisjointCopyN(values, truncLN, lowerSol + begPos);
 		    }
 
@@ -600,10 +597,6 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 		    }
 		}
 		else{
-		    if(lowerSol == NULL){
-			lowerSol = new double[lN];
-		        CoinFillN(lowerSol, lN, 0.0);
-		    }
 		    //memcpy(lowerSol, values, sizeof(double) * lN);
 		    begPos = i * truncLN;
 		    CoinDisjointCopyN(values, truncLN, lowerSol + begPos);
@@ -638,9 +631,6 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
        ((tagInSeenLinkingPool_ == MibSLinkingPoolTagLowerIsFeasible) ||
 	(tagInSeenLinkingPool_ == MibSLinkingPoolTagUBIsSolved))){
 	
-	//double *lowerSol = new double[lN];
-	//CoinFillN(lowerSol, lN, 0.0);
-
 	if(useLinkingSolutionPool && isLinkVarsIntegral_){
 	    //get optimal value  of (VF) from solution pool
 	    //model_->it = seenLinkingSolutions.find(linkSol);
@@ -656,10 +646,6 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
           
 
 	    if(shouldStoreSolution == true){
-		if(lowerSol == NULL){
-		    lowerSol = new double[lN];
-		    CoinFillN(lowerSol, lN, 0.0);
-		}
 	    std::copy(model_->seenLinkingSolutions[linkSol].lowerSolution.begin(),
 		      model_->seenLinkingSolutions[linkSol].lowerSolution.end(), lowerSol);
 	    }
@@ -687,9 +673,7 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 		}
 	    }
 	    else{
-		if(lowerSol != NULL){
 		    memcpy(optLowerSolutionOrd_, lowerSol, sizeof(double) * lN);
-		}
 		break;
 	    }
 	}
@@ -972,7 +956,6 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 	    }
 	    else if ((tagInSeenLinkingPool_ != MibSLinkingPoolTagUBIsSolved) ||
 		     ((!useLinkingSolutionPool) && (isUBSolved_))){
-		if(lowerSol != NULL){
 		    for (i = 0; i < lN; i++){
 			if(numScenarios == 1){
 			    index = lowerColInd[i];
@@ -991,7 +974,6 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 		    if(isUpperIntegral_){
 			storeSol = MibSHeurSol;
 		    }
-		}
 	    }
 	}
     }
