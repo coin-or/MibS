@@ -283,7 +283,7 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
     double remainingTime(0.0), startTimeVF(0.0), startTimeUB(0.0);
     MibSSolType storeSol(MibSNoSol);
     int lN(model_->lowerDim_); // lower-level dimension
-    int uN(model_->upperDim_); // lower-level dimension
+    int uN(model_->upperDim_); // upper-level dimension
     int i(0), index(0), length(0), pos(0);
     int sizeFixedInd(model_->sizeFixedInd_);
     double etol(model_->etol_), objVal(0.0), lowerObj(0.0);
@@ -442,17 +442,16 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 
 	    const double * values = lSolver->getColSolution();
 	    
-		// YX: round solution before saving or passing
-		for (i = 0; i < lN; i++){			 
-		    index = lowerColInd[i];
-		    if ((lSolver->isInteger(index)) &&
-			(((values[i] - floor(values[i])) < etol) ||
-			 ((ceil(values[i]) - values[i]) < etol))){
-			    lowerSol[i] = (double) floor(values[i] + 0.5);
-		    }else{
-			    lowerSol[i] = (double) values[i];
-		    }
-	    }
+        // YX: round lSolver solution; sol (Relaxation soln) is not rounded?
+        for (i = 0; i < lN; i++){			 
+            if ((lSolver->isInteger(i)) &&
+                (((values[i] - floor(values[i])) < etol) ||
+                ((ceil(values[i]) - values[i]) < etol))){
+                lowerSol[i] = (double) floor(values[i] + 0.5);
+            }else{
+                lowerSol[i] = (double) values[i];
+            }
+        }
 
 	    if(useLinkingSolutionPool && isLinkVarsIntegral_){
 		std::copy(lowerSol, lowerSol + lN, shouldStoreValuesLowerSol.begin());
