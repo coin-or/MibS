@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>File Format</title>
+  <meta name="description" content="MibS Documentation">
+
+	<link rel="icon" href="/assets/images/favicon.ico">
+  <link rel="canonical" href="http://localhost:4000/input.html">
+
+	<link rel="stylesheet" href="/assets/css/docs.css">
+
+</head>
+
+	<body>
+		<div class="wrapper">
+			<sidebar class="sidebar" id="sidebar">
+	<div class="sidebar-mobile">
+		<img src="/assets/images/menu.svg" class="menu-icon" id="menu" />
+		<img src="/assets/images/close.svg" class="close-icon" id="close" />
+	</div>
+	<div class="search">
+	<input type="text" class="search-input" id="search-input" placeholder="Type to search" />
+</div>
+
+	<div class="sidebar-main">
+		<ul class="navigation" id="navigation">																			<li>				<a class="" href="/">					Quick Start				</a>			</li>								<li>				<a class="" href="/parameters.html">					Parameters				</a>			</li>								<li>				<a class="active" href="/input.html">					File Format				</a>			</li>			</ul>
+
+		<ul id="search-results" class="navigation"></ul>
+
+	</div>
+</sidebar>
+
+			<main class="content">
+				<div class="inner">
+					<h1 id="mibs-input-file-format">MibS Input File Format</h1>
+
+<h2 id="version-1">Version 1</h2>
+
+<p>Major version 1 of MibS requires two input files.</p>
+<ol>
+  <li>An <em>instance file</em> in MPS, LP, or GMPL/AMPL format that contains a
+ description of the upper level objective, the variables (upper and lower
+ level), and the constraints (upper and lower level); and</li>
+  <li>An <em>auxiliary (aux) file</em> that contains information necessary to
+ identify the upper and lower level constraints and variables.</li>
+</ol>
+
+<h3 id="the-instance-file">The Instance File</h3>
+
+<p>The instance can be in any of the standard formats mentioned above. These are
+the same formats utilized by all MILP solvers. Information about these formats
+can be easily found with an Internet search.</p>
+
+<h3 id="the-auxiliary-file">The Auxiliary File</h3>
+
+<p>Each line in the auxiliary file contains a pair of elements: a type indicator
+and a data value. The type indicators are as follows.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Type Indicator</th>
+      <th>Associated Data</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>N</td>
+      <td>the number of lower level variables</td>
+    </tr>
+    <tr>
+      <td>M</td>
+      <td>the number of lower level constraints</td>
+    </tr>
+    <tr>
+      <td>LC</td>
+      <td>name/index of one of the lower level variables</td>
+    </tr>
+    <tr>
+      <td>LR</td>
+      <td>name/index of one of the lower level constraint</td>
+    </tr>
+    <tr>
+      <td>LO</td>
+      <td>coefficient of a variable in the lower level objective function</td>
+    </tr>
+    <tr>
+      <td>OS</td>
+      <td>lower level objective sense (1=min, -1=max)</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Note that variables and constraints can be identified either by index or name.
+When indentified by index, variables are assumed to be in the order they
+appear in the input file (indices start at 0). Similarly, constraints are
+assumed to be in the order they appear in the input file (indices start at 0).
+For the lower level objective, coefficients are assumed to be in the order of
+lower level variables. Currently, there is no option for specifying the
+lower-level objective using names.</p>
+
+<h3 id="example">Example</h3>
+
+<p>The model:</p>
+<pre><code>min  -x − 7y
+s.t. −3x + 2y ≤ 12
+     x + 2y ≤ 20
+     x ≤ 10
+     y ∈ arg min {z : 2x - z ≤ 7,
+                      2x + 4z ≤ 16,
+                      z ≤ 5}
+</code></pre>
+<p>The MPS file:</p>
+
+<pre><code>NAME generalExample
+ROWS
+ L  R0
+ L  R1
+ L  R2
+ L  R3
+ N  R4
+COLUMNS
+    INT1 'MARKER' 'INTORG'
+    C0   R0       -3
+    C0   R1       1
+    C0   R2       2
+    C0   R3       -2
+    C0   R4       -1
+    C1   R0       2
+    C1   R1       2
+    C1   R2       -1
+    C1   R3       4
+    C1   R4       -7
+    INT1END 'MARKER' 'INTEND'
+RHS
+    B    R0       12
+    B    R1       20
+    B    R2       7
+    B    R3       16
+BOUNDS
+ UP BOUND C0      10
+ UP BOUND C1      5
+ENDATA
+</code></pre>
+
+<p>The auxiliary file:</p>
+
+<pre><code>N 1
+M 2
+LC 1
+LR 2
+LR 3
+LO 1
+OS 1
+</code></pre>
+
+<p>Optimal solution: x = 6, y = 5</p>
+
+<h2 id="version-2">Version 2</h2>
+
+<p>Major version 2 accepts the same file format as version 1 for deterministic
+instances and additionally accepts stochastic instances in the following two
+formats.</p>
+
+<ol>
+  <li>
+    <p>Provide an MPS file, a time file, and a stoch file, as in the well-known
+<a href="http://www.maximalsoftware.com/resources/GassmannKristjansson_dpm007v1.pdf">SMPS format</a>. The second-stage objective coefficients should be defined at
+the end of the time file (see
+<a href="https://github.com/tkralphs/BilevelLib/blob/master/stochastic/sslp/bilevel_nonZeroSum_sslp_10_50_50.tim">here</a>).</p>
+  </li>
+  <li>
+    <p>Provide an MPS file and an auxiliary information file in the same way as
+deterministic bilevel problems. The probability distributions of the
+random variables also should be specified by setting the values of
+corresponding parameters (<code>MibS</code> currently supports only the discrete
+uniform distribution). For a sample parameter file, see
+[src/mibsStochastic.par.in].</p>
+  </li>
+</ol>
+
+
+
+				</div>
+			</main>
+		</div>
+		<script src="/assets/js/zepto.min.js"></script>
+<script src="/assets/js/lunar.min.js"></script>
+<script src="/assets/js/prism.min.js"></script>
+<script src="/assets/js/database.js"></script>
+<script src="/assets/js/search.js"></script>
+<script src="/assets/js/mobile-navigation.js"></script>
+
+	</body>
+</html>

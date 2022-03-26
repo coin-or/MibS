@@ -1,3 +1,18 @@
-theme: jekyll-theme-minimal
-title: MibS Quick Start Guide
+title: MibS Documentation
+description: MibS Documentation
+url: "https://coin-or.github.io/MibS" 
 
+# Build settings
+markdown: kramdown
+kramdown:
+  syntax_highlighter_opts:
+    disable : true
+
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - README.md
+
+sass:
+  sass_dir: _sass
+  style: compressed

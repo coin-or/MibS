@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Parameters</title>
+  <meta name="description" content="MibS Documentation">
+
+	<link rel="icon" href="/assets/images/favicon.ico">
+  <link rel="canonical" href="http://localhost:4000/parameters.html">
+
+	<link rel="stylesheet" href="/assets/css/docs.css">
+
+</head>
+
+	<body>
+		<div class="wrapper">
+			<sidebar class="sidebar" id="sidebar">
+	<div class="sidebar-mobile">
+		<img src="/assets/images/menu.svg" class="menu-icon" id="menu" />
+		<img src="/assets/images/close.svg" class="close-icon" id="close" />
+	</div>
+	<div class="search">
+	<input type="text" class="search-input" id="search-input" placeholder="Type to search" />
+</div>
+
+	<div class="sidebar-main">
+		<ul class="navigation" id="navigation">																			<li>				<a class="" href="/">					Quick Start				</a>			</li>								<li>				<a class="active" href="/parameters.html">					Parameters				</a>			</li>								<li>				<a class="" href="/input.html">					File Format				</a>			</li>			</ul>
+
+		<ul id="search-results" class="navigation"></ul>
+
+	</div>
+</sidebar>
+
+			<main class="content">
+				<div class="inner">
+					<h1 id="parameters">Parameters</h1>
+
+<h2 id="alps-parameters">ALPS Parameters</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>Parameter Name</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Alps_instance</td>
+      <td>Path to instance file</td>
+    </tr>
+    <tr>
+      <td>Alps_timeLimit</td>
+      <td>Overall wallclock time limit</td>
+    </tr>
+    <tr>
+      <td>Alps_nodeLimit</td>
+      <td>Limit on number of nodes explored</td>
+    </tr>
+    <tr>
+      <td>Alps_msgLevel</td>
+      <td>Verbosity level for ALPS message. Set &gt; 5 for additional debugging output</td>
+    </tr>
+    <tr>
+      <td>Alps_logFileLevel</td>
+      <td>Whether to create log file and its verbosity. Currently, this option dumps parameter settings at level 1 and that’s it.</td>
+    </tr>
+    <tr>
+      <td>Alps_searchStrategy</td>
+      <td><code>0</code>: Best first <br /> <code>1</code>: Best estimate <br />  <code>2</code>: Breath first <br /> <code>3</code>: Depth first <br /> <code>4</code> Hybrid</td>
+    </tr>
+    <tr>
+      <td>Alps_nodeLogInterval</td>
+      <td>How frequently to print status lines</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="blis-parameters">BLIS Parameters</h2>
+
+<h3 id="general">General</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>Parameter Name</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Blis_scaleConFactor</td>
+      <td>Level of dynamism above which cuts will be discarded. Note that setting this too low can result in incorrect results, since cuts necessary for validity may be thrown out</td>
+    </tr>
+    <tr>
+      <td>Blis_denseConFactor</td>
+      <td>Cut density above which cuts will be discarded. Note that setting this too low can result in incorrect results, since cuts necessary for validity may be thrown out</td>
+    </tr>
+    <tr>
+      <td>Blis_heurStrategy</td>
+      <td>When to call heuristics (default) <br /> <code>0</code>: disable <br /> <code>1</code>: root <br /> <code>2</code>: auto <br /> <code>3</code>: periodic</td>
+    </tr>
+    <tr>
+      <td>Blis_heurCallFrequency</td>
+      <td>How often to call heuristics</td>
+    </tr>
+    <tr>
+      <td>Blis_heurRoundStrategy</td>
+      <td>When to call rounding heuristic (default) <br /> <code>0</code>: disable <br /> <code>1</code>: root <br /> <code>2</code>: auto <br /> <code>3</code>: periodic</td>
+    </tr>
+    <tr>
+      <td>Blis_heurRoundFreq</td>
+      <td>How often to call heuristics</td>
+    </tr>
+    <tr>
+      <td>Blis_branchStrategy</td>
+      <td>MibS uses pseudocost branching by default and the other strategies are untested. <br /> <code>0</code>: max infeasibility <br /> <code>1</code>: pseudocost <br /> <code>2</code>: reliability <br /> <code>3</code>: strong</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="cuts">Cuts</h3>
+
+<p>These are parameters for controlling generation of inequalites valid for
+MILPs, which can be used to eliminate fractional solutions if desired. These
+cuts are all off by default, as they’re usually not effective.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Parameter Name</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Blis_cutStrategy</td>
+      <td>Strategy for cut generation (default) <br /> <code>0</code>: disable <br /> <code>1</code>: root <br /> <code>2</code>: auto <br /> <code>3</code>: periodic</td>
+    </tr>
+    <tr>
+      <td>Blis_cutGenerationFrequency</td>
+      <td>How frequently to generate MILP cuts</td>
+    </tr>
+    <tr>
+      <td>Blis_cutCliqueStrategy <br /> Blis_cutGomoryStrategy <br /> Blis_cutFlowCoverStrategy <br /> Blis_cutKnapsackStrategy <br /> Blis_cutMirStrategy <br /> Blis_cutOddHoleStrategy <br /> Blis_cutProbingStrategy <br /> Blis_cutTwoMirStrategy</td>
+      <td>Strategy for generating individual classes of inequalities. <br /> <code>0</code>: disable <br /> <code>1</code>: root <br /> <code>2</code>: auto <br /> <code>3</code>: periodic</td>
+    </tr>
+    <tr>
+      <td>Blis_cutCliqueFreq <br /> Blis_cutGomoryFreq <br /> Blis_cutFlowCoverFreq <br /> Blis_cutKnapsackFreq <br /> Blis_cutMirFreq <br /> Blis_cutOddHoleFreq <br /> Blis_cutProbingFreq <br /> Blis_cutTwoMirFreq</td>
+      <td>Frequency for generating individual classes of inequalities.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="mibs-parameters">MibS Parameters</h2>
+
+<h3 id="general-1">General</h3>
+
+<p>These are general MibS parameters</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Parameter Name</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>MibS_auxiliaryInfoFile</td>
+      <td>Path to auxiliary info file</td>
+    </tr>
+    <tr>
+      <td>MibS_usePreprocessor</td>
+      <td><code>0</code>: off <br /> <code>1</code>: on</td>
+    </tr>
+    <tr>
+      <td>MibS_bilevelProblemType</td>
+      <td><code>0</code>: general <br /> <code>1</code>: interdiction</td>
+    </tr>
+    <tr>
+      <td>MibS_objBoundStrategy</td>
+      <td>How to derive a bound on lower level objective for preprocessing <br /> <code>0</code>: LL obj bound <br /> <code>1</code>: interdiction bound</td>
+    </tr>
+    <tr>
+      <td>MibS_whichActiveConMethod</td>
+      <td>How to determine which constraints are binding <br /> <code>0</code>: simple <br /> <code>1</code>: basis</td>
+    </tr>
+    <tr>
+      <td>MibS_upperFileFormat</td>
+      <td><code>0</code>: MPS <br /> <code>1</code>: AMPL/GMPL</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="subsolvers">Subsolvers</h3>
+
+<p>These are parameters related to solving subproblems for either checking
+feasibility or determining the best lower-level solution associated with a
+given upper-level solution by solving an auxiliary MILP.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Parameter Name</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>MibS_solveSecondLevelWhenXYVarsInt</td>
+      <td><code>0</code>: false <br /> <code>1</code>: true</td>
+    </tr>
+    <tr>
+      <td>MibS_solveSecondLevelWhenXVarsInt</td>
+      <td><code>0</code>: false <br /> <code>1</code>: true</td>
+    </tr>
+    <tr>
+      <td>MibS_solveSecondLevelWhenLVarsInt</td>
+      <td><code>0</code>: false <br /> <code>1</code>: true</td>
+    </tr>
+    <tr>
+      <td>MibS_solveSecondLevelWhenLVarsFixed</td>
+      <td><code>0</code>: false <br /> <code>1</code>: true</td>
+    </tr>
+    <tr>
+      <td>MibS_computeBestUBWhenXVarsInt</td>
+      <td><code>0</code>: false <br /> <code>1</code>: true</td>
+    </tr>
+    <tr>
+      <td>MibS_computeBestUBWhenLVarsInt</td>
+      <td><code>0</code>: false <br /> <code>1</code>: true</td>
+    </tr>
+    <tr>
+      <td>MibS_computeBestUBWhenLVarsFixed</td>
+      <td><code>0</code>: false <br /> <code>1</code>: true</td>
+    </tr>
+    <tr>
+      <td>MibS_useLinkingSolutionPool</td>
+      <td><code>0</code>: false <br /> <code>1</code>: true</td>
+    </tr>
+    <tr>
+      <td>MibS_doDualFixing</td>
+      <td><code>0</code>: false <br /> <code>1</code>: true</td>
+    </tr>
+    <tr>
+      <td>MibS_feasCheckSolver</td>
+      <td>Options are currently <br /> -<code>Cbc</code> <br /> -<code>SYMPHONY</code> <br /> -<code>CPLEX</code></td>
+    </tr>
+    <tr>
+      <td>MibS_warmStartLL</td>
+      <td><code>0</code>: false <br /> <code>1</code>: true</td>
+    </tr>
+    <tr>
+      <td>MibS_maxThreadsLL</td>
+      <td>Number of threads to use for parallel solve of lower level problem</td>
+    </tr>
+    <tr>
+      <td>MibS_whichCutsLL</td>
+      <td><code>0</code>: no cuts <br /> <code>1</code>: gomory only <br /> <code>2</code>: all cuts</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="heuristics">Heuristics</h3>
+
+<p>These are parameters for controlling heuristics.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Parameter Name</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>MibS_useLowerObjHeuristic</td>
+      <td><code>-1</code>: auto <br /> <code>0</code>: false <br /> <code>1</code>: true</td>
+    </tr>
+    <tr>
+      <td>MibS_useObjCutHeuristic</td>
+      <td><code>-1</code>: auto <br /> <code>0</code>: false <br /> <code>1</code>: true</td>
+    </tr>
+    <tr>
+      <td>MibS_useWSHeuristic</td>
+      <td><code>-1</code>: auto <br /> <code>0</code>: false <br /> <code>1</code>: true</td>
+    </tr>
+    <tr>
+      <td>MibS_useGreedyHeuristic</td>
+      <td><code>0</code>: false <br /> <code>1</code>: true</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="branching">Branching</h3>
+
+<p>These are parameters for controlling branching.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Parameter Name</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>MibS_branchStrategy</td>
+      <td><code>0</code>: fractional <br /> <code>1</code>: linking</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="cuts-1">Cuts</h3>
+
+<p>These are parameters for controlling generation of valid inequalities. For an explanation, please see this <a href="http://coral.ie.lehigh.edu/~ted/files/papers/MibSCuts20.pdf">technical report</a>.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Parameter Name</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>MibS_cutStrategy</td>
+      <td><code>0</code>: branch only <br /> <code>1</code>: cut only <br /> <code>2</code>: use cut and branch</td>
+    </tr>
+    <tr>
+      <td>MibS_turnOffOtherCuts</td>
+      <td>Turn off all cuts not explicitly turned on by parameters <br /> <code>0</code>: false <br /> <code>1</code>: true</td>
+    </tr>
+    <tr>
+      <td>MibS_usePureIntegerCut</td>
+      <td>Whether to generate this cut (called an <em>Integer No-good Cut</em> in the tech report) <br /> <code>0</code>: false <br /> <code>1</code>: true</td>
+    </tr>
+    <tr>
+      <td>MibS_useValFuncCut</td>
+      <td>Whether to generate this cut <br /> <code>0</code>: false <br /> <code>1</code>: true</td>
+    </tr>
+    <tr>
+      <td>MibS_useNoGoodCut</td>
+      <td>Whether to generate this cut <br /> <code>0</code>: false <br /> <code>1</code>: true</td>
+    </tr>
+    <tr>
+      <td>MibS_useIncObjCut</td>
+      <td>Whether to generate this cut (called a <em>Benders Binary Cut</em> in the tech report) <br /> <code>0</code>: false <br /> <code>1</code>: true</td>
+    </tr>
+    <tr>
+      <td>MibS_useBendersCut</td>
+      <td>Whether to generate this cut (called a <em>Benders Interdiction Cut</em> in the tech report) <br /><code>0</code>: false <br /> <code>1</code>: true</td>
+    </tr>
+    <tr>
+      <td>MibS_bendersCutType</td>
+      <td>Whether to generate a single or multiple cuts (from different solutions) in each iteration <br /> <code>0</code>: justOne <br /> <code>1</code>: multiple</td>
+    </tr>
+    <tr>
+      <td>MibS_useGeneralNoGoodCut</td>
+      <td>Whether to generate this cut (called a <em>Generalized No-good Cut</em> in the tech report) <br /> <code>0</code>: false <br /> <code>1</code>: true</td>
+    </tr>
+    <tr>
+      <td>MibS_useTypeIC</td>
+      <td>Whether to generate intersection cuts of Types I or II (see tech report) <br /> <code>0</code>: false <br /> <code>1</code>: true</td>
+    </tr>
+    <tr>
+      <td>MibS_bilevelFreeSetTypeIC</td>
+      <td>Whether to generate intersection cuts of Type I or II (see tech report) <br /> <code>0</code>: Derive solution by solving lower level problem to optimality <br /> <code>1</code>: Derive a solution by solving an auxiliary problem</td>
+    </tr>
+    <tr>
+      <td>MibS_useBoundCut</td>
+      <td>Whether to generate this cut (see tech report) <br /> <code>0</code>: false <br /> <code>1</code>: true</td>
+    </tr>
+    <tr>
+      <td>MibS_boundCutOptimal</td>
+      <td>What kind of bound cut to generate (there is currently only one option) <br /> <code>0</code>: false <br /> <code>1</code>: true</td>
+    </tr>
+  </tbody>
+</table>
+
+
+
+				</div>
+			</main>
+		</div>
+		<script src="/assets/js/zepto.min.js"></script>
+<script src="/assets/js/lunar.min.js"></script>
+<script src="/assets/js/prism.min.js"></script>
+<script src="/assets/js/database.js"></script>
+<script src="/assets/js/search.js"></script>
+<script src="/assets/js/mobile-navigation.js"></script>
+
+	</body>
+</html>
