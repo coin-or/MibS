@@ -108,7 +108,9 @@ These are parameters for controlling generation of valid inequalities. For an ex
 | Parameter Name | Description                                     |
 |----------------|-------------------------------------------------|
 | MibS_cutStrategy |  `0`: branch only <br> `1`: cut only <br> `2`: use cut and branch |
+| MibS_maxCutDepth | Deepest level of the tree at which cuts should be generated|
 | MibS_turnOffOtherCuts | Turn off all cuts not explicitly turned on by parameters <br> `0`: false <br> `1`: true |
+| MibS_useFractionalCuts | Whether to generate cuts when solution is fractional (see tech report) <br> `0`: false <br> `1`: true |
 | MibS_usePureIntegerCut |  Whether to generate this cut (called an _Integer No-good Cut_ in the tech report) <br> `0`: false <br> `1`: true |
 | MibS_useValFuncCut | Whether to generate this cut <br> `0`: false <br> `1`: true |
 | MibS_useNoGoodCut | Whether to generate this cut <br> `0`: false <br> `1`: true |
@@ -118,6 +120,7 @@ These are parameters for controlling generation of valid inequalities. For an ex
 | MibS_useGeneralNoGoodCut | Whether to generate this cut (called a _Generalized No-good Cut_ in the tech report) <br> `0`: false <br> `1`: true |
 | MibS_useTypeIC | Whether to generate intersection cuts of Types I or II (see tech report) <br> `0`: false <br> `1`: true |
 | MibS_bilevelFreeSetTypeIC | Whether to generate intersection cuts of Type I or II (see tech report) <br> `0`: Derive solution by solving lower level problem to optimality <br> `1`: Derive a solution by solving an auxiliary problem |
+| MibS_useTypeWatermelom | Whether to generate watermelon intersection cuts (see tech report) <br> `0`: false <br> `1`: true |
 | MibS_useBoundCut | Whether to generate this cut (see tech report) <br> `0`: false <br> `1`: true |
 | MibS_boundCutOptimal | What kind of bound cut to generate (there is currently only one option) <br> `0`: false <br> `1`: true |
 

@@ -9,7 +9,7 @@
   <meta name="description" content="MibS Documentation">
 
 	<link rel="icon" href="/assets/images/favicon.ico">
-  <link rel="canonical" href="http://localhost:4000/parameters.html">
+  <link rel="canonical" href="https://coin-or.github.io/MibS/parameters.html">
 
 	<link rel="stylesheet" href="/assets/css/docs.css">
 
@@ -332,8 +332,16 @@ given upper-level solution by solving an auxiliary MILP.</p>
       <td><code>0</code>: branch only <br /> <code>1</code>: cut only <br /> <code>2</code>: use cut and branch</td>
     </tr>
     <tr>
+      <td>MibS_maxCutDepth</td>
+      <td>Deepest level of the tree at which cuts should be generated</td>
+    </tr>
+    <tr>
       <td>MibS_turnOffOtherCuts</td>
       <td>Turn off all cuts not explicitly turned on by parameters <br /> <code>0</code>: false <br /> <code>1</code>: true</td>
+    </tr>
+    <tr>
+      <td>MibS_useFractionalCuts</td>
+      <td>Whether to generate cuts when solution is fractional (see tech report) <br /> <code>0</code>: false <br /> <code>1</code>: true</td>
     </tr>
     <tr>
       <td>MibS_usePureIntegerCut</td>
@@ -370,6 +378,10 @@ given upper-level solution by solving an auxiliary MILP.</p>
     <tr>
       <td>MibS_bilevelFreeSetTypeIC</td>
       <td>Whether to generate intersection cuts of Type I or II (see tech report) <br /> <code>0</code>: Derive solution by solving lower level problem to optimality <br /> <code>1</code>: Derive a solution by solving an auxiliary problem</td>
+    </tr>
+    <tr>
+      <td>MibS_useTypeWatermelom</td>
+      <td>Whether to generate watermelon intersection cuts (see tech report) <br /> <code>0</code>: false <br /> <code>1</code>: true</td>
     </tr>
     <tr>
       <td>MibS_useBoundCut</td>
