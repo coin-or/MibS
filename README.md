@@ -9,13 +9,17 @@ _This file is auto-generated from [config.yml](.coin-or/config.yml) using the
 To make changes, please edit [config.yml](.coin-or/config.yml) or the generation scripts
 [here](.coin-or/generate_readme) and [here](https://github.com/coin-or/coinbrew/blob/master/scripts/generate_readme)._
 
-MibS is a solver for stochastic mixed integer bilevel linear optimization problems. For an
-introduction to bilevel optimization, see [this slide
+MibS is a solver for stochastic mixed integer bilevel linear optimization 
+problems. For an introduction to bilevel optimization, see [this slide
 deck](http://coral.ie.lehigh.edu/~ted/files/talks/BILEVEL-IWOBIP16.pdf). A
 somewhat outdated but still useful introduction to MibS is
 [here](http://coral.ie.lehigh.edu/~ted/files/talks/BILEVEL-INFORMS11.pdf). 
-A paper that contains a complete technical description of the algorithms in MibS is 
-[here](http://coral.ie.lehigh.edu/~ted/files/papers/MIBLP16.pdf).
+A paper that contains a complete technical description of the algorithms in 
+MibS is [here](http://coral.ie.lehigh.edu/~ted/files/papers/MIBLP16.pdf). 
+A paper that discusses the cuts employed by MibS is 
+[here](http://coral.ie.lehigh.edu/~ted/files/papers/MibSCuts20.pdf).
+
+More detailed documentation is available [here](https://coin-or.github.io/MibS).
 
 
 MibS is written in C++ and is released as open source under the [Eclipse Public License 2.0](http://www.opensource.org/licenses/EPL-2.0).
@@ -87,7 +91,8 @@ The quick start assumes you are in a bash shell.
 
 ### Using `coinbrew`
 
-To build MibS from source, obtain the `coinbrew` script, do
+To download and build MibS from source, execute the 
+following on the command line. 
 ```
 wget https://raw.githubusercontent.com/coin-or/coinbrew/master/coinbrew
 chmod u+x coinbrew
@@ -112,11 +117,26 @@ make install
 
 ## USING
 
+### Modelling Systems
+
+MibS has interfaces to the following modelling systems that allow the user to
+conveniently build the bilevel model in a high-level modelling language and
+pass the model to MibS through the interface for solution.
+
+- Pyomo (Python) through the
+[PAO](https://pao.readthedocs.io/en/latest/index.html#) package,
+see [here](https://pao.readthedocs.io/en/latest/solvers.html)
+- JuMP (Julia) through the [BilevelJuMP](https://github.com/joaquimg/BilevelJuMP.jl) package, see
+[here](https://github.com/joaquimg/BilevelJuMP.jl/blob/master/docs/src/examples/MibS_example1.jl)
+for an example. 
+
+### Command Line
+
 To solve a deterministic mixed integer bilevel linear optimization problem,
 you must provide both an MPS file and an auxiliary information file that
 specifies which variables and constraints are associated with the each level
-(see
-[here](http://coral.ise.lehigh.edu/wp-content/uploads/2016/02/MibS_inputFile.pdf)).
+(see a description of the file format
+[here](https://coin-or.github.io/MibS/input.html)).
 Then call `mibs` like this: 
 ``` 
 <build_or_install_dir>/bin/mibs -Alps_instance file.mps -MibS_auxiliaryInfoFile aux_file.txt 
@@ -158,10 +178,11 @@ linear optimization problems. To solve these problems, there are two ways:
 
 ## Project Links
 
- * [COIN-OR Initiative](http://www.coin-or.org/)
- * [Discussion formum](https://github.com/coin-or/MibS/discussions)
+ * [Additional documentation](https://coin-or.github.io/MibS)
+ * [Code of Conduct](https://www.coin-or.org/code-of-conduct/)
+ * [COIN-OR Web Site](http://www.coin-or.org/)
+ * [Discussion forum](https://github.com/coin-or/MibS/discussions)
  * [Report a bug](https://github.com/coin-or/MibS/issues/new)
- * [Doxygen-generated html documentation](http://coin-or.github.io/MibS/Doxygen)
 
 ## ACKNOWLEDGEMENT
 
