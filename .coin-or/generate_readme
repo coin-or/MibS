@@ -20,24 +20,43 @@ create_variables $SCRIPT_DIR/config.yml
 
 make_header
 
-echo "MibS is a solver for stochastic mixed integer bilevel linear optimization problems. For an
-introduction to bilevel optimization, see [this slide
+echo "MibS is a solver for stochastic mixed integer bilevel linear optimization 
+problems. For an introduction to bilevel optimization, see [this slide
 deck](http://coral.ie.lehigh.edu/~ted/files/talks/BILEVEL-IWOBIP16.pdf). A
 somewhat outdated but still useful introduction to MibS is
 [here](http://coral.ie.lehigh.edu/~ted/files/talks/BILEVEL-INFORMS11.pdf). 
-A paper that contains a complete technical description of the algorithms in MibS is 
-[here](https://doi.org/10.1007/s12532-020-00183-6).
+A paper that contains a complete technical description of the algorithms in 
+MibS is [here](http://coral.ie.lehigh.edu/~ted/files/papers/MIBLP16.pdf). 
+A paper that discusses the cuts employed by MibS is 
+[here](http://coral.ie.lehigh.edu/~ted/files/papers/MibSCuts20.pdf).
+
+More detailed documentation is available [here](https://coin-or.github.io/MibS).
 "
 
 make_build_info_no_packages
 
 echo "## USING
 
+### Modelling Systems
+
+MibS has interfaces to the following modelling systems that allow the user to
+conveniently build the bilevel model in a high-level modelling language and
+pass the model to MibS through the interface for solution.
+
+- Pyomo (Python) through the
+[PAO](https://pao.readthedocs.io/en/latest/index.html#) package,
+see [here](https://pao.readthedocs.io/en/latest/solvers.html)
+- JuMP (Julia) through the [BilevelJuMP](https://github.com/joaquimg/BilevelJuMP.jl) package, see
+[here](https://github.com/joaquimg/BilevelJuMP.jl/blob/master/docs/src/examples/MibS_example1.jl)
+for an example. 
+
+### Command Line
+
 To solve a deterministic mixed integer bilevel linear optimization problem,
 you must provide both an MPS file and an auxiliary information file that
 specifies which variables and constraints are associated with the each level
-(see 
-[here](http://coral.ise.lehigh.edu/wp-content/uploads/2016/02/MibS_inputFile.pdf)). 
+(see a description of the file format
+[here](https://coin-or.github.io/MibS/input.html)).
 Then call \`mibs\` like this: 
 \`\`\` 
 <build_or_install_dir>/bin/mibs -Alps_instance file.mps -MibS_auxiliaryInfoFile file.aux 
@@ -84,8 +103,15 @@ solve these problems, there are two ways:
     [src/mibsStochastic.par.in].
 "
 
-make_links
+    echo "
+## Project Links
 
+ * [Additional documentation](https://coin-or.github.io/MibS)
+ * [Code of Conduct](https://www.coin-or.org/code-of-conduct/)
+ * [COIN-OR Web Site](http://www.coin-or.org/)
+ * [Discussion forum](https://github.com/coin-or/$Description_Slug/discussions)
+ * [Report a bug](https://github.com/coin-or/$Description_Slug/issues/new)
+" 
 echo "## ACKNOWLEDGEMENT
 
 MibS was developed with support from
