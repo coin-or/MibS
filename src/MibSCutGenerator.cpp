@@ -5257,9 +5257,10 @@ MibSCutGenerator::binaryCuts(BcpsConstraintPool &conPool)
    int useGeneralNoGoodCut 
       = localModel_->MibSPar_->entry(MibSParams::useGeneralNoGoodCut);
    
-   bool useIncObjCut 
+   int useIncObjCut 
       = localModel_->MibSPar_->entry(MibSParams::useIncObjCut);
-
+   
+   // YX: CAUTION! confirm the conditions before use; vars are int not bool  
    if(useGeneralNoGoodCut && !useIncObjCut){
       return generalNoGoodCut(conPool) ? true : false;
    }
@@ -5916,7 +5917,7 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
   int useNoGoodCut = 
      localModel_->MibSPar_->entry(MibSParams::useNoGoodCut);
   
-  bool useIncObjCut
+  int useIncObjCut
      = localModel_->MibSPar_->entry(MibSParams::useIncObjCut);
   
   int useFractionalCuts =
