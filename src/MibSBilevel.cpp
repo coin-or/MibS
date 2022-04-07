@@ -637,6 +637,7 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 		    storeSol = MibSHeurSol;
 		}else{
 		    isProvenOptimal_ = false;
+			storeSol = MibSNoSol;
 		}
 		//step 22
 		//Adding x_L to set E
