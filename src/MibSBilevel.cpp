@@ -843,9 +843,6 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 		UBSolver->branchAndBound();
 		model_->timerUB_ += model_->broker_->subTreeTimer().getTime() - startTimeUB;
 		model_->counterUB_ ++;
-		if(i == numDecomposedProbs - 1){
-		  isUBSolved_ = true;
-		}
 
 		if(feasCheckSolver == "SYMPHONY"){
 #ifdef MIBS_HAS_SYMPHONY
@@ -870,6 +867,10 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 			goto TERM_CHECKBILEVELFEAS;
 		    }
 #endif
+		}
+
+		if(i == numDecomposedProbs - 1){
+		  isUBSolved_ = true;
 		}
 
 		if(UBSolver->isProvenOptimal()){
