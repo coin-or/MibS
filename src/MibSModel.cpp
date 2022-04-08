@@ -3442,6 +3442,8 @@ MibSModel::instanceStructure()
                  << "linking variables are binary.";
        std::cout << std::endl;
        MibSPar()->setEntry(MibSParams::useIncObjCut, PARAM_OFF);
+    }else if (paramValue == PARAM_NOTSET){
+       MibSPar()->setEntry(MibSParams::useIncObjCut, PARAM_OFF);
     }
     
     //Param: "MibS_useNoGoodCut"
