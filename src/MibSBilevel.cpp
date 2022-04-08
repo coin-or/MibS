@@ -601,14 +601,17 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 		UBSolver->branchAndBound();
 		model_->timerUB_ += model_->broker_->subTreeTimer().getTime() - startTimeUB;
 		model_->counterUB_ ++;
-		isUBSolved_ = true;
+		
 		if((feasCheckSolver == "SYMPHONY") && (sym_is_time_limit_reached
 						       (dynamic_cast<OsiSymSolverInterface *>
 							(UBSolver)->getSymphonyEnvironment()))){
 		    shouldPrune_ = true;
 		    goto TERM_CHECKBILEVELFEAS;
 		}
-		else if (UBSolver->isProvenOptimal()){
+
+		isUBSolved_ = true;
+
+		if (UBSolver->isProvenOptimal()){
 		    isProvenOptimal_ = true;
 		    const double * valuesUB = UBSolver->getColSolution();
 		    std::copy(valuesUB, valuesUB + uN + lN, shouldStoreValuesUBSol.begin());
@@ -637,7 +640,7 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 		    storeSol = MibSHeurSol;
 		}else{
 		    isProvenOptimal_ = false;
-			storeSol = MibSNoSol;
+		    storeSol = MibSNoSol;
 		}
 		//step 22
 		//Adding x_L to set E
