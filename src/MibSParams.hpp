@@ -99,6 +99,7 @@ class MibSParams : public AlpsParameterSet {
   /** Double parameters. */
   enum dblParams{
       boundCutTimeLim,
+      slTargetGap, //YX: lower/second level optimality gap
       endOfDblParams
   };
 

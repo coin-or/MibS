@@ -3745,5 +3745,15 @@ MibSModel::instanceStructure()
           std::cout << "Linking solution pool will not be used." << std::endl;
 	}
     }
+    
+    //YX: Setting "slTargetGap" parameter
+
+    if (printProblemInfo == true){
+       if(MibSPar_->entry(MibSParams::slTargetGap) > -1){
+          std::cout << "Second (lower) level optimality gap is set to ";
+          std::cout << MibSPar_->entry(MibSParams::slTargetGap) <<"%."<< std::endl;
+       }
+    }
+
     std::cout << std::endl;
 }
