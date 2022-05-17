@@ -85,14 +85,18 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
   int numElements(sol->getNumElements()); // number of nonzero elements
   int * fixedInd = model_->fixedInd_; 
  
-  if(!upperSolutionOrd_)
+  if(!upperSolutionOrd_){
       upperSolutionOrd_ = new double[uN];
-  if(!lowerSolutionOrd_)
+  }
+  if(!lowerSolutionOrd_){
       lowerSolutionOrd_ = new double[lN];
-  if(!optUpperSolutionOrd_)
+  }
+  if(!optUpperSolutionOrd_){
       optUpperSolutionOrd_ = new double[uN];
-  if(!optLowerSolutionOrd_)
+  }
+  if(!optLowerSolutionOrd_){
       optLowerSolutionOrd_ = new double[lN];
+  }
   
   CoinZeroN(upperSolutionOrd_, uN);
   CoinZeroN(lowerSolutionOrd_, lN);
@@ -239,7 +243,7 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
 	   (solveSecondLevelWhenXVarsInt && isUpperIntegral_) ||
 	   (solveSecondLevelWhenLVarsInt && isLinkVarsIntegral_) ||
 	   (solveSecondLevelWhenLVarsFixed && isLinkVarsFixed_ )))){
-	  storeSol = checkBilevelFeasiblity(mibs->isRoot_);
+	  storeSol = checkBilevelFeasibility(mibs->isRoot_);
       }
   }
   
@@ -257,7 +261,7 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
 
 //#############################################################################
 MibSSolType
-MibSBilevel::checkBilevelFeasiblity(bool isRoot)
+MibSBilevel::checkBilevelFeasibility(bool isRoot)
 {
     bool warmStartLL(model_->MibSPar_->entry
 		     (MibSParams::warmStartLL));
