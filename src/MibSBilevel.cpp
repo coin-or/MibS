@@ -283,6 +283,10 @@ MibSBilevel::checkBilevelFeasibility(bool isRoot)
 				    (MibSParams::computeBestUBWhenLVarsFixed));
     int useLinkingSolutionPool(model_->MibSPar_->entry
 			    (MibSParams::useLinkingSolutionPool));
+
+	// YX: target optimality gap for bounded rationality			
+	double targetGap(model_->MibSPar_->entry(MibSParams::slTargetGap));
+
     double timeLimit(model_->AlpsPar()->entry(AlpsParams::timeLimit));
     double remainingTime(0.0), startTimeVF(0.0), startTimeUB(0.0);
     MibSSolType storeSol(MibSNoSol);
@@ -513,17 +517,34 @@ MibSBilevel::checkBilevelFeasibility(bool isRoot)
 	
 	//step 15
 	/** Current solution is bilevel feasible **/
-	if((fabs(objVal - lowerObj) < etol) && (isIntegral_)){
-	    LPSolStatus_ = MibSLPSolStatusFeasible;
-	    useBilevelBranching_ = false;
-	    shouldPrune_ = true;
-	    storeSol = MibSRelaxationSol;
-	}
-	else{
-	    memcpy(optLowerSolutionOrd_, lowerSol, sizeof(double) * lN);
-	    if(isUpperIntegral_){
-	        storeSol = MibSHeurSol;
-	    }
+	// YX: can be combined by set gap=0; check later
+	if(targetGap < etol){ 
+		if((fabs(objVal - lowerObj) < etol) && (isIntegral_)){
+			LPSolStatus_ = MibSLPSolStatusFeasible;
+			useBilevelBranching_ = false;
+			shouldPrune_ = true;
+			storeSol = MibSRelaxationSol;
+		}
+		else{
+			memcpy(optLowerSolutionOrd_, lowerSol, sizeof(double) * lN);
+			if(isUpperIntegral_){
+				storeSol = MibSHeurSol;
+			}
+		}
+	}else{
+		// YX: [d2^y - phi(A^x)]/abs(phi(A^x))
+		if(((lowerObj - objVal) <= fabs(objVal) * targetGap/100) && (isIntegral_)){
+			LPSolStatus_ = MibSLPSolStatusFeasible;
+			useBilevelBranching_ = false;
+			shouldPrune_ = true;
+			storeSol = MibSRelaxationSol;
+		}
+		else{
+			memcpy(optLowerSolutionOrd_, lowerSol, sizeof(double) * lN);
+			if(isUpperIntegral_){
+				storeSol = MibSHeurSol;
+			}
+		}		
 	}
 	
 	if(!shouldPrune_){	
@@ -694,6 +715,7 @@ MibSBilevel::setUpUBModel(OsiSolverInterface * oSolver, double objValLL,
     
     std::string feasCheckSolver =
 	model_->MibSPar_->entry(MibSParams::feasCheckSolver);
+    double targetGap(model_->MibSPar_->entry(MibSParams::slTargetGap));
 
     OsiSolverInterface * nSolver;
 
@@ -713,6 +735,14 @@ MibSBilevel::setUpUBModel(OsiSolverInterface * oSolver, double objValLL,
     int rowNum(model_->getNumOrigCons() + 1);
     int colNum(model_->getNumOrigVars());
     int * uColIndices(model_->getUpperColInd());
+    double gap = (targetGap < model_->etol_) ? 0.0 : targetGap; // YX: added SL gap
+    double objUb(0.0);
+    // YX: d2^y <= phi(A^x) + \delta * abs(phi(A^x))
+    if(objValLL > 0){
+        objUb = objValLL + objValLL* gap/100;
+    }else{
+        objUb = objValLL - objValLL* gap/100;
+    }
 
     if(newOsi){
 	double objSense(model_->getLowerObjSense());
@@ -800,7 +830,7 @@ MibSBilevel::setUpUBModel(OsiSolverInterface * oSolver, double objValLL,
 	    newRow[i] = newRow[i] * objSense;
 	}
 
-        rowUb[rowNum-1] = objValLL;
+        rowUb[rowNum-1] = objUb; // YX: gap added to phi(A^2x)
         rowLb[rowNum-1] = -1 * (oSolver->getInfinity());
 
         CoinPackedMatrix * newMat = new CoinPackedMatrix(false, 0, 0);
@@ -839,7 +869,7 @@ MibSBilevel::setUpUBModel(OsiSolverInterface * oSolver, double objValLL,
     }
     else{
 	nSolver = UBSolver_;
-	nSolver->setRowUpper(rowNum-1, objValLL);
+	nSolver->setRowUpper(rowNum-1, objUb); // YX: gap added to phi(A^2x)
 	for(i = 0; i < uCols; i++){
 	    index1 = uColIndices[i];
 	    if(fixedInd[index1] == 1){

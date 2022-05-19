@@ -85,8 +85,8 @@ class MibSCutGenerator : public BlisConGenerator {
     int intersectionCuts(BcpsConstraintPool &conPool,
 			 double *optLowerSolution, MibSIntersectionCutType ICType);
     /** Helper function for IC*/
-    bool findLowerLevelSol(double *uselessIneqs, double *lowerLevelSol, const double *sol,
-			   bool &isTimeLimReached);
+    bool findLowerLevelSol(double *uselessIneqs, double *lowerLevelSol, double *optLowerSol, 
+			  const double *sol, bool &isTimeLimReached); // YX: add y^* for nonzero gap case
 
     /** Helper function for IC*/
     bool getAlphaIC(double** extRay, double *uselessIneqs, double* lowerSolution, int numStruct,
@@ -97,7 +97,7 @@ class MibSCutGenerator : public BlisConGenerator {
 
     /** Helper function for watermelon IC **/
     bool findLowerLevelSolWatermelonIC(double *uselessIneqs, double *lowerLevelSol,
-				       double* lpSol, bool &isTimeLimReached);
+				double *optLowerSol, double* lpSol, bool &isTimeLimReached); // YX: add y^* for nonzero gap case
 
     /** Helper function for watermelon IC*/
     bool getAlphaWatermelonIC(double** extRay, double *uselessIneqs, double* lowerSolution,
