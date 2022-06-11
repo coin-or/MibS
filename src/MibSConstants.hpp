@@ -58,6 +58,8 @@ enum MibSLinkingPoolTag{
     MibSLinkingPoolTagIsNotSet = -4,
     MibSLinkingPoolTagLowerIsInfeasible,
     MibSLinkingPoolTagLowerIsFeasible,
+    MibSLinkingPoolTagPesIsInfeasible, // YX: pessimistic case
+    MibSLinkingPoolTagPesIsFeasible, // YX: pessimistic case
     MibSLinkingPoolTagUBIsSolved
 };
 

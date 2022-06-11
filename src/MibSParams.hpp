@@ -39,6 +39,8 @@ class MibSParams : public AlpsParameterSet {
      printProblemInfo,
      allowRemoveCut,
      useNewPureIntCut,
+     // YX: pessimistic case
+     findPesSol,
      endOfBoolParams
   };
   

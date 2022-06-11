@@ -21,8 +21,10 @@
 struct LINKING_SOLUTION{
     int tag;
     double lowerObjValue;
+    double pesRFValue; // YX: pessimistic case
     double UBObjValue;
     std::vector<double> lowerSolution;
+    std::vector<double> pesSolution; // YX: pessimistic case
     std::vector<double> UBSolution;
 };
 
