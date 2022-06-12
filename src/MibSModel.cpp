@@ -99,6 +99,8 @@ MibSModel::~MibSModel()
   if(rowName_) delete [] rowName_;
   if(MibSPar_) delete MibSPar_;
   if(lowerConstCoefMatrix_) delete lowerConstCoefMatrix_;
+  if(A1Matrix_) delete A1Matrix_;
+  if(G1Matrix_) delete G1Matrix_;
   if(A2Matrix_) delete A2Matrix_;
   if(G2Matrix_) delete G2Matrix_;
   if(bS_) delete bS_;
@@ -134,6 +136,7 @@ MibSModel::initialize()
   counterVF_ = 0;
   counterUB_ = 0;
   timerVF_ = 0.0;
+  timerPES_ = 0.0; // YX: pessmistic case
   timerUB_ = 0.0;
   countIteration_ = 0;
   isInterdict_ = false;
@@ -170,6 +173,8 @@ MibSModel::initialize()
   interdictCost_ = NULL;
   origConstCoefMatrix_ = NULL;
   lowerConstCoefMatrix_ = NULL;
+  A1Matrix_ = NULL;
+  G1Matrix_ = NULL;
   A2Matrix_ = NULL;
   G2Matrix_ = NULL;
   boundProbRoot_ = NULL;
@@ -1048,6 +1053,11 @@ MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
    //determine the list of first-stage variables participate in second-stage constraints
    setRequiredFixedList();
    instanceStructure();
+
+   if(MibSPar_->entry(MibSParams::findPesSol))
+   {
+      setCoeffMatrices();
+   }
 }
 
 //#############################################################################
@@ -3082,6 +3092,113 @@ MibSModel::decodeToSelf(AlpsEncoded& encoded)
 }
 
 //#############################################################################
+void                                                   
+MibSModel::setCoeffMatrices()
+{
+   /** Set coeff matrices using original input data (with 'L' sense) **/
+   if(lowerConstCoefMatrix_){
+      return;
+   }
+   
+   int i(0), j(0);
+   int index(0), numElements(0), pos(0);
+   const int *indices(0);
+   const double *elements(0);
+
+   CoinPackedMatrix origMatrix(*origConstCoefMatrix_);
+   CoinShallowPackedVector origRow;
+   CoinPackedVector row, rowA, rowG;
+   CoinPackedMatrix *matrixA1(0);
+   CoinPackedMatrix *matrixG1(0); 
+   CoinPackedMatrix *matrixA2G2(0);
+   CoinPackedMatrix *matrixA2(0);
+   CoinPackedMatrix *matrixG2(0);
+
+   origMatrix.reverseOrdering();
+   if(upperRowNum_ > 0){
+      matrixA1 = new CoinPackedMatrix(false, 0, 0);
+      matrixA1->setDimensions(0, upperDim_);
+      matrixG1 = new CoinPackedMatrix(false, 0, 0);
+      matrixG1->setDimensions(0, lowerDim_);
+   }
+	matrixA2G2 = new CoinPackedMatrix(false, 0, 0);
+	matrixA2G2->setDimensions(0, numVars_);
+   assert(numVars_== upperDim_ + lowerDim_); // YX: debug only
+	matrixA2 = new CoinPackedMatrix(false, 0, 0);
+   matrixA2->setDimensions(0, upperDim_);
+	matrixG2 = new CoinPackedMatrix(false, 0, 0);
+	matrixG2->setDimensions(0, lowerDim_);
+    
+   // YX: set up A1 and G1
+   // YX: need to check if it works for interdiction case with AUX rows
+   for(i = 0; i < upperRowNum_; i++){
+      index = upperRowInd_[i];
+      origRow = origMatrix.getVector(index);
+      if(origRowSense_[index] == 'G'){
+         row = -1 * origRow;
+      }else{
+         row = origRow;
+      }
+      numElements = row.getNumElements();
+      indices = row.getIndices();
+      elements = row.getElements();
+      for(j = 0; j < numElements; j++){
+         pos = binarySearch(0, upperDim_ -1, indices[j], upperColInd_);
+         if(pos >= 0){
+            rowA.insert(pos, elements[j]);
+         }else{
+            pos = binarySearch(0, lowerDim_ -1, indices[j], lowerColInd_);
+            rowG.insert(pos, elements[j]);
+         }
+      }
+      matrixA1->appendRow(rowA);
+      matrixG1->appendRow(rowG);
+
+      rowA.clear();
+      rowG.clear();
+   }  
+   
+   // YX: set up A2, G2, and A2G2
+   for(i = 0; i < lowerRowNum_; i++){
+      index = lowerRowInd_[i];
+      origRow = origMatrix.getVector(index);
+      if(origRowSense_[index] == 'G'){
+         row = -1 * origRow;
+      }else{
+         row = origRow;
+      }
+      matrixA2G2->appendRow(row);
+      numElements = row.getNumElements();
+      indices = row.getIndices();
+      elements = row.getElements();
+      for(j = 0; j < numElements; j++){
+         pos = binarySearch(0, upperDim_ -1, indices[j], upperColInd_);
+         if(pos >= 0){
+            rowA.insert(pos, elements[j]);
+         }else{
+            pos = binarySearch(0, lowerDim_ -1, indices[j], lowerColInd_);
+            rowG.insert(pos, elements[j]);
+         }
+      }
+      matrixA2->appendRow(rowA);
+      matrixG2->appendRow(rowG);
+
+      rowA.clear();
+      rowG.clear();
+   }
+
+   if(matrixA1){
+      A1Matrix_ = matrixA1;
+   }
+   if(matrixG1){
+      G1Matrix_ = matrixG1;
+   }
+   lowerConstCoefMatrix_ = matrixA2G2;
+   A2Matrix_ = matrixA2;
+   G2Matrix_ = matrixG2;
+}
+
+//#############################################################################
 void
 MibSModel::setRequiredFixedList()
 {
@@ -3747,7 +3864,6 @@ MibSModel::instanceStructure()
     }
     
     //YX: Printing "slTargetGap" parameter; setting it as a model property?
-
     if (printProblemInfo == true){
        if(MibSPar_->entry(MibSParams::slTargetGap) > -1){
           std::cout << "Second (lower) level optimality gap is set to ";
@@ -3755,5 +3871,11 @@ MibSModel::instanceStructure()
        }
     }
 
+    //YX: Printing "findPesSol" parameter;
+    if (printProblemInfo == true){
+       if(MibSPar_->entry(MibSParams::findPesSol) == PARAM_ON){
+          std::cout << "Searching for a pessimistic solution." << std::endl;
+       }
+    }
     std::cout << std::endl;
 }

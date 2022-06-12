@@ -186,7 +186,7 @@ class MibSCutGenerator : public BlisConGenerator {
    double * findDeepestLandPCut1();//stable (but maybe wrong)
 
    /** Store the matrices A2, G2 and lower-level coeffs (all constraints are 'L') **/
-   void getLowerMatrices(bool getLowerConstCoefMatrix, bool getA2Matrix, bool getG2Matrix);
+  //  void getLowerMatrices(bool getLowerConstCoefMatrix, bool getA2Matrix, bool getG2Matrix);
    
  private:
 
