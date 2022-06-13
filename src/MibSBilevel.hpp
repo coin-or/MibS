@@ -73,6 +73,7 @@ private:
     MibSModel *model_;
     MibSHeuristic *heuristic_;
     OsiSolverInterface * lSolver_;
+    OsiSolverInterface * pSolver_; // YX: pessimistic case
     OsiSolverInterface * UBSolver_;
     CoinWarmStart * ws_;
    
@@ -94,6 +95,7 @@ public:
 	model_ = 0;
 	heuristic_= 0;
 	lSolver_ = 0;
+    pSolver_ = 0; // YX: pessimistic case
 	UBSolver_ = 0;
 	ws_ = 0;
     }
@@ -112,9 +114,12 @@ private:
     int findIndex(int index, int size, int * indices);
     OsiSolverInterface * setUpUBModel(OsiSolverInterface * solver, double objValLL,
 					  bool newOsi, const double *sol = NULL);
+    OsiSolverInterface * setUpPesModel(OsiSolverInterface * solver, double objValLL,
+					  bool newOsi, const double *sol = NULL); // YX: pessimistic case
     OsiSolverInterface * setUpModel(OsiSolverInterface * solver,
 				    bool newOsi, const double *sol = NULL);
     double getLowerObj(const double * sol, double objSense);
+    double getRiskFuncVal(OsiSolverInterface * solver, double * lowerSol, bool pesType); // YX: pessimistic case
     int binarySearch(int index,int start, int stop, int * indexArray);
     CoinWarmStart * getWarmStart() {return ws_;}
     void setWarmStart(CoinWarmStart * ws) {ws_ = ws;}
