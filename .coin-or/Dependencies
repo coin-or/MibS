@@ -2,13 +2,13 @@ ThirdParty/Glpk  https://github.com/coin-or-tools/ThirdParty-Glpk stable/1.10
 ThirdParty/Mumps  https://github.com/coin-or-tools/ThirdParty-Mumps stable/3.0
 Data/Sample       https://github.com/coin-or-tools/Data-Sample 1.2
 Data/miplib3      https://github.com/coin-or-tools/Data-miplib3 1.2
-CoinUtils         https://github.com/coin-or/CoinUtils master
-Osi               https://github.com/coin-or/Osi master
-Clp               https://github.com/coin-or/Clp master
-Cgl               https://github.com/coin-or/Cgl master
-Alps              https://github.com/coin-or/CHiPPS-ALPS stable/1.6
-Bcps              https://github.com/coin-or/CHiPPS-BiCePS stable/0.95
-Blis              https://github.com/coin-or/CHiPPS-BLIS stable/0.95
-SYMPHONY          https://github.com/coin-or/SYMPHONY master
-Cbc               https://github.com/coin-or/Cbc master
+CoinUtils         https://github.com/coin-or/CoinUtils 2.11
+Osi               https://github.com/coin-or/Osi 0.108
+Clp               https://github.com/coin-or/Clp 1.17
+Cgl               https://github.com/coin-or/Cgl 0.60
+Alps              https://github.com/coin-or/CHiPPS-ALPS 1.6
+Bcps              https://github.com/coin-or/CHiPPS-BiCePS 0.95
+Blis              https://github.com/coin-or/CHiPPS-BLIS 0.95
+SYMPHONY          https://github.com/coin-or/SYMPHONY 5.6
+Cbc               https://github.com/coin-or/Cbc 2.10
 
