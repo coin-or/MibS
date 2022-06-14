@@ -351,17 +351,14 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 		(lSolver)->getSymphonyEnvironment();
 	    
 	    if (warmStartLL){
-		sym_set_int_param(env, "keep_warm_start", TRUE);
-		if (probType == 1){ //Interdiction
-		    sym_set_int_param(env, "should_use_rel_br", FALSE);
-		    sym_set_int_param(env, "use_hot_starts", FALSE);
-		    sym_set_int_param(env, "should_warmstart_node", TRUE);
-		    sym_set_int_param(env, "sensitivity_analysis", TRUE);
-		    sym_set_int_param(env, "sensitivity_bounds", TRUE);
-		    sym_set_int_param(env, "set_obj_upper_lim", FALSE);
-		}
+               sym_set_int_param(env, "keep_warm_start", TRUE);
+               sym_set_int_param(env, "should_use_rel_br", FALSE);
+               sym_set_int_param(env, "use_hot_starts", FALSE);
+               sym_set_int_param(env, "should_warmstart_node", TRUE);
+               sym_set_int_param(env, "sensitivity_analysis", TRUE);
+               sym_set_int_param(env, "sensitivity_bounds", TRUE);
+               sym_set_int_param(env, "set_obj_upper_lim", FALSE);
 	    }
-	    //Always uncomment for debugging!!
 	    sym_set_dbl_param(env, "time_limit", remainingTime);
 	    sym_set_int_param(env, "do_primal_heuristic", FALSE);
 	    sym_set_int_param(env, "verbosity", -2);
@@ -402,7 +399,21 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 	
 	//step 8
 	if (warmStartLL && feasCheckSolver == "SYMPHONY"){
+#if 0
+            // Uncomment to debug warm-starting
+            sym_environment *env = dynamic_cast<OsiSymSolverInterface *> 
+               (lSolver)->getSymphonyEnvironment();
+            sym_write_warm_start_desc(sym_get_warm_start(env, TRUE), "ws.txt");
 	    lSolver->resolve();
+            if (lSolver->isProvenOptimal()){
+               double objVal1 = lSolver->getObjValue() * model_->getLowerObjSense();
+               lSolver->branchAndBound();
+               double objVal2 = lSolver->getObjValue() * model_->getLowerObjSense();
+               assert (objVal1 == objVal2);
+            }
+#else
+	    lSolver->resolve();
+#endif       
 	    setWarmStart(lSolver->getWarmStart());
 	}else{
 	  startTimeVF = model_->broker_->subTreeTimer().getTime();
@@ -1082,9 +1093,8 @@ MibSBilevel::setUpModel(OsiSolverInterface * oSolver, bool newOsi,
      
   }
   
-#define SYM_VERSION_IS_WS strcmp(SYMPHONY_VERSION, "WS")  
-
-#if SYMPHONY_VERSION_IS_WS
+#if (SYMPHONY_VERSION_MAJOR == 5 && SYMPHONY_VERSION_MINOR >= 7) \
+   || SYMPHONY_VERSION_MAJOR >= 6 
   if (feasCheckSolver == "SYMPHONY" && probType == 1 && warmStartLL &&
       !newOsi && doDualFixing){ //Interdiction
 
@@ -1222,7 +1232,8 @@ MibSBilevel::setUpModel(OsiSolverInterface * oSolver, bool newOsi,
      
      delete [] upComp;
 
-#if SYMPHONY_VERSION_IS_WS
+#if (SYMPHONY_VERSION_MAJOR == 5 && SYMPHONY_VERSION_MINOR >= 7) \
+   || SYMPHONY_VERSION_MAJOR >= 6 
   }
 #endif
 
