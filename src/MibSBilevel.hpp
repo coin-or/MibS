@@ -114,12 +114,15 @@ private:
     int findIndex(int index, int size, int * indices);
     OsiSolverInterface * setUpUBModel(OsiSolverInterface * solver, double objValLL,
 					  bool newOsi, const double *sol = NULL);
+    OsiSolverInterface * setUpPesUBModel(OsiSolverInterface * solver, double objValLL,
+					  bool newOsi, const double *sol = NULL); // YX: pessimistic case
     OsiSolverInterface * setUpPesModel(OsiSolverInterface * solver, double objValLL,
 					  bool newOsi, const double *sol = NULL); // YX: pessimistic case
     OsiSolverInterface * setUpModel(OsiSolverInterface * solver,
 				    bool newOsi, const double *sol = NULL);
     double getLowerObj(const double * sol, double objSense);
-    double getRiskFuncVal(OsiSolverInterface * solver, double * lowerSol, bool pesType); // YX: pessimistic case
+    double getRiskFuncVal(double *lowerSol, bool pesType); // YX: pessimistic case
+    double getUpperObj(double *lowerSol, bool pesType); // YX: pessimistic case
     int binarySearch(int index,int start, int stop, int * indexArray);
     CoinWarmStart * getWarmStart() {return ws_;}
     void setWarmStart(CoinWarmStart * ws) {ws_ = ws;}

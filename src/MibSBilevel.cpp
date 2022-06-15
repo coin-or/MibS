@@ -309,7 +309,7 @@ MibSBilevel::checkBilevelFeasibility(bool isRoot)
     CoinFillN(pesSol, lN + uN, 0.0);
 
     std::vector<double> shouldStoreValuesLowerSol(lN);
-    std::vector<double> shouldStoreValuesPesSol(lN + uN); // YX: pessimistic case
+    std::vector<double> shouldStoreValuesPesSol(lN); // YX: pessimistic case
     std::vector<double> shouldStoreValuesUBSol(lN + uN);
 
     const double * sol = model_->solver()->getColSolution();
@@ -596,7 +596,7 @@ MibSBilevel::checkBilevelFeasibility(bool isRoot)
                 pesRF = pSolver->getObjValue();
                 valuesPes = pSolver->getColSolution();
                 
-                for (i = 0; i < uN + lN; i++){			 
+                for (i = 0; i < lN; i++){			 
                     if ((pSolver->isInteger(i)) &&
                         (((valuesPes[i] - floor(valuesPes[i])) < etol) ||
                         ((ceil(valuesPes[i]) - valuesPes[i]) < etol))){
@@ -607,7 +607,7 @@ MibSBilevel::checkBilevelFeasibility(bool isRoot)
                 }
 
                 if(useLinkingSolutionPool && isLinkVarsIntegral_){
-                    std::copy(pesSol, pesSol + lN + uN, shouldStoreValuesPesSol.begin());
+                    std::copy(pesSol, pesSol + lN, shouldStoreValuesPesSol.begin());
                     addSolutionToSeenLinkingSolutionPool
                         (MibSLinkingPoolTagPesIsFeasible, shouldStoreValuesPesSol, pesRF);
                     shouldStoreValuesPesSol.clear();
@@ -636,7 +636,7 @@ MibSBilevel::checkBilevelFeasibility(bool isRoot)
         if(findPesSol){ // YX: pessimistic case
             pesRF = model_->seenLinkingSolutions[linkSol].pesRFValue;
             std::copy(model_->seenLinkingSolutions[linkSol].pesSolution.begin(),
-		      model_->seenLinkingSolutions[linkSol].pesSolution.end(), pesSol);
+              model_->seenLinkingSolutions[linkSol].pesSolution.end(), pesSol);
         }  
 	}
 	lowerObj = getLowerObj(sol, model_->getLowerObjSense());
@@ -664,22 +664,25 @@ MibSBilevel::checkBilevelFeasibility(bool isRoot)
         }
     }else{
         // YX: find pessimistic risk function value using (LR) and (SL-MILP) solutions
-        lpPesVal = getRiskFuncVal(model_->getSolver(), lowerSolutionOrd_, findPesSol);           
+        lpPesVal = getRiskFuncVal(lowerSolutionOrd_, findPesSol);           
         // YX: whether (LR) solution is a pessimistic solution
         if(abs(lpPesVal - pesRF) < etol){
             useBilevelBranching_ = false;
             shouldPrune_ = true;
             storeSol = MibSRelaxationSol;
         }else{
-            lowerPesVal = getRiskFuncVal(model_->getSolver(), lowerSol, findPesSol);
+            lowerPesVal = getRiskFuncVal(lowerSol, findPesSol);
             // YX: whether (SL-MILP) solution is a pessimistic solution
+            // The upper level feasiblity will be verified later in MibSModel
             if(abs(lowerPesVal - pesRF) < etol){
                 memcpy(optLowerSolutionOrd_, lowerSol, sizeof(double) * lN);
                 if(isUpperIntegral_){
                     storeSol = MibSHeurSol;
                 }
             }else{
-                // copy pessimistic solution to optLower; 
+                // copy pessimistic solution to optLowerSolOrd; use in cut generation
+                // no need to verify upper-level feasibility
+                // may give it another tag; only used in feasibility check
                 memcpy(optLowerSolutionOrd_, pesSol, sizeof(double) * lN);
                 if(isUpperIntegral_){
                     storeSol = MibSHeurSol;
@@ -696,28 +699,33 @@ MibSBilevel::checkBilevelFeasibility(bool isRoot)
 		((computeBestUBWhenXVarsInt == PARAM_ON) && (isUpperIntegral_)) ||
 		((computeBestUBWhenLVarsInt == PARAM_ON)  && (isLinkVarsIntegral_)) ||
 		((computeBestUBWhenLVarsFixed == PARAM_ON) && (isLinkVarsFixed_)))){
-		if(!findPesSol){     
-            if(UBSolver_){
-                UBSolver_ = setUpUBModel(model_->getSolver(), objVal, false);
-            }
-            else{
-                UBSolver_ =setUpUBModel(model_->getSolver(), objVal, true);
-            }
-		}else{ // YX: set up later
-            if(UBSolver_){
-                UBSolver_ = setUpUBModel(model_->getSolver(), objVal, false);
-            }
-            else{
-                UBSolver_ =setUpUBModel(model_->getSolver(), objVal, true);
-            }
-            // if((sizeFixedInd - uN) < etol){
+        if(findPesSol){
+            isUBSolved_ = true; // YX: and always feasible in either case;    
+            if((sizeFixedInd - uN) < etol){
                 // all variables are linking variables; solution fixed
-                // use and store existing bound, update tag, then jump to term;
-            // }else{
+                if(useLinkingSolutionPool && isLinkVarsIntegral_){
+                    // YX: use zero as a place holder, then jump to store solution;
+                    // YX: UBSolution is not used anywhere;
+                    objVal = getUpperObj(pesSol, findPesSol);
+                    shouldStoreValuesUBSol.push_back(0);
+                }
+            }else{
                 // exists non-fixed upper vars, set up solver in a special way
-                // add another function to set up pes UB 
-            // }
+                // add another function to set up pes UB
+                // if(UBSolver_){
+                //     UBSolver_ = setUpPesUBModel(objVal, false);
+                // }else{
+                //     UBSolver_ = setUpPesUBModel(objVal, true);
+                // }
+            }
+        }else{
+        
+        if(UBSolver_){
+            UBSolver_ = setUpUBModel(model_->getSolver(), objVal, false);
+        }else{
+            UBSolver_ = setUpUBModel(model_->getSolver(), objVal, true);
         }
+        
 		OsiSolverInterface * UBSolver = UBSolver_;
 
 		remainingTime = timeLimit - model_->broker_->subTreeTimer().getTime();
@@ -823,14 +831,16 @@ MibSBilevel::checkBilevelFeasibility(bool isRoot)
 		    isProvenOptimal_ = false;
 		    storeSol = MibSNoSol;
 		}
+
+        }
 		//step 22
 		//Adding x_L to set E
 		if(useLinkingSolutionPool && isLinkVarsIntegral_){
 		    addSolutionToSeenLinkingSolutionPool
 			(MibSLinkingPoolTagUBIsSolved, shouldStoreValuesUBSol, objVal);
+		    shouldStoreValuesUBSol.clear();
 		}
-		shouldStoreValuesUBSol.clear();
-	    
+
 		//step 23
 		if(isLinkVarsFixed_){
 		    useBilevelBranching_ = false;
@@ -1745,15 +1755,15 @@ MibSBilevel::getLowerObj(const double * sol, double objSense)
    return objVal * objSense;
 
 }
+
 //#############################################################################
 double
-MibSBilevel::getRiskFuncVal(OsiSolverInterface * oSolver, double * lowerSol, 
-   bool pesType)
+MibSBilevel::getRiskFuncVal(double *lowerSol, bool pesType)
 {
    int lN(model_->getLowerDim());
    int *lColIndices(model_->getLowerColInd());
-   const double uObjSense(oSolver->getObjSense());
-   const double * uObjCoeffs(oSolver->getObjCoefficients());
+   const double uObjSense(model_->solver()->getObjSense());
+   const double *uObjCoeffs(model_->solver()->getObjCoefficients());
 
    int i(0), idx(0);
    double rfVal(0.0);
@@ -1762,7 +1772,7 @@ MibSBilevel::getRiskFuncVal(OsiSolverInterface * oSolver, double * lowerSol,
    for(i = 0; i < lN; i++){
       idx = lColIndices[i];
       if(1){
-			std::cout << "sol[" << i << "]: " << lowerSol[i] << std::endl;
+			std::cout << "lowerSol[" << i << "]: " << lowerSol[i] << std::endl;
 			std::cout << "uObjCoeff[" << idx << "]: " << uObjCoeffs[idx] << std::endl;
       }      
       rfVal += uObjCoeffs[idx] * lowerSol[i];
@@ -1771,6 +1781,36 @@ MibSBilevel::getRiskFuncVal(OsiSolverInterface * oSolver, double * lowerSol,
    return rfVal * uObjSense * rfSense;
 
 }
+
+//#############################################################################
+double
+MibSBilevel::getUpperObj(double *lowerSol, bool pesType)
+{  
+   /** calculate upper-level objective value for (x, hat{y}) or (x, y') **/
+   int uN(model_->getUpperDim());
+   int *uColIndices(model_->getUpperColInd());
+   const double uObjSense(model_->solver()->getObjSense());
+   const double *uObjCoeffs(model_->solver()->getObjCoefficients());
+   const double *lrSol(model_->solver()->getColSolution());
+
+   int i(0), idx(0);
+   double rfuncVal(0.0), uObjVal(0.0);
+
+   for(i = 0; i < uN; i++){
+      idx = uColIndices[i];
+      if(1){
+			std::cout << "lrSol[" << i << "]: " << lrSol[i] << std::endl;
+			std::cout << "uObjCoeff[" << idx << "]: " << uObjCoeffs[idx] << std::endl;
+      }      
+      uObjVal += uObjCoeffs[idx] * lrSol[i] * uObjSense;
+   }
+
+   rfuncVal = getRiskFuncVal(lowerSol, pesType);
+   uObjVal += rfuncVal;
+
+   return uObjVal;
+}
+
 //#############################################################################
 void
     MibSBilevel::addSolutionToSeenLinkingSolutionPool(MibSLinkingPoolTag solTag, std::vector<double>
