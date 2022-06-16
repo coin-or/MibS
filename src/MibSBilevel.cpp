@@ -666,7 +666,7 @@ MibSBilevel::checkBilevelFeasibility(bool isRoot)
         // YX: find pessimistic risk function value using (LR) and (SL-MILP) solutions
         lpPesVal = getRiskFuncVal(lowerSolutionOrd_, findPesSol);           
         // YX: whether (LR) solution is a pessimistic solution
-        if(abs(lpPesVal - pesRF) < etol){
+        if(fabs(lpPesVal - pesRF) < etol){
             useBilevelBranching_ = false;
             shouldPrune_ = true;
             storeSol = MibSRelaxationSol;
@@ -674,7 +674,7 @@ MibSBilevel::checkBilevelFeasibility(bool isRoot)
             lowerPesVal = getRiskFuncVal(lowerSol, findPesSol);
             // YX: whether (SL-MILP) solution is a pessimistic solution
             // The upper level feasiblity will be verified later in MibSModel
-            if(abs(lowerPesVal - pesRF) < etol){
+            if(fabs(lowerPesVal - pesRF) < etol){
                 memcpy(optLowerSolutionOrd_, lowerSol, sizeof(double) * lN);
                 if(isUpperIntegral_){
                     storeSol = MibSHeurSol;
@@ -699,33 +699,32 @@ MibSBilevel::checkBilevelFeasibility(bool isRoot)
 		((computeBestUBWhenXVarsInt == PARAM_ON) && (isUpperIntegral_)) ||
 		((computeBestUBWhenLVarsInt == PARAM_ON)  && (isLinkVarsIntegral_)) ||
 		((computeBestUBWhenLVarsFixed == PARAM_ON) && (isLinkVarsFixed_)))){
-        if(findPesSol){
-            isUBSolved_ = true; // YX: and always feasible in either case;    
-            if((sizeFixedInd - uN) < etol){
-                // all variables are linking variables; solution fixed
-                if(useLinkingSolutionPool && isLinkVarsIntegral_){
-                    // YX: use zero as a place holder, then jump to store solution;
-                    // YX: UBSolution is not used anywhere;
-                    objVal = getUpperObj(pesSol, findPesSol);
-                    shouldStoreValuesUBSol.push_back(0);
-                }
-            }else{
+        
+        if((findPesSol)&&((sizeFixedInd - uN) < etol)){
+            // YX: all variables are linking variables; solution fixed
+            isUBSolved_ = true; 
+        
+            // YX: UBSolution is not used anywhere? use zero as a place holder;
+            objVal = getUpperObj(optLowerSolutionOrd_, findPesSol);
+            shouldStoreValuesUBSol.push_back(0);
+        }else{
+            // YX: need to solve an upper bounding problem
+            if(findPesSol){
                 // exists non-fixed upper vars, set up solver in a special way
                 // add another function to set up pes UB
-                // if(UBSolver_){
-                //     UBSolver_ = setUpPesUBModel(objVal, false);
-                // }else{
-                //     UBSolver_ = setUpPesUBModel(objVal, true);
-                // }
+                if(UBSolver_){
+                    UBSolver_ = setUpPesUBModel(optLowerSolutionOrd_, false);
+                }else{
+                    UBSolver_ = setUpPesUBModel(optLowerSolutionOrd_, true);
+                }
+            }else{
+                // regular optimistic case
+                if(UBSolver_){
+                    UBSolver_ = setUpUBModel(model_->getSolver(), objVal, false);
+                }else{
+                    UBSolver_ = setUpUBModel(model_->getSolver(), objVal, true);
+                }
             }
-        }else{
-        
-        if(UBSolver_){
-            UBSolver_ = setUpUBModel(model_->getSolver(), objVal, false);
-        }else{
-            UBSolver_ = setUpUBModel(model_->getSolver(), objVal, true);
-        }
-        
 		OsiSolverInterface * UBSolver = UBSolver_;
 
 		remainingTime = timeLimit - model_->broker_->subTreeTimer().getTime();
@@ -800,7 +799,8 @@ MibSBilevel::checkBilevelFeasibility(bool isRoot)
 
 		isUBSolved_ = true;
 
-		if (UBSolver->isProvenOptimal()){
+		if(findPesSol){
+        if (UBSolver->isProvenOptimal()){
 		    isProvenOptimal_ = true;
 		    const double * valuesUB = UBSolver->getColSolution();
 		    std::copy(valuesUB, valuesUB + uN + lN, shouldStoreValuesUBSol.begin());
@@ -831,9 +831,30 @@ MibSBilevel::checkBilevelFeasibility(bool isRoot)
 		    isProvenOptimal_ = false;
 		    storeSol = MibSNoSol;
 		}
-
-        } // end of (findPesSol)
-		//step 22
+        }else{
+            // YX: pess UB has to have an optimal solution b/c feasible (PES-MILP)
+            assert(UBSolver->isProvenOptimal());
+            isProvenOptimal_ = true;
+            // YX: copy optimal upper-level solution to containers
+            const double * valuesUB = UBSolver->getColSolution();
+            // DEBUG INDEX!! ARE BOTH UPPER AND LOWER SORTED ALREADY?
+            // NEED TO RECOMBINE THEM USING INDEX?
+            // std::copy(valuesUB, valuesUB + uN, shouldStoreValuesUBSol.begin());
+            // std::copy(lowerSol, lowerSol + lN, shouldStoreValuesUBSol.end());
+            for (i = 0; i < uN; i++){
+                if ((UBSolver->isInteger(i)) &&
+                    (((valuesUB[i] - floor(valuesUB[i])) < etol) ||
+                    ((ceil(valuesUB[i]) - valuesUB[i]) < etol))){
+                    optUpperSolutionOrd_[i] = (double) floor(valuesUB[i] + 0.5);
+                }else{
+                    optUpperSolutionOrd_[i] = (double) valuesUB[i];
+                }     
+            }
+        } // end of (processing an UB solution)
+        
+        } // end of (solving an UB problem in either optimistic or pessimistic case)
+		
+        //step 22
 		//Adding x_L to set E
 		if(useLinkingSolutionPool && isLinkVarsIntegral_){
 		    addSolutionToSeenLinkingSolutionPool
