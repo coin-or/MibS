@@ -111,15 +111,14 @@ public:
 
 private:
    
-    int findIndex(int index, int size, int * indices);
+    OsiSolverInterface * setUpPesUBModel(double *lowerSol, bool newOsi); // YX: pessimistic case
     OsiSolverInterface * setUpUBModel(OsiSolverInterface * solver, double objValLL,
 					  bool newOsi, const double *sol = NULL);
-    OsiSolverInterface * setUpPesUBModel(OsiSolverInterface * solver, double objValLL,
-					  bool newOsi, const double *sol = NULL); // YX: pessimistic case
     OsiSolverInterface * setUpPesModel(OsiSolverInterface * solver, double objValLL,
 					  bool newOsi, const double *sol = NULL); // YX: pessimistic case
     OsiSolverInterface * setUpModel(OsiSolverInterface * solver,
 				    bool newOsi, const double *sol = NULL);
+    int findIndex(int index, int size, int * indices); // YX: not used?
     double getLowerObj(const double * sol, double objSense);
     double getRiskFuncVal(double *lowerSol, bool pesType); // YX: pessimistic case
     double getUpperObj(double *lowerSol, bool pesType); // YX: pessimistic case
