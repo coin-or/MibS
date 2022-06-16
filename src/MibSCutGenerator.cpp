@@ -686,7 +686,7 @@ MibSCutGenerator::intersectionCuts(BcpsConstraintPool &conPool,
 				mult = -1;
 				break;
 			    case 'E':
-				std::cout
+				std::couta
 				    << "MibS cannot currently handle equality constraints." << std::endl;
 				abort();
 				break;
@@ -822,21 +822,21 @@ MibSCutGenerator::findLowerLevelSol(double *uselessIneqs, double *lowerLevelSol,
     int whichCutsLL(localModel_->MibSPar_->entry
 		    (MibSParams::whichCutsLL));
     double targetGap(localModel_->MibSPar_->entry(MibSParams::slTargetGap));
-    double etol(localModel_->etol_);
-    double gap = (targetGap < etol) ? 0.0 : targetGap; // YX: added SL gap 
-    double templObj(0.0); // YX: for nonzero gap, track d^2y^*  
 
     bool foundSolution(false);
     
     double timeLimit(localModel_->AlpsPar()->entry(AlpsParams::timeLimit));
     double remainingTime(0.0);
 
-    bool getA2Matrix(false), getG2Matrix(false);
+    // bool getA2Matrix(false), getG2Matrix(false);
     OsiSolverInterface * oSolver = localModel_->solver();
     double infinity(oSolver->getInfinity());
     int i, j;
     int index(0), cntA2(0), cntG2(0), cntInt(0);
     double coef(0.0), lObjVal(0.0), value(0.0);
+    double templObj(0.0); // YX: for nonzero gap, track d^2y^*
+    double etol(localModel_->getTolerance());
+    double gap = (targetGap < etol) ? 0.0 : targetGap; // YX: added SL gap
     int numCols(localModel_->getNumCols());
     int uCols(localModel_->getUpperDim());
     int lCols(localModel_->getLowerDim());
@@ -982,11 +982,7 @@ MibSCutGenerator::findLowerLevelSol(double *uselessIneqs, double *lowerLevelSol,
       for(i = 0; i < lCols; i++){
         templObj += lObjSense * lObjCoeff[i] * optLowerSol[i]; // YX: track d^2y^*
       }
-      if(templObj > 0){
-        newRowUb[newNumRows-1] = -templObj - (templObj * gap/100); 
-      }else{
-        newRowUb[newNumRows-1] = -templObj + (templObj * gap/100); 
-      }
+      newRowUb[newNumRows-1] = -templObj - (fabs(templObj) * gap/100); 
     }
 
     //filling col bounds
@@ -1114,9 +1110,6 @@ MibSCutGenerator::findLowerLevelSol(double *uselessIneqs, double *lowerLevelSol,
 	    //the optimal solution of relaxation which satisfies integrality requirements
 	    //throw CoinError("The MIP which gives the best lower-level sol, cannot be infeasible!",
            //		    "findLowerLevelSol", "MibSCutGenerator");
-      // if(targetGap > etol){
-      //   std::cout << "Type2IC aux MILP with optimality gap is infeasible."<<std::endl;     
-      // } // YX: debug only; remove later
     }
     }
 
@@ -1163,7 +1156,7 @@ MibSCutGenerator::getAlphaIC(double** extRay, double* uselessIneqs,
     char *rowSense = localModel_->getOrigRowSense();
     double *lObjCoeffs(localModel_->getLowerObjCoeffs());
     double objSense(localModel_->getLowerObjSense());
-    bool getA2Matrix(false), getG2Matrix(false);
+    // bool getA2Matrix(false), getG2Matrix(false);
 
     double targetGap(localModel_->MibSPar_->entry(MibSParams::slTargetGap));
     double gap = (targetGap < etol) ? 0.0 : targetGap;
@@ -1225,13 +1218,9 @@ MibSCutGenerator::getAlphaIC(double** extRay, double* uselessIneqs,
 	templObj += objSense * lObjCoeffs[i] * lowerSolution[i]; // YX: track d^2y^*
     }
 
-    // YX: type I intersection IC; -d^2y^* - gap*|-d^2y^*|
+    // YX: type I intersection IC; -d^2y^* - gap*|d^2y^*|
     if ((targetGap > etol) && (!uselessIneqs)){
-      if(templObj > 0){
-        rhs[lRows] += -templObj * gap/100; 
-      }else{
-        rhs[lRows] += templObj * gap/100; 
-      }
+      rhs[lRows] += -fabs(templObj) * gap/100; 
     }
 
     for (i = 0; i < numNonBasic; i++){
@@ -1346,7 +1335,7 @@ MibSCutGenerator::findLowerLevelSolWatermelonIC(double *uselessIneqs, double *lo
     
     OsiSolverInterface *oSolver = localModel_->solver();
     double infinity(oSolver->getInfinity());
-    bool getA2G2Matrix(false), getG2Matrix(false);
+    // bool getA2G2Matrix(false), getG2Matrix(false);
     int i, j;
     int rowIndex(0), colIndex(0), numElements(0), pos(0), cntInt(0);
     double rhs(0.0), value(0.0);
@@ -1540,11 +1529,7 @@ MibSCutGenerator::findLowerLevelSolWatermelonIC(double *uselessIneqs, double *lo
         rhs += lObjSense * lObjCoeff[i] * (lpSol[colIndex] - optLowerSol[i]);
         templObj += lObjSense * lObjCoeff[i] * optLowerSol[i]; // YX: track d^2y^*
       }
-      if(templObj > 0){
-        rhs += -templObj * gap/100;
-      }else{
-        rhs += templObj * gap/100; 
-      }
+      rhs += -fabs(templObj) * gap/100;
       nSolver->setRowUpper(newNumRows-1, rhs);
     }
 
@@ -1633,9 +1618,6 @@ MibSCutGenerator::findLowerLevelSolWatermelonIC(double *uselessIneqs, double *lo
 	//std::cout << "current time = " << timeLimit - localModel_->broker_->subTreeTimer().getTime() << std::endl;
 	//throw CoinError("The MIP which is solved for watermelon IC, cannot be infeasible!",
 	//		"findLowerLevelSolWatermelonIC", "MibSCutGenerator");
-      // if(targetGap > etol){
-      //   std::cout << "Watermelon aux MILP with optimality gap is infeasible."<<std::endl;     
-      // }  // YX: debug only; remove later  
     }
     delete [] lCoeffsTimesLpSol;
     return foundSolution;
