@@ -686,7 +686,7 @@ MibSCutGenerator::intersectionCuts(BcpsConstraintPool &conPool,
 				mult = -1;
 				break;
 			    case 'E':
-				std::couta
+				std::cout
 				    << "MibS cannot currently handle equality constraints." << std::endl;
 				abort();
 				break;
@@ -828,7 +828,6 @@ MibSCutGenerator::findLowerLevelSol(double *uselessIneqs, double *lowerLevelSol,
     double timeLimit(localModel_->AlpsPar()->entry(AlpsParams::timeLimit));
     double remainingTime(0.0);
 
-    // bool getA2Matrix(false), getG2Matrix(false);
     OsiSolverInterface * oSolver = localModel_->solver();
     double infinity(oSolver->getInfinity());
     int i, j;
@@ -890,18 +889,6 @@ MibSCutGenerator::findLowerLevelSol(double *uselessIneqs, double *lowerLevelSol,
     CoinZeroN(newObjCoeff, newNumCols);
     int *integerVars = new int[newNumCols];
     CoinZeroN(integerVars, newNumCols);
-
-  //   if(!localModel_->getA2Matrix()){
-	// getA2Matrix = true;
-  //   }
-
-  //   if(!localModel_->getG2Matrix()){
-	// getG2Matrix = true;
-  //   }
-
-  //   if((getA2Matrix) || (getG2Matrix)){
-	// getLowerMatrices(false, getA2Matrix, getG2Matrix);
-  //   }
 
     if(!localModel_->getA2Matrix()){
       localModel_->setCoeffMatrices();
@@ -1156,23 +1143,10 @@ MibSCutGenerator::getAlphaIC(double** extRay, double* uselessIneqs,
     char *rowSense = localModel_->getOrigRowSense();
     double *lObjCoeffs(localModel_->getLowerObjCoeffs());
     double objSense(localModel_->getLowerObjSense());
-    // bool getA2Matrix(false), getG2Matrix(false);
 
     double targetGap(localModel_->MibSPar_->entry(MibSParams::slTargetGap));
     double gap = (targetGap < etol) ? 0.0 : targetGap;
     double templObj(0.0); // YX: track SL optimal obj val
-
-  //   if(localModel_->getA2Matrix() == NULL){
-	// getA2Matrix = true;
-  //   }
-
-  //   if(localModel_->getG2Matrix() == NULL){
-	// getG2Matrix = true;
-  //   }
-
-  //   if((getA2Matrix) || (getG2Matrix)){
-	// getLowerMatrices(false, getA2Matrix, getG2Matrix);
-  //   }
 
     if(!localModel_->getA2Matrix()){
       localModel_->setCoeffMatrices();
@@ -1325,9 +1299,6 @@ MibSCutGenerator::findLowerLevelSolWatermelonIC(double *uselessIneqs, double *lo
     int whichCutsLL(localModel_->MibSPar_->entry
 		    (MibSParams::whichCutsLL));
     double targetGap(localModel_->MibSPar_->entry(MibSParams::slTargetGap));
-    double etol(localModel_->etol_);
-    double gap = (targetGap < etol) ? 0.0 : targetGap; // YX: added SL gap 
-    double templObj(0.0); // YX: for nonzero gap, track d^2y^*
 
     double timeLimit(localModel_->AlpsPar()->entry(AlpsParams::timeLimit));
     double remainingTime(0.0);
@@ -1335,10 +1306,12 @@ MibSCutGenerator::findLowerLevelSolWatermelonIC(double *uselessIneqs, double *lo
     
     OsiSolverInterface *oSolver = localModel_->solver();
     double infinity(oSolver->getInfinity());
-    // bool getA2G2Matrix(false), getG2Matrix(false);
+    double etol(localModel_->getTolerance());
+
     int i, j;
     int rowIndex(0), colIndex(0), numElements(0), pos(0), cntInt(0);
     double rhs(0.0), value(0.0);
+    double templObj(0.0); // YX: for nonzero gap, track d^2y^*
     int numCols(localModel_->getNumCols());
     int lCols(localModel_->getLowerDim());
     int lRows(localModel_->getLowerRowNum());
@@ -1354,6 +1327,7 @@ MibSCutGenerator::findLowerLevelSolWatermelonIC(double *uselessIneqs, double *lo
     double *origColLb(localModel_->getOrigColLb());
     double *origColUb(localModel_->getOrigColUb());
     char *origRowSense(localModel_->getOrigRowSense());
+    double gap = (targetGap < etol) ? 0.0 : targetGap; // YX: added SL gap 
     CoinPackedMatrix origMatrix = *localModel_->getOrigConstCoefMatrix();
 
     CoinShallowPackedVector origRow;
@@ -1365,18 +1339,6 @@ MibSCutGenerator::findLowerLevelSolWatermelonIC(double *uselessIneqs, double *lo
 
     origMatrix.reverseOrdering();
     
-  //   if(!localModel_->getLowerConstCoefMatrix()){
-	// getA2G2Matrix = true;
-  //   }
-
-  //   if(!localModel_->getG2Matrix()){
-	// getG2Matrix = true;
-  //   }
-
-  //   if((getA2G2Matrix) || (getG2Matrix)){
-	// getLowerMatrices(getA2G2Matrix, false, getG2Matrix);
-  //   }
-
     if(!localModel_->getLowerConstCoefMatrix()){
       localModel_->setCoeffMatrices();
     }
