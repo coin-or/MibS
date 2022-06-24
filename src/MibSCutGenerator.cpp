@@ -1603,11 +1603,11 @@ MibSCutGenerator::getAlphaWatermelonIC(double** extRay, double *uselessIneqs,
 
     for(i = 0; i < lRows; i++){
 	rowIndex = lRowInd[i];
-	if(origRowSense[i] == 'L'){
+	if(origRowSense[rowIndex] == 'L'){
 	    rhs[i] = origRowUb[rowIndex] + 1 - G2TimeslSol[i] -
 		lCoeffsTimesLpSol[i];
 	}
-	else if(origRowSense[i] == 'G'){
+	else if(origRowSense[rowIndex] == 'G'){
 	    rhs[i] = -1 * origRowLb[rowIndex] + 1 - G2TimeslSol[i] -
 		lCoeffsTimesLpSol[i];
 	}
