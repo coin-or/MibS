@@ -1970,8 +1970,8 @@ MibSBilevel::getRiskFuncVal(double *lowerSol)
    for(i = 0; i < lN; i++){
       idx = lColIndices[i];
       if(0){
-			std::cout << "lowerSol[" << i << "]: " << lowerSol[i] << std::endl;
-			std::cout << "uObjCoeff[" << idx << "]: " << uObjCoeffs[idx] << std::endl;
+         std::cout << "lowerSol[" << i << "]: " << lowerSol[i] << std::endl;
+         std::cout << "uObjCoeff[" << idx << "]: " << uObjCoeffs[idx] << std::endl;
       }      
       rfVal += uObjCoeffs[idx] * lowerSol[i];
    }
@@ -1997,8 +1997,8 @@ MibSBilevel::getUpperObj(double *lowerSol)
    for(i = 0; i < uN; i++){
       idx = uColIndices[i];
       if(0){
-			std::cout << "lrSol[" << i << "]: " << lrSol[i] << std::endl;
-			std::cout << "uObjCoeff[" << idx << "]: " << uObjCoeffs[idx] << std::endl;
+         std::cout << "lrSol[" << i << "]: " << lrSol[i] << std::endl;
+         std::cout << "uObjCoeff[" << idx << "]: " << uObjCoeffs[idx] << std::endl;
       }      
       uObjVal += uObjCoeffs[idx] * lrSol[i] * uObjSense;
    }
