@@ -58,6 +58,9 @@ private:
     bool isContainedInLinkingPool_;
     MibSLinkingPoolTag tagInSeenLinkingPool_;
 
+    // YX: this variable is not used anywhere other than MibSBilevel;
+    // (commented off in MibSTreeNode)
+    // looks like it is replaced by pool tag and can be removed;
     MibSLPSolStatus LPSolStatus_;
 
     /** Optimal value of LL objective **/
@@ -111,7 +114,6 @@ public:
 
 private:
    
-    OsiSolverInterface * setUpPesUBModel(double *lowerSol, bool newOsi); // YX: pessimistic case
     OsiSolverInterface * setUpUBModel(OsiSolverInterface * solver, double objValLL,
 					  bool newOsi, const double *sol = NULL);
     OsiSolverInterface * setUpPesModel(double objValLL, bool newOsi, 
@@ -121,7 +123,7 @@ private:
     int findIndex(int index, int size, int * indices); // YX: not used?
     double getLowerObj(const double * sol, double objSense);
     double getRiskFuncVal(double *lowerSol); // YX: pessimistic case
-    double getUpperObj(double *lowerSol); // YX: pessimistic case
+    double getUpperObj(double *lowerSol, double *upperSol = NULL); // YX: pessimistic case
     int binarySearch(int index,int start, int stop, int * indexArray);
     CoinWarmStart * getWarmStart() {return ws_;}
     void setWarmStart(CoinWarmStart * ws) {ws_ = ws;}
