@@ -99,6 +99,9 @@ private:
     /** Number of (VF) solved **/
     int counterVF_;
 
+    /** Number of (PES) solved **/
+    int counterPES_; // YX: counter for (PES-MILP);
+
     /** Number of (UB) solved **/
     int counterUB_;
 

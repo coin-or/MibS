@@ -134,6 +134,7 @@ MibSModel::initialize()
   structRowNum_ = 0;
   sizeFixedInd_ = 0;
   counterVF_ = 0;
+  counterPES_ = 0;
   counterUB_ = 0;
   timerVF_ = 0.0;
   timerPES_ = 0.0; // YX: pessmistic case
