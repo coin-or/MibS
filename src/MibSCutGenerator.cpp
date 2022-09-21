@@ -1758,7 +1758,7 @@ MibSCutGenerator::storeBestSolHypercubeIC(const double* lpSol, double optLowerOb
 
     UBSolver = bS->UBSolver_;
 
-    UBSolver->writeLp("storeBestUBSolver"); // YX: debug only
+    // UBSolver->writeLp("storeBestUBSolver"); // YX: debug only
 
     remainingTime = timeLimit - localModel_->broker_->subTreeTimer().getTime();
 

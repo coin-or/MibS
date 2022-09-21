@@ -349,8 +349,8 @@ MibSBilevel::checkBilevelFeasibility(bool isRoot)
 	    
 	OsiSolverInterface *lSolver = lSolver_;
 
-    lSolver->writeLp("lSolver");
-    model_->getSolver()->writeLp("oSolver");
+    // lSolver->writeLp("lSolver"); // YX: debug only
+    // model_->getSolver()->writeLp("oSolver"); // YX: debug only
 
 	remainingTime = timeLimit - model_->broker_->subTreeTimer().getTime();
 	if(remainingTime <= etol){
@@ -511,7 +511,7 @@ MibSBilevel::checkBilevelFeasibility(bool isRoot)
             
             OsiSolverInterface *pSolver = pSolver_;
 
-            pSolver->writeLp("pSolverLoaded"); // YX: debug only
+            // pSolver->writeLp("pSolverLoaded"); // YX: debug only
 
             // YX: add timer here
             remainingTime = timeLimit - model_->broker_->subTreeTimer().getTime();
@@ -741,7 +741,7 @@ MibSBilevel::checkBilevelFeasibility(bool isRoot)
 
         OsiSolverInterface * UBSolver = UBSolver_;
 
-        UBSolver->writeLp("UBSolverLoaded"); // YX: debug only
+        // UBSolver->writeLp("UBSolverLoaded"); // YX: debug only
 
 		remainingTime = timeLimit - model_->broker_->subTreeTimer().getTime();
 
