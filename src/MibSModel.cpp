@@ -2006,9 +2006,12 @@ MibSModel::userFeasibleSolution(const double * solution, bool &userFeasible)
 				this);
   }
   else if(solType == MibSHeurSol){
-      if(!bS_->isUBSolved_){
-	  isHeurSolution = checkUpperFeasibility(lpSolution);
-      }
+    if(MibSPar_->entry(MibSParams::findPesSol)){
+      // YX: skip upperFeasibility if PES-MILP is feasible 
+      isHeurSolution = true;
+    }else if(!bS_->isUBSolved_){
+      isHeurSolution = checkUpperFeasibility(lpSolution);
+    }
       if(isHeurSolution == true){
 	  mibSol = new MibSSolution(getNumCols(),
 				    lpSolution,
