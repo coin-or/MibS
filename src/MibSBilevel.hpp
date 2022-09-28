@@ -71,7 +71,8 @@ private:
     double *lowerSolutionOrd_;
     //double *optLowerSolution_;
     double *optUpperSolutionOrd_;// result of solving (UB)
-    double *optLowerSolutionOrd_;
+    double *optLowerSolutionOrd_; // YX: optimal lower (heuristic) solutions
+    double *vfLowerSolutionOrd_; // YX: SL-MILP solutions; needed for gap > 0 
    
     MibSModel *model_;
     MibSHeuristic *heuristic_;
@@ -95,6 +96,7 @@ public:
 	//optLowerSolution_ = 0;
 	optUpperSolutionOrd_ = 0;
 	optLowerSolutionOrd_ = 0;
+    vfLowerSolutionOrd_ = 0; // YX: SL-MILP solutions; for gap > 0
 	model_ = 0;
 	heuristic_= 0;
 	lSolver_ = 0;
