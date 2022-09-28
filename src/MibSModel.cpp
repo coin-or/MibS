@@ -3126,8 +3126,8 @@ MibSModel::setCoeffMatrices()
       matrixG1->setDimensions(0, lowerDim_);
    }
    matrixA2G2 = new CoinPackedMatrix(false, 0, 0);
-   matrixA2G2->setDimensions(0, numVars_);
-   assert(numVars_== upperDim_ + lowerDim_); // YX: debug only
+   matrixA2G2->setDimensions(0, upperDim_ + lowerDim_);
+   // assert(numVars_== upperDim_ + lowerDim_); // YX: debug only
    matrixA2 = new CoinPackedMatrix(false, 0, 0);
    matrixA2->setDimensions(0, upperDim_);
    matrixG2 = new CoinPackedMatrix(false, 0, 0);
