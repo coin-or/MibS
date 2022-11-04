@@ -657,7 +657,8 @@ MibSBilevel::checkBilevelFeasibility(bool isRoot)
 		      model_->seenLinkingSolutions[linkSol].lowerSolution.end(), lowerSol);
 
         // YX: pessimistic case; retrieve max d^1y only when (PES-MILP) is feasible
-        if(findPesSol && (tagInSeenLinkingPool_ == MibSLinkingPoolTagPesIsFeasible)){
+        if(findPesSol){
+            assert(tagInSeenLinkingPool_ != MibSLinkingPoolTagPesIsInfeasible);
             pesRF = model_->seenLinkingSolutions[linkSol].pesRFValue;
             std::copy(model_->seenLinkingSolutions[linkSol].pesSolution.begin(),
               model_->seenLinkingSolutions[linkSol].pesSolution.end(), pesSol);
