@@ -70,7 +70,7 @@ COLUMNS
     C0   R0       -3
     C0   R1       1
     C0   R2       2
-    C0   R3       -2
+    C0   R3       2
     C0   R4       -1
     C1   R0       2
     C1   R1       2
