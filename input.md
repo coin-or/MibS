@@ -52,7 +52,7 @@ s.t. −3x + 2y ≤ 12
      x + 2y ≤ 20
      x ≤ 10
      y ∈ arg min {z : 2x - z ≤ 7,
-                      2x + 4z ≤ 16,
+                      -2x + 4z ≤ 16,
                       z ≤ 5}
 ```
 The MPS file:
@@ -70,7 +70,7 @@ COLUMNS
     C0   R0       -3
     C0   R1       1
     C0   R2       2
-    C0   R3       2
+    C0   R3       -2
     C0   R4       -1
     C1   R0       2
     C1   R1       2
