@@ -543,6 +543,9 @@ public:
     /** Read auxiliary data file **/
     void readAuxiliaryData(int numCols, int numRows);
 
+    /** Write auxiliary data file **/
+    int writeAuxiliaryData(std::string filename);
+    
     /** Set auxiliary data directly when using MibS as a library **/
     void loadAuxiliaryData(int lowerColNum, int lowerRowNum,
 			   const int *lowerColInd,
