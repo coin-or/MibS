@@ -473,11 +473,13 @@ MibSModel::readAuxiliaryData(int numCols, int numRows)
 
 //#############################################################################
 int 
-MibSModel::writeAuxiliaryData(std::string filename)
+MibSModel::writeAuxiliaryData(std::string fileName, bool wName, std::string instPath, 
+std::string cmtStr)
 {
    //------------------------------------------------------
    // YX: Write LL/SL problem descrition into AUX files.
-   // Write column and row name instead of indices; 
+   // Write into named-based format (second); not support 
+   //    interdiction type yet. 
    // Assume column and row name uniqueness.
    //------------------------------------------------------
 
@@ -486,73 +488,121 @@ MibSModel::writeAuxiliaryData(std::string filename)
    char outputVal[24];
    std::string line;
 
-   length = filename.length();
-   line = filename.erase(length - 3, 3);
+   length = fileName.length();
+   line = fileName.erase(length - 3, 3);
    line.append("aux");
    CoinFileOutput *output = 0;
    output = CoinFileOutput::create(line, CoinFileOutput::COMPRESS_NONE);
 
-   // YX: set system locale
+   // YX: set system locale (copied from CoinIO)
    // Set locale so won't get , instead of .
    char *saveLocale = strdup(setlocale(LC_ALL, NULL));
    setlocale(LC_ALL, "C");
 
-   // YX: write LL/SL N and M
-   line = "N " + std::to_string(lowerDim_) + "\n";
-   line.append("M " + std::to_string(lowerRowNum_) + "\n");
-   output->puts(line.c_str());
-   
-   // YX: prepare lower columns names using col indicies;
-   line = "";
-   for(i = 0; i < lowerDim_; ++i){
-      j = lowerColInd_[i]; 
-      line.append("LC " + columnName_[j] + "\n");
-   }
-   output->puts(line.c_str());
-
-   // YX: prepare lower row names using row indicies;
-   line = "";
-   for(i = 0; i < lowerRowNum_; ++i){
-      j = lowerRowInd_[i]; 
-      line.append("LR " + rowName_[j] + "\n");
-   }
-   output->puts(line.c_str());      
-
-   // YX: prepare lower obj coeffs using default col index;
-   // switch to name based?   
-   line = "";
-   for(i = 0; i < lowerDim_; ++i){
-      memset(outputVal, 0, sizeof outputVal);
-      CoinConvertDouble(0, 0, lowerObjCoeffs_[i], outputVal);
-      line.append("LO " + std::string(outputVal) + "\n");
-   }
-   output->puts(line.c_str());
-   
-   // YX: prepare lower obj sense;
+   // YX: write LL/SL var#, constrs#, and lower obj sense;
+   line = "@NUMVARS"; 
+   line.append("\n" + std::to_string(lowerDim_) + "\n"); 
+   line.append("@NUMCONSTRS") ;
+   line.append("\n" + std::to_string(lowerRowNum_) + "\n");   
    memset(outputVal, 0, sizeof outputVal);
    CoinConvertDouble(0, 0, lowerObjSense_, outputVal);
-   line = "OS " + std::string(outputVal) + "\n";
+   line.append("@OBJSENSE");
+   line.append("\n" + std::string(outputVal) + "\n");
    output->puts(line.c_str());
 
-   // YX: prepare interdiction cost using col indicies;
-   if(interdictCost_){
-      line = "";
-      for(i = 0; i < lowerDim_; ++i){
-         memset(outputVal, 0, sizeof outputVal);
-         CoinConvertDouble(0, 0, interdictCost_[i], outputVal);
-         line.append("IC " + std::string(outputVal) + "\n");
-      }
+   // YX: write vars with objcoeff; then constraints;
+   line = "@VARBEGIN";
+   for(i = 0; i < lowerDim_; ++i){
+      j = lowerColInd_[i];
+      memset(outputVal, 0, sizeof outputVal);
+      CoinConvertDouble(0, 0, lowerObjCoeffs_[i], outputVal); 
+      line.append("\n" + columnName_[j] + " " + std::string(outputVal));
+   }   
+   line.append("\n@VAREND\n");
+   output->puts(line.c_str());
+
+   line = "@CONSTRSBEGIN";
+   for(i = 0; i < lowerRowNum_; ++i){
+      j = lowerRowInd_[i]; 
+      line.append("\n" + rowName_[j]);
+   }
+   line.append("\n@CONSTRSEND\n");
+   output->puts(line.c_str());
+
+   // YX: optional, print instance name
+   if(wName){
+      line = "@NAME";
+      line.append("\n" + fileName.erase(length - 4, 3) + "\n");
       output->puts(line.c_str());
    }
+
+   // YX: optional, print .mps file location
+   if(!instPath.empty()){
+      line = "@MPS";
+      line.append("\n" + instPath + "\n");
+      output->puts(line.c_str());
+   }
+
+   // YX: optional, print comments
+   if(!cmtStr.empty()){
+      line = "# " + cmtStr + "\n";
+      output->puts(line.c_str());
+   }
+
+   // YX: name-based (first) format only;
+   // ---------------------------------------
+   // YX: write LL/SL N and M; prepare lower obj sense;
+   // line = "N " + std::to_string(lowerDim_) + "\n";
+   // line.append("M " + std::to_string(lowerRowNum_) + "\n");
+   // output->puts(line.c_str());
+   // memset(outputVal, 0, sizeof outputVal);
+   // CoinConvertDouble(0, 0, lowerObjSense_, outputVal);
+   // line = "OS " + std::string(outputVal) + "\n";
+   // output->puts(line.c_str());
+
+   // YX: prepare lower cols/rows/obj using indicies;
+   // line = "";
+   // for(i = 0; i < lowerDim_; ++i){
+   //    j = lowerColInd_[i]; 
+   //    line.append("LC " + columnName_[j] + "\n");
+   // }
+   // output->puts(line.c_str());
+
+   // line = "";
+   // for(i = 0; i < lowerRowNum_; ++i){
+   //    j = lowerRowInd_[i]; 
+   //    line.append("LR " + rowName_[j] + "\n");
+   // }
+   // output->puts(line.c_str());      
+
+   // line = "";
+   // for(i = 0; i < lowerDim_; ++i){
+   //    memset(outputVal, 0, sizeof outputVal);
+   //    CoinConvertDouble(0, 0, lowerObjCoeffs_[i], outputVal);
+   //    line.append("LO " + std::string(outputVal) + "\n");
+   // }
+   // output->puts(line.c_str());
+  
+   // YX: prepare interdiction cost using col indicies;
+   // if(interdictCost_){
+   //    line = "";
+   //    for(i = 0; i < lowerDim_; ++i){
+   //       memset(outputVal, 0, sizeof outputVal);
+   //       CoinConvertDouble(0, 0, interdictCost_[i], outputVal);
+   //       line.append("IC " + std::string(outputVal) + "\n");
+   //    }
+   //    output->puts(line.c_str());
+   // }
 
    // YX: prepare interdiction budget;
    // change to multiple rows if readAux allows
-   if(interdictBudget_){
-      memset(outputVal, 0, sizeof outputVal);
-      CoinConvertDouble(0, 0, interdictBudget_, outputVal);
-      line = "IB " + std::string(outputVal) + "\n";
-      output->puts(line.c_str());
-   }
+   // if(interdictBudget_){
+   //    memset(outputVal, 0, sizeof outputVal);
+   //    CoinConvertDouble(0, 0, interdictBudget_, outputVal);
+   //    line = "IB " + std::string(outputVal) + "\n";
+   //    output->puts(line.c_str());
+   // }
+   // ---------------------------------------
 
    // YX: write to file and end;
    delete output;
@@ -713,6 +763,8 @@ MibSModel::readProblemData()
    
    int rc(-1);
    int format(MibSPar_->entry(MibSParams::upperFileFormat));
+   // YX: specify output file name;
+   std::string instName(MibSPar_->entry(MibSParams::writeInstanceName));
 
    CoinMpsIO *mps = new CoinMpsIO;
 
@@ -828,16 +880,17 @@ MibSModel::readProblemData()
 		   objSense, mps->getInfinity(), rowSense);
 
    // YX: option to write files
-   if (0){
-      std::string wFileName = "testWriteFrile.mps"; // change to input later?
-      rc = mps->writeMps(wFileName.c_str());
+   if(!instName.empty()){
+      // std::string wFileName = "testWriteFile.mps"; // changed to MibS param
+      rc = mps->writeMps(instName.c_str()); // YX: will truncate file name
       if(rc) {
          // delete mps;
          throw CoinError("Unable to write instance",
                "readInstance",
                "MibSModel");
       }
-      rc = writeAuxiliaryData(wFileName);
+      std::string cmtStr = "Testing writeAuxiliaryData funtion.";
+      rc = writeAuxiliaryData(instName, true, getUpperFile(), cmtStr);
    }
 
    delete [] colType;
