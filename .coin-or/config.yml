@@ -22,7 +22,7 @@ Description:
 Dependencies:
   - Description: ThirdParty wrapper for building Glpk
     URL: https://github.com/coin-or-tools/ThirdParty-Glpk
-    Version: master
+    Version: stable/1.10
     Required: Optional
   - Description: ThirdParty wrapper for building Mumps
     URL: https://github.com/coin-or-tools/ThirdParty-Mumps
