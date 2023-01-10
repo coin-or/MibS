@@ -504,10 +504,14 @@ std::string cmtStr)
    line.append("\n" + std::to_string(lowerDim_) + "\n"); 
    line.append("@NUMCONSTRS") ;
    line.append("\n" + std::to_string(lowerRowNum_) + "\n");   
-   memset(outputVal, 0, sizeof outputVal);
-   CoinConvertDouble(0, 0, lowerObjSense_, outputVal);
+   // memset(outputVal, 0, sizeof outputVal);
+   // CoinConvertDouble(0, 0, lowerObjSense_, outputVal);
    line.append("@OBJSENSE");
-   line.append("\n" + std::string(outputVal) + "\n");
+   if(lowerObjSense_ < 0){
+      line.append("\nMAX\n");
+   }else{
+      line.append("\nMIN\n");
+   }
    output->puts(line.c_str());
 
    // YX: write vars with objcoeff; then constraints;
