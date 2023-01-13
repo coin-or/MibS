@@ -400,7 +400,7 @@ MibSParams::setDefaultEntries() {
 
    setEntry(inputFormat, "indexBased");
 
-   setEntry(writeInstanceName, "");
+   setEntry(writeInstanceName, "PARAM_NOTSET");
 }
 
 //#############################################################################

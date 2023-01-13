@@ -478,20 +478,37 @@ std::string cmtStr)
 {
    //------------------------------------------------------
    // YX: Write LL/SL problem descrition into AUX files.
-   // Write into named-based format (second); not support 
+   // Write into (2nd ver.) named-based format; not support 
    //    interdiction type yet. 
    // Assume column and row name uniqueness.
+   // Params: fileName - rename output filw name
+   //         wName - print @NAME to file; optional 
+   //         instPath - upperFile path; use as fileName; 
+   //         cmtStr - print @COMMENT to file; optional
    //------------------------------------------------------
 
    int i(0), j(0);
    long unsigned int length(0);
    char outputVal[24];
-   std::string line;
-
-   length = fileName.length();
-   line = fileName.erase(length - 3, 3);
-   line.append("aux");
+   std::string line;   
    CoinFileOutput *output = 0;
+
+   // YX: empty filename: use upper MPS/LP as a default
+   if(fileName.empty()){
+      length = instPath.find_last_of("/\\");
+      fileName = instPath.substr(length + 1);
+   }
+   length = fileName.length();
+   if(fileName.back() == 's')
+   {  
+      // assume upperfile in .mps format
+      line = fileName.erase(length - 4, 4);
+   }else{ 
+      // assume upperfile in .lp format
+      line = fileName.erase(length - 3, 3);
+   }
+   line.append(".aux");
+
    output = CoinFileOutput::create(line, CoinFileOutput::COMPRESS_NONE);
 
    // YX: set system locale (copied from CoinIO)
@@ -503,9 +520,7 @@ std::string cmtStr)
    line = "@NUMVARS"; 
    line.append("\n" + std::to_string(lowerDim_) + "\n"); 
    line.append("@NUMCONSTRS") ;
-   line.append("\n" + std::to_string(lowerRowNum_) + "\n");   
-   // memset(outputVal, 0, sizeof outputVal);
-   // CoinConvertDouble(0, 0, lowerObjSense_, outputVal);
+   line.append("\n" + std::to_string(lowerRowNum_) + "\n");
    line.append("@OBJSENSE");
    if(lowerObjSense_ < 0){
       line.append("\nMAX\n");
@@ -536,14 +551,15 @@ std::string cmtStr)
    // YX: optional, print instance name
    if(wName){
       line = "@NAME";
-      line.append("\n" + fileName.erase(length - 4, 3) + "\n");
+      line.append("\n" + fileName + "\n");
       output->puts(line.c_str());
    }
 
-   // YX: optional, print .mps file location
+   // YX: optional, print .mps file name
+   // ?? duplicate @NAME field
    if(!instPath.empty()){
       line = "@MPS";
-      line.append("\n" + instPath + "\n");
+      line.append("\n" + fileName + ".mps\n");
       output->puts(line.c_str());
    }
 
@@ -883,20 +899,6 @@ MibSModel::readProblemData()
    loadProblemData(matrix, varLB, varUB, objCoef, conLB, conUB, colType, 
 		   objSense, mps->getInfinity(), rowSense);
 
-   // YX: option to write files
-   if(!instName.empty()){
-      // std::string wFileName = "testWriteFile.mps"; // changed to MibS param
-      rc = mps->writeMps(instName.c_str()); // YX: will truncate file name
-      if(rc) {
-         // delete mps;
-         throw CoinError("Unable to write instance",
-               "readInstance",
-               "MibSModel");
-      }
-      std::string cmtStr = "Testing writeAuxiliaryData funtion.";
-      rc = writeAuxiliaryData(instName, true, getUpperFile(), cmtStr);
-   }
-
    delete [] colType;
    delete [] varLB;
    delete [] varUB;
@@ -904,6 +906,40 @@ MibSModel::readProblemData()
    delete [] conUB;
    delete [] objCoef;
 
+   // YX: Write files when the param has a string input:
+   // (also processed in the write function)
+   //    Empty input: use the MPS file name and write AUX only
+   //    Nonempty input: use the input name and write MPS + AUX files
+   if(instName.compare("PARAM_NOTSET") != 0){
+      if(instName.find("PARAM_NOTSET") + 1 > 0){
+         instName.clear(); // YX: param found; reset name
+      }
+      if(!instName.empty()){ 
+         rc = mps->writeMps(instName.c_str()); // YX: filename truncated @NAME
+         if(rc){
+            delete mps;
+            throw CoinError("Unable to write instance",
+                  "writeInstanceMPS",
+                  "MibSModel");
+         }
+      }
+      // YX: optional comments; add to param later?
+      // std::string cmtStr = "Testing writeAuxiliaryData funtion.";
+      // rc = writeAuxiliaryData(instName, true, getUpperFile(), cmtStr);
+      rc = writeAuxiliaryData(instName, true, getUpperFile());
+      if(rc){
+            delete mps;
+            throw CoinError("Unable to write instance auxiliary file",
+                  "writeInstanceAUX",
+                  "MibSModel");
+      }
+
+   delete mps;
+   throw CoinError("Exit after mps/aux files are successfully written",
+                  "writeInstance",
+                  "MibSModel");
+   }
+   
    delete mps;
 }
 
