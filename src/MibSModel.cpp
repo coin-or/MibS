@@ -499,13 +499,15 @@ std::string cmtStr)
       fileName = instPath.substr(length + 1);
    }
    length = fileName.length();
-   if(fileName.back() == 's')
-   {  
+   if((length > 3) && (fileName.substr(length - 3) == "mps")){  
       // assume upperfile in .mps format
       line = fileName.erase(length - 4, 4);
-   }else{ 
+   }else if((length > 2) && (fileName.substr(length - 2) == "lp")){ 
       // assume upperfile in .lp format
       line = fileName.erase(length - 3, 3);
+   }else{
+      // assume input has no format indicator
+      line = fileName;
    }
    line.append(".aux");
 
@@ -914,8 +916,13 @@ MibSModel::readProblemData()
       if(instName.find("PARAM_NOTSET") + 1 > 0){
          instName.clear(); // YX: param found; reset name
       }
-      if(!instName.empty()){ 
-         rc = mps->writeMps(instName.c_str()); // YX: filename truncated @NAME
+      if(!instName.empty()){
+         // YX: write MPS using CoinIO function; filename truncated @NAME 
+         j = instName.length();
+         if((j <= 3) || (instName.substr(j - 3).compare("mps") != 0)){
+            instName.append(".mps"); 
+         }
+         rc = mps->writeMps(instName.c_str());
          if(rc){
             delete mps;
             throw CoinError("Unable to write instance",
