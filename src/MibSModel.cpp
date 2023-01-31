@@ -913,7 +913,7 @@ MibSModel::readProblemData()
    //    Empty input: use the MPS file name and write AUX only
    //    Nonempty input: use the input name and write MPS + AUX files
    if(instName.compare("PARAM_NOTSET") != 0){
-      if(instName.find("PARAM_NOTSET") + 1 > 0){
+      if(instName.compare("0") == 0){
          instName.clear(); // YX: param found; reset name
       }
       if(!instName.empty()){
