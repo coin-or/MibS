@@ -913,7 +913,7 @@ MibSModel::readProblemData()
    //    Empty input: use the MPS file name and write AUX only
    //    Nonempty input: use the input name and write MPS + AUX files
    if(instName.compare("PARAM_NOTSET") != 0){
-      if(instName.compare("0") == 0){
+      if(instName.compare("-") == 0){
          instName.clear(); // YX: param found; reset name
       }
       if(!instName.empty()){
@@ -941,10 +941,9 @@ MibSModel::readProblemData()
                   "MibSModel");
       }
 
-   delete mps;
-   throw CoinError("Exit after mps/aux files are successfully written",
-                  "writeInstance",
-                  "MibSModel");
+      delete mps;
+      printf("Exit after mps/aux files are successfully written\n");
+      exit(0);
    }
    
    delete mps;
