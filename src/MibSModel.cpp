@@ -930,6 +930,168 @@ MibSModel::readAuxiliaryData(const CoinPackedMatrix& rowMatrix,
 }
 
 //#############################################################################
+int 
+MibSModel::writeAuxiliaryData(std::string fileName, bool wName, std::string instPath, 
+std::string cmtStr)
+{
+   //------------------------------------------------------
+   // YX: Write LL/SL problem descrition into AUX files.
+   // Write into (2nd ver.) named-based format; not support 
+   //    interdiction type yet. 
+   // Assume column and row name uniqueness.
+   // Params: fileName - rename output filw name
+   //         wName - print @NAME to file; optional 
+   //         instPath - upperFile path; use as fileName; 
+   //         cmtStr - print @COMMENT to file; optional
+   //------------------------------------------------------
+
+   int i(0), j(0);
+   long unsigned int length(0);
+   char outputVal[24];
+   std::string line;   
+   CoinFileOutput *output = 0;
+
+   // YX: empty filename: use upper MPS/LP as a default
+   if(fileName.empty()){
+      length = instPath.find_last_of("/\\");
+      fileName = instPath.substr(length + 1);
+   }
+   length = fileName.length();
+   if((length > 3) && (fileName.substr(length - 3) == "mps")){  
+      // assume upperfile in .mps format
+      line = fileName.erase(length - 4, 4);
+   }else if((length > 2) && (fileName.substr(length - 2) == "lp")){ 
+      // assume upperfile in .lp format
+      line = fileName.erase(length - 3, 3);
+   }else{
+      // assume input has no format indicator
+      line = fileName;
+   }
+   line.append(".aux");
+
+   output = CoinFileOutput::create(line, CoinFileOutput::COMPRESS_NONE);
+
+   // YX: set system locale (copied from CoinIO)
+   // Set locale so won't get , instead of .
+   char *saveLocale = strdup(setlocale(LC_ALL, NULL));
+   setlocale(LC_ALL, "C");
+
+   // YX: write LL/SL var#, constrs#, and lower obj sense;
+   line = "@NUMVARS"; 
+   line.append("\n" + std::to_string(lowerDim_) + "\n"); 
+   line.append("@NUMCONSTRS") ;
+   line.append("\n" + std::to_string(lowerRowNum_) + "\n");
+   line.append("@OBJSENSE");
+   if(lowerObjSense_ < 0){
+      line.append("\nMAX\n");
+   }else{
+      line.append("\nMIN\n");
+   }
+   output->puts(line.c_str());
+
+   // YX: write vars with objcoeff; then constraints;
+   line = "@VARBEGIN";
+   for(i = 0; i < lowerDim_; ++i){
+      j = lowerColInd_[i];
+      memset(outputVal, 0, sizeof outputVal);
+      CoinConvertDouble(0, 0, lowerObjCoeffs_[i], outputVal); 
+      line.append("\n" + columnName_[j] + " " + std::string(outputVal));
+   }   
+   line.append("\n@VAREND\n");
+   output->puts(line.c_str());
+
+   line = "@CONSTRSBEGIN";
+   for(i = 0; i < lowerRowNum_; ++i){
+      j = lowerRowInd_[i]; 
+      line.append("\n" + rowName_[j]);
+   }
+   line.append("\n@CONSTRSEND\n");
+   output->puts(line.c_str());
+
+   // YX: optional, print instance name
+   if(wName){
+      line = "@NAME";
+      line.append("\n" + fileName + "\n");
+      output->puts(line.c_str());
+   }
+
+   // YX: optional, print .mps file name
+   // ?? duplicate @NAME field
+   if(!instPath.empty()){
+      line = "@MPS";
+      line.append("\n" + fileName + ".mps\n");
+      output->puts(line.c_str());
+   }
+
+   // YX: optional, print comments
+   if(!cmtStr.empty()){
+      line = "# " + cmtStr + "\n";
+      output->puts(line.c_str());
+   }
+
+   // YX: name-based (first) format only;
+   // ---------------------------------------
+   // YX: write LL/SL N and M; prepare lower obj sense;
+   // line = "N " + std::to_string(lowerDim_) + "\n";
+   // line.append("M " + std::to_string(lowerRowNum_) + "\n");
+   // output->puts(line.c_str());
+   // memset(outputVal, 0, sizeof outputVal);
+   // CoinConvertDouble(0, 0, lowerObjSense_, outputVal);
+   // line = "OS " + std::string(outputVal) + "\n";
+   // output->puts(line.c_str());
+
+   // YX: prepare lower cols/rows/obj using indicies;
+   // line = "";
+   // for(i = 0; i < lowerDim_; ++i){
+   //    j = lowerColInd_[i]; 
+   //    line.append("LC " + columnName_[j] + "\n");
+   // }
+   // output->puts(line.c_str());
+
+   // line = "";
+   // for(i = 0; i < lowerRowNum_; ++i){
+   //    j = lowerRowInd_[i]; 
+   //    line.append("LR " + rowName_[j] + "\n");
+   // }
+   // output->puts(line.c_str());      
+
+   // line = "";
+   // for(i = 0; i < lowerDim_; ++i){
+   //    memset(outputVal, 0, sizeof outputVal);
+   //    CoinConvertDouble(0, 0, lowerObjCoeffs_[i], outputVal);
+   //    line.append("LO " + std::string(outputVal) + "\n");
+   // }
+   // output->puts(line.c_str());
+  
+   // YX: prepare interdiction cost using col indicies;
+   // if(interdictCost_){
+   //    line = "";
+   //    for(i = 0; i < lowerDim_; ++i){
+   //       memset(outputVal, 0, sizeof outputVal);
+   //       CoinConvertDouble(0, 0, interdictCost_[i], outputVal);
+   //       line.append("IC " + std::string(outputVal) + "\n");
+   //    }
+   //    output->puts(line.c_str());
+   // }
+
+   // YX: prepare interdiction budget;
+   // change to multiple rows if readAux allows
+   // if(interdictBudget_){
+   //    memset(outputVal, 0, sizeof outputVal);
+   //    CoinConvertDouble(0, 0, interdictBudget_, outputVal);
+   //    line = "IB " + std::string(outputVal) + "\n";
+   //    output->puts(line.c_str());
+   // }
+   // ---------------------------------------
+
+   // YX: write to file and end;
+   delete output;
+   setlocale(LC_ALL, saveLocale);
+   free(saveLocale);
+   return 0;   
+}  
+
+//#############################################################################
 void 
 MibSModel::loadAuxiliaryData(int lowerColNum, int lowerRowNum,
 			     const int *lowerColInd,
@@ -1048,6 +1210,8 @@ MibSModel::readProblemData()
    
    int rc(-1);
    int format(MibSPar_->entry(MibSParams::upperFileFormat));
+   // YX: specify output file name;
+   std::string instName(MibSPar_->entry(MibSParams::writeInstanceName));
 
    CoinMpsIO *mps = new CoinMpsIO;
 
@@ -1202,6 +1366,44 @@ MibSModel::readProblemData()
    delete [] conUB;
    delete [] objCoef;
 
+   // YX: Write files when the param has a string input:
+   // (also processed in the write function)
+   //    Empty input (-): use the MPS file name and write AUX only
+   //    Nonempty input: use the input name and write MPS + AUX files
+   if(instName.compare("PARAM_NOTSET") != 0){
+      if(instName.compare("-") == 0){
+         instName.clear(); // YX: param found; reset name
+      }
+      if(!instName.empty()){
+         // YX: write MPS using CoinIO function; filename truncated @NAME 
+         j = instName.length();
+         if((j <= 3) || (instName.substr(j - 3).compare("mps") != 0)){
+            instName.append(".mps"); 
+         }
+         rc = mps->writeMps(instName.c_str());
+         if(rc){
+            delete mps;
+            throw CoinError("Unable to write instance",
+                  "writeInstanceMPS",
+                  "MibSModel");
+         }
+      }
+      // YX: optional comments; add to param later?
+      // std::string cmtStr = "Testing writeAuxiliaryData funtion.";
+      // rc = writeAuxiliaryData(instName, true, getUpperFile(), cmtStr);
+      rc = writeAuxiliaryData(instName, true, getUpperFile());
+      if(rc){
+            delete mps;
+            throw CoinError("Unable to write instance auxiliary file",
+                  "writeInstanceAUX",
+                  "MibSModel");
+      }
+
+      delete mps;
+      printf("Exit after mps/aux files are successfully written\n");
+      exit(0);
+   }
+   
    delete mps;
 }
 

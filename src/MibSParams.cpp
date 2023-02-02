@@ -316,6 +316,9 @@ MibSParams::createKeywordList() {
    //So the parameter "isSMPSFormat" should be set to true.
    keys_.push_back(make_pair(std::string("MibS_stochasticityType"),
 			     AlpsParameter(AlpsStringPar, stochasticityType)));
+              
+   keys_.push_back(make_pair(std::string("MibS_writeInstanceName"),
+			     AlpsParameter(AlpsStringPar, writeInstanceName)));
 
    //--------------------------------------------------------
    // Double Parameters.
@@ -522,6 +525,8 @@ MibSParams::setDefaultEntries() {
    setEntry(inputFormat, "indexBased");
 
    setEntry(stochasticityType, "deterministic");
+
+   setEntry(writeInstanceName, "PARAM_NOTSET");
 }
 
 //#############################################################################

@@ -601,6 +601,10 @@ public:
 			   int numCols, int numRows, double infinity,
 			   const char *rowSense);
 
+    /** Write auxiliary data file **/
+    int writeAuxiliaryData(std::string filename, bool wName = false, 
+        std::string instPath = "", std::string cmtStr = "");
+    
     /** Set auxiliary data directly when using MibS as a library **/
     void loadAuxiliaryData(int lowerColNum, int lowerRowNum,
 			   const int *lowerColInd,
