@@ -1786,24 +1786,23 @@ MibSBilevel::getUpperObj(double *lowerSol, double *upperSol)
    const double uObjSense(model_->solver()->getObjSense());
    const double *uObjCoeffs(model_->solver()->getObjCoefficients());
    
-   if(!upperSol){
-      const double *upperSol(model_->solver()->getColSolution());
-   }
-
-   int i(0), idx(0);
+   bool useIdx(false);
+   int i(0), j(0), idx(0);
    double rfuncVal(0.0), uObjVal(0.0);
 
+   if(!upperSol){
+      const double *upperSol(model_->solver()->getColSolution());
+      useIdx = true;
+   }
+
    for(i = 0; i < uN; i++){
-      if(!upperSol){
-         idx = uColIndices[i];
-      }else{
-         idx = i;
-      } 
+      j = (useIdx)? uColIndices[i] : i;
+      idx = uColIndices[i]; 
       if(0){
-         std::cout << "upperSol[" << i << "]: " << upperSol[i] << std::endl;
+         std::cout << "upperSol[" << j << "]: " << upperSol[j] << std::endl;
          std::cout << "uObjCoeff[" << idx << "]: " << uObjCoeffs[idx] << std::endl;
       }      
-      uObjVal += uObjCoeffs[idx] * upperSol[i] * uObjSense;
+      uObjVal += uObjCoeffs[idx] * upperSol[j] * uObjSense;
    }
 
    rfuncVal = getRiskFuncVal(lowerSol);
