@@ -108,6 +108,7 @@ class MibSParams : public AlpsParameterSet {
       auxiliaryInfoFile,
       feasCheckSolver,
       inputFormat,
+      writeInstanceName,
       endOfStrParams
   };
 

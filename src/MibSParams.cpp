@@ -237,6 +237,9 @@ MibSParams::createKeywordList() {
    keys_.push_back(make_pair(std::string("MibS_inputFormat"),
 			     AlpsParameter(AlpsStringPar, inputFormat)));
 
+   keys_.push_back(make_pair(std::string("MibS_writeInstanceName"),
+			     AlpsParameter(AlpsStringPar, writeInstanceName)));
+
    //--------------------------------------------------------
    // Double Parameters.
    //--------------------------------------------------------
@@ -396,6 +399,8 @@ MibSParams::setDefaultEntries() {
    setEntry(feasCheckSolver, "SYMPHONY");
 
    setEntry(inputFormat, "indexBased");
+
+   setEntry(writeInstanceName, "PARAM_NOTSET");
 }
 
 //#############################################################################
