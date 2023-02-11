@@ -321,12 +321,12 @@ MibSModel::readAuxiliaryData(int numCols, int numRows)
   // Find out if we are reading an interdiction problem in legacy format
 
   while (data_stream >> key){
-     if(key == "N"){ 
+     if((key == "N")||(key == "@NUMVARS")){ 
 	   data_stream >> iValue;
 	   setLowerDim(iValue);
            lowerColNum = iValue;
      }
-     else if(key == "M"){
+     else if((key == "M")||(key == "@NUMCONSTRS")){
 	   data_stream >> iValue;
 	   setLowerRowNum(iValue);
      }
@@ -384,6 +384,11 @@ MibSModel::readAuxiliaryData(int numCols, int numRows)
 	data_stream >> dValue;
 	lowerObjSense_ = dValue; //1 min; -1 max
      }
+      else if(key == "@OBJSENSE"){
+         data_stream >> cValue;
+         // YX: if not MAX, assume MIN
+         lowerObjSense_ = (cValue.compare("MAX") == 0)? -1: 1; 
+      }
      else if(key == "IC"){
        if(!getInterdictCost()){
 	 //FIXME: ALLOW MORE THAN ONE ROW
@@ -421,13 +426,13 @@ MibSModel::readAuxiliaryData(int numCols, int numRows)
 		 std::cout << cValue << " does not belong to the list of variables." << std::endl;
 	     }
 	     else{
-		 lowerObjCoeffs_[pos] = dValue;
+		 lowerObjCoeffs_[i] = dValue;
 		 lowerColInd_[i] = pos;
 	     }
 	     pos = -1;
 	 }
      }
-     else if(key == "@CONSTSBEGIN"){
+     else if(key == "@CONSTRSBEGIN"){ // YX: keyword changed
 	 pos = -1;
 	 lowerRowNum = getLowerRowNum();
 	 if(!getLowerRowInd())
@@ -532,14 +537,14 @@ std::string cmtStr)
    output->puts(line.c_str());
 
    // YX: write vars with objcoeff; then constraints;
-   line = "@VARBEGIN";
+   line = "@VARSBEGIN";
    for(i = 0; i < lowerDim_; ++i){
       j = lowerColInd_[i];
       memset(outputVal, 0, sizeof outputVal);
       CoinConvertDouble(0, 0, lowerObjCoeffs_[i], outputVal); 
       line.append("\n" + columnName_[j] + " " + std::string(outputVal));
    }   
-   line.append("\n@VAREND\n");
+   line.append("\n@VARSEND\n");
    output->puts(line.c_str());
 
    line = "@CONSTRSBEGIN";
