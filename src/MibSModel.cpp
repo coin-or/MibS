@@ -84,6 +84,7 @@ MibSModel::~MibSModel()
   if(upperRowInd_) delete [] upperRowInd_;
   if(origUpperRowInd_) delete [] origUpperRowInd_;
   if(lowerRowInd_) delete [] lowerRowInd_;
+  if(inputLowerRowInd_) delete [] inputLowerRowInd_;
   if(structRowInd_) delete [] structRowInd_;
   if(fixedInd_) delete [] fixedInd_;
   if(interdictCost_) delete [] interdictCost_;
@@ -126,7 +127,8 @@ MibSModel::initialize()
   upperDim_ = 0;
   leftSlope_ = 0;
   rightSlope_ = 0;
-  lowerRowNum_ = 0;
+  lowerRowNum_ = 0; 
+  inputLowerRowNum_ = 0;
   upperRowNum_ = 0;
   origUpperRowNum_ =0;
   structRowNum_ = 0;
@@ -155,6 +157,7 @@ MibSModel::initialize()
   upperRowInd_ = NULL;
   origUpperRowInd_ = NULL;
   lowerRowInd_ = NULL;
+  inputLowerRowInd_ = NULL;
   structRowInd_ = NULL;
   fixedInd_ = NULL;
   origColLb_ = NULL;
@@ -527,7 +530,7 @@ std::string cmtStr)
    line = "@NUMVARS"; 
    line.append("\n" + std::to_string(lowerDim_) + "\n"); 
    line.append("@NUMCONSTRS") ;
-   line.append("\n" + std::to_string(lowerRowNum_) + "\n");
+   line.append("\n" + std::to_string(inputLowerRowNum_) + "\n");
    line.append("@OBJSENSE");
    if(lowerObjSense_ < 0){
       line.append("\nMAX\n");
@@ -548,8 +551,8 @@ std::string cmtStr)
    output->puts(line.c_str());
 
    line = "@CONSTRSBEGIN";
-   for(i = 0; i < lowerRowNum_; ++i){
-      j = lowerRowInd_[i]; 
+   for(i = 0; i < inputLowerRowNum_; ++i){
+      j = inputLowerRowInd_[i]; 
       line.append("\n" + rowName_[j]);
    }
    line.append("\n@CONSTRSEND\n");
@@ -886,8 +889,6 @@ MibSModel::readProblemData()
       }
    }
    
-   CoinPackedMatrix colMatrix = *(mps->getMatrixByCol());
-
    //FIXME: MPS is always minimization, but should we be able to override?
    //FIXME: In previous version of code, objSense was only set to -1
    //       for interdiction problems...
@@ -909,7 +910,7 @@ MibSModel::readProblemData()
    delete [] colType;
    delete [] varLB;
    delete [] varUB;
-   delete [] conLB;
+   delete [] conLB; //YX: VERIFY POINTER
    delete [] conUB;
    delete [] objCoef;
 
@@ -968,9 +969,9 @@ MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
 
    int problemType(MibSPar_->entry(MibSParams::bilevelProblemType));
 
-   int i(0), j(0), beg(0);
+   int i(0), j(0), k(0), start(0), end(0), beg(0);
 
-   int numRows = matrix.getNumRows();
+   int inputNumRows = matrix.getNumRows(); // YX: to diff from #eqConstrs
    int numCols = matrix.getNumCols();
 
    double *varLB(NULL);  
@@ -980,7 +981,80 @@ MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
    double *objCoef(NULL);
    char   *colType(NULL);
 
+   CoinPackedMatrix rowMatrix;
    CoinPackedMatrix *newMatrix = NULL;
+   CoinPackedMatrix *matrix1 = NULL; // YX: w/ appended equality constrs
+
+   // --- prepare for equality constraints (if any) ---
+   
+   // YX: copy original row info for writeAux
+   inputLowerRowNum_ = lowerRowNum_;
+   inputLowerRowInd_ = lowerRowInd_;
+
+   // YX: check if any equality constraint exists, modify row bounds, and 
+   //    append the splited cosntraint to the end with sense ">=";
+   int numRows(inputNumRows);
+   std::vector<int> eqConstrInd;
+   std::vector<char> rowSenseVec(rowSense, rowSense+inputNumRows);
+   std::vector<int> lowerRowIndVec(lowerRowInd_, lowerRowInd_+inputLowerRowNum_);
+   std::vector<double> rowLBVec(rowLB, rowLB+inputNumRows);
+   std::vector<double> rowUBVec(rowUB, rowUB+inputNumRows);
+   
+   for(i = 0; i < inputNumRows; i++){
+      if(rowSense[i] == 'E'){
+         for(j = 0; j < inputLowerRowNum_; j++){
+            if(inputLowerRowInd_[j] == i){
+               lowerRowIndVec.push_back(numRows);
+               lowerRowNum_ ++; // YX: modifying lowerRowNum_ 
+               break;  
+            } 
+         }
+
+         rowLBVec[i] = infinity;
+         rowUBVec.push_back(infinity);
+         rowLBVec.push_back(rowLBVec[i]);
+         rowSenseVec.push_back('G');
+         
+         eqConstrInd.push_back(i);
+         numRows ++;
+      }
+   }
+   
+   // YX: debug only
+   assert(lowerRowNum_ == lowerRowIndVec.size());
+   assert(numRows - inputNumRows == eqConstrInd.size()); 
+
+   // YX: add rows to the problem matrix and link pointers to vectors 
+   if(numRows > inputNumRows){
+      
+      matrix1->copyOf(matrix);
+      matrix1->reverseOrdering();
+
+      rowMatrix = matrix;
+      rowMatrix.reverseOrdering();
+      const double * matElements = rowMatrix.getElements();
+      const int * matIndices = rowMatrix.getIndices();
+      const int * matStarts = rowMatrix.getVectorStarts();
+
+      for (i = 0; i < numRows - inputNumRows; i++){
+         CoinPackedVector row;
+         k = eqConstrInd[i];
+         start = matStarts[k];
+         end = start + rowMatrix.getVectorSize(k);
+         for(j = start; j < end; j++){
+            row.insert(matIndices[j], matElements[j]);
+         }
+         matrix1->appendRow(row);
+      }
+
+      matrix1->reverseOrdering();
+      
+      rowSense = rowSenseVec.data();
+      rowLB = rowLBVec.data();
+      rowUB = rowUBVec.data();
+      lowerRowInd_ = new int[lowerRowNum_];
+      memcpy(lowerRowInd_, lowerRowIndVec.data(), lowerRowNum_);
+   }
 
    if(problemType == GENERAL){
 
@@ -992,8 +1066,12 @@ MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
       }
       
       //Make copies of the data
-      newMatrix = new CoinPackedMatrix();
-      *newMatrix = matrix;
+      if(matrix1){
+         newMatrix = matrix1;
+      }else{
+         newMatrix = new CoinPackedMatrix();
+         *newMatrix = matrix;
+      }
       
       varLB = new double [numCols];
       varUB = new double [numCols];
@@ -1108,7 +1186,11 @@ MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
       }
        
       CoinPackedMatrix rowMatrix;
-      rowMatrix = matrix;
+      if(matrix1){
+         rowMatrix = *matrix1;
+      }else{
+         rowMatrix = matrix;
+      }
       rowMatrix.reverseOrdering();
       const double * matElements = rowMatrix.getElements();
       const int * matIndices = rowMatrix.getIndices();

@@ -90,6 +90,9 @@ private:
     /** Number of LL constraints **/
     int lowerRowNum_;
 
+    /** YX: Number of LL constraints in problem input file **/
+    int inputLowerRowNum_;
+    
     /** Number of structural constraints **/
     int structRowNum_;
 
@@ -172,6 +175,9 @@ private:
 
     /** Indices of LL rows **/
     int * lowerRowInd_;
+
+    /** YX: Indices of LL rows in problem input file **/
+    int * inputLowerRowInd_;
 
     /** Indices of structural (non-vub) rows **/
     int * structRowInd_;
