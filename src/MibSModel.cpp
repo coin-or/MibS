@@ -910,7 +910,7 @@ MibSModel::readProblemData()
    delete [] colType;
    delete [] varLB;
    delete [] varUB;
-   delete [] conLB; //YX: VERIFY POINTER
+   delete [] conLB;
    delete [] conUB;
    delete [] objCoef;
 
@@ -989,7 +989,8 @@ MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
    
    // YX: copy original row info for writeAux
    inputLowerRowNum_ = lowerRowNum_;
-   inputLowerRowInd_ = lowerRowInd_;
+   inputLowerRowInd_ = new int[lowerRowNum_];
+   CoinDisjointCopyN(lowerRowInd_, lowerRowNum_, inputLowerRowInd_);
 
    // YX: check if any equality constraint exists, modify row bounds, and 
    //    append the splited cosntraint to the end with sense ">=";
@@ -1009,10 +1010,10 @@ MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
                break;  
             } 
          }
-
-         rowLBVec[i] = infinity;
+         rowLBVec.push_back(rowUBVec[i]);
          rowUBVec.push_back(infinity);
-         rowLBVec.push_back(rowLBVec[i]);
+         rowLBVec[i] = -1 * infinity;
+         rowSenseVec[i] = 'L';
          rowSenseVec.push_back('G');
          
          eqConstrInd.push_back(i);
@@ -1026,7 +1027,7 @@ MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
 
    // YX: add rows to the problem matrix and link pointers to vectors 
    if(numRows > inputNumRows){
-      
+      matrix1 = new CoinPackedMatrix();
       matrix1->copyOf(matrix);
       matrix1->reverseOrdering();
 
@@ -1053,7 +1054,7 @@ MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
       rowLB = rowLBVec.data();
       rowUB = rowUBVec.data();
       lowerRowInd_ = new int[lowerRowNum_];
-      memcpy(lowerRowInd_, lowerRowIndVec.data(), lowerRowNum_);
+      CoinDisjointCopyN(lowerRowIndVec.data(), lowerRowNum_, lowerRowInd_);
    }
 
    if(problemType == GENERAL){
@@ -1185,7 +1186,6 @@ MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
 	 colType[j + 2 * numCols] = 'B';
       }
        
-      CoinPackedMatrix rowMatrix;
       if(matrix1){
          rowMatrix = *matrix1;
       }else{
@@ -3615,7 +3615,7 @@ MibSModel::instanceStructure()
            case 'E':
              std::cout << "MibS cannot currently handle equality constraints.";
              std::cout << std::endl; 
-             abort();
+             abort(); // YX: handled in loadProblemData()
              break;
            case 'R':
              std::cout << "MibS cannot currently handle range constraints.";
