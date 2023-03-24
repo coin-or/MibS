@@ -510,15 +510,19 @@ std::string cmtStr)
       fileName = instPath.substr(length + 1);
    }
    length = fileName.length();
-   if((length > 3) && (fileName.substr(length - 3) == "mps")){  
+
+   // YX: assume .gz, .mps, or .lp formats
+   if(fileName.substr(length - 3) == ".gz"){
+      fileName.erase(length - 3, 3);
+      length -= 3;
+   }
+   
+   if((length > 3) && (fileName.substr(length - 4) == ".mps")){  
       // assume upperfile in .mps format
       line = fileName.erase(length - 4, 4);
-   }else if((length > 2) && (fileName.substr(length - 2) == "lp")){ 
+   }else if((length > 2) && (fileName.substr(length - 3) == ".lp")){ 
       // assume upperfile in .lp format
       line = fileName.erase(length - 3, 3);
-   }else if(fileName.substr(length - 2) == "gz"){
-      // assume upperfile in .gz format
-      line = fileName.erase(length - 7, 7);
    }else{
       // assume input has no format indicator
       line = fileName;
