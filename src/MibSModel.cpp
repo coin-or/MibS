@@ -516,6 +516,9 @@ std::string cmtStr)
    }else if((length > 2) && (fileName.substr(length - 2) == "lp")){ 
       // assume upperfile in .lp format
       line = fileName.erase(length - 3, 3);
+   }else if(fileName.substr(length - 2) == "gz"){
+      // assume upperfile in .gz format
+      line = fileName.erase(length - 7, 7);
    }else{
       // assume input has no format indicator
       line = fileName;
