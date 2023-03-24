@@ -276,7 +276,10 @@ MibSModel::readAuxiliaryData(int numCols, int numRows)
       std::string mpsFile(getUpperFile());
       int length = mpsFile.length();
       char *tmpArr = new char[length + 1];
-      fileName = mpsFile.erase(length - 3, 3);
+      if (mpsFile.substr(mpsFile.find_last_of(".")+1) == "gz"){
+         mpsFile = mpsFile.substr(0, mpsFile.find_last_of("."));
+      }
+      fileName = mpsFile.substr(0, mpsFile.find_last_of(".")+1);
       fileName.append("aux");
       if (fileCoinReadable(fileName)){
 	  fileName.copy(tmpArr, length);
@@ -287,7 +290,7 @@ MibSModel::readAuxiliaryData(int numCols, int numRows)
           std::cout << "MibS used " <<  fileName << " automatically.";
           std::cout << std::endl;
       }else{
-          fileName = mpsFile.erase(length - 3, 3);
+          fileName = mpsFile.substr(0, mpsFile.find("."));
           fileName.append("txt");
 	  if (fileCoinReadable(fileName)){
 	      fileName.copy(tmpArr, length);
