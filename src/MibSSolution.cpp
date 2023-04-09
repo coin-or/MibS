@@ -82,7 +82,8 @@ void
 MibSSolution::print(std::ostream& os) const 
 {
 
-    std::string inputFormat(localModel_->MibSPar_->entry
+   bool findPesSol(localModel_->MibSPar_->entry(MibSParams::findPesSol));
+   std::string inputFormat(localModel_->MibSPar_->entry
 			    (MibSParams::inputFormat));
    double nearInt = 0.0;
    //int size(localModel_->getNumOrigVars());
@@ -157,8 +158,14 @@ MibSSolution::print(std::ostream& os) const
    }
 
    std::cout << "Number of problems (VF) solved = " << localModel_->counterVF_ << std::endl;
+   if(findPesSol){
+      std::cout << "Number of problems (PES) solved = " << localModel_->counterPES_ << std::endl;
+   }
    std::cout << "Number of problems (UB) solved = " << localModel_->counterUB_ << std::endl;
    std::cout << "Time for solving problem (VF) = " << localModel_->timerVF_ << std::endl;
+   if(findPesSol){
+      std::cout << "Time for solving problem (PES) = " << localModel_->timerPES_ << std::endl;
+   }   
    std::cout << "Time for solving problem (UB) = " << localModel_->timerUB_ << std::endl;
 }
 

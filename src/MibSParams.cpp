@@ -66,6 +66,8 @@ MibSParams::createKeywordList() {
    keys_.push_back(make_pair(std::string("MibS_useNewPureIntCut"),
 			     AlpsParameter(AlpsBoolPar, useNewPureIntCut)));
 
+   keys_.push_back(make_pair(std::string("MibS_findPesSol"),
+			     AlpsParameter(AlpsBoolPar, findPesSol))); // YX: pessimistic case
    //--------------------------------------------------------
    // BoolArrayPar
    //--------------------------------------------------------
@@ -247,6 +249,8 @@ MibSParams::createKeywordList() {
    keys_.push_back(make_pair(std::string("MibS_boundCutTimeLim"),
 			     AlpsParameter(AlpsDoublePar, boundCutTimeLim)));
 
+   keys_.push_back(make_pair(std::string("MibS_slTargetGap"),
+			     AlpsParameter(AlpsDoublePar, slTargetGap)));     //YX: param for setting SL gap
 }
 
 //#############################################################################
@@ -281,6 +285,8 @@ MibSParams::setDefaultEntries() {
    setEntry(allowRemoveCut, false);
 
    setEntry(useNewPureIntCut, false);
+
+   setEntry(findPesSol, false);   
 
    //-------------------------------------------------------------
    // Int Parameters.
@@ -389,6 +395,8 @@ MibSParams::setDefaultEntries() {
    //-------------------------------------------------------------
 
    setEntry(boundCutTimeLim, 3600);
+
+   setEntry(slTargetGap, -1); //YX: SL gap default set to -1
    
    //-------------------------------------------------------------
    // String Parameters

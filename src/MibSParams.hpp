@@ -39,6 +39,7 @@ class MibSParams : public AlpsParameterSet {
      printProblemInfo,
      allowRemoveCut,
      useNewPureIntCut,
+     findPesSol, // YX: pessimistic case
      endOfBoolParams
   };
   
@@ -99,6 +100,7 @@ class MibSParams : public AlpsParameterSet {
   /** Double parameters. */
   enum dblParams{
       boundCutTimeLim,
+      slTargetGap, //YX: lower/second level optimality gap
       endOfDblParams
   };
 

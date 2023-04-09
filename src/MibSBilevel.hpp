@@ -58,6 +58,9 @@ private:
     bool isContainedInLinkingPool_;
     MibSLinkingPoolTag tagInSeenLinkingPool_;
 
+    // YX: this variable is not used anywhere other than MibSBilevel;
+    // (commented off in MibSTreeNode)
+    // looks like it is replaced by pool tag and can be removed;
     MibSLPSolStatus LPSolStatus_;
 
     /** Optimal value of LL objective **/
@@ -68,11 +71,13 @@ private:
     double *lowerSolutionOrd_;
     //double *optLowerSolution_;
     double *optUpperSolutionOrd_;// result of solving (UB)
-    double *optLowerSolutionOrd_;
+    double *optLowerSolutionOrd_; // YX: optimal lower (heuristic) solutions
+    double *vfLowerSolutionOrd_; // YX: SL-MILP solutions; needed for gap > 0 
    
     MibSModel *model_;
     MibSHeuristic *heuristic_;
     OsiSolverInterface * lSolver_;
+    OsiSolverInterface * pSolver_; // YX: pessimistic case
     OsiSolverInterface * UBSolver_;
     CoinWarmStart * ws_;
    
@@ -91,9 +96,11 @@ public:
 	//optLowerSolution_ = 0;
 	optUpperSolutionOrd_ = 0;
 	optLowerSolutionOrd_ = 0;
+    vfLowerSolutionOrd_ = 0; // YX: SL-MILP solutions; for gap > 0
 	model_ = 0;
 	heuristic_= 0;
 	lSolver_ = 0;
+    pSolver_ = 0; // YX: pessimistic case
 	UBSolver_ = 0;
 	ws_ = 0;
     }
@@ -104,17 +111,21 @@ public:
    
     MibSSolType createBilevel(CoinPackedVector *sol,
 		       MibSModel *mibs=0);
-    MibSSolType checkBilevelFeasiblity(bool isRoot);
+    MibSSolType checkBilevelFeasibility(bool isRoot);
     void gutsOfDestructor();
 
 private:
    
-    int findIndex(int index, int size, int * indices);
     OsiSolverInterface * setUpUBModel(OsiSolverInterface * solver, double objValLL,
 					  bool newOsi, const double *sol = NULL);
+    OsiSolverInterface * setUpPesModel(double objValLL, bool newOsi, 
+                    const double *sol = NULL); // YX: pessimistic case
     OsiSolverInterface * setUpModel(OsiSolverInterface * solver,
 				    bool newOsi, const double *sol = NULL);
+    int findIndex(int index, int size, int * indices); // YX: not used?
     double getLowerObj(const double * sol, double objSense);
+    double getRiskFuncVal(double *lowerSol); // YX: pessimistic case
+    double getUpperObj(double *lowerSol, double *upperSol = NULL); // YX: pessimistic case
     int binarySearch(int index,int start, int stop, int * indexArray);
     CoinWarmStart * getWarmStart() {return ws_;}
     void setWarmStart(CoinWarmStart * ws) {ws_ = ws;}

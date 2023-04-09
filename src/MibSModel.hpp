@@ -102,11 +102,17 @@ private:
     /** Number of (VF) solved **/
     int counterVF_;
 
+    /** Number of (PES) solved **/
+    int counterPES_; // YX: counter for (PES-MILP);
+
     /** Number of (UB) solved **/
     int counterUB_;
 
     /** Time for solving (VF) **/
     double timerVF_;
+
+    /** Time for solving (PES) **/
+    double timerPES_; // YX: pessimistic case;
 
     /** Time for solving (UB) **/
     double timerUB_;
@@ -159,7 +165,7 @@ private:
     /** the right (positive) slope of the lower-level value function **/
     double rightSlope_;
 
-    int countIteration_;
+    int countIteration_; // YX: HOW IS IT USED???
   
     /** Indices of UL variables **/
     int * upperColInd_;
@@ -224,10 +230,17 @@ private:
     /** Original matrix of constraints coefficients **/
     CoinPackedMatrix *origConstCoefMatrix_;
     
+    // YX: was used in pessimistic feasibility check
     //we only fill next three matrices if they are required.
     //For now, we only need them for generating IC and watermelon IC.
     /** matrix of lower-level coefficients(all constraints are 'L') **/
     CoinPackedMatrix *lowerConstCoefMatrix_;
+
+    /** matrix of upper-level vars in upper-level problem (with row sense 'L') **/
+    CoinPackedMatrix *A1Matrix_;
+
+    /** matrix of lower-level vars in upper-level problem (with row sense 'L') **/
+    CoinPackedMatrix *G1Matrix_;
 
     /** matrix of upper-level vars in lower-level problem(all constraints are 'L') **/
     CoinPackedMatrix *A2Matrix_;
@@ -409,6 +422,12 @@ public:
     /** Set pointer to the matrix of LL coefficients(all constraints are 'L') **/
     void setLowerConstCoefMatrix(CoinPackedMatrix *ptr) {lowerConstCoefMatrix_ = ptr;}
 
+    /** YX: Set pointer to the matrix of UL vars in UL problem (with row sense 'L') **/
+    void setA1Matrix(CoinPackedMatrix *ptr) {A1Matrix_ = ptr;}
+    
+    /** YX: Set pointer to the matrix of LL vars in UL problem (with row sense 'L') **/
+    void setG1Matrix(CoinPackedMatrix *ptr) {G1Matrix_ = ptr;}
+    
     /** Set pointer to the matrix of UL vars in LL problem(all constraints are 'L') **/
     void setA2Matrix(CoinPackedMatrix *ptr) {A2Matrix_ = ptr;}
 
@@ -502,6 +521,12 @@ public:
 
     /** Get pointer to the matrix of LL coefficients(all constraints are 'L') **/
     CoinPackedMatrix * getLowerConstCoefMatrix() const {return lowerConstCoefMatrix_;}
+
+    /** YX: Get pointer to the matrix of UL vars in UL problem (with row sense 'L') **/
+    CoinPackedMatrix * getA1Matrix() const {return A1Matrix_;}
+
+    /** YX: Get pointer to the matrix of LL vars in UL problem (with row sense 'L') **/
+    CoinPackedMatrix * getG1Matrix() const {return G1Matrix_;}
 
     /** Get pointer to the matrix of UL vars in LL problem(all constraints are 'L') **/
     CoinPackedMatrix * getA2Matrix() const {return A2Matrix_;}
@@ -614,6 +639,10 @@ public:
   
     /** The method that decodes the model from an encoded object. */
     virtual void decodeToSelf(AlpsEncoded&);
+
+    /** YX: Separate and set A1, G1, A2, G2 matrices (with row sense 'L') **/
+    // YX: this was moved from MibSCutGenerator
+    void setCoeffMatrices();
 
     /** Determine the list of first-stage variables participate in second-stage constraints */
     void setRequiredFixedList();
