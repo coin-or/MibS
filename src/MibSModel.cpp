@@ -961,6 +961,16 @@ MibSModel::readProblemData()
       printf("Exit after mps/aux files are successfully written\n");
       exit(0);
    }
+
+   for (int i = 0; i < upperDim_; i++){
+      if (fixedInd_[i] == 1){
+         if (colType_[i] == 'C'){
+            throw CoinError("All linking variables should be integer",
+                            "instanceStructure",
+                            "MibSModel");
+         }
+      }
+   }
    
    delete mps;
 }
@@ -3646,16 +3656,6 @@ MibSModel::instanceStructure()
        }
     }
     
-    for (i = 0; i < numCols; i++){
-       if (fixedInd_[i] == 1){
-          if (colType_[i] == 'C'){
-             throw CoinError("All linking variables should be integer",
-                             "instanceStructure",
-                             "MibSModel");
-          }
-       }
-    }
-
     if (printProblemInfo == true){
        if (positiveA1_ == true){
           std::cout << "Coefficient matrix of upper level variables in upper level problem is non-negative." << std::endl;
