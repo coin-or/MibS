@@ -56,7 +56,7 @@ jobs:
           ADD_BUILD_ARGS+=( --tests main --enable-relocatable )
           ADD_BUILD_ARGS+=( --verbosity 2 )
           [[ ${{ matrix.build_static }} == "true" ]] && \
-          ADD_BUILD_ARGS+=( --static --with-lapack='-llapack -lblas -lgfortran -lquadmath -lm' )
+          ADD_BUILD_ARGS+=( --disable-shared )
           bash coinbrew/coinbrew fetch ${{ github.event.repository.name }} --skip-update \
           "${ADD_ARGS[@]}"
           bash coinbrew/coinbrew build ${{ github.event.repository.name }} \
