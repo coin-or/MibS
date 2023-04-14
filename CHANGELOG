@@ -1,11 +1,32 @@
 MibS Change Log
-	
+
+## 1.1.0
+ 
+ * General improvements and fixes to cut generation
+ * Improvements to efficiency of feasibility checking and solving upper bounding problem.
+ * Introduce generalized version of increasing objective cut
+ * Introduce watermelon IC
+ * Improvements to structure detection
+ * This is the version used in the published revision of  the [paper](http://dx.doi.org/10.1007/s12532-020-00183-6)
+ 
+## 1.0.0
+
+ * Adding support for name-based file format
+ * Improving robustness
+ * Better default parameters setting
+ * General refactoring and cleaning up
+
 ## 0.95.1
 	
  * Updates for new experiments in updated draft.
  * Changed parameter names to match paper
  * Fixed bug in linking solution pool	
 
-##0.95.0
+## 0.95.0
 
- * Version used for initial draft of [paper](http://coral.ie.lehigh.edu/~ted/files/papers/MIBLP16.pdf)	
+ * Version used for initial draft of [paper](http://coral.ie.lehigh.edu/~ted/files/papers/MIBLP16.pdf)
+ * Added linking solution pool
+ 
+## 0.9.0 
+ 
+ * First official release!
