@@ -1013,7 +1013,7 @@ MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
    CoinDisjointCopyN(lowerRowInd_, lowerRowNum_, inputLowerRowInd_);
 
    // YX: check if any equality/range constraint exists, modify row bounds, and 
-   //    append the splited cosntraint to the end with sense ">=";
+   //    append the splited constraint to the end with sense ">=";
    int numRows(inputNumRows);
    std::vector<int> rngConstrInd;
    std::vector<char> rowSenseVec(rowSense, rowSense+inputNumRows);
@@ -1032,7 +1032,7 @@ MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
                break;  
             } 
          }
-         rowLBVec.push_back(rowUBVec[i]);
+         rowLBVec.push_back(rowLBVec[i]);
          rowUBVec.push_back(infinity);
          rowLBVec[i] = -1 * infinity;
          rowSenseVec[i] = 'L';
