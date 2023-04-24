@@ -1012,17 +1012,19 @@ MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
    inputLowerRowInd_ = new int[lowerRowNum_];
    CoinDisjointCopyN(lowerRowInd_, lowerRowNum_, inputLowerRowInd_);
 
-   // YX: check if any equality constraint exists, modify row bounds, and 
+   // YX: check if any equality/range constraint exists, modify row bounds, and 
    //    append the splited cosntraint to the end with sense ">=";
    int numRows(inputNumRows);
-   std::vector<int> eqConstrInd;
+   std::vector<int> rngConstrInd;
    std::vector<char> rowSenseVec(rowSense, rowSense+inputNumRows);
    std::vector<int> lowerRowIndVec(lowerRowInd_, lowerRowInd_+inputLowerRowNum_);
    std::vector<double> rowLBVec(rowLB, rowLB+inputNumRows);
    std::vector<double> rowUBVec(rowUB, rowUB+inputNumRows);
    
    for(i = 0; i < inputNumRows; i++){
-      if(rowSense[i] == 'E'){
+      if((rowSense[i] == 'E') || 
+         ((rowLB[i] > -1*infinity) && (rowUB[i] < infinity))){
+         
          for(j = 0; j < inputLowerRowNum_; j++){
             if(inputLowerRowInd_[j] == i){
                lowerRowIndVec.push_back(numRows);
@@ -1036,14 +1038,14 @@ MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
          rowSenseVec[i] = 'L';
          rowSenseVec.push_back('G');
          
-         eqConstrInd.push_back(i);
+         rngConstrInd.push_back(i);
          numRows ++;
       }
    }
    
    // YX: debug only
    assert(lowerRowNum_ == lowerRowIndVec.size());
-   assert(numRows - inputNumRows == eqConstrInd.size()); 
+   assert(numRows - inputNumRows == rngConstrInd.size()); 
 
    // YX: add rows to the problem matrix and link pointers to vectors 
    if(numRows > inputNumRows){
@@ -1059,7 +1061,7 @@ MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
 
       for (i = 0; i < numRows - inputNumRows; i++){
          CoinPackedVector row;
-         k = eqConstrInd[i];
+         k = rngConstrInd[i];
          start = matStarts[k];
          end = start + rowMatrix.getVectorSize(k);
          for(j = start; j < end; j++){
