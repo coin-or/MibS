@@ -1022,9 +1022,7 @@ MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
    std::vector<double> rowUBVec(rowUB, rowUB+inputNumRows);
    
    for(i = 0; i < inputNumRows; i++){
-      if((rowSense[i] == 'E') || 
-         ((rowLB[i] > -1*infinity) && (rowUB[i] < infinity))){
-         
+      if(((rowLB[i] > -1*infinity) && (rowUB[i] < infinity))){
          for(j = 0; j < inputLowerRowNum_; j++){
             if(inputLowerRowInd_[j] == i){
                lowerRowIndVec.push_back(numRows);
@@ -2211,13 +2209,13 @@ MibSModel::findIndex(int index, int size, int * indices)
   bool found(false);
 
   for(i = 0; i < size; i++){
-    if(indices[i] == index)
+    if(indices[i] == index){
       found = true;
+      break;
+    }
   }
 
   return found;
-
-
 }
 
 //#############################################################################
@@ -3642,7 +3640,7 @@ MibSModel::instanceStructure()
            case 'R':
              std::cout << "MibS cannot currently handle range constraints.";
              std::cout << std::endl;
-             abort();
+             abort(); // YX: handled in loadProblemData()
              break;
           }
           if ((fabs(rhs - floor(rhs)) > etol_) &&
