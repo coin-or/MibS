@@ -290,7 +290,7 @@ MibSModel::readAuxiliaryData(int numCols, int numRows)
           std::cout << "MibS used " <<  fileName << " automatically.";
           std::cout << std::endl;
       }else{
-          fileName = mpsFile.substr(0, mpsFile.find(".")+1);
+          fileName = mpsFile.substr(0, mpsFile.find_last_of(".")+1);
           fileName.append("txt");
 	  if (fileCoinReadable(fileName)){
 	      fileName.copy(tmpArr, length);
