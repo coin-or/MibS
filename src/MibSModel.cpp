@@ -1022,7 +1022,7 @@ MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
    std::vector<double> rowUBVec(rowUB, rowUB+inputNumRows);
    
    for(i = 0; i < inputNumRows; i++){
-      if(((rowLB[i] > -1*infinity) && (rowUB[i] < infinity))){
+      if((rowSense[i] == 'E') || (rowSense[i] == 'R')){
          for(j = 0; j < inputLowerRowNum_; j++){
             if(inputLowerRowInd_[j] == i){
                lowerRowIndVec.push_back(numRows);
@@ -3633,12 +3633,12 @@ MibSModel::instanceStructure()
              rhs = conLB_[i];
              break;
            case 'E':
-             std::cout << "MibS cannot currently handle equality constraints.";
+             std::cout << "Something went wrong in equality constraints conversion.";
              std::cout << std::endl; 
              abort(); // YX: handled in loadProblemData()
              break;
            case 'R':
-             std::cout << "MibS cannot currently handle range constraints.";
+             std::cout << "Something went wrong in range constraints conversion.";
              std::cout << std::endl;
              abort(); // YX: handled in loadProblemData()
              break;
