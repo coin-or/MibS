@@ -1022,9 +1022,7 @@ MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
    std::vector<double> rowUBVec(rowUB, rowUB+inputNumRows);
    
    for(i = 0; i < inputNumRows; i++){
-      if((rowSense[i] == 'E') || 
-         ((rowLB[i] > -1*infinity) && (rowUB[i] < infinity))){
-         
+      if((rowSense[i] == 'E') || (rowSense[i] == 'R')){
          for(j = 0; j < inputLowerRowNum_; j++){
             if(inputLowerRowInd_[j] == i){
                lowerRowIndVec.push_back(numRows);
@@ -2211,13 +2209,13 @@ MibSModel::findIndex(int index, int size, int * indices)
   bool found(false);
 
   for(i = 0; i < size; i++){
-    if(indices[i] == index)
+    if(indices[i] == index){
       found = true;
+      break;
+    }
   }
 
   return found;
-
-
 }
 
 //#############################################################################
@@ -3635,14 +3633,14 @@ MibSModel::instanceStructure()
              rhs = conLB_[i];
              break;
            case 'E':
-             std::cout << "MibS cannot currently handle equality constraints.";
+             std::cout << "Something went wrong in equality constraints conversion.";
              std::cout << std::endl; 
              abort(); // YX: handled in loadProblemData()
              break;
            case 'R':
-             std::cout << "MibS cannot currently handle range constraints.";
+             std::cout << "Something went wrong in range constraints conversion.";
              std::cout << std::endl;
-             abort();
+             abort(); // YX: handled in loadProblemData()
              break;
           }
           if ((fabs(rhs - floor(rhs)) > etol_) &&
