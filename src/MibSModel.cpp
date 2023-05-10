@@ -1041,9 +1041,23 @@ MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
       }
    }
    
+   // YX: add a trivial row as placeholder if no explicit lower rows
+   bool emptySLMat(false);
+   if(lowerRowNum_ <= 0){
+      emptySLMat = true;
+      lowerRowIndVec.push_back(numRows);
+      lowerRowNum_ ++;
+
+      // -inf <= y_0 <= UB of y_0
+      rowLBVec.push_back(-1 * infinity);
+      rowUBVec.push_back(colUB[lowerColInd_[0]]);
+      rowSenseVec.push_back('L');
+      numRows ++;
+   } 
+   
    // YX: debug only
    assert(lowerRowNum_ == lowerRowIndVec.size());
-   assert(numRows - inputNumRows == rngConstrInd.size()); 
+   assert(numRows - inputNumRows == (rngConstrInd.size() + (int)emptySLMat)); 
 
    // YX: add rows to the problem matrix and link pointers to vectors 
    if(numRows > inputNumRows){
@@ -1057,7 +1071,7 @@ MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
       const int * matIndices = rowMatrix.getIndices();
       const int * matStarts = rowMatrix.getVectorStarts();
 
-      for (i = 0; i < numRows - inputNumRows; i++){
+      for(i = 0; i < numRows-inputNumRows-(int)emptySLMat; i++){
          CoinPackedVector row;
          k = rngConstrInd[i];
          start = matStarts[k];
@@ -1065,6 +1079,12 @@ MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
          for(j = start; j < end; j++){
             row.insert(matIndices[j], matElements[j]);
          }
+         matrix1->appendRow(row);
+      }
+
+      if(emptySLMat){
+         CoinPackedVector row;
+         row.insert(lowerColInd_[0], 1.0);
          matrix1->appendRow(row);
       }
 
