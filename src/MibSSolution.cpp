@@ -115,7 +115,7 @@ MibSSolution::print(std::ostream& os) const
       if (values_[index] > 1.0e-15 || values_[index] < -1.0e-15) {
 	 nearInt = floor(values_[index] + 0.5);
 	 if (ALPS_FABS(nearInt - values_[index]) < 1.0e-6) {
-	     if (inputFormat == "indexBased") {
+	     if (!columnName) {
 		 os << "x[" << j << "] = " << nearInt << std::endl;
 	     }
 	     else {
@@ -123,7 +123,7 @@ MibSSolution::print(std::ostream& os) const
 	     }
 	 }
 	 else {
-	     if (inputFormat == "indexBased") {
+	     if (!columnName) {
 		 os << "x[" << j << "] = " << values_[index] << std::endl;
 	     }
 	     else {
@@ -138,7 +138,7 @@ MibSSolution::print(std::ostream& os) const
       if (values_[index] > 1.0e-15 || values_[index] < -1.0e-15) {
 	 nearInt = floor(values_[index] + 0.5);
 	 if (ALPS_FABS(nearInt - values_[index]) < 1.0e-6) {
-	     if (inputFormat == "indexBased") {
+	     if (!columnName) {
 		 os << "y[" << j << "] = " << nearInt << std::endl;
 	     }
 	     else {
@@ -146,7 +146,7 @@ MibSSolution::print(std::ostream& os) const
 	     }
 	 }
 	 else {
-	     if(inputFormat == "indexBased"){
+             if(!columnName){
 		 os << "y[" << j << "] = " << values_[index] << std::endl;
 	     }
 	     else{
