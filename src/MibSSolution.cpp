@@ -110,6 +110,7 @@ MibSSolution::print(std::ostream& os) const
    }
    */
 
+   os << "First stage (upper level) variable values:" << std::endl;
    for(j = 0; j < uN; ++j) {
       index = upperColInd[j];      
       if (values_[index] > 1.0e-15 || values_[index] < -1.0e-15) {
@@ -133,6 +134,7 @@ MibSSolution::print(std::ostream& os) const
       }
    }
 
+   os << "Second stage (lower level) variable values:" << std::endl;
    for(j = 0; j < lN; ++j) {
       index = lowerColInd[j];      
       if (values_[index] > 1.0e-15 || values_[index] < -1.0e-15) {
