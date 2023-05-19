@@ -31,7 +31,7 @@ class MibSCutGenerator : public BlisConGenerator {
    int numCalledBoundCut_;
    bool isBigMIncObjSet_;
    double bigMIncObj_;
-   OsiSolverInterface * watermelonICSolver_;
+   OsiSolverInterface * ImprovingDirectionICSolver_;
    std::vector<int> leafNodeCutTmpHist_; 
     
  public:
@@ -70,7 +70,7 @@ class MibSCutGenerator : public BlisConGenerator {
    /** Add no-good cuts for binary upper-level variables **/
    int noGoodCut(BcpsConstraintPool &conPool);
 
-   int generalNoGoodCut(BcpsConstraintPool &conPool);
+   int generalizedNoGoodCut(BcpsConstraintPool &conPool);
 
    /** Add Benders-type cuts for interdiction problems **/
    int bendersInterdictionOneCut(BcpsConstraintPool &conPool,
@@ -95,12 +95,12 @@ class MibSCutGenerator : public BlisConGenerator {
     /** Helper function for IC*/
     double solveModelIC(double *uselessIneqs, double *ray, double *rhs, int numNonBasic);
 
-    /** Helper function for watermelon IC **/
-    bool findLowerLevelSolWatermelonIC(double *uselessIneqs, double *lowerLevelSol,
+    /** Helper function for ImprovingDirectionIC **/
+    bool findLowerLevelSolImprovingDirectionIC(double *uselessIneqs, double *lowerLevelSol,
 				       double* lpSol, bool &isTimeLimReached);
 
-    /** Helper function for watermelon IC*/
-    bool getAlphaWatermelonIC(double** extRay, double *uselessIneqs, double* lowerSolution,
+    /** Helper function for ImprovingDirectionIC*/
+    bool getAlphaImprovingDirectionIC(double** extRay, double *uselessIneqs, double* lowerSolution,
 			      int numStruct, int numNonBasic, double* lpSol,
 			      std::vector<double> &alphaVec);
 
@@ -153,23 +153,23 @@ class MibSCutGenerator : public BlisConGenerator {
    void solveMips(OsiSolverInterface * mipSolver);
   
    /** Add disjunctive cuts for binary upper-level variables **/
-   int incObjCut(BcpsConstraintPool &conPool);
+   int bendersBinaryCut(BcpsConstraintPool &conPool);
 
    /** Add disjunctive cuts for binary upper-level variables (current sol)**/
-   int incObjCutCurrent(BcpsConstraintPool &conPool);
+   int bendersBinaryCutCurrent(BcpsConstraintPool &conPool);
 
    /** Add disjunctive cuts for binary upper-level variables (maximal sol) **/
-   int incObjCutMaximal(BcpsConstraintPool &conPool);
+   int bendersBinaryCutMaximal(BcpsConstraintPool &conPool);
 
-   int generalWeakIncObjCutCurrent(BcpsConstraintPool &conPool);
+   int generalWeakBendersBinaryCutCurrent(BcpsConstraintPool &conPool);
 
-   double findBigMIncObjCut();
+   double findBigMBendersBinaryCut();
 
    /** Add disjunctive cuts for binary upper-level variables (current sol)**/
-   int weakIncObjCutCurrent(BcpsConstraintPool &conPool);
+   int weakBendersBinaryCutCurrent(BcpsConstraintPool &conPool);
 
    /** Add disjunctive cuts for binary upper-level variables (maximal sol) **/
-   int weakIncObjCutMaximal(BcpsConstraintPool &conPool);
+   int weakBendersBinaryCutMaximal(BcpsConstraintPool &conPool);
 
    /** Use the cut generator LP to find the deepest L and P cut **/
    double * findDeepestLandPCut_ValFunc();

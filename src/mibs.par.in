@@ -62,7 +62,7 @@ Blis_cutStrategy      2
 Blis_heurStrategy  0   # -2: root, -1: auto, 0: disable, any positive integer
 Blis_heurRound     0   # -2: root, -1: auto, 0: disable, any positive integer
 
-#Blis_branchStrategy 0   # 0: max inf, 1: pseudocost, 2: relibility, 3: strong
+#Blis_branchStrategy 0  # 0: max inf, 1: pseudocost, 2: relibility, 3: strong
 #Blis_branchStrategyRampUp 0
 
 #Blis_pseudoWeight        0.8  # [0.0, 1.0]
@@ -82,30 +82,30 @@ MibS_useLowerObjHeuristic 0     # -1: auto, 0: false, 1: true
 MibS_useObjCutHeuristic 0       # -1: auto, 0: false, 1: true
 MibS_useWSHeuristic 0           # -1: auto, 0: false, 1: true
 MibS_useGreedyHeuristic 1       # 0: false, 1: true
-#MibS_usePureIntegerCut 1        # 0: false, 1: true
-#MibS_useValFuncCut 1            # 0: false, 1: true
-#MibS_useNoGoodCut 1             # 0: false, 1: true
-#MibS_useIncObjCut 1             # 0: false, 1: true
+#MibS_useIntegerNoGoodCut 1     # 0: false, 1: true
+#MibS_useValFuncCut 1           # 0: false, 1: true
+#MibS_useNoGoodCut 1            # 0: false, 1: true
+#MibS_useBendersBinaryCut 1     # 0: false, 1: true
 MibS_bilevelProblemType 1       # 0: general, 1: interdict
-#MibS_bilevelCutTypes 1          # 0: general, 1: general/interdict, 2: #general/binary UL, 3: binary UL
+#MibS_bilevelCutTypes 1         # 0: general, 1: general/interdict, 2: #general/binary UL, 3: binary UL
 #MibS_whichActiveConMethod 1    # 0: simple, 1: basis
-#MibS_cutStrategy 2              # 0: branch only, 1: cut only, 2: use cut #and branch
-#MibS_objBoundStrategy 0         # 0: LL obj bound, 1: interdiction bound
-#MibS_blisCutStrategy -1                 # -2: root, -1: auto, 0: disable, any positive integer
+#MibS_cutStrategy 2             # 0: branch only, 1: cut only, 2: use cut #and branch
+#MibS_objBoundStrategy 0        # 0: LL obj bound, 1: interdiction bound
+#MibS_blisCutStrategy -1        # -2: root, -1: auto, 0: disable, any positive integer
 #MibS_blisBranchStrategy 0      # 0: max inf, 1: pseudocost, 2: relibility, 3: strong
 #MibS_upperFileFormat 0         # 0: mps, 1: AMPL/GMPL (not working, yet)
-#MibS_branchStrategy  1       # 0: fractional, 1: linking
+#MibS_branchStrategy  1         # 0: fractional, 1: linking
 #MibS_warmStartLL 0
 #MibS_maxThreadsLL 1
-MibS_useBendersCut 1
-MibS_bendersCutType 0
-#MibS_useGeneralNoGoodCut 1
+MibS_useBendersInterdictionCut 1
+MibS_bendersInterdictionCutType 0
+#MibS_useGeneralizedNoGoodCut 1
 #MibS_useIntersectionCut 1
 #MibS_intersectionCutType 3
 #MibS_useBoundCut 0
 #MibS_boundCutOptimal 1
-#MibS_boundCutRelaxUpper 0    # This option doesn't work for now
-#MibS_whichCutsLL 2           # 0: no cuts, 1: gomory only, 2: all cuts
+#MibS_boundCutRelaxUpper 0      # This option doesn't work for now
+#MibS_whichCutsLL 2             # 0: no cuts, 1: gomory only, 2: all cuts
 #MibS_doDualFixing 0
 #MibS_feasCheckSolver SYMPHONY
 #MibS_solveSecondLevelWhenXYVarsInt 1

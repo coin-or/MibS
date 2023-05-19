@@ -54,8 +54,11 @@ MibSParams::createKeywordList() {
    keys_.push_back(make_pair(std::string("MibS_doDualFixing"),
 			     AlpsParameter(AlpsBoolPar, doDualFixing)));
    
+   keys_.push_back(make_pair(std::string("MibS_turnOffDefaultCuts"),
+			     AlpsParameter(AlpsBoolPar, turnOffDefaultCuts)));
+   //legacy parameter name
    keys_.push_back(make_pair(std::string("MibS_turnOffOtherCuts"),
-			     AlpsParameter(AlpsBoolPar, turnOffOtherCuts)));
+			     AlpsParameter(AlpsBoolPar, turnOffDefaultCuts)));
 
    keys_.push_back(make_pair(std::string("MibS_printProblemInfo"),
 			     AlpsParameter(AlpsBoolPar, printProblemInfo)));
@@ -130,38 +133,58 @@ MibSParams::createKeywordList() {
    keys_.push_back(make_pair(std::string("MibS_useGreedyHeuristic"),
 			     AlpsParameter(AlpsIntPar, useGreedyHeuristic)));
 
+   keys_.push_back(make_pair(std::string("MibS_useIntegerNoGoodCut"),
+			     AlpsParameter(AlpsIntPar, useIntegerNoGoodCut)));
+   //legacy parameter name
    keys_.push_back(make_pair(std::string("MibS_usePureIntegerCut"),
-			     AlpsParameter(AlpsIntPar, usePureIntegerCut)));
+			     AlpsParameter(AlpsIntPar, useIntegerNoGoodCut)));
 
    keys_.push_back(make_pair(std::string("MibS_useNoGoodCut"),
 			     AlpsParameter(AlpsIntPar, useNoGoodCut)));
-
+   //legacy parameter name
    keys_.push_back(make_pair(std::string("MibS_useGeneralNoGoodCut"),
-			     AlpsParameter(AlpsIntPar, useGeneralNoGoodCut)));
+			     AlpsParameter(AlpsIntPar, useGeneralizedNoGoodCut)));
+   keys_.push_back(make_pair(std::string("MibS_useGeneralizedNoGoodCut"),
+			     AlpsParameter(AlpsIntPar, useGeneralizedNoGoodCut)));
    
+   keys_.push_back(make_pair(std::string("MibS_useBendersBinaryCut"),
+			     AlpsParameter(AlpsIntPar, useBendersBinaryCut)));
+   //legacy parameter name
    keys_.push_back(make_pair(std::string("MibS_useIncObjCut"),
-			     AlpsParameter(AlpsIntPar, useIncObjCut)));
+			     AlpsParameter(AlpsIntPar, useBendersBinaryCut)));
 
+   keys_.push_back(make_pair(std::string("MibS_useBendersInterdictionCut"),
+			     AlpsParameter(AlpsIntPar, useBendersInterdictionCut)));
+   //legacy parameter name
    keys_.push_back(make_pair(std::string("MibS_useBendersCut"),
-			     AlpsParameter(AlpsIntPar, useBendersCut)));
+			     AlpsParameter(AlpsIntPar, useBendersInterdictionCut)));
 
+   keys_.push_back(make_pair(std::string("MibS_bendersInterdictionCutType"),
+			     AlpsParameter(AlpsIntPar, bendersInterdictionCutType)));
+   //legacy parameter name
    keys_.push_back(make_pair(std::string("MibS_bendersCutType"),
-			     AlpsParameter(AlpsIntPar, bendersCutType)));
+			     AlpsParameter(AlpsIntPar, bendersInterdictionCutType)));
 
+   keys_.push_back(make_pair(std::string("MibS_useImprovingSolutionIC"),
+			     AlpsParameter(AlpsIntPar, useImprovingSolutionIC)));
+   //legacy paramter name
    keys_.push_back(make_pair(std::string("MibS_useTypeIC"),
-			     AlpsParameter(AlpsIntPar, useTypeIC)));
+			     AlpsParameter(AlpsIntPar, useImprovingSolutionIC)));
 
+   keys_.push_back(make_pair(std::string("MibS_useImprovingDirectionIC"),
+			     AlpsParameter(AlpsIntPar, useImprovingDirectionIC)));
+   //legacy parameter name
    keys_.push_back(make_pair(std::string("MibS_useTypeWatermelon"),
-			     AlpsParameter(AlpsIntPar, useTypeWatermelon)));
+			     AlpsParameter(AlpsIntPar, useImprovingDirectionIC)));
 
-   keys_.push_back(make_pair(std::string("MibS_useTypeHypercubeIC"),
-			     AlpsParameter(AlpsIntPar, useTypeHypercubeIC)));
+   keys_.push_back(make_pair(std::string("MibS_useHypercubeIC"),
+			     AlpsParameter(AlpsIntPar, useHypercubeIC)));
 
-   keys_.push_back(make_pair(std::string("MibS_useTypeTenderIC"),
-			     AlpsParameter(AlpsIntPar, useTypeTenderIC)));
+   keys_.push_back(make_pair(std::string("MibS_useTenderIC"),
+			     AlpsParameter(AlpsIntPar, useTenderIC)));
 
-   keys_.push_back(make_pair(std::string("MibS_useTypeHybridIC"),
-			     AlpsParameter(AlpsIntPar, useTypeHybridIC)));
+   keys_.push_back(make_pair(std::string("MibS_useHybridIC"),
+			     AlpsParameter(AlpsIntPar, useHybridIC)));
 
    keys_.push_back(make_pair(std::string("MibS_bilevelFreeSetTypeIC"),
 			     AlpsParameter(AlpsIntPar, bilevelFreeSetTypeIC)));
@@ -274,7 +297,7 @@ MibSParams::setDefaultEntries() {
 
    setEntry(doDualFixing, false);
 
-   setEntry(turnOffOtherCuts, false);
+   setEntry(turnOffDefaultCuts, false);
 
    setEntry(printProblemInfo, true);
 
@@ -322,27 +345,27 @@ MibSParams::setDefaultEntries() {
 
    setEntry(useGreedyHeuristic, PARAM_NOTSET);
 
-   setEntry(usePureIntegerCut, PARAM_NOTSET);
+   setEntry(useIntegerNoGoodCut, PARAM_NOTSET);
 
    setEntry(useNoGoodCut, PARAM_NOTSET);
 
-   setEntry(useGeneralNoGoodCut, PARAM_NOTSET);
+   setEntry(useGeneralizedNoGoodCut, PARAM_NOTSET);
 
-   setEntry(useIncObjCut, PARAM_NOTSET);
+   setEntry(useBendersBinaryCut, PARAM_NOTSET);
 
-   setEntry(useBendersCut, PARAM_NOTSET);
+   setEntry(useBendersInterdictionCut, PARAM_NOTSET);
 
-   setEntry(bendersCutType, MibSBendersCutTypeJustOneCut);
+   setEntry(bendersInterdictionCutType, MibSBendersInterdictionCutTypeJustOneCut);
 
-   setEntry(useTypeIC, PARAM_NOTSET);
+   setEntry(useImprovingSolutionIC, PARAM_NOTSET);
 
-   setEntry(useTypeWatermelon, PARAM_NOTSET);
+   setEntry(useImprovingDirectionIC, PARAM_NOTSET);
 
-   setEntry(useTypeHypercubeIC, PARAM_NOTSET);
+   setEntry(useHypercubeIC, PARAM_NOTSET);
 
-   setEntry(useTypeTenderIC, PARAM_NOTSET);
+   setEntry(useTenderIC, PARAM_NOTSET);
 
-   setEntry(useTypeHybridIC, PARAM_NOTSET);
+   setEntry(useHybridIC, PARAM_NOTSET);
 
    setEntry(useFractionalCuts, 0);
 
