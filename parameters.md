@@ -103,24 +103,27 @@ These are parameters for controlling branching.
 
 ### Cuts
 
-These are parameters for controlling generation of valid inequalities. For an explanation, please see this [technical report]( http://coral.ie.lehigh.edu/~ted/files/papers/MibSCuts20.pdf).
+These are parameters for controlling generation of valid inequalities. For an explanation, please see this [technical report]( http://coral.ie.lehigh.edu/~ted/files/papers/MibSCuts20.pdf). 
+Note that some parameter names related to cuts were changed in version 1.2 to corespond to the names in the report. The names used in earlier versions still work for backwards compatibility, 
+but are not documented. 
 
 | Parameter Name | Description                                     |
 |----------------|-------------------------------------------------|
 | MibS_cutStrategy |  `0`: branch only <br> `1`: cut only <br> `2`: use cut and branch |
 | MibS_maxCutDepth | Deepest level of the tree at which cuts should be generated|
-| MibS_turnOffOtherCuts | Turn off all cuts not explicitly turned on by parameters <br> `0`: false <br> `1`: true |
+| MibS_turnOffDefaultCuts | Turn off all cuts not explicitly turned on by parameters <br> `0`: false <br> `1`: true |
 | MibS_useFractionalCuts | Whether to generate cuts when solution is fractional (see tech report) <br> `0`: false <br> `1`: true |
-| MibS_usePureIntegerCut |  Whether to generate this cut (called an _Integer No-good Cut_ in the tech report) <br> `0`: false <br> `1`: true |
-| MibS_useValFuncCut | Whether to generate this cut <br> `0`: false <br> `1`: true |
-| MibS_useNoGoodCut | Whether to generate this cut <br> `0`: false <br> `1`: true |
-| MibS_useIncObjCut | Whether to generate this cut (called a _Benders Binary Cut_ in the tech report) <br> `0`: false <br> `1`: true |
-| MibS_useBendersCut | Whether to generate this cut (called a _Benders Interdiction Cut_ in the tech report) <br>`0`: false <br> `1`: true |
-| MibS_bendersCutType | Whether to generate a single or multiple cuts (from different solutions) in each iteration <br> `0`: justOne <br> `1`: multiple |
-| MibS_useGeneralNoGoodCut | Whether to generate this cut (called a _Generalized No-good Cut_ in the tech report) <br> `0`: false <br> `1`: true |
-| MibS_useTypeIC | Whether to generate intersection cuts of Types I or II (see tech report) <br> `0`: false <br> `1`: true |
-| MibS_bilevelFreeSetTypeIC | Whether to generate intersection cuts of Type I or II (see tech report) <br> `0`: Derive solution by solving lower level problem to optimality <br> `1`: Derive a solution by solving an auxiliary problem |
-| MibS_useTypeWatermelom | Whether to generate watermelon intersection cuts (see tech report) <br> `0`: false <br> `1`: true |
+| MibS_useIntegerNoGoodCut |  Whether to generate integer no good cuts <br> `0`: false <br> `1`: true |
+| MibS_useValFuncCut | Whether to generate value function cuts <br> `0`: false <br> `1`: true |
+| MibS_useNoGoodCut | Whether to generate no good cuts <br> `0`: false <br> `1`: true |
+| MibS_useBendersBinaryCut | Whether to generate Benders binary cuts <br> `0`: false <br> `1`: true |
+| MibS_useBendersInterdictionCut | Whether to generate Benders intersection cuts <br>`0`: false <br> `1`: true |
+| MibS_bendersInterdictionCutType | Whether to generate a single or multiple cuts (from different solutions) in each iteration <br> `0`: justOne <br> `1`: multiple |
+| MibS_useGeneralizedNoGoodCut | Whether to generate generalized no good cuts <br> `0`: false <br> `1`: true |
+| MibS_useImprovingSolutionIC | Whether to generate improving solution intersection cuts <br> `0`: false <br> `1`: true |
+| MibS_bilevelFreeSetTypeIC | What kind of bilevel free set type to use for improving solution ICs <br> `0`: Derive solution by solving lower level problem to optimality <br> `1`: Derive a solution by solving an auxiliary problem |
+| MibS_useImprovingDirectionIC | Whether to generate improving direction intersection cuts <br> `0`: false <br> `1`: true |
+| MibS_useHypecubeIC | Whether to generate hypercube intersection cuts <br> `0`: false <br> `1`: true |
 | MibS_useBoundCut | Whether to generate this cut (see tech report) <br> `0`: false <br> `1`: true |
 | MibS_boundCutOptimal | What kind of bound cut to generate (there is currently only one option) <br> `0`: false <br> `1`: true |
 
