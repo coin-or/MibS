@@ -69,10 +69,11 @@ int main(int argc, char* argv[])
            std::cerr
               << "================================================" << std::endl
               << "Usage:" << std::endl
-              << "1)./mibs -Alps_instance file.mps" << std::endl
-              << "       -MibS_auxiliaryInfoFile aux_file.aux" << std::endl
-              << "       --BlockFile /FilePath/ABC.block" << std::endl
+              << "1)./mibs -Alps_instance file.mps "
+              << "-MibS_auxiliaryInfoFile aux_file.aux" << std::endl
               << "2)./mibs -param mibs.par" << std::endl
+              << "See https://coin-or.github.io/MibS for more information"
+              << std::endl
               << "================================================" << std::endl
               << std::endl;
            return 0;
