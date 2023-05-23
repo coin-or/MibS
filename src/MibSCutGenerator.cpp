@@ -325,8 +325,8 @@ MibSCutGenerator::intersectionCuts(BcpsConstraintPool &conPool,
                                    MibSIntersectionCutType ICType)
 {
     
-	MibSBilevelFreeSetTypeIC bilevelFreeSetType =
-	    static_cast<MibSBilevelFreeSetTypeIC>
+	MibSBilevelFreeSetTypeISIC bilevelFreeSetType =
+	    static_cast<MibSBilevelFreeSetTypeISIC>
 	    (localModel_->MibSPar_->entry(MibSParams::bilevelFreeSetTypeIC));
 	
 	int useLinkingSolutionPool(localModel_->MibSPar_->entry
@@ -564,7 +564,7 @@ MibSCutGenerator::intersectionCuts(BcpsConstraintPool &conPool,
 	switch(ICType){
 	case MibSIntersectionCutImprovingSolution:
 	    {
-		if(bilevelFreeSetType == MibSBilevelFreeSetTypeICWithNewLLSol){
+		if(bilevelFreeSetType == MibSBilevelFreeSetTypeISICWithNewLLSol){
 		    //it shows which lower level rows are not
 		    //necessary to be included in the convex set
 		    double *uselessIneqs = new double[lRows];

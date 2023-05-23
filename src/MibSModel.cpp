@@ -3910,7 +3910,7 @@ MibSModel::instanceStructure()
              ((isPureInteger_ == false) ||
               (isUpperCoeffInt_ == false) ||
               (isLowerCoeffInt_ == false))){
-       std::cout << "The integer no-good cut is only valid for pure integer"
+       std::cout << "The integer no-good cut is only valid for pure integer "
                  << "problems with integer constraint matrices";
        std::cout << std::endl;
        MibSPar()->setEntry(MibSParams::useIntegerNoGoodCut, PARAM_OFF);
@@ -3977,7 +3977,7 @@ MibSModel::instanceStructure()
 
 	if (MibSPar_->entry(MibSParams::useImprovingSolutionIC) == PARAM_ON){
            if (MibSPar_->entry(MibSParams::bilevelFreeSetTypeIC) ==
-               MibSBilevelFreeSetTypeICWithLLOptSol){
+               MibSBilevelFreeSetTypeISICWithLLOptSol){
               std::cout << "Improving solution intersection cut generator (Type I) is on." << std::endl;
            }else{
               std::cout << "Improving solution intersection cut generator (Type II) is on." << std::endl;

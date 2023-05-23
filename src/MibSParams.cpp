@@ -369,7 +369,7 @@ MibSParams::setDefaultEntries() {
 
    setEntry(useFractionalCuts, 0);
 
-   setEntry(bilevelFreeSetTypeIC, MibSBilevelFreeSetTypeICNotSet);
+   setEntry(bilevelFreeSetTypeIC, MibSBilevelFreeSetTypeISICNotSet);
 
    setEntry(solveSecondLevelEveryIteration, PARAM_NOTSET);
 

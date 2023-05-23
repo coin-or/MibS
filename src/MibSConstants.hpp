@@ -81,10 +81,10 @@ enum MibSIntersectionCutType{
 
 //#############################################################################
 
-enum MibSBilevelFreeSetTypeIC{
-    MibSBilevelFreeSetTypeICNotSet = -1,
-    MibSBilevelFreeSetTypeICWithLLOptSol,
-    MibSBilevelFreeSetTypeICWithNewLLSol
+enum MibSBilevelFreeSetTypeISIC{
+    MibSBilevelFreeSetTypeISICNotSet = -1,
+    MibSBilevelFreeSetTypeISICWithLLOptSol,
+    MibSBilevelFreeSetTypeISICWithNewLLSol
 };
 
 //#############################################################################
