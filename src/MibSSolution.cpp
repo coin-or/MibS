@@ -152,7 +152,7 @@ MibSSolution::print(std::ostream& os) const
 		 os << "y[" << j << "] = " << values_[index] << std::endl;
 	     }
 	     else{
-		 os << "columnName[" << j << "] = " << values_[index] << std::endl;
+		 os << columnName[index] << " = " << values_[index] << std::endl;
 	     }
 	 }
       }
