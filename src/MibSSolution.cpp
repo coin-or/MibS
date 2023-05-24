@@ -82,12 +82,12 @@ void
 MibSSolution::print(std::ostream& os) const 
 {
 
-    std::string inputFormat(localModel_->MibSPar_->entry
+   std::string inputFormat(localModel_->MibSPar_->entry
 			    (MibSParams::inputFormat));
+   int isInterdict = localModel_->MibSPar_->entry(MibSParams::bilevelProblemType);
    double nearInt = 0.0;
    //int size(localModel_->getNumOrigVars());
    int j(0); 
-
 
    int uN(localModel_->getUpperDim());
    int lN(localModel_->getLowerDim());
@@ -110,7 +110,11 @@ MibSSolution::print(std::ostream& os) const
    }
    */
 
-   os << "First stage (upper level) variable values:" << std::endl;
+   if (isInterdict){
+      os << "First stage (interdiction) variable values:" << std::endl;
+   }else{
+      os << "First stage (upper level) variable values:" << std::endl;
+   }
    for(j = 0; j < uN; ++j) {
       index = upperColInd[j];      
       if (values_[index] > 1.0e-15 || values_[index] < -1.0e-15) {
@@ -120,7 +124,11 @@ MibSSolution::print(std::ostream& os) const
 		 os << "x[" << j << "] = " << nearInt << std::endl;
 	     }
 	     else {
-		 os << columnName[index] << " = " << nearInt << std::endl;
+                if (isInterdict){
+                   os << columnName[index-uN] << " = " << nearInt << std::endl;
+                }else{
+                   os << columnName[index] << " = " << nearInt << std::endl;
+                }
 	     }
 	 }
 	 else {
@@ -152,7 +160,7 @@ MibSSolution::print(std::ostream& os) const
 		 os << "y[" << j << "] = " << values_[index] << std::endl;
 	     }
 	     else{
-		 os << columnName[index] << " = " << values_[index] << std::endl;
+		 os << "y[" << j << "] = " << values_[index] << std::endl;
 	     }
 	 }
       }
