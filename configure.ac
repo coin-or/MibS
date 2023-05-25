@@ -123,7 +123,7 @@ AC_COIN_DOXYGEN(CoinUtils Osi Clp Cgl Alps Bcps Blis OsiCplex)
 # configuration header file)
 AC_CONFIG_FILES([Makefile
                  src/Makefile
-                 src/mibs.par
+                 examples/mibs.par
                  mibs.pc])
 
 AC_CONFIG_FILES([doxydoc/doxygen.conf])

@@ -1652,7 +1652,7 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
 cat >>confdefs.h <<\_ACEOF
-#define MIBS_GIT_VERSION releases/1.1.2-163-gc6ec463
+#define MIBS_GIT_VERSION releases/1.1.2-171-g013390b
 _ACEOF
 
 
@@ -23259,7 +23259,7 @@ done
 
 # Here list all the files that configure should create (except for the
 # configuration header file)
-                                        ac_config_files="$ac_config_files Makefile src/Makefile src/mibs.par mibs.pc"
+                                        ac_config_files="$ac_config_files Makefile src/Makefile examples/mibs.par mibs.pc"
 
 
           ac_config_files="$ac_config_files doxydoc/doxygen.conf"
@@ -24016,7 +24016,7 @@ do
   # Handling of arguments.
   "Makefile" ) CONFIG_FILES="$CONFIG_FILES Makefile" ;;
   "src/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/Makefile" ;;
-  "src/mibs.par" ) CONFIG_FILES="$CONFIG_FILES src/mibs.par" ;;
+  "examples/mibs.par" ) CONFIG_FILES="$CONFIG_FILES examples/mibs.par" ;;
   "mibs.pc" ) CONFIG_FILES="$CONFIG_FILES mibs.pc" ;;
   "doxydoc/doxygen.conf" ) CONFIG_FILES="$CONFIG_FILES doxydoc/doxygen.conf" ;;
   "depfiles" ) CONFIG_COMMANDS="$CONFIG_COMMANDS depfiles" ;;
