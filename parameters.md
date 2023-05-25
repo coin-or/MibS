@@ -20,16 +20,22 @@ navigation: 2
 
 ## BLIS Parameters
 
-### General
+### Heuristics
+
+These paramters conrol the MILP heuristics built into BLIS. MibS has its own heuristics (see below)
 
 | Parameter Name | Description                                     |
 |----------------|-------------------------------------------------|
-| Blis_scaleConFactor | Level of dynamism above which cuts will be discarded. Note that setting this too low can result in incorrect results, since cuts necessary for validity may be thrown out |
-| Blis_denseConFactor | Cut density above which cuts will be discarded. Note that setting this too low can result in incorrect results, since cuts necessary for validity may be thrown out |
 | Blis_heurStrategy | When to call heuristics (default) <br> `0`: disable <br> `1`: root <br> `2`: auto <br> `3`: periodic |
 | Blis_heurCallFrequency | How often to call heuristics |
 | Blis_heurRoundStrategy | When to call rounding heuristic (default) <br> `0`: disable <br> `1`: root <br> `2`: auto <br> `3`: periodic |
 | Blis_heurRoundFreq | How often to call heuristics |
+
+### Branching
+
+These paramters conrol the strategy for choosing from among the candidates. 
+MibS has its own startegies for chosing the list of candidates (see below)
+
 | Blis_branchStrategy |  MibS uses pseudocost branching by default and the other strategies are untested. <br> `0`: max infeasibility <br> `1`: pseudocost <br> `2`: reliability <br> `3`: strong |
 
 ### Cuts
@@ -37,11 +43,15 @@ navigation: 2
 These are parameters for controlling generation of inequalites valid for
 MILPs, which can be used to eliminate fractional solutions if desired. These
 cuts are all off by default, as they're usually not effective. 
+MibS has its own bilevel-specific cuts (see below)
+Note that `Blis_scaleConFactor` and `Blis_denseConFactor` do affect the addition of bilevel-specific cuts.
 
 | Parameter Name | Description                                     |
 |----------------|-------------------------------------------------|
 | Blis_cutStrategy | Strategy for cut generation (default) <br> `0`: disable <br> `1`: root <br> `2`: auto <br> `3`: periodic |
 | Blis_cutGenerationFrequency | How frequently to generate MILP cuts |
+| Blis_scaleConFactor | Level of dynamism above which cuts will be discarded. Note that setting this too low can result in incorrect results, since cuts necessary for validity may be thrown out |
+| Blis_denseConFactor | Cut density above which cuts will be discarded. Note that setting this too low can result in incorrect results, since cuts necessary for validity may be thrown out |
 | Blis_cutCliqueStrategy <br> Blis_cutGomoryStrategy <br> Blis_cutFlowCoverStrategy <br> Blis_cutKnapsackStrategy <br> Blis_cutMirStrategy <br> Blis_cutOddHoleStrategy <br> Blis_cutProbingStrategy <br> Blis_cutTwoMirStrategy | Strategy for generating individual classes of inequalities. <br> `0`: disable <br> `1`: root <br> `2`: auto <br> `3`: periodic |
 | Blis_cutCliqueFreq <br> Blis_cutGomoryFreq <br> Blis_cutFlowCoverFreq <br> Blis_cutKnapsackFreq <br> Blis_cutMirFreq <br> Blis_cutOddHoleFreq <br> Blis_cutProbingFreq <br> Blis_cutTwoMirFreq | Frequency for generating individual classes of inequalities. 
 
@@ -95,7 +105,7 @@ These are parameters for controlling heuristics.
 
 ### Branching
 
-These are parameters for controlling branching.
+These are parameters for controlling which variables are cnadidates for branching.
 
 | Parameter Name | Description                                     |
 |----------------|-------------------------------------------------|
@@ -121,7 +131,7 @@ but are not documented.
 | MibS_bendersInterdictionCutType | Whether to generate a single or multiple cuts (from different solutions) in each iteration <br> `0`: justOne <br> `1`: multiple |
 | MibS_useGeneralizedNoGoodCut | Whether to generate generalized no good cuts <br> `0`: false <br> `1`: true |
 | MibS_useImprovingSolutionIC | Whether to generate improving solution intersection cuts <br> `0`: false <br> `1`: true |
-| MibS_bilevelFreeSetTypeIC | What kind of bilevel free set type to use for improving solution ICs <br> `0`: Derive solution by solving lower level problem to optimality <br> `1`: Derive a solution by solving an auxiliary problem |
+| MibS_bilevelFreeSetTypeISIC | What kind of bilevel free set type to use for improving solution ICs <br> `0`: Derive solution by solving lower level problem to optimality <br> `1`: Derive a solution by solving an auxiliary problem |
 | MibS_useImprovingDirectionIC | Whether to generate improving direction intersection cuts <br> `0`: false <br> `1`: true |
 | MibS_useHypecubeIC | Whether to generate hypercube intersection cuts <br> `0`: false <br> `1`: true |
 | MibS_useBoundCut | Whether to generate this cut (see tech report) <br> `0`: false <br> `1`: true |
