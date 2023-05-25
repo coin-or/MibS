@@ -3868,15 +3868,15 @@ MibSModel::instanceStructure()
        MibSPar()->setEntry(MibSParams::useImprovingSolutionIC, PARAM_OFF);
     }else if (paramValue == PARAM_ON){
        if ((isPureInteger_ == false) || (isLowerCoeffInt_ == false)){
-          std::cout << "The intersection cut is only valid for pure integer "
+          std::cout << "The improving solutionintersection cut is only valid for pure integer "
                     << "problems with integer lower-level constraints matrix.";
           std::cout << std::endl;
           MibSPar()->setEntry(MibSParams::useImprovingSolutionIC, PARAM_OFF);
        }
        if (MibSPar_->entry(MibSParams::bilevelFreeSetTypeISIC) == 1 &&
            isLowerObjInt_ == false){
-          std::cout << "Type II intersection cuts are only valid for problems "
-                    << "with integer lower-level objective coefficients.";
+          std::cout << "The improving solution intersection cut (type II) are only valid for "
+                    << "problems with integer lower-level objective coefficients.";
           std::cout << std::endl;
           MibSPar()->setEntry(MibSParams::useImprovingSolutionIC, PARAM_OFF);
        }
@@ -3948,23 +3948,23 @@ MibSModel::instanceStructure()
 
     if (printProblemInfo == true){
 	if(MibSPar_->entry(MibSParams::useBendersBinaryCut) == PARAM_ON){
-           std::cout << "Increasing objective cut generator is on.";
+           std::cout << "Benders binary cut generator is on.";
            std::cout << std::endl;
 	}
 
 	if (MibSPar_->entry(MibSParams::useBendersInterdictionCut) == PARAM_ON){
            if (MibSPar_->entry(MibSParams::bendersInterdictionCutType) ==
                MibSBendersInterdictionCutTypeJustOneCut){
-              std::cout << "Benders cut generator (just one cut) is on.";
+              std::cout << "Benders interdiction cut generator (just one cut) is on.";
               std::cout << std::endl;
            }else{
-              std::cout << "Benders cut generator (multiple cuts) is on.";
+              std::cout << "Benders interdiction cut generator (multiple cuts) is on.";
               std::cout << std::endl;
            }
 	}
         
         if (MibSPar_->entry(MibSParams::useIntegerNoGoodCut) == PARAM_ON){
-           std::cout << "Pure integer cut generator is on."<< std::endl;
+           std::cout << "Integer no-good cut generator is on."<< std::endl;
 	}
         
 	if (MibSPar_->entry(MibSParams::useNoGoodCut) == PARAM_ON){
