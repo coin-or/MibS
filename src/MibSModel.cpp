@@ -3925,7 +3925,7 @@ MibSModel::instanceStructure()
                               MibSBranchingStrategyLinking);
           if (printProblemInfo == true){
              std::cout <<
-                "Default branching strategy is MibSBranchingStrategyLinking.";
+                "Branching strategy is to branch on linking variables.";
              std::cout << std::endl;
           }
        }else{
@@ -3933,7 +3933,7 @@ MibSModel::instanceStructure()
                               MibSBranchingStrategyFractional);
           if (printProblemInfo == true){
              std::cout <<
-                "Default branching strategy is MibSBranchingStrategyFractional.";
+                "Branching strategy is to branch on all variables with fractional values.";
              std::cout << std::endl;
           }
        }
