@@ -225,7 +225,7 @@ private:
     CoinPackedMatrix *origConstCoefMatrix_;
     
     //we only fill next three matrices if they are required.
-    //For now, we only need them for generating IC and watermelon IC.
+    //For now, we only need them for generating IC and ImprovingDirectionIC.
     /** matrix of lower-level coefficients(all constraints are 'L') **/
     CoinPackedMatrix *lowerConstCoefMatrix_;
 

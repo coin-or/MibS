@@ -3709,7 +3709,7 @@ MibSModel::instanceStructure()
     
     int paramValue(0);
     
-    bool turnOffOtherCuts(MibSPar_->entry(MibSParams::turnOffOtherCuts));
+    bool turnOffDefaultCuts(MibSPar_->entry(MibSParams::turnOffDefaultCuts));
     bool defaultCutIsOn(false);
     
     //Param: "MibS_usePreprocessor" 
@@ -3737,28 +3737,28 @@ MibSModel::instanceStructure()
     }
 
     if (MibSPar_->entry(MibSParams::cutStrategy) == BRANCHONLY){
-       turnOffOtherCuts = true;
+       turnOffDefaultCuts = true;
     }
     
-    //Param: "MibS_useIncObjCut"
-    if ((turnOffOtherCuts == true) &&
-        (MibSPar_->entry(MibSParams::useIncObjCut) == PARAM_NOTSET)){
-       MibSPar()->setEntry(MibSParams::useIncObjCut, PARAM_OFF);
+    //Param: "MibS_useBendersBinaryCut"
+    if ((turnOffDefaultCuts == true) &&
+        (MibSPar_->entry(MibSParams::useBendersBinaryCut) == PARAM_NOTSET)){
+       MibSPar()->setEntry(MibSParams::useBendersBinaryCut, PARAM_OFF);
     }
     
-    paramValue = MibSPar_->entry(MibSParams::useIncObjCut);
+    paramValue = MibSPar_->entry(MibSParams::useBendersBinaryCut);
     
     if (allLinkingBin_ == true){
-       if (turnOffOtherCuts == false && paramValue == PARAM_NOTSET){
-          MibSPar()->setEntry(MibSParams::useIncObjCut, PARAM_ON);
+       if (turnOffDefaultCuts == false && paramValue == PARAM_NOTSET){
+          MibSPar()->setEntry(MibSParams::useBendersBinaryCut, PARAM_ON);
        }
     }else if (paramValue == PARAM_ON){
        std::cout << "The increasing objective cut is only valid when "
                  << "linking variables are binary.";
        std::cout << std::endl;
-       MibSPar()->setEntry(MibSParams::useIncObjCut, PARAM_OFF);
+       MibSPar()->setEntry(MibSParams::useBendersBinaryCut, PARAM_OFF);
     }else if (paramValue == PARAM_NOTSET){
-       MibSPar()->setEntry(MibSParams::useIncObjCut, PARAM_OFF);
+       MibSPar()->setEntry(MibSParams::useBendersBinaryCut, PARAM_OFF);
     }
     
     //Param: "MibS_useNoGoodCut"
@@ -3773,21 +3773,21 @@ MibSModel::instanceStructure()
        MibSPar()->setEntry(MibSParams::useNoGoodCut, PARAM_OFF);
     }
 
-    //Param: "MibS_useBendersCut"
-    if ((turnOffOtherCuts == true) &&
-        (MibSPar_->entry(MibSParams::useBendersCut) == PARAM_NOTSET)){
-       MibSPar()->setEntry(MibSParams::useBendersCut, PARAM_OFF);
+    //Param: "MibS_useBendersInterdictionCut"
+    if ((turnOffDefaultCuts == true) &&
+        (MibSPar_->entry(MibSParams::useBendersInterdictionCut) == PARAM_NOTSET)){
+       MibSPar()->setEntry(MibSParams::useBendersInterdictionCut, PARAM_OFF);
     }
     
-    paramValue = MibSPar_->entry(MibSParams::useBendersCut);
+    paramValue = MibSPar_->entry(MibSParams::useBendersInterdictionCut);
 
     if (paramValue == PARAM_NOTSET){
 	if (!isInterdict_){
-	    MibSPar()->setEntry(MibSParams::useBendersCut, PARAM_OFF);
+	    MibSPar()->setEntry(MibSParams::useBendersInterdictionCut, PARAM_OFF);
 	}else{
-	    MibSPar()->setEntry(MibSParams::useBendersCut, PARAM_ON);
-	    MibSPar()->setEntry(MibSParams::bendersCutType,
-                                MibSBendersCutTypeJustOneCut);
+	    MibSPar()->setEntry(MibSParams::useBendersInterdictionCut, PARAM_ON);
+	    MibSPar()->setEntry(MibSParams::bendersInterdictionCutType,
+                                MibSBendersInterdictionCutTypeJustOneCut);
 	}
     }
     else if (paramValue == PARAM_ON){
@@ -3796,122 +3796,124 @@ MibSModel::instanceStructure()
                      << "problems." << std::endl
                      << "Please use setInterdictionProblem() to indicate if"
                      << "you do have an interdiction problem" << std::endl;
-           MibSPar()->setEntry(MibSParams::useBendersCut, PARAM_OFF);
+           MibSPar()->setEntry(MibSParams::useBendersInterdictionCut, PARAM_OFF);
 	}
     }
-    if (MibSPar_->entry(MibSParams::useBendersCut) == PARAM_ON){
+    if (MibSPar_->entry(MibSParams::useBendersInterdictionCut) == PARAM_ON){
        defaultCutIsOn = true;
     }
 
-    //Param: "MibS_useGeneralNoGoodCut"
-    if ((turnOffOtherCuts == true) &&
-        (MibSPar_->entry(MibSParams::useGeneralNoGoodCut) == PARAM_NOTSET)){
-       MibSPar()->setEntry(MibSParams::useGeneralNoGoodCut, PARAM_OFF);
+    //Param: "MibS_useGeneralizedNoGoodCut"
+    if ((turnOffDefaultCuts == true) &&
+        (MibSPar_->entry(MibSParams::useGeneralizedNoGoodCut) == PARAM_NOTSET)){
+       MibSPar()->setEntry(MibSParams::useGeneralizedNoGoodCut, PARAM_OFF);
     }
     
-    paramValue = MibSPar_->entry(MibSParams::useGeneralNoGoodCut);
+    paramValue = MibSPar_->entry(MibSParams::useGeneralizedNoGoodCut);
 
     if (paramValue == PARAM_NOTSET){
        if (allLinkingBin_ == false){
-          MibSPar()->setEntry(MibSParams::useGeneralNoGoodCut, PARAM_OFF);
+          MibSPar()->setEntry(MibSParams::useGeneralizedNoGoodCut, PARAM_OFF);
        }else if (defaultCutIsOn == false){
-          MibSPar()->setEntry(MibSParams::useGeneralNoGoodCut, PARAM_ON);
+          MibSPar()->setEntry(MibSParams::useGeneralizedNoGoodCut, PARAM_ON);
        }
     }else if ((paramValue == PARAM_ON) && (allLinkingBin_ == false)){
        std::cout << "The generalized no-good cut is only valid when "
                  << "all linking variables are binary.";
        std::cout << std::endl;
-       MibSPar()->setEntry(MibSParams::useGeneralNoGoodCut, PARAM_OFF);
+       MibSPar()->setEntry(MibSParams::useGeneralizedNoGoodCut, PARAM_OFF);
     }
-    if (MibSPar_->entry(MibSParams::useGeneralNoGoodCut) == PARAM_ON){
+    if (MibSPar_->entry(MibSParams::useGeneralizedNoGoodCut) == PARAM_ON){
        defaultCutIsOn = true;
     }
     
-    //Param: "MibS_useTypeWatermelon" 
-    if ((turnOffOtherCuts == true) &&
-        (MibSPar_->entry(MibSParams::useTypeWatermelon) == PARAM_NOTSET)){
-       MibSPar()->setEntry(MibSParams::useTypeWatermelon, PARAM_OFF);
+    //Param: "MibS_useImprovingDirectionIC" 
+    if ((turnOffDefaultCuts == true) &&
+        (MibSPar_->entry(MibSParams::useImprovingDirectionIC) == PARAM_NOTSET)){
+       MibSPar()->setEntry(MibSParams::useImprovingDirectionIC, PARAM_OFF);
     }
 
-    paramValue = MibSPar_->entry(MibSParams::useTypeWatermelon);
+    paramValue = MibSPar_->entry(MibSParams::useImprovingDirectionIC);
     
     if (paramValue == PARAM_NOTSET){
        if ((isPureInteger_ == false) || (isLowerCoeffInt_ == false)){
-          MibSPar()->setEntry(MibSParams::useTypeWatermelon, PARAM_OFF);
+          MibSPar()->setEntry(MibSParams::useImprovingDirectionIC, PARAM_OFF);
        }else if (defaultCutIsOn == false){
-          MibSPar()->setEntry(MibSParams::useTypeWatermelon, PARAM_ON);
+          MibSPar()->setEntry(MibSParams::useImprovingDirectionIC, PARAM_ON);
        }
     }else if (paramValue == PARAM_ON){
        if ((isPureInteger_ == false) || (isLowerCoeffInt_ == false)){
-          std::cout << "The watermelon cut is only valid for pure integer "
-                    << "problems with integer lower-level constraints matrix.";
+          std::cout << "The improving direction intersection cut is only valid "
+                    << "for problems with integer lower-level constraints "
+                    << "matrix.";
           std::cout << std::endl;
-          MibSPar()->setEntry(MibSParams::useTypeWatermelon, PARAM_OFF);
+          MibSPar()->setEntry(MibSParams::useImprovingDirectionIC, PARAM_OFF);
        }
        if (isLowerObjInt_ == false){
-          std::cout << "The watermelon cut is only valid for problems "
-                    << "with integer lower-level objective coefficients.";
+          std::cout << "The improving direction intersection cut is only valid "
+                    << "for problems with integer lower-level objective "
+                    << "coefficients.";
           std::cout << std::endl;
-          MibSPar()->setEntry(MibSParams::useTypeWatermelon, PARAM_OFF);
+          MibSPar()->setEntry(MibSParams::useImprovingDirectionIC, PARAM_OFF);
        }
     }
-    if (MibSPar_->entry(MibSParams::useTypeWatermelon) == PARAM_ON){
+    if (MibSPar_->entry(MibSParams::useImprovingDirectionIC) == PARAM_ON){
 	defaultCutIsOn = true;
     }
 
-    //Param: "MibS_useTypeIC" 
-    paramValue = MibSPar_->entry(MibSParams::useTypeIC);
+    //Param: "MibS_useImprovingSolutionIC" 
+    paramValue = MibSPar_->entry(MibSParams::useImprovingSolutionIC);
     
     if (paramValue == PARAM_NOTSET){
-       MibSPar()->setEntry(MibSParams::useTypeIC, PARAM_OFF);
+       MibSPar()->setEntry(MibSParams::useImprovingSolutionIC, PARAM_OFF);
     }else if (paramValue == PARAM_ON){
        if ((isPureInteger_ == false) || (isLowerCoeffInt_ == false)){
-          std::cout << "The intersection cut is only valid for pure integer "
+          std::cout << "The improving solutionintersection cut is only valid for pure integer "
                     << "problems with integer lower-level constraints matrix.";
           std::cout << std::endl;
-          MibSPar()->setEntry(MibSParams::useTypeIC, PARAM_OFF);
+          MibSPar()->setEntry(MibSParams::useImprovingSolutionIC, PARAM_OFF);
        }
-       if (MibSPar_->entry(MibSParams::bilevelFreeSetTypeIC) == 1 &&
+       if (MibSPar_->entry(MibSParams::bilevelFreeSetTypeISIC) == 1 &&
            isLowerObjInt_ == false){
-          std::cout << "Type II intersection cuts are only valid for problems "
-                    << "with integer lower-level objective coefficients.";
+          std::cout << "The improving solution intersection cut (type II) are only valid for "
+                    << "problems with integer lower-level objective coefficients.";
           std::cout << std::endl;
-          MibSPar()->setEntry(MibSParams::useTypeIC, PARAM_OFF);
+          MibSPar()->setEntry(MibSParams::useImprovingSolutionIC, PARAM_OFF);
        }
     }
 
-    //Param: "MibS_useTypeHyperCubeIC"
-    if ((turnOffOtherCuts == true) &&
-        (MibSPar_->entry(MibSParams::useTypeHypercubeIC) == PARAM_NOTSET)){
-       MibSPar()->setEntry(MibSParams::useTypeHypercubeIC, PARAM_OFF);
+    //Param: "MibS_useHyperCubeIC"
+    if ((turnOffDefaultCuts == true) &&
+        (MibSPar_->entry(MibSParams::useHypercubeIC) == PARAM_NOTSET)){
+       MibSPar()->setEntry(MibSParams::useHypercubeIC, PARAM_OFF);
     }
     
-    paramValue = MibSPar_->entry(MibSParams::useTypeHypercubeIC);
+    paramValue = MibSPar_->entry(MibSParams::useHypercubeIC);
     
     if (paramValue == PARAM_NOTSET){
 	if(defaultCutIsOn == false){
-           MibSPar()->setEntry(MibSParams::useTypeHypercubeIC, PARAM_ON);
+           MibSPar()->setEntry(MibSParams::useHypercubeIC, PARAM_ON);
 	}
     }
     
-    //Param: "MibS_usePureIntegerCut"
-    if ((turnOffOtherCuts == true) &&
-        (MibSPar_->entry(MibSParams::usePureIntegerCut) == PARAM_NOTSET)){
-       MibSPar()->setEntry(MibSParams::usePureIntegerCut, PARAM_OFF);
+    //Param: "MibS_useIntegerNoGoodCut"
+    if ((turnOffDefaultCuts == true) &&
+        (MibSPar_->entry(MibSParams::useIntegerNoGoodCut) == PARAM_NOTSET)){
+       MibSPar()->setEntry(MibSParams::useIntegerNoGoodCut, PARAM_OFF);
     }
     
-    paramValue = MibSPar_->entry(MibSParams::usePureIntegerCut);
+    paramValue = MibSPar_->entry(MibSParams::useIntegerNoGoodCut);
 
     if (paramValue == PARAM_NOTSET){
-       MibSPar()->setEntry(MibSParams::usePureIntegerCut, PARAM_OFF);
+       MibSPar()->setEntry(MibSParams::useIntegerNoGoodCut, PARAM_OFF);
     }else if((paramValue == PARAM_ON) &&
              ((isPureInteger_ == false) ||
               (isUpperCoeffInt_ == false) ||
               (isLowerCoeffInt_ == false))){
-       std::cout << "The integer no-good cut is only valid for pure integer"
+       std::cout << "The integer no-good cut is only valid for pure integer "
                  << "problems with integer constraint matrices";
        std::cout << std::endl;
-       MibSPar()->setEntry(MibSParams::usePureIntegerCut, PARAM_OFF);
+       MibSPar()->setEntry(MibSParams::useIntegerNoGoodCut, PARAM_OFF);
     }
 
 //Param: "MibS_branchProcedure"
@@ -3923,7 +3925,7 @@ MibSModel::instanceStructure()
                               MibSBranchingStrategyLinking);
           if (printProblemInfo == true){
              std::cout <<
-                "Default branching strategy is MibSBranchingStrategyLinking.";
+                "Branching strategy is to branch on linking variables.";
              std::cout << std::endl;
           }
        }else{
@@ -3931,7 +3933,7 @@ MibSModel::instanceStructure()
                               MibSBranchingStrategyFractional);
           if (printProblemInfo == true){
              std::cout <<
-                "Default branching strategy is MibSBranchingStrategyFractional.";
+                "Branching strategy is to branch on all variables with fractional values.";
              std::cout << std::endl;
           }
        }
@@ -3945,47 +3947,47 @@ MibSModel::instanceStructure()
     }
 
     if (printProblemInfo == true){
-	if(MibSPar_->entry(MibSParams::useIncObjCut) == PARAM_ON){
-           std::cout << "Increasing objective cut generator is on.";
+	if(MibSPar_->entry(MibSParams::useBendersBinaryCut) == PARAM_ON){
+           std::cout << "Benders binary cut generator is on.";
            std::cout << std::endl;
 	}
 
-	if (MibSPar_->entry(MibSParams::useBendersCut) == PARAM_ON){
-           if (MibSPar_->entry(MibSParams::bendersCutType) ==
-               MibSBendersCutTypeJustOneCut){
-              std::cout << "Benders cut generator (just one cut) is on.";
+	if (MibSPar_->entry(MibSParams::useBendersInterdictionCut) == PARAM_ON){
+           if (MibSPar_->entry(MibSParams::bendersInterdictionCutType) ==
+               MibSBendersInterdictionCutTypeJustOneCut){
+              std::cout << "Benders interdiction cut generator (just one cut) is on.";
               std::cout << std::endl;
            }else{
-              std::cout << "Benders cut generator (multiple cuts) is on.";
+              std::cout << "Benders interdiction cut generator (multiple cuts) is on.";
               std::cout << std::endl;
            }
 	}
         
-        if (MibSPar_->entry(MibSParams::usePureIntegerCut) == PARAM_ON){
-           std::cout << "Pure integer cut generator is on."<< std::endl;
+        if (MibSPar_->entry(MibSParams::useIntegerNoGoodCut) == PARAM_ON){
+           std::cout << "Integer no-good cut generator is on."<< std::endl;
 	}
         
 	if (MibSPar_->entry(MibSParams::useNoGoodCut) == PARAM_ON){
            std::cout << "No-good cut generator is on."<< std::endl;
 	}
 
-	if (MibSPar_->entry(MibSParams::useGeneralNoGoodCut) == PARAM_ON){
+	if (MibSPar_->entry(MibSParams::useGeneralizedNoGoodCut) == PARAM_ON){
            std::cout << "Generalized no-good cut generator is on."<< std::endl;
 	}
 
-	if (MibSPar_->entry(MibSParams::useTypeIC) == PARAM_ON){
-           if (MibSPar_->entry(MibSParams::bilevelFreeSetTypeIC) ==
-               MibSBilevelFreeSetTypeICWithLLOptSol){
-              std::cout << "Intersection cut IC generator (Type I) is on." << std::endl;
+	if (MibSPar_->entry(MibSParams::useImprovingSolutionIC) == PARAM_ON){
+           if (MibSPar_->entry(MibSParams::bilevelFreeSetTypeISIC) ==
+               MibSBilevelFreeSetTypeISICWithLLOptSol){
+              std::cout << "Improving solution intersection cut generator (Type I) is on." << std::endl;
            }else{
-              std::cout << "Intersection cut IC generator (Type II) is on." << std::endl;
+              std::cout << "Improving solution intersection cut generator (Type II) is on." << std::endl;
            }              
 	}
-	if (MibSPar_->entry(MibSParams::useTypeWatermelon) == PARAM_ON){
-           std::cout << "Watermelon IC generator is on." << std::endl;
+	if (MibSPar_->entry(MibSParams::useImprovingDirectionIC) == PARAM_ON){
+           std::cout << "Improving direction intersection cut generator is on." << std::endl;
 	}
-	if (MibSPar_->entry(MibSParams::useTypeHypercubeIC) == PARAM_ON){
-           std::cout << "Hypercube IC generator is on." << std::endl;
+	if (MibSPar_->entry(MibSParams::useHypercubeIC) == PARAM_ON){
+           std::cout << "Hypercube intersection cut generator is on." << std::endl;
 	}
         if (MibSPar_->entry(MibSParams::useFractionalCuts) == 1){
            std::cout << "Fractional cuts will be generated." << std::endl;
