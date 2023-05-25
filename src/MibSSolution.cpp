@@ -152,7 +152,7 @@ MibSSolution::print(std::ostream& os) const
 		 os << "y[" << j << "] = " << nearInt << std::endl;
 	     }
 	     else {
-		 os << columnName[index] <<" = " << nearInt << std::endl;
+		 os << columnName[index] << " = " << nearInt << std::endl;
 	     }
 	 }
 	 else {
@@ -160,7 +160,7 @@ MibSSolution::print(std::ostream& os) const
 		 os << "y[" << j << "] = " << values_[index] << std::endl;
 	     }
 	     else{
-		 os << "y[" << j << "] = " << values_[index] << std::endl;
+		 os << columnName[index] << " = " << values_[index] << std::endl;
 	     }
 	 }
       }
