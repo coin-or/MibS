@@ -186,8 +186,8 @@ MibSParams::createKeywordList() {
    keys_.push_back(make_pair(std::string("MibS_useHybridIC"),
 			     AlpsParameter(AlpsIntPar, useHybridIC)));
 
-   keys_.push_back(make_pair(std::string("MibS_bilevelFreeSetTypeIC"),
-			     AlpsParameter(AlpsIntPar, bilevelFreeSetTypeIC)));
+   keys_.push_back(make_pair(std::string("MibS_bilevelFreeSetTypeISIC"),
+			     AlpsParameter(AlpsIntPar, bilevelFreeSetTypeISIC)));
 
    keys_.push_back(make_pair(std::string("MibS_useFractionalCuts"),
 			     AlpsParameter(AlpsIntPar, useFractionalCuts)));
@@ -369,7 +369,7 @@ MibSParams::setDefaultEntries() {
 
    setEntry(useFractionalCuts, 0);
 
-   setEntry(bilevelFreeSetTypeIC, MibSBilevelFreeSetTypeISICNotSet);
+   setEntry(bilevelFreeSetTypeISIC, MibSBilevelFreeSetTypeISICNotSet);
 
    setEntry(solveSecondLevelEveryIteration, PARAM_NOTSET);
 

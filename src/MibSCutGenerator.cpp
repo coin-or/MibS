@@ -327,7 +327,7 @@ MibSCutGenerator::intersectionCuts(BcpsConstraintPool &conPool,
     
 	MibSBilevelFreeSetTypeISIC bilevelFreeSetType =
 	    static_cast<MibSBilevelFreeSetTypeISIC>
-	    (localModel_->MibSPar_->entry(MibSParams::bilevelFreeSetTypeIC));
+	    (localModel_->MibSPar_->entry(MibSParams::bilevelFreeSetTypeISIC));
 	
 	int useLinkingSolutionPool(localModel_->MibSPar_->entry
 		       (MibSParams::useLinkingSolutionPool));
@@ -6058,7 +6058,7 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
      }
      if (useIntersectionCutTypeIC == PARAM_ON && haveSecondLevelSol &&
          (relaxedObjVal > localModel_->bS_->objVal_ + localModel_->etol_ ||
-          localModel_->MibSPar_->entry(MibSParams::bilevelFreeSetTypeIC) == 1)){ 
+          localModel_->MibSPar_->entry(MibSParams::bilevelFreeSetTypeISIC) == 1)){ 
         cutType = MibSIntersectionCutImprovingSolution;
         numCuts += intersectionCuts(conPool, bS->optLowerSolutionOrd_, cutType);
      }
@@ -6096,7 +6096,7 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
      }
      if (useIntersectionCutTypeIC == PARAM_ON && ((haveSecondLevelSol &&
            relaxedObjVal > localModel_->bS_->objVal_ + localModel_->etol_) ||
-          localModel_->MibSPar_->entry(MibSParams::bilevelFreeSetTypeIC) == 1)){ 
+          localModel_->MibSPar_->entry(MibSParams::bilevelFreeSetTypeISIC) == 1)){ 
         cutType = MibSIntersectionCutImprovingSolution;
         numCuts += intersectionCuts(conPool, bS->optLowerSolutionOrd_, cutType);
      }

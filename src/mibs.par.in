@@ -92,7 +92,7 @@ MibS_auxiliaryInfoFile @top_srcdir@/data/notInterdiction/Random/int0sum_i0_10.tx
 #MibS_bendersInterdictionCutType      1
 #MibS_useGeneralizedNoGoodCut         1
 #MibS_useImprovingSolutionIC          1
-#MibS_bilevelFreeSetTypeIC            0
+#MibS_bilevelFreeSetTypeISIC            0
 #MibS_useImprovingDirectionIC         1
 #MibS_useHypecubeIC                   1
 #MibS_useBoundCut                     1

@@ -3873,7 +3873,7 @@ MibSModel::instanceStructure()
           std::cout << std::endl;
           MibSPar()->setEntry(MibSParams::useImprovingSolutionIC, PARAM_OFF);
        }
-       if (MibSPar_->entry(MibSParams::bilevelFreeSetTypeIC) == 1 &&
+       if (MibSPar_->entry(MibSParams::bilevelFreeSetTypeISIC) == 1 &&
            isLowerObjInt_ == false){
           std::cout << "Type II intersection cuts are only valid for problems "
                     << "with integer lower-level objective coefficients.";
@@ -3976,7 +3976,7 @@ MibSModel::instanceStructure()
 	}
 
 	if (MibSPar_->entry(MibSParams::useImprovingSolutionIC) == PARAM_ON){
-           if (MibSPar_->entry(MibSParams::bilevelFreeSetTypeIC) ==
+           if (MibSPar_->entry(MibSParams::bilevelFreeSetTypeISIC) ==
                MibSBilevelFreeSetTypeISICWithLLOptSol){
               std::cout << "Improving solution intersection cut generator (Type I) is on." << std::endl;
            }else{
