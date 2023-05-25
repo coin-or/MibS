@@ -2,8 +2,8 @@
 
 ##### Instance data and auxiliary file names
 
-Alps_instance @top_srcdir@/data/notInterdiction/Random/int0sum_i0_10.mps
-MibS_auxiliaryInfoFile @top_srcdir@/data/notInterdiction/Random/int0sum_i0_10.txt
+Alps_instance @top_srcdir@/data/general/random/int0sum_i0_10.mps
+MibS_auxiliaryInfoFile @top_srcdir@/data/general/random/int0sum_i0_10.aux
 
 ##### ALPS parameters
 ##### For general control of the tree search
