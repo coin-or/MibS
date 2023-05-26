@@ -323,9 +323,9 @@ MibSParams::setDefaultEntries() {
 
    setEntry(objBoundStrategy, LPBOUND);
 
-   setEntry(blisCutStrategy, 0);
+   setEntry(blisCutStrategy, PARAM_NOTSET);
 
-   setEntry(blisBranchStrategy, 0);
+   setEntry(blisBranchStrategy, PARAM_NOTSET);
 
    setEntry(branchStrategy, MibSBranchingStrategyNotSet);
 

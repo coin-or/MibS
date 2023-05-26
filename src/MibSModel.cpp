@@ -191,13 +191,12 @@ MibSModel::initialize()
 void 
 MibSModel::readParameters(const int argnum, const char * const * arglist)
 {
-    setBlisParameters();
-
     //std::cout << "Reading parameters ..." << std::endl;
     AlpsPar_->readFromArglist(argnum, arglist);
     BlisPar_->readFromArglist(argnum, arglist);
     MibSPar_->readFromArglist(argnum, arglist);
 
+    setBlisParameters();
 }
 
 //#############################################################################
@@ -258,11 +257,16 @@ MibSModel::setBlisParameters()
  
   /* Set cut generation frequency to 1 */
   BlisPar()->setEntry(BlisParams::cutGenerationFrequency, 1);
-
+  
   /* Set Blis cut strategy using MibS parameters blisCutStrategy */
-  BlisPar()->setEntry(BlisParams::cutStrategy, bliscuts);
+  if (bliscuts != PARAM_NOTSET){ 
+     BlisPar()->setEntry(BlisParams::cutStrategy, bliscuts);
+  }
+  
   /* Set Blis branch strategy using MibS parameters blisBranchStrategy */
-  BlisPar()->setEntry(BlisParams::cutStrategy, blisbranch);
+  if (blisbranch != PARAM_NOTSET){ 
+     BlisPar()->setEntry(BlisParams::branchStrategy, blisbranch);
+  }
   
 }
 

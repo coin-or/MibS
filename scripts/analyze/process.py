@@ -612,22 +612,24 @@ def plotBaselineProf(
 if __name__ == "__main__":
 
     dataSets = [
-        # 'MIBLP-XU',
+        'MIBLP-XU',
         "IBLP-FIS",
-        #'INTERD-DEN',
+        'INTERD-DEN',
         'IBLP-DEN',
         'IBLP-ZHANG'
     ]
 
     # versions = ['1.1', 'ib']
     # versions = ["1.2-opt", "rev1"]
-    versions = ["1.2-opt", "1.2-opt-cplex"]
+    # versions = ["1.2-opt", "1.2-opt-cplex"]
+    versions = ['1.2+newWS','1.2+5.6']
     
     # Output parent path
-    outputDir = "/mnt/c/Users/tkral/Documents/Projects/MibS/output"
+    outputDir = "/home/ted/Projects/MibS/output"
 
     scenarios = {
-        # 'default',
+        'default' : 'Default',
+        'default+WS' : 'Default w/ Warm Start',
         # 'default-frac',
         #'benders' : 'BendersInterdict (link)',
         #'benders-frac' : 'BendersInterdict (frac)',
@@ -648,8 +650,8 @@ if __name__ == "__main__":
         #'watermelon' : 'Watermelon (link)',
         #'watermelon-frac' : 'Watermelon (frac)',    
         #"watermelon-frac-LV" : 'Watermelon (frac+LV)',
-        'fracWatermelon' : 'FracWatermelon (link)',
-        "fracWatermelon-frac" : 'FracWatermelon (frac)',
+        #'fracWatermelon' : 'FracWatermelon (link)',
+        #"fracWatermelon-frac" : 'FracWatermelon (frac)',
         #"fracWatermelon-frac-cplex" : 'FracWatermelon (frac)',
         #"type1" : 'Type1 (link)',
         #"type1-cplex" : 'Type1 (link)',
@@ -657,7 +659,7 @@ if __name__ == "__main__":
         #'type1-WS' : 'Type1 (link+WS)',
         #"type2" : "Type2 (link)",
         #"type2-frac" : "Type2 (frac)",
-        #'noCut' : "No Cuts (link)", 
+        'noCut' : "No Cuts (link)", 
         #'noCut-WS' : "No Cuts (link+WS)", 
         # 'interdiction',
     }
