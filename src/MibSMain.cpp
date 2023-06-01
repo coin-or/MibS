@@ -81,8 +81,15 @@ int main(int argc, char* argv[])
         AlpsKnowledgeBrokerSerial broker(argc, argv, model);
 #endif
 
-	broker.search(&model);
-	broker.printBestSolution();
+      broker.search(&model);
+
+      std::string solnFile(model.MibSPar()->entry(MibSParams::writeSolnFile));
+      if(solnFile.compare("PARAM_NOTSET") != 0){
+         char *ptr_solnFile = &solnFile[0];
+         broker.printBestSolution(ptr_solnFile);
+      }else{
+         broker.printBestSolution();
+      }
 
     }
     catch(CoinError& er) {
