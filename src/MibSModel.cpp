@@ -255,9 +255,6 @@ MibSModel::setBlisParameters()
   BlisPar()->setEntry(BlisParams::tailOff, 1);
   BlisPar()->setEntry(BlisParams::denseConFactor, ALPS_DBL_MAX);
  
-  /* Set cut generation frequency to 1 */
-  BlisPar()->setEntry(BlisParams::cutGenerationFrequency, 1);
-  
   /* Set Blis cut strategy using MibS parameters blisCutStrategy */
   if (bliscuts != PARAM_NOTSET){ 
      BlisPar()->setEntry(BlisParams::cutStrategy, bliscuts);
