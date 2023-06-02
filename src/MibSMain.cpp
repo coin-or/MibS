@@ -87,6 +87,7 @@ int main(int argc, char* argv[])
       if(solnFile.compare("PARAM_NOTSET") != 0){
          char *ptr_solnFile = &solnFile[0];
          broker.printBestSolution(ptr_solnFile);
+         broker.printBestSolution();
       }else{
          broker.printBestSolution();
       }
