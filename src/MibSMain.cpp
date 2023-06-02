@@ -87,11 +87,8 @@ int main(int argc, char* argv[])
       if(solnFile.compare("PARAM_NOTSET") != 0){
          char *ptr_solnFile = &solnFile[0];
          broker.printBestSolution(ptr_solnFile);
-         broker.printBestSolution();
-      }else{
-         broker.printBestSolution();
       }
-
+      broker.printBestSolution();
     }
     catch(CoinError& er) {
 	std::cerr << "ERROR:" << er.message() << std::endl
