@@ -263,6 +263,9 @@ MibSParams::createKeywordList() {
    keys_.push_back(make_pair(std::string("MibS_writeInstanceName"),
 			     AlpsParameter(AlpsStringPar, writeInstanceName)));
 
+   keys_.push_back(make_pair(std::string("MibS_writeSolnFile"),
+            AlpsParameter(AlpsStringPar, writeSolnFile)));
+
    //--------------------------------------------------------
    // Double Parameters.
    //--------------------------------------------------------
@@ -424,6 +427,8 @@ MibSParams::setDefaultEntries() {
    setEntry(inputFormat, "indexBased");
 
    setEntry(writeInstanceName, "PARAM_NOTSET");
+
+   setEntry(writeSolnFile, "PARAM_NOTSET");
 }
 
 //#############################################################################
