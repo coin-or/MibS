@@ -166,9 +166,11 @@ MibSSolution::print(std::ostream& os) const
       }
    }
 
-   std::cout << "Number of problems (VF) solved = " << localModel_->counterVF_ << std::endl;
-   std::cout << "Number of problems (UB) solved = " << localModel_->counterUB_ << std::endl;
-   std::cout << "Time for solving problem (VF) = " << localModel_->timerVF_ << std::endl;
-   std::cout << "Time for solving problem (UB) = " << localModel_->timerUB_ << std::endl;
+   if(&os == &std::cout){
+      std::cout << "Number of problems (VF) solved = " << localModel_->counterVF_ << std::endl;
+      std::cout << "Number of problems (UB) solved = " << localModel_->counterUB_ << std::endl;
+      std::cout << "Time for solving problem (VF) = " << localModel_->timerVF_ << std::endl;
+      std::cout << "Time for solving problem (UB) = " << localModel_->timerUB_ << std::endl;
+   }
 }
 
