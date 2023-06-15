@@ -12,6 +12,8 @@
 /* accompanying file for terms.                                              */
 /*===========================================================================*/
 
+#include <sstream>
+
 #include "MibSConfig.hpp"
 #include "CoinUtilsConfig.h"
 
