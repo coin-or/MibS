@@ -256,14 +256,10 @@ MibSModel::setBlisParameters()
   BlisPar()->setEntry(BlisParams::denseConFactor, ALPS_DBL_MAX);
  
   /* Set Blis cut strategy using MibS parameters blisCutStrategy */
-  if (bliscuts != PARAM_NOTSET){ 
-     BlisPar()->setEntry(BlisParams::cutStrategy, bliscuts);
-  }
+  BlisPar()->setEntry(BlisParams::cutStrategy, bliscuts);
   
   /* Set Blis branch strategy using MibS parameters blisBranchStrategy */
-  if (blisbranch != PARAM_NOTSET){ 
-     BlisPar()->setEntry(BlisParams::branchStrategy, blisbranch);
-  }
+  BlisPar()->setEntry(BlisParams::branchStrategy, blisbranch);
   
 }
 
@@ -539,9 +535,13 @@ std::string cmtStr)
 
    // YX: write LL/SL var#, constrs#, and lower obj sense;
    line = "@NUMVARS"; 
-   line.append("\n" + std::to_string(lowerDim_) + "\n"); 
+   std::stringstream ss;
+   ss << std::endl << lowerDim_ << std::endl;
+   line.append(ss.str());
    line.append("@NUMCONSTRS") ;
-   line.append("\n" + std::to_string(inputLowerRowNum_) + "\n");
+   ss.clear();
+   ss << std::endl << lowerRowNum_ << std::endl;
+   line.append(ss.str());
    line.append("@OBJSENSE");
    if(lowerObjSense_ < 0){
       line.append("\nMAX\n");
