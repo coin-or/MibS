@@ -135,7 +135,7 @@ class MibSParams : public AlpsParameterSet {
 		     static_cast<int>(endOfStrArrayParams)
 		     )
     {
-      suffix_ = "Blis";
+      suffix_ = "MibS";
       createKeywordList();
       setDefaultEntries();
     }
