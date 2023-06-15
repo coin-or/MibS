@@ -3754,7 +3754,7 @@ MibSModel::instanceStructure()
           MibSPar()->setEntry(MibSParams::useBendersBinaryCut, PARAM_ON);
        }
     }else if (paramValue == PARAM_ON){
-       std::cout << "The increasing objective cut is only valid when "
+       std::cout << "The Benders' binary cut is only valid when "
                  << "linking variables are binary.";
        std::cout << std::endl;
        MibSPar()->setEntry(MibSParams::useBendersBinaryCut, PARAM_OFF);
@@ -3793,7 +3793,7 @@ MibSModel::instanceStructure()
     }
     else if (paramValue == PARAM_ON){
 	if (!isInterdict_){
-           std::cout << "The Benders cut is only valid for interdiction"
+           std::cout << "The Benders' cut is only valid for interdiction"
                      << "problems." << std::endl
                      << "Please use setInterdictionProblem() to indicate if"
                      << "you do have an interdiction problem" << std::endl;
@@ -3869,15 +3869,17 @@ MibSModel::instanceStructure()
        MibSPar()->setEntry(MibSParams::useImprovingSolutionIC, PARAM_OFF);
     }else if (paramValue == PARAM_ON){
        if ((isPureInteger_ == false) || (isLowerCoeffInt_ == false)){
-          std::cout << "The improving solutionintersection cut is only valid for pure integer "
-                    << "problems with integer lower-level constraints matrix.";
+          std::cout << "The improving solution intersection cut is only valid "
+                    << "for pure integer problems with integer lower-level "
+                    << "constraints matrix.";
           std::cout << std::endl;
           MibSPar()->setEntry(MibSParams::useImprovingSolutionIC, PARAM_OFF);
        }
        if (MibSPar_->entry(MibSParams::bilevelFreeSetTypeISIC) == 1 &&
            isLowerObjInt_ == false){
-          std::cout << "The improving solution intersection cut (type II) are only valid for "
-                    << "problems with integer lower-level objective coefficients.";
+          std::cout << "The improving solution intersection cut (type II) are "
+                    << "only valid for problems with integer lower-level "
+                    << "objective coefficients.";
           std::cout << std::endl;
           MibSPar()->setEntry(MibSParams::useImprovingSolutionIC, PARAM_OFF);
        }
@@ -3921,7 +3923,7 @@ MibSModel::instanceStructure()
     MibSBranchingStrategy branchPar = static_cast<MibSBranchingStrategy>
 	  (MibSPar_->entry(MibSParams::branchStrategy));
     if (branchPar == MibSBranchingStrategyNotSet){
-       if ((isInterdict_ == true) || (numUpperInt <= numLowerInt)){
+       if (isInterdict_ == true){
           MibSPar()->setEntry(MibSParams::branchStrategy,
                               MibSBranchingStrategyLinking);
           if (printProblemInfo == true){

@@ -370,7 +370,7 @@ MibSParams::setDefaultEntries() {
 
    setEntry(useHybridIC, PARAM_NOTSET);
 
-   setEntry(useFractionalCuts, 0);
+   setEntry(useFractionalCuts, 1);
 
    setEntry(bilevelFreeSetTypeISIC, MibSBilevelFreeSetTypeISICNotSet);
 
