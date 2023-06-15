@@ -254,7 +254,10 @@ MibSModel::setBlisParameters()
   BlisPar()->setEntry(BlisParams::cutPass, ALPS_INT_MAX);
   BlisPar()->setEntry(BlisParams::tailOff, 1);
   BlisPar()->setEntry(BlisParams::denseConFactor, ALPS_DBL_MAX);
- 
+
+  BlisPar()->setEntry(BlisParams::heurStrategy, 0);
+  BlisPar()->setEntry(BlisParams::heurRoundStrategy, 0);
+  
   /* Set Blis cut strategy using MibS parameters blisCutStrategy */
   BlisPar()->setEntry(BlisParams::cutStrategy, bliscuts);
   
