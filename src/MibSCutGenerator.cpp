@@ -5923,6 +5923,9 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
   int useFractionalCuts =
      localModel_->MibSPar_->entry(MibSParams::useFractionalCuts);
   
+  int useFractionalCutsRootOnly =
+     localModel_->MibSPar_->entry(MibSParams::useFractionalCutsRootOnly);
+  
   double relaxedObjVal = localModel_->bS_->getLowerObj(
                          localModel_->solver()->getColSolution(),
                          localModel_->getLowerObjSense());
@@ -6088,7 +6091,8 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
      //and should always be false (see BlisTreeNode.cpp)
      return (false);
 
-  }else if (useFractionalCuts){
+  }else if (useFractionalCuts || (useFractionalCutsRootOnly &&
+                                  localModel_->activeNode_->getDepth() == 0)){
      
      if (useIntersectionCutImprovingDirection == PARAM_ON){
         cutType = MibSIntersectionCutImprovingDirection;

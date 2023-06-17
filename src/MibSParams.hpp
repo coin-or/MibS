@@ -74,6 +74,7 @@ class MibSParams : public AlpsParameterSet {
      useTenderIC,
      useHybridIC,
      useFractionalCuts,
+     useFractionalCutsRootOnly,
      bilevelFreeSetTypeISIC,
      solveSecondLevelEveryIteration,
      solveSecondLevelWhenXYVarsInt,

@@ -3844,7 +3844,7 @@ MibSModel::instanceStructure()
     if (paramValue == PARAM_NOTSET){
        if ((isPureInteger_ == false) || (isLowerCoeffInt_ == false)){
           MibSPar()->setEntry(MibSParams::useImprovingDirectionIC, PARAM_OFF);
-       }else if (defaultCutIsOn == false){
+       }else{
           MibSPar()->setEntry(MibSParams::useImprovingDirectionIC, PARAM_ON);
        }
     }else if (paramValue == PARAM_ON){
@@ -3997,6 +3997,11 @@ MibSModel::instanceStructure()
 	if (MibSPar_->entry(MibSParams::useHypercubeIC) == PARAM_ON){
            std::cout << "Hypercube intersection cut generator is on." << std::endl;
 	}
+        
+        if (MibSPar_->entry(MibSParams::useFractionalCutsRootOnly) == 1){
+           std::cout << "Fractional cuts will be generated only in the root node." << std::endl;
+           MibSPar_->setEntry(MibSParams::useFractionalCuts, 0);
+        }
         if (MibSPar_->entry(MibSParams::useFractionalCuts) == 1){
            std::cout << "Fractional cuts will be generated." << std::endl;
         }
