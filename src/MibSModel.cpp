@@ -3842,7 +3842,7 @@ MibSModel::instanceStructure()
     paramValue = MibSPar_->entry(MibSParams::useImprovingDirectionIC);
     
     if (paramValue == PARAM_NOTSET){
-       if ((isPureInteger_ == false) || (isLowerCoeffInt_ == false)){
+       if (isPureInteger_ == false || isLowerCoeffInt_ == false || isInterdict_ == true){
           MibSPar()->setEntry(MibSParams::useImprovingDirectionIC, PARAM_OFF);
        }else{
           MibSPar()->setEntry(MibSParams::useImprovingDirectionIC, PARAM_ON);
