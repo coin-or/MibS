@@ -424,9 +424,9 @@ MibSModel::readAuxiliaryData(int numCols, int numRows)
 	 for(i = 0; i < lowerColNum; i++){
 	     data_stream >> cValue;
 	     data_stream >> dValue;
-         if(data_stream.peek() == EOF){
-            goto TERM_ENDREADAUXDATA;
-         }
+	     if(data_stream.fail()){
+	        goto TERM_ENDREADAUXDATA;
+	     }
 	     for(p = 0; p < numCols; ++p){
 		 if(columnName_[p] == cValue){
 		     pos = p;
