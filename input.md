@@ -19,18 +19,19 @@ Major version 1 of MibS requires two input files.
 
 The instance can be in any of the standard formats mentioned above. These are
 the same formats utilized by all MILP solvers. Information about these formats
-can be easily found with an Internet search. 
+can be easily found with an Internet search.
 
 ### The Auxiliary File (Name-based)
 
 In the name-based format (recommended), keywords are proceeded by an `@`. The
-following are the keywords.
+following are the keywords. Note that there is no keyword for objective sense. 
+This is by design. The lower-level objective is minimized by default in this file
+format. To maximize, simply negate the objective. 
 
 | Keyword       | Meaning                                                         |
 |---------------|-----------------------------------------------------------------|
 | @NUMVARS      | Next line contains umber of lower-level variables               |
 | @NUMCONSTR    | Next line contains number of lower-level constraints            |
-| @OBJSENSE     | Next line contains objective sense (`MIN` or `MAX`)             |
 | @VARSBEGIN    | Marks beginning of variables section                            |
 | @VARSEND      | Marks end of variables section                                  |
 | @CONSTRBEGIN  | Marks beginning of constraints section                          |
