@@ -563,7 +563,7 @@ std::string cmtStr)
    line.append("@NUMCONSTRS") ;
    ss.clear();
    ss.str("");
-   ss << std::endl << lowerRowNum_ << std::endl;
+   ss << std::endl << inputLowerRowNum_ << std::endl;
    line.append(ss.str());
    line.append("@OBJSENSE");
    if(lowerObjSense_ < 0){
