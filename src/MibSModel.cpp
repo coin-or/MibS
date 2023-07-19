@@ -3586,7 +3586,7 @@ MibSModel::instanceStructure()
 
    for (i = 0; i < lCols; i++){
       if ((fabs(lObjCoeffs[i] - floor(lObjCoeffs[i])) > etol_) &&
-          (fabs(lObjCoeffs[i] - ceil(lObjCoeffs[j])) > etol_)){
+          (fabs(lObjCoeffs[i] - ceil(lObjCoeffs[i])) > etol_)){
          isLowerObjInt_ = false;
          break;
       }
