@@ -1,4 +1,4 @@
-Scott DeNegre 
-Ted Ralphs
-Sahar Tahernajad
-Yu Xie
+Scott DeNegre (DeNegreS@hss.edu)
+Ted Ralphs (ted@lehigh.edu)
+Sahar Tahernajad (sahar@lindo.com)
+Yu Xie (yux616@lehigh.edu)
