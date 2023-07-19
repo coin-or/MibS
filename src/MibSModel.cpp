@@ -424,18 +424,25 @@ MibSModel::readAuxiliaryData(int numCols, int numRows)
 	 for(i = 0; i < lowerColNum; i++){
 	     data_stream >> cValue;
 	     data_stream >> dValue;
+	     if(data_stream.fail()){
+	        goto TERM_ENDREADAUXDATA;
+	     }
 	     for(p = 0; p < numCols; ++p){
-		 if(columnName_[p] == cValue){
-		     pos = p;
-		     break;
-		 }
+                if(columnName_[p] == cValue){
+                   pos = p;
+                   break;
+                }
 	     }
 	     if(pos < 0){
-		 std::cout << cValue << " does not belong to the list of variables." << std::endl;
+                std::cout << cValue
+                          << " does not belong to the list of variables."
+                          << std::endl;
 	     }
 	     else{
-		 lowerObjCoeffs_[i] = dValue;
-		 lowerColInd_[i] = pos;
+                lowerColInd_[i] = pos;
+                // YX: counter idx changed to match N at TERM
+                lowerObjCoeffs_[k] = dValue;
+                k++;
 	     }
 	     pos = -1;
 	 }
@@ -477,11 +484,21 @@ MibSModel::readAuxiliaryData(int numCols, int numRows)
      }
   }
   
+TERM_ENDREADAUXDATA:
+
   data_stream.close();
   
   std::cout << "LL Data File: " << getLowerFile() << "\n";
   std::cout << "Number of LL Variables:   " 
 	    << getLowerDim() << "\n\n";
+
+   // YX: throw error if invalid lower/2nd objCoeffs input 
+   if((!getLowerObjCoeffs()) || (k != lowerColNum)){
+      throw CoinError("Missing second-stage (lower-level) objective coefficient(s)",
+                     "readAuxiliaryData",
+                     "MibSModel");
+   }
+
 }
 
 //#############################################################################
@@ -545,6 +562,7 @@ std::string cmtStr)
    line.append(ss.str());
    line.append("@NUMCONSTRS") ;
    ss.clear();
+   ss.str("");
    ss << std::endl << lowerRowNum_ << std::endl;
    line.append(ss.str());
    line.append("@OBJSENSE");
