@@ -6,7 +6,7 @@
 /*          Ted Ralphs, Lehigh University                                    */
 /*          Sahar Tahernajad, Lehigh University                              */
 /*                                                                           */
-/* Copyright (C) 2007-2019 Lehigh University, Scott DeNegre, and Ted Ralphs. */
+/* Copyright (C) 2007-2023 Lehigh University, Scott DeNegre, and Ted Ralphs. */
 /* All Rights Reserved.                                                      */
 /*                                                                           */
 /* This software is licensed under the Eclipse Public License. Please see    */
@@ -39,7 +39,7 @@ int main(int argc, char* argv[])
       << "\n========================================================"
       << "\n========================================================"
       <<   "\nWelcome to MibS (Mixed Integer Bilevel Solver)"
-      <<   "\nCopyright (C) 2007-2019 Lehigh University, Scott DeNegre, Ted Ralphs"
+      <<   "\nCopyright (C) 2007-2023 Lehigh University, Scott DeNegre, Ted Ralphs"
       <<   "\nand Sahar Tahernejad."
       <<   "\nAll Rights Reserved."
       <<   "\nThis software is licensed under the Eclipse Public License. Please see"
