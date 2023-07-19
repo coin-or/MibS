@@ -428,19 +428,21 @@ MibSModel::readAuxiliaryData(int numCols, int numRows)
 	        goto TERM_ENDREADAUXDATA;
 	     }
 	     for(p = 0; p < numCols; ++p){
-		 if(columnName_[p] == cValue){
-		     pos = p;
-		     break;
-		 }
+                if(columnName_[p] == cValue){
+                   pos = p;
+                   break;
+                }
 	     }
 	     if(pos < 0){
-		 std::cout << cValue << " does not belong to the list of variables." << std::endl;
+                std::cout << cValue
+                          << " does not belong to the list of variables."
+                          << std::endl;
 	     }
 	     else{
-		 lowerColInd_[i] = pos;
-         // YX: counter idx changed to match N at TERM
-         lowerObjCoeffs_[k] = dValue;
-         k++;
+                lowerColInd_[i] = pos;
+                // YX: counter idx changed to match N at TERM
+                lowerObjCoeffs_[k] = dValue;
+                k++;
 	     }
 	     pos = -1;
 	 }
@@ -492,7 +494,7 @@ TERM_ENDREADAUXDATA:
 
    // YX: throw error if invalid lower/2nd objCoeffs input 
    if((!getLowerObjCoeffs()) || (k != lowerColNum)){
-      throw CoinError("Missing second-stage (lower level) objective coefficient(s)",
+      throw CoinError("Missing second-stage (lower-level) objective coefficient(s)",
                      "readAuxiliaryData",
                      "MibSModel");
    }
