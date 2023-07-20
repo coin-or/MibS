@@ -89,7 +89,6 @@ MibSBranchStrategyPseudo::createCandBranchObjects(int numPassesLeft, double ub)
    
     double etol = mibsmodel->etol_;
     int numCols = model->getNumCols();
-    int numObjects = model->numObjects();
     int aveIterations = model->getAveIterations();
     int uN = mibsmodel->upperDim_;
     int * upperColInd = mibsmodel->getUpperColInd();

@@ -527,7 +527,7 @@ MibSHeuristic::objCutHeuristic()
   int index(0), solType(0);
   double remainingTime(0.0), startTimeVF(0.0);
   double rhsAddedRow(0.0), value(0.0);
-  double lObjCoeff(0.0), lObjVal(0.0), objCoeff(0.0);
+  double lObjVal(0.0);
   bool shouldSolveLowerProb(false);
   MibSBilevel *bS = model->bS_;
   double etol(etol_);
@@ -989,7 +989,6 @@ MibSHeuristic::greedyHeuristic()
   //OsiSolverInterface * oSolver = model->getSolver();
   OsiSolverInterface * oSolver = model->solver();
   
-  double uObjSense(oSolver->getObjSense());
   double lObjSense(model->getLowerObjSense());  
   int lCols(model->getLowerDim());
   int uCols(model->getUpperDim());
@@ -1043,10 +1042,10 @@ MibSHeuristic::greedyHeuristic()
   
   while((usedBudget < intBudget) && (iter != lObjCoeffsOrd.end())){
     
+     //double min_wt = iter->first;
     ind_min_wt = iter->second;
     cost = intCost[ind_min_wt];
     testsol[uColIndices[ind_min_wt]] = 1.0;
-    double min_wt = iter->first;
     
     if(0){
       std::cout << "upper: " << ind_min_wt << " " 
@@ -1069,7 +1068,7 @@ MibSHeuristic::greedyHeuristic()
 	
 	//FIXME: SHOULD BE CHECKING FOR CURRENT BOUNDS HERE  
 	//fix the corresponding upper-level variable to 1
-	 randchoice = RANDOM() % 2;
+	 randchoice = (int) RANDOM() % 2;
 	if(0)
 	  std::cout << "randchoice " << randchoice << std::endl;
 	if(randchoice){
@@ -1279,8 +1278,6 @@ MibSHeuristic::createBilevelSolutions(std::map<double, mcSol> mcSolutions)
   MibSModel * model = MibSModel_;
   OsiSolverInterface * oSolver = model->getSolver(); 
   double uObjSense(oSolver->getObjSense());
-  int lCols(model->getLowerDim());
-  int uCols(model->getUpperDim());
 
   //int tCols(uCols + lCols);
   int tCols(oSolver->getNumCols());
@@ -1288,7 +1285,6 @@ MibSHeuristic::createBilevelSolutions(std::map<double, mcSol> mcSolutions)
   double incumbentObjVal(model->getSolver()->getInfinity() * uObjSense);
   double * incumbentSol = new double[tCols];
 
-  int i(0);
   bool shouldStoreSol(false), isTimeLimReached(false);
 
   if(!bestSol_)
@@ -1678,9 +1674,7 @@ MibSHeuristic::getBilevelSolution1(const double * sol)
   int uCols(model->getUpperDim());
   int * lColIndices = model->getLowerColInd();
   int uRowNum = model->getUpperRowNum();
-  int lRowNum = model->getLowerRowNum();
   int * uRowIndices = model->getUpperRowInd();
-  int * lRowIndices = model->getLowerRowInd();
   int * uColIndices = model->getUpperColInd();
   double * lObjCoeffs = model->getLowerObjCoeffs();
 
@@ -1801,9 +1795,7 @@ MibSHeuristic::solveSubproblem(double beta, bool &foundSolution)
   double uObjSense(oSolver->getObjSense());
   double lObjSense(model->getLowerObjSense());
   int lCols(model->getLowerDim());
-  int uCols(model->getUpperDim());
   int *lColIndices = model->getLowerColInd();
-  int *uColIndices = model->getUpperColInd();
   const double *uObjCoeffs = oSolver->getObjCoefficients();
   double *lObjCoeffs = model->getLowerObjCoeffs();
 

@@ -206,7 +206,7 @@ MibSModel::readParameters(const int argnum, const char * const * arglist)
       std::cout << "Command Line Parameters\n\n";
       
       std::vector<std::string> args(arglist + 1, arglist + argnum);
-      for (int i = 0; i < args.size(); i++){
+      for (int i = 0; i < (int) args.size(); i++){
          std::string::size_type pos = args[i].find('-');
          if (pos != std::string::npos){
             std::cout << args[i].substr(pos, args[i].length()) << " ";
@@ -314,7 +314,7 @@ MibSModel::readAuxiliaryData(int numCols, int numRows)
   std::string fileName = getLowerFile();
   if (fileName == ""){
       std::string mpsFile(getUpperFile());
-      int length = mpsFile.length();
+      int length = (int) mpsFile.length();
       char *tmpArr = new char[length + 1];
       if (mpsFile.substr(mpsFile.find_last_of(".")+1) == "gz"){
          mpsFile = mpsFile.substr(0, mpsFile.find_last_of("."));
@@ -996,7 +996,7 @@ MibSModel::readProblemData()
       }
       if(!instName.empty()){
          // YX: write MPS using CoinIO function; filename truncated @NAME 
-         j = instName.length();
+         j = (int) instName.length();
          if((j <= 3) || (instName.substr(j - 3).compare("mps") != 0)){
             instName.append(".mps"); 
          }
@@ -1118,8 +1118,9 @@ MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
    } 
    
    // YX: debug only
-   assert(lowerRowNum_ == lowerRowIndVec.size());
-   assert(numRows - inputNumRows == (rngConstrInd.size() + (int)emptySLMat)); 
+   assert(lowerRowNum_ == (int) lowerRowIndVec.size());
+   assert(numRows - inputNumRows ==
+          ((int)rngConstrInd.size() + (int)emptySLMat)); 
 
    // YX: add rows to the problem matrix and link pointers to vectors 
    if(numRows > inputNumRows){
@@ -1333,7 +1334,7 @@ MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
 	 row.insert(i + numCols, colUB[i]);
 	 row.insert(i, 1.0);
 	 newMatrix->appendRow(row);
-         lowerRowInd_[numRows+i];
+         //lowerRowInd_[numRows+i];
       }
       
       newMatrix->reverseOrdering();
@@ -3144,8 +3145,8 @@ MibSModel::setValFuncSlopes()
   assert(posRowCoeffs.size() == posObjCoeffs.size());
   assert(negRowCoeffs.size() == negObjCoeffs.size());
 
-  int posSize(posRowCoeffs.size());
-  int negSize(negRowCoeffs.size());
+  int posSize((int)posRowCoeffs.size());
+  int negSize((int)negRowCoeffs.size());
   double tmpRatio(0.0);
 
   for(i = 0; i < posSize; i++){
@@ -3412,15 +3413,13 @@ MibSModel::decodeMibS(AlpsEncoded &encoded)
 AlpsEncoded* 
 MibSModel::encode() const 
 { 
-    AlpsReturnStatus status = AlpsReturnStatusOk;
-
     // NOTE: "AlpsKnowledgeTypeModel" is the type name.
     AlpsEncoded* encoded = new AlpsEncoded(AlpsKnowledgeTypeModel);
 
-    status = encodeAlps(encoded);
-    status = encodeBcps(encoded);
-    status = encodeBlis(encoded);
-    status = encodeMibS(encoded);
+    encodeAlps(encoded);
+    encodeBcps(encoded);
+    encodeBlis(encoded);
+    encodeMibS(encoded);
 
     return encoded;
 }
@@ -3430,12 +3429,10 @@ MibSModel::encode() const
 void
 MibSModel::decodeToSelf(AlpsEncoded& encoded) 
 {
-    AlpsReturnStatus status = AlpsReturnStatusOk;
-
-    status = decodeAlps(encoded);
-    status = decodeBcps(encoded);
-    status = decodeBlis(encoded);
-    status = decodeMibS(encoded);
+    decodeAlps(encoded);
+    decodeBcps(encoded);
+    decodeBlis(encoded);
+    decodeMibS(encoded);
 }
 
 //#############################################################################
@@ -3447,13 +3444,11 @@ MibSModel::setRequiredFixedList()
     int * upperColInd = getUpperColInd();
     int * lowerRowInd = getLowerRowInd();
 
-    const double * matElements = colMatrix_->getElements();
     const int * matIndices = colMatrix_->getIndices();
     const int * matStarts = colMatrix_->getVectorStarts();
 
-    int index1, rowIndex, posRow, start, end;
+    int rowIndex, posRow, start, end;
     int i, j;
-    int num(0);
 
     if(!fixedInd_){
 	fixedInd_ = new int[numVars_]();

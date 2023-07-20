@@ -47,7 +47,7 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
 
   heuristic_ = new MibSHeuristic(mibs);
 
-  int i(0),j(0);
+  int i(0);
   int N(model_->numVars_);
   int lN(model_->lowerDim_); // lower-level dimension
   int uN(model_->upperDim_); // upper-level dimension
@@ -68,9 +68,6 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
                                       (MibSParams::solveSecondLevelWhenLVarsFixed) == PARAM_ON);
   int cutStrategy(model_->MibSPar_->entry
 		  (MibSParams::cutStrategy));
-
-  int useLinkingSolutionPool(model_->MibSPar_->entry
-			   (MibSParams::useLinkingSolutionPool));
 
   MibSSolType storeSol(MibSNoSol);
   
@@ -124,7 +121,7 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
   
   int * lowerColInd = mibs->getLowerColInd();
   int * upperColInd = mibs->getUpperColInd();
-  int index(0), uCount(0), lCount(0);
+  int index(0);
 
   const double *lower = model_->solver()->getColLower();
   const double *upper = model_->solver()->getColUpper();
@@ -269,8 +266,6 @@ MibSBilevel::checkBilevelFeasibility(bool isRoot)
 		     (MibSParams::maxThreadsLL));
     int whichCutsLL(model_->MibSPar_->entry
 		    (MibSParams::whichCutsLL));
-    int probType(model_->MibSPar_->entry
-		 (MibSParams::bilevelProblemType));
     std::string feasCheckSolver(model_->MibSPar_->entry
 				(MibSParams::feasCheckSolver));
     MibSBranchingStrategy branchPar = static_cast<MibSBranchingStrategy>
@@ -288,8 +283,7 @@ MibSBilevel::checkBilevelFeasibility(bool isRoot)
     MibSSolType storeSol(MibSNoSol);
     int lN(model_->lowerDim_); // lower-level dimension
     int uN(model_->upperDim_); // upper-level dimension
-    int i(0), index(0), length(0), pos(0);
-    int sizeFixedInd(model_->sizeFixedInd_);
+    int i(0), index(0), pos(0);
     double etol(model_->etol_), objVal(0.0), lowerObj(0.0);
     int * fixedInd = model_->fixedInd_;
     int * lowerColInd = model_->getLowerColInd();
@@ -714,12 +708,10 @@ MibSBilevel::setUpUBModel(OsiSolverInterface * oSolver, double objValLL,
 
     int * fixedInd = model_->fixedInd_;
 
-    int i(0), j(0), index1(0);
+    int i(0), index1(0);
     double value(0.0);
 
     int uCols(model_->getUpperDim());
-    int uRows(model_->getOrigUpperRowNum());
-    int lRows(model_->getLowerRowNum());
     int lCols(model_->getLowerDim());
     int rowNum(model_->getNumOrigCons() + 1);
     int colNum(model_->getNumOrigVars());
@@ -729,8 +721,6 @@ MibSBilevel::setUpUBModel(OsiSolverInterface * oSolver, double objValLL,
 	double objSense(model_->getLowerObjSense());
 	double uObjSense(1);
         int * lColIndices(model_->getLowerColInd());
-	int * uRowIndices(model_->getOrigUpperRowInd());
-	int * lRowIndices(model_->getLowerRowInd());
 	const double * origColLb(model_->getOrigColLb());
 	const double * origColUb(model_->getOrigColUb());
 	const double * origRowLb(model_->getOrigRowLb());
@@ -1008,7 +998,7 @@ MibSBilevel::setUpModel(OsiSolverInterface * oSolver, bool newOsi,
 	 numElements = row.getNumElements();
 	 const int *indices = row.getIndices();
 	 const double *elements = row.getElements();
-	 for(j = 0; j < numElements; j++){
+	 for(int j = 0; j < numElements; j++){
 	     pos = binarySearch(0, lCols -1, indices[j], lColIndices);
 	     if(pos >= 0){
 		 rowG2.insert(pos, elements[j]);
@@ -1110,7 +1100,7 @@ MibSBilevel::setUpModel(OsiSolverInterface * oSolver, bool newOsi,
 	getAllKnowledges(AlpsKnowledgeTypeSolution, solutionPool);
 
      const double * sol; 
-     double objval, Ub(objSense*nSolver->getInfinity());
+     double Ub(objSense*nSolver->getInfinity());
      BlisSolution* blisSol;
      std::vector<std::pair<AlpsKnowledge*, double> >::const_iterator si;
      for (si = solutionPool.begin(); si != solutionPool.end(); ++si){
@@ -1351,7 +1341,6 @@ void
 {
     int i(0),index(0);
     int uN(model_->upperDim_);
-    int lN(model_->lowerDim_);
     int * upperColInd = model_->getUpperColInd();
     int * fixedInd = model_->fixedInd_;
     int solType = static_cast<int>(solTag);
@@ -1403,6 +1392,10 @@ void
 	    }
 	    break;
 	}
+    case MibSLinkingPoolTagIsNotSet:
+      	throw CoinError("Linking solution pool tag not set as it should be",
+			"addSolutionToSeenLinkingSolutionPool", "MibsBilevel");
+
     }
 }
 	    

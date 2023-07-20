@@ -378,8 +378,6 @@ MibSBranchStrategyStrong::createCandBranchObjects(int numPassesLeft, double ub)
         // Strong branching
         //--------------------------------------------------------
         
-        // set true to say look at all even if some fixed (experiment)
-	bool solveAll = false;
 	int saveLimit;
         
 	CoinWarmStart * ws = solver->getWarmStart();
@@ -608,7 +606,10 @@ MibSBranchStrategyStrong::createCandBranchObjects(int numPassesLeft, double ub)
 	    //    node will be reoptimised by the caller.
             //----------------------------------------------
             
-	    if (candStrongs[i].bObject->getUpScore() < ALPS_INFINITY) {
+            // set true to say look at all even if some fixed (experiment)
+            bool solveAll = false;
+
+            if (candStrongs[i].bObject->getUpScore() < ALPS_INFINITY) {
 		if(candStrongs[i].bObject->getDownScore() < ALPS_INFINITY) {
 		    // feasible - no action
 		} 

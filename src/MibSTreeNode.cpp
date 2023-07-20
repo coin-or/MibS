@@ -110,7 +110,10 @@ MibSTreeNode::process(bool isRoot, bool rampUp)
     BlisLpStatus lpStatus = BlisLpStatusUnknown;
     int j, k = -1;
     int numCols, numRows, numCoreCols, numCoreRows;
-    int numStartRows, origNumStartRows;
+    int numStartRows;
+#ifdef BLIS_DEBUG
+    int origNumStartRows;
+#endif
     int maxNumCons, tempNumCons = 0;
 
     int numIntInfs = 0;
@@ -143,9 +146,10 @@ MibSTreeNode::process(bool isRoot, bool rampUp)
     bool foundSolution = false;
     bool genConsHere = false;
     bool shareCon = false;
-    bool shareVar = false;
 
+#if REMOVE_SLACK
     CoinWarmStartBasis::Status rowStatus;
+#endif
     BlisConstraint *aCon = NULL;
     BcpsObject **newConstraints = NULL;
 
@@ -188,7 +192,6 @@ MibSTreeNode::process(bool isRoot, bool rampUp)
     }
     
     shareCon = BlisPar->entry(BlisParams::shareConstraints);
-    shareVar = BlisPar->entry(BlisParams::shareVariables);    
 
     cutoff = model->getCutoff();
 
@@ -289,8 +292,10 @@ MibSTreeNode::process(bool isRoot, bool rampUp)
     //------------------------------------------------------
 
     numStartRows = model->solver()->getNumRows();
+#ifdef BLIS_DEBUG
     origNumStartRows = numStartRows;
-
+#endif
+    
     origNumOldCons = numStartRows - numCoreRows;
     currNumOldCons = origNumOldCons;
     

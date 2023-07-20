@@ -398,6 +398,9 @@ MibSCutGenerator::intersectionCuts(BcpsConstraintPool &conPool,
 	    case CoinWarmStartBasis::isFree:
 		rstat[i] = VAR_FREE;
 		break;
+	    case CoinWarmStartBasis::superBasic:
+                assert(false);
+                break;
 	    }
 	}
 
@@ -419,6 +422,9 @@ MibSCutGenerator::intersectionCuts(BcpsConstraintPool &conPool,
 	    case CoinWarmStartBasis::isFree:
 		cstat[i] = VAR_FREE;
 		break;
+	    case CoinWarmStartBasis::superBasic:
+                assert(false);
+                break;
 	    }
 	}
 	
@@ -648,6 +654,9 @@ MibSCutGenerator::intersectionCuts(BcpsConstraintPool &conPool,
 	    }
 	    getAlphaHypercubeIC(extRay, numStruct, numNonBasic, alpha);
 	    break;
+	case MibSIntersectionCutTypeNotSet:
+		throw CoinError("Intersection cut type not set",
+				"intersectionCuts", "MibSCutGenerator");
 	}
 	
 	if(intersectionFound){
@@ -764,7 +773,7 @@ MibSCutGenerator::intersectionCuts(BcpsConstraintPool &conPool,
 		    double maxElem = 0.0;
 		    double minElem = ALPS_DBL_MAX;
 		    double scaleFactor;
-		    for(i = 0; i < valsList.size(); i++){
+		    for(i = 0; i < (int) valsList.size(); i++){
 			if(fabs(valsList[i]) > maxElem){
 			    maxElem = fabs(valsList[i]);
 			}
@@ -829,10 +838,9 @@ MibSCutGenerator::findLowerLevelSol(double *uselessIneqs, double *lowerLevelSol,
     bool getA2Matrix(false), getG2Matrix(false);
     OsiSolverInterface * oSolver = localModel_->solver();
     double infinity(oSolver->getInfinity());
-    int i, j;
-    int index(0), cntA2(0), cntG2(0), cntInt(0);
-    double coef(0.0), lObjVal(0.0), value(0.0);
-    int numCols(localModel_->getNumCols());
+    int i;
+    int index(0), cntInt(0);
+    double lObjVal(0.0), value(0.0);
     int uCols(localModel_->getUpperDim());
     int lCols(localModel_->getLowerDim());
     int lRows(localModel_->getLowerRowNum());
@@ -1291,10 +1299,9 @@ MibSCutGenerator::findLowerLevelSolImprovingDirectionIC(double *uselessIneqs, do
     OsiSolverInterface *oSolver = localModel_->solver();
     double infinity(oSolver->getInfinity());
     bool getA2G2Matrix(false), getG2Matrix(false);
-    int i, j;
-    int rowIndex(0), colIndex(0), numElements(0), pos(0), cntInt(0);
+    int i;
+    int rowIndex(0), colIndex(0), cntInt(0);
     double rhs(0.0), value(0.0);
-    int numCols(localModel_->getNumCols());
     int lCols(localModel_->getLowerDim());
     int lRows(localModel_->getLowerRowNum());
     int numContCols(lRows + 2 * lCols);
@@ -1701,7 +1708,7 @@ MibSCutGenerator::storeBestSolHypercubeIC(const double* lpSol, double optLowerOb
     int uN(localModel_->getUpperDim());
     int lN(localModel_->getLowerDim());
     double objVal(0.0);
-    double startTimeUB(0.0);
+    //double startTimeUB(0.0);
     int * fixedInd = localModel_->getFixedInd();
     
     int useLinkingSolutionPool(localModel_->MibSPar_->entry
@@ -1783,7 +1790,7 @@ MibSCutGenerator::storeBestSolHypercubeIC(const double* lpSol, double optLowerOb
 #endif
 	}
 
-	startTimeUB = localModel_->broker_->subTreeTimer().getTime(); 
+	//startTimeUB = localModel_->broker_->subTreeTimer().getTime(); 
         UBSolver->branchAndBound();
         //This time is being double-counted, since it is also included in cut
         //generation
@@ -2134,10 +2141,7 @@ MibSCutGenerator::boundCuts(BcpsConstraintPool &conPool, double *passedObjCoeffs
     bool boundCutOptimal
       = localModel_->MibSPar_->entry(MibSParams::boundCutOptimal);
 
-    bool boundCutRelaxUpper
-      = localModel_->MibSPar_->entry(MibSParams::boundCutRelaxUpper);
-
-      //parametric or non-parametric
+    //parametric or non-parametric
     int boundCutOptimalType =
       localModel_->MibSPar_->entry(MibSParams::boundCutOptimalType);
 
@@ -2210,7 +2214,7 @@ MibSCutGenerator::boundCuts(BcpsConstraintPool &conPool, double *passedObjCoeffs
     }
 
     int numCuts(0);
-    double objval = -1 * infinity;
+    //double objval = -1 * infinity;
     double lower_objval = -1 * infinity;
     char * colType = new char[tCols];
 
@@ -2305,7 +2309,7 @@ MibSCutGenerator::boundCuts(BcpsConstraintPool &conPool, double *passedObjCoeffs
 
 	int argc = 1;
 	char** argv = new char* [1];
-	argv[0] = (char *) "mibs";
+	argv[0] = const_cast<char *>("mibs");
 
 #ifdef  COIN_HAS_MPI
 	AlpsKnowledgeBrokerMPI broker(argc, argv, *boundModel);
@@ -2315,9 +2319,9 @@ MibSCutGenerator::boundCuts(BcpsConstraintPool &conPool, double *passedObjCoeffs
 
 	broker.search(boundModel);
 
-	if (boundModel->getNumSolutions() > 0){
-	    double *solution = boundModel->incumbent();
-	}
+	//if (boundModel->getNumSolutions() > 0){
+	//    double *solution = boundModel->incumbent();
+	//}
 
 	broker.printBestSolution();
 	if(broker.getSolStatus() == AlpsExitStatusInfeasible){
@@ -2422,7 +2426,7 @@ MibSCutGenerator::boundCuts(BcpsConstraintPool &conPool, double *passedObjCoeffs
 
 	   int argc1 = 1;
 	   char** argv1 = new char* [1];
-	   argv1[0] = (char *) "mibs";
+	   argv1[0] = const_cast<char *>("mibs");
 
 #ifdef  COIN_HAS_MPI
 	   AlpsKnowledgeBrokerMPI Newbroker(argc1, argv1, NewboundModel);
@@ -2442,7 +2446,7 @@ MibSCutGenerator::boundCuts(BcpsConstraintPool &conPool, double *passedObjCoeffs
 
 	   Newbroker.printBestSolution();
 	   if (NewboundModel.getNumSolutions() > 0){
-	       objval = NewboundModel.getKnowledgeBroker()->getBestQuality();
+               //objval = NewboundModel.getKnowledgeBroker()->getBestQuality();
 #if 0
 	       double objval1(boundModel.getKnowledgeBroker()->getBestQuality());
 	       std::cout<<"obj="<<objval1<<std::endl;
@@ -2517,8 +2521,6 @@ MibSCutGenerator::findLeafNodes(AlpsTreeNode *node, int *numStoredCuts,
   assert(node);
 
   int i(0), j(0), k(0);
-  int tmp(0);
-  double etol(localModel_->etol_);
   int numChildren = node->getNumChildren();
 
 
@@ -2537,8 +2539,6 @@ MibSCutGenerator::findLeafNodes(AlpsTreeNode *node, int *numStoredCuts,
 		    localModel_->getLowerDim());
     BlisNodeDesc* pathDesc = NULL;
     BlisConstraint *aCon = NULL;
-    double *varHardLB = NULL;
-    double *varHardUB = NULL;
     MibSTreeNode *tmpMibsNode = NULL;
     std::vector<AlpsTreeNode *> leafToRootPath;
     double *startColLB = new double[numCoreVars];
@@ -2560,8 +2560,6 @@ MibSCutGenerator::findLeafNodes(AlpsTreeNode *node, int *numStoredCuts,
     for(i = static_cast<int> (leafToRootPath.size() - 1); i > -1; --i){
       pathDesc = dynamic_cast<BlisNodeDesc*>((leafToRootPath.at(i))->getDesc());
 
-      varHardLB = pathDesc->getVars()->lbHard.entries;
-      varHardUB = pathDesc->getVars()->ubHard.entries;
       numModify = pathDesc->getVars()->lbHard.numModify;
       for(k = 0; k < numModify; ++k){
 	index = pathDesc->getVars()->lbHard.posModify[k];
@@ -2595,7 +2593,7 @@ MibSCutGenerator::findLeafNodes(AlpsTreeNode *node, int *numStoredCuts,
       nodeIndex = tmpMibsNode->getIndex();
       if(tmpMibsNode->getIsCutStored() == true){ 
 	if(tmpInt > 0){
-	  numAllGenCut = sourceNode.size();
+           numAllGenCut = (int) sourceNode.size();
 	  for(k = 0; k < numAllGenCut; k++){
 	    if(sourceNode[k] == nodeIndex){
 	      pos = k;
@@ -2693,7 +2691,8 @@ MibSCutGenerator::solveLeafNode(int leafNodeIndex, bool *isTimeLimReached)
   int numRows(0);
   double lObjSense(localModel_->getLowerObjSense());
 
-  bool isLinkFixed(true), isBoundChanged(false);
+  bool isLinkFixed(true);
+  //bool isBoundChanged(false);
   std::vector<double> linkSol;
 
   double *lObjCoeffs = localModel_->getLowerObjCoeffs();
@@ -2734,11 +2733,11 @@ MibSCutGenerator::solveLeafNode(int leafNodeIndex, bool *isTimeLimReached)
   for(i = 0; i < numCols; i++){
     if(colLb[i] - leafColLb[i] > etol){
       newColLb[i] = colLb[i];
-      isBoundChanged = true;
+      //isBoundChanged = true;
     }
     if(leafColUb[i] - colUb[i] > etol){
       newColUb[i] = colUb[i];
-      isBoundChanged = true;
+      //isBoundChanged = true;
     }
     if(newColLb[i] - newColUb[i] > etol){
       bound = infinity;
@@ -3073,8 +3072,6 @@ MibSCutGenerator::getLeafConst(int nodeIndex,int &numRows, std::vector<double> &
 			       std::vector<double> &rowUb)
 {
   
-  OsiSolverInterface *hSolver = localModel_->getSolver();    
-
   int i(0), j(0);
   int rowIndex(0), rowStart(0), rowEnd(0);
   int numCols(localModel_->getUpperDim() + localModel_->getLowerDim());
@@ -4725,9 +4722,6 @@ MibSCutGenerator::interdictionCuts(BcpsConstraintPool &conPool)
      localModel_->MibSPar_->entry(MibSParams::useBendersInterdictionCut);
 
   int numCuts(0);
-  int lN(localModel_->getLowerDim());
-  int * lowerColInd = localModel_->getLowerColInd();
-  double * lObjCoeffs = localModel_->getLowerObjCoeffs();
   int uN(localModel_->upperDim_);
   std::vector<int> indexList;
   std::vector<double> valsList;
@@ -4735,8 +4729,6 @@ MibSCutGenerator::interdictionCuts(BcpsConstraintPool &conPool)
   double cutlb(- solver->getInfinity());
 
   if (bS->isUpperIntegral_){
-     MibSTreeNode * node = 
-	dynamic_cast<MibSTreeNode *>(localModel_->activeNode_); 
      double etol(localModel_->etol_);
      const double * sol = solver->getColSolution();
      int * upperColInd = localModel_->getUpperColInd();
@@ -4832,8 +4824,6 @@ MibSCutGenerator::generalWeakBendersBinaryCutCurrent(BcpsConstraintPool &conPool
 		   (MibSParams::useLinkingSolutionPool));
 
     MibSBilevel *bS = localModel_->bS_;
-
-    bool shouldFindBestSol(true);
 
     std::vector<int> indexList;
     std::vector<double> valsList;
@@ -5605,8 +5595,8 @@ int
 MibSCutGenerator::bendersInterdictionOneCut(BcpsConstraintPool &conPool, double *lSolution)
 {
 
-  MibSBranchingStrategy branchPar = static_cast<MibSBranchingStrategy>
-      (localModel_->MibSPar_->entry(MibSParams::branchStrategy));
+  //MibSBranchingStrategy branchPar = static_cast<MibSBranchingStrategy>
+  //    (localModel_->MibSPar_->entry(MibSParams::branchStrategy));
 
   bool allowRemoveCut(localModel_->MibSPar_->entry(MibSParams::allowRemoveCut));
 
@@ -5702,12 +5692,11 @@ MibSCutGenerator::bendersInterdictionMultipleCuts(BcpsConstraintPool &conPool)
   int numCuts(0);
   double etol(localModel_->etol_);
   int uN(localModel_->upperDim_);
-  int lN(localModel_->getLowerDim());
   int * upperColInd = localModel_->getUpperColInd();
   int * lowerColInd = localModel_->getLowerColInd();
   double * lObjCoeffs = localModel_->getLowerObjCoeffs();
  
-  int i(0), j(0);
+  int j(0);
   double cutub(solver->getInfinity());
   std::vector<int> indexList;
   std::vector<double> valsList;
@@ -5801,21 +5790,19 @@ MibSCutGenerator::bendersZeroSumCuts(BcpsConstraintPool &conPool)
   const double *lpSol = solver->getColSolution();
   
   int numCuts(0);
-  double etol(localModel_->etol_);
   int uN(localModel_->upperDim_);
   int lN(localModel_->getLowerDim());
-  int * upperColInd = localModel_->getUpperColInd();
   int * lowerColInd = localModel_->getLowerColInd();
   const double * colUpper = solver->getColUpper();
   const double * colLower = solver->getColLower();
   double * lObjCoeffs = localModel_->getLowerObjCoeffs();
  
-  int i(0), j(0);
+  int j(0);
   double cutub(solver->getInfinity());
   std::vector<int> indexList;
   std::vector<double> valsList;
 
-  int indexU(0), indexL(0);
+  int indexL(0);
 
   std::vector<std::pair<AlpsKnowledge*, double> > solutionPool;
   localModel_->getKnowledgeBroker()->
@@ -5832,7 +5819,6 @@ MibSCutGenerator::bendersZeroSumCuts(BcpsConstraintPool &conPool)
      objval = blisSol->getQuality();
      //Check to see if solution is feasible for current node 
      for (j = 0; j < uN+lN; j++){
-	indexU = upperColInd[j];
 	if (sol[j] > colUpper[j] || sol[j] < colLower[j]){
 	   break;
 	}
@@ -5885,9 +5871,6 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
 
   MibSBilevel *bS = localModel_->bS_;
   
-  int cutTypes = 
-     localModel_->MibSPar_->entry(MibSParams::bilevelCutTypes);
-  
   bool useBoundCut = 
      localModel_->MibSPar_->entry(MibSParams::useBoundCut);
   
@@ -5913,9 +5896,6 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
   
   int useGeneralizedNoGoodCut = 
      localModel_->MibSPar_->entry(MibSParams::useGeneralizedNoGoodCut);
-  
-  int useNoGoodCut = 
-     localModel_->MibSPar_->entry(MibSParams::useNoGoodCut);
   
   int useBendersBinaryCut
      = localModel_->MibSPar_->entry(MibSParams::useBendersBinaryCut);
@@ -6122,7 +6102,7 @@ MibSCutGenerator::addCut(BcpsConstraintPool &conPool,
 			 bool removable)
 {
 
-  int size(indexList.size());
+   int size((int)indexList.size());
   int * indices = new int[size];
   double * elements = new double[size];
   int capacity(localModel_->solver()->getNumCols());
