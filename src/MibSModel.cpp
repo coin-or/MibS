@@ -1620,27 +1620,12 @@ MibSModel::setupSelf()
       //std::cout << "**** getProcType = " << broker_->getProcType() << std::endl;
       
       if (broker_->getMsgLevel() > 0) {
-	 if (broker_->getProcRank() == broker_->getMasterRank()) {
-	    if (strcmp(BCPS_VERSION, "trunk")){
-	       std::cout << "==  Bcps Version: " << BCPS_VERSION << std::endl;
-	    }else{
-	       std::cout << "==  Bcps Version: Trunk (unstable)" << std::endl;
-	    }
-#ifdef BCPS_SVN_REV
-	    std::cout << "==  Bcps Revision Number: " << BCPS_SVN_REV
-	        << std::endl;
-#endif
-	    if (strcmp(BLIS_VERSION, "trunk")){
-	       std::cout << "==  Blis Version: " << BLIS_VERSION << std::endl;
-	    }else{
-	       std::cout << "==  Blis Version: Trunk (unstable)" << std::endl;
-	    }
-#ifdef BLIS_SVN_REV
-	    std::cout << "==  Blis Revision Number: " << BLIS_SVN_REV
-	        << std::endl;
-#endif
-	    std::cout << std::endl;
-	 }
+         if (broker_->getProcRank() == broker_->getMasterRank()) {
+           std::cout << "==  Alps Version: " << ALPS_VERSION << std::endl;
+             std::cout << "==  Bcps Version: " << BCPS_VERSION << std::endl;
+             std::cout << "==  Blis Version: " << BLIS_VERSION << std::endl;
+             std::cout << std::endl;
+        }
       }
       
    }

@@ -48,7 +48,7 @@ int main(int argc, char* argv[])
       <<   "\nBuild Date: " << __DATE__
       << "\n========================================================"
       << "\n========================================================"
-      << "\n";
+      << "\n\n";
 
     try{
        
@@ -63,22 +63,22 @@ int main(int argc, char* argv[])
 
 
 #ifdef  COIN_HAS_MPI
-        AlpsKnowledgeBrokerMPI broker(argc, argv, model);
+      AlpsKnowledgeBrokerMPI broker(argc, argv, model);
 #else
-        if(argc == 1){
-           std::cerr
-              << "================================================" << std::endl
-              << "Usage:" << std::endl
-              << "1)./mibs -Alps_instance file.mps "
-              << "-MibS_auxiliaryInfoFile aux_file.aux" << std::endl
-              << "2)./mibs -param mibs.par" << std::endl
-              << "See https://coin-or.github.io/MibS for more information"
-              << std::endl
-              << "================================================" << std::endl
-              << std::endl;
-           return 0;
-	}
-        AlpsKnowledgeBrokerSerial broker(argc, argv, model);
+      if(argc == 1){
+         std::cerr
+            << "================================================" << std::endl
+            << "Usage:" << std::endl
+            << "1)./mibs -Alps_instance file.mps "
+            << "-MibS_auxiliaryInfoFile aux_file.aux" << std::endl
+            << "2)./mibs -param mibs.par" << std::endl
+            << "See https://coin-or.github.io/MibS for more information"
+            << std::endl
+            << "================================================" << std::endl
+            << std::endl;
+         return 0;
+      }
+      AlpsKnowledgeBrokerSerial broker(argc, argv, model, false);
 #endif
 
       broker.search(&model);
