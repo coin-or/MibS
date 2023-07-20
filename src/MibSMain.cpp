@@ -38,14 +38,17 @@ int main(int argc, char* argv[])
    std::cout 
       << "\n========================================================"
       << "\n========================================================"
-      <<   "\nWelcome to MibS (Mixed Integer Bilevel Solver)"
-      <<   "\nCopyright (C) 2007-2023 Lehigh University, Scott DeNegre, Ted Ralphs"
-      <<   "\nand Sahar Tahernejad."
-      <<   "\nAll Rights Reserved."
-      <<   "\nThis software is licensed under the Eclipse Public License. Please see"
-      <<   "\naccompanying file for terms."
-      <<   "\nVersion: " << MIBS_VERSION
-      <<   "\nBuild Date: " << __DATE__
+      << "\nWelcome to MibS (Mixed Integer Bilevel Solver)"
+      << "\nCopyright (C) 2007-2023 Lehigh University, Scott DeNegre, Ted Ralphs"
+      << "\nand Sahar Tahernejad."
+      << "\nAll Rights Reserved."
+      << "\nThis software is licensed under the Eclipse Public License. Please see"
+      << "\naccompanying file for terms."
+      << "\nVersion: " << MIBS_VERSION
+      << "\nBuild Date: " << __DATE__
+      << "\n==  Alps Version: " << ALPS_VERSION
+      << "\n==  Bcps Version: " << BCPS_VERSION
+      << "\n==  Blis Version: " << BLIS_VERSION
       << "\n========================================================"
       << "\n========================================================"
       << "\n\n";

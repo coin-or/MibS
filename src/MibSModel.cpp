@@ -4,8 +4,9 @@
 /*                                                                           */
 /* Authors: Scott DeNegre, Lehigh University                                 */
 /*          Ted Ralphs, Lehigh University                                    */
+/*          Sahar Tahernajad, Lehigh University                              */
 /*                                                                           */
-/* Copyright (C) 2007-2015 Lehigh University, Scott DeNegre, and Ted Ralphs. */
+/* Copyright (C) 2007-2023 Lehigh University, Scott DeNegre, and Ted Ralphs. */
 /* All Rights Reserved.                                                      */
 /*                                                                           */
 /* This software is licensed under the Eclipse Public License. Please see    */
@@ -828,7 +829,7 @@ MibSModel::readProblemData()
    int rc(-1);
    int format(MibSPar_->entry(MibSParams::upperFileFormat));
    // YX: specify output file name;
-   std::string instName(MibSPar_->entry(MibSParams::writeInstanceName));
+   std::string instName(MibSPar_->entry(MibSParams::writeInstanceFile));
 
    CoinMpsIO *mps = new CoinMpsIO;
 
@@ -1614,21 +1615,6 @@ MibSModel::setupSelf()
    
    bcpsMessageHandler_->setLogLevel(broker_->getMsgLevel());
    blisMessageHandler_->setLogLevel(broker_->getMsgLevel());
-   
-   if (broker_->getMsgLevel() > 0) {
-      
-      //std::cout << "**** getProcType = " << broker_->getProcType() << std::endl;
-      
-      if (broker_->getMsgLevel() > 0) {
-         if (broker_->getProcRank() == broker_->getMasterRank()) {
-           std::cout << "==  Alps Version: " << ALPS_VERSION << std::endl;
-             std::cout << "==  Bcps Version: " << BCPS_VERSION << std::endl;
-             std::cout << "==  Blis Version: " << BLIS_VERSION << std::endl;
-             std::cout << std::endl;
-        }
-      }
-      
-   }
    
    std::string dataFile(AlpsPar_->entry(AlpsParams::instance));
 
