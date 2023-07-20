@@ -264,8 +264,8 @@ MibSParams::createKeywordList() {
    keys_.push_back(make_pair(std::string("MibS_inputFormat"),
 			     AlpsParameter(AlpsStringPar, inputFormat)));
 
-   keys_.push_back(make_pair(std::string("MibS_writeInstanceName"),
-			     AlpsParameter(AlpsStringPar, writeInstanceName)));
+   keys_.push_back(make_pair(std::string("MibS_writeInstanceFile"),
+			     AlpsParameter(AlpsStringPar, writeInstanceFile)));
 
    keys_.push_back(make_pair(std::string("MibS_writeSolnFile"),
             AlpsParameter(AlpsStringPar, writeSolnFile)));
@@ -432,7 +432,7 @@ MibSParams::setDefaultEntries() {
 
    setEntry(inputFormat, "indexBased");
 
-   setEntry(writeInstanceName, "PARAM_NOTSET");
+   setEntry(writeInstanceFile, "PARAM_NOTSET");
 
    setEntry(writeSolnFile, "PARAM_NOTSET");
 }
