@@ -194,12 +194,49 @@ MibSModel::initialize()
 void 
 MibSModel::readParameters(const int argnum, const char * const * arglist)
 {
-    //std::cout << "Reading parameters ..." << std::endl;
-    AlpsPar_->readFromArglist(argnum, arglist);
-    BlisPar_->readFromArglist(argnum, arglist);
-    MibSPar_->readFromArglist(argnum, arglist);
 
-    setBlisParameters();
+   AlpsPar_->readFromArglist(argnum, arglist);
+   BlisPar_->readFromArglist(argnum, arglist);
+   MibSPar_->readFromArglist(argnum, arglist);
+   
+   setBlisParameters();
+
+   if (MibSPar_->entry(MibSParams::printParameters)){
+
+      std::cout << "Command Line Parameters\n\n";
+      
+      std::vector<std::string> args(arglist + 1, arglist + argnum);
+      for (int i = 0; i < args.size(); i++){
+         std::string::size_type pos = args[i].find('-');
+         if (pos != std::string::npos){
+            std::cout << args[i].substr(pos, args[i].length()) << " ";
+         }else{
+            std::cout << args[i] << std::endl;
+         }
+      }
+      std::cout << std::endl;
+   }
+
+}
+
+//#############################################################################
+
+/** Write out parameters. */
+void 
+MibSModel::writeParameters(std::ostream& outstream) const
+{
+    outstream << "\n================================================"
+              <<std::endl;
+    outstream << "ALPS Parameters: " << std::endl;
+    AlpsPar_->writeToStream(outstream);
+    outstream << "\n================================================"
+              <<std::endl;
+    outstream << "BLIS Parameters: " << std::endl;
+    BlisPar_->writeToStream(outstream);
+    outstream << "\n================================================"
+              <<std::endl;
+    outstream << "MIBS Parameters: " << std::endl;
+    MibSPar_->writeToStream(outstream);
 }
 
 //#############################################################################
@@ -4064,5 +4101,7 @@ MibSModel::instanceStructure()
           std::cout << "Linking solution pool will not be used." << std::endl;
 	}
     }
-    std::cout << std::endl;
+    //if (MibSPar_->entry(MibSParams::printParameters)){
+    //   writeParameters(std::cout);
+    //}
 }

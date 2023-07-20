@@ -39,6 +39,7 @@ class MibSParams : public AlpsParameterSet {
      printProblemInfo,
      allowRemoveCut,
      useNewPureIntCut,
+     printParameters,
      endOfBoolParams
   };
   

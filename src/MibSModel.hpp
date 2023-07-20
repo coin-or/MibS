@@ -603,6 +603,9 @@ public:
     /** Read in Alps, Blis, MibS parameters. */
     virtual void readParameters(const int argnum, const char * const *arglist);
 
+    /** Write out parameters. */
+    virtual void writeParameters(std::ostream& outstream) const;
+
     /** Pack MibS portion of the model into an encoded object. */
     AlpsReturnStatus encodeMibS(AlpsEncoded *encoded) const;
   
