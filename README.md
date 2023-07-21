@@ -193,8 +193,10 @@ solve these problems, there are two ways:
  * [Additional documentation](https://coin-or.github.io/MibS)
  * [Code of Conduct](https://www.coin-or.org/code-of-conduct/)
  * [COIN-OR Web Site](http://www.coin-or.org/)
- * [Discussion forum](https://github.com/coin-or/MibS/discussions)
+ * [COIN-OR general discussion forum](https://github.com/orgs/coin-or/discussions)
+ * [MibS Discussion forum](https://github.com/coin-or/MibS/discussions)
  * [Report a bug](https://github.com/coin-or/MibS/issues/new)
+ * [Doxygen generated documentation](http://coin-or.github.io/MibS/Doxygen)
 
 ## ACKNOWLEDGEMENT
 
