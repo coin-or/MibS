@@ -64,8 +64,8 @@ DIST_COMMON = $(am__configure_deps) $(srcdir)/BuildTools/Makemain.inc \
 	$(srcdir)/Makefile.am $(srcdir)/Makefile.in \
 	$(srcdir)/mibs.pc.in $(top_srcdir)/configure \
 	$(top_srcdir)/doxydoc/doxygen.conf.in \
-	$(top_srcdir)/examples/mibs.par.in AUTHORS INSTALL \
-	config.guess config.sub depcomp install-sh ltmain.sh missing
+	$(top_srcdir)/examples/mibs.par.in INSTALL config.guess \
+	config.sub depcomp install-sh ltmain.sh missing
 @HAVE_EXTERNALS_TRUE@am__append_1 = Dependencies
 @HAVE_EXTERNALS_TRUE@am__append_2 = .Dependencies-stamp
 subdir = .
