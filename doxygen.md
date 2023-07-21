@@ -1,7 +1,7 @@
 ---
 layout: default
 title: Doxygen
-navigation: 1
+navigation: 4
 ---
 
 # Doxygen documentation
