@@ -12,6 +12,7 @@ matrix G2
 performance of MibS 1.2.
  * Lots cleanup of the repo, fixes for usability, refining of output
 refactoring.
+ * Fix all compiler warnings
 	
 ## 1.1.3
 
