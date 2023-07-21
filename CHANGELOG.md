@@ -7,7 +7,11 @@ MibS Change Log
 matrix G2
  * Generalizing ICs to allow separation of fractional solutions
  * Substantial improvements to performance with default parameter settings
- * Remove need to specify application-specific prefix for parameters	
+ * Remove need to specify application-specific prefix for parameters
+ * Renaming of cuts to match new draft of this paper that details
+performance of MibS 1.2.
+ * Lots cleanup of the repo, fixes for usability, refining of output
+refactoring.
 	
 ## 1.1.3
 
