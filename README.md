@@ -1,4 +1,4 @@
-# MibS 1.2
+# MibS 1.2.0
 
 [![A COIN-OR Project](https://coin-or.github.io/coin-or-badge.png)](https://www.coin-or.org)
 
@@ -41,9 +41,9 @@ Paper: https://doi.org/10.1007/s12532-020-00183-6
 
 ## CURRENT BUILD STATUS
 
-[![Windows Builds](https://github.com/coin-or/MibS/actions/workflows/windows-ci.yml/badge.svg?branch=stable/1.2)](https://github.com/coin-or/MibS/actions/workflows/windows-ci.yml?query=branch%3Astable/1.2)
+[![Windows Builds](https://github.com/coin-or/MibS/actions/workflows/windows-ci.yml/badge.svg?branch=releases/1.2.0)](https://github.com/coin-or/MibS/actions/workflows/windows-ci.yml?query=branch%3Areleases/1.2.0)
 
-[![Linux and MacOS Builds](https://github.com/coin-or/MibS/actions/workflows/linux-ci.yml/badge.svg?branch=stable/1.2)](https://github.com/coin-or/MibS/actions/workflows/linux-ci.yml?query=branch%3Astable/1.2)
+[![Linux and MacOS Builds](https://github.com/coin-or/MibS/actions/workflows/linux-ci.yml/badge.svg?branch=releases/1.2.0)](https://github.com/coin-or/MibS/actions/workflows/linux-ci.yml?query=branch%3Areleases/1.2.0)
 
 ## DOWNLOAD
 
@@ -101,7 +101,7 @@ following on the command line.
 ```
 wget https://raw.githubusercontent.com/coin-or/coinbrew/master/coinbrew
 chmod u+x coinbrew
-./coinbrew fetch MibS@1.2
+./coinbrew fetch MibS@1.2.0
 ./coinbrew build MibS
 ```
 For more detailed instructions on coinbrew, see https://coin-or.github.io/coinbrew.
