@@ -603,12 +603,12 @@ std::string cmtStr)
    ss.str("");
    ss << std::endl << inputLowerRowNum_ << std::endl;
    line.append(ss.str());
-   line.append("@OBJSENSE");
-   if(lowerObjSense_ < 0){
-      line.append("\nMAX\n");
-   }else{
-      line.append("\nMIN\n");
-   }
+   //line.append("@OBJSENSE");
+   //if(lowerObjSense_ < 0){
+   //   line.append("\nMAX\n");
+   //}else{
+   //   line.append("\nMIN\n");
+   //}
    output->puts(line.c_str());
 
    // YX: write vars with objcoeff; then constraints;
@@ -616,7 +616,7 @@ std::string cmtStr)
    for(i = 0; i < lowerDim_; ++i){
       j = lowerColInd_[i];
       memset(outputVal, 0, sizeof outputVal);
-      CoinConvertDouble(0, 0, lowerObjCoeffs_[i], outputVal); 
+      CoinConvertDouble(0, 0, lowerObjSense_*lowerObjCoeffs_[i], outputVal); 
       line.append("\n" + columnName_[j] + " " + std::string(outputVal));
    }   
    line.append("\n@VARSEND\n");
