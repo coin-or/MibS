@@ -59,31 +59,30 @@ for an example.
 
 ### Basic Command-line Usage
 
-The command-line on all platforms consists of the executable name `mibs`
-followed by a list of parameters and values. Some of the parameters are `MibS`
-parameters, but parameters of ALPS and BLIS are also necessary.
+The command-line interface on all platforms consists of the executable name `mibs`
+followed by a list of pairs of parameters and values. Parameter names should always be preceded
+by a `-`. Some of the parameters are `MibS` parameters, but parameters of ALPS and BLIS may also 
+be necessary.
 
 #### Version 1
 
 To solve a deterministic mixed integer bilevel linear optimization problem
 with `MibS` version 1, you must provide both an MPS, LP, or GMPL/AMPL file and
 an auxiliary information file that specifies which variables and constraints
-are associated with the each level (see
-[here](http://coral.ise.lehigh.edu/wp-content/uploads/2016/02/MibS_inputFile.pdf)).
-Then call `mibs` like this:
+are associated with the each level (see [here](input.html)). Then call `mibs` like this:
 ```bash
-dist/bin/mibs -Alps_instance file.mps -MibS_auxiliaryInfoFile file.aux
+mibs -instance file.mps -auxiliaryInfoFile file.aux
 ```
-Note that the second parameters is unnecessary if the auxiliary file has the
-same base name and is in the same folder.
+Note that specifying the name and location of the auxiliary is unnecessary if 
+it has the same base name and is in the same folder.
 
 `MibS` has many additional parameters, many of which are documented
-[here](parameters.html). See the example parameter file `mibs.par` and the
-header file `MibParams.hpp` for additional information. 
-It is also possible to
-specify additional settings in a parameter file with, e.g., 
+[here](parameters.html). See the example parameter file 
+[`mibs.par`](https://github.com/coin-or/MibS/blob/stable/1.2/examples/mibs.par.in) and the
+header file [`MibParams.hpp`](https://github.com/coin-or/MibS/blob/stable/1.2/src/MibSParams.hpp) 
+for additional information. It is also possible to specify additional settings in a parameter file with, e.g., 
 ```bash
-dist/bin/mibs -param MibS/src/mibs.par 
+mibs -param MibS/src/mibs.par 
 ```
 
 #### Version 2
