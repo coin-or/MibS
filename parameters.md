@@ -6,6 +6,27 @@ navigation: 2
 
 # Parameters
 
+As described [here](https://coin-or.github.io/MibS), parameters can be specified either on the command line or in a 
+parameter file. On the command line, the executable name `mibs` should be followed by pairs of parameters names 
+and value. The parameter name should always be preceded by a `-`. the basic usage is as follows.
+```bash
+mibs -instance file.mps -auxiliaryInfoFile file.aux
+```
+(see the description of the input file format [here](input.html)). Note that specifying the name and location of the 
+auxiliary file is unnecessary if it has the same base name and is in the same folder.
+To specify parameters in a separate parameter file, list one parameter name and value oer line (no `-`). Then
+call MibS like this.
+```bash
+mibs -param mibs.par 
+```
+You can see an example of what the paramter file might look like 
+[here](https://github.com/coin-or/MibS/blob/stable/1.2/examples/mibs.par.in) (lines starting with a `#` are
+ignored). The header file [`MibParams.hpp`](https://github.com/coin-or/MibS/blob/stable/1.2/src/MibSParams.hpp) 
+also provides additional information.
+
+MibS is built on several other libraries that each have parameters. To distinguish parameters for different libraries, 
+prefixes are used. As of version 1.2, however, the prefix can be left off as long as there is no name ambiguity.
+
 ## ALPS Parameters
 
 | Parameter Name | Description                                     |
@@ -69,6 +90,8 @@ These are general MibS parameters
 | MibS_objBoundStrategy |  How to derive a bound on lower level objective for preprocessing <br> `0`: LL obj bound <br> `1`: interdiction bound |
 | MibS_whichActiveConMethod |  How to determine which constraints are binding <br> `0`: simple <br> `1`: basis |
 | MibS_upperFileFormat |  `0`: MPS <br> `1`: AMPL/GMPL |
+| MibS_writeSolnFile | Path to name of file to write optimal solution to |
+| MibS_writeInstanceFile | Path to name of file to write instance auxiliary file to |
 
 ### Subsolvers
 
