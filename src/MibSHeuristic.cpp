@@ -195,7 +195,7 @@ MibSHeuristic::lowerObjHeuristic()
   double * lObjCoeffs(model->getLowerObjCoeffs());
   const double * uObjCoeffs(oSolver->getObjCoefficients());
   //CoinPackedMatrix origMatrix = *model->origConstCoefMatrix_;
-  int * fixedInd = model->fixedInd_;
+  int * varType = model->varType_;
   MibSBilevel *bS = model->bS_;
   double * optUpperSolutionOrd = NULL;
   double * lSol = new double[lCols];
@@ -314,7 +314,7 @@ MibSHeuristic::lowerObjHeuristic()
       else{
 	optUpperSolutionOrd[i] = value;
       }
-      if(fixedInd[index] == 1){
+      if(varType[index] == MibSVarLinking){
 	linkSol.push_back(optUpperSolutionOrd[i]);
       }
     }
@@ -539,7 +539,7 @@ MibSHeuristic::objCutHeuristic()
   int * lColIndices = model->getLowerColInd();
   const double * uObjCoeffs = oSolver->getObjCoefficients();
   double * lObjCoeffs = model->getLowerObjCoeffs();
-  int * fixedInd = model->fixedInd_;
+  int * varType = model->varType_;
   MibSLinkingPoolTag tagInSeenLinkingPool(bS->tagInSeenLinkingPool_);
 
   double *lSol = NULL;
@@ -653,7 +653,7 @@ MibSHeuristic::objCutHeuristic()
 	double *upperSolutionOrd = bS->upperSolutionOrd_;
         for(i = 0; i < uCols; i++){
 	  index = uColIndices[i];
-	  if(fixedInd[index] == 1){
+	  if(varType[index] == MibSVarLinking){
 	    linkSol.push_back(upperSolutionOrd[i]);
 	  }
 	}
@@ -790,7 +790,7 @@ MibSHeuristic::objCutHeuristic()
       else{
 	optUpperSolutionOrd[i] = value;
       }
-      if(fixedInd[index] == 1){
+      if(varType[index] == MibSVarLinking){
 	linkSol.push_back(optUpperSolutionOrd[i]);
       }
     }
@@ -1488,7 +1488,7 @@ MibSHeuristic::getBilevelSolution(const double * sol, double origLower,
   int tCols(oSolver->getNumCols());
   int *uColIndices = model->getUpperColInd();
   int *lColIndices = model->getLowerColInd();
-  int *fixedInd = model->fixedInd_;
+  int *varType = model->varType_;
   const double *uObjCoeff = oSolver->getObjCoefficients();
 
   double * colSol = new double[tCols];
@@ -1499,7 +1499,7 @@ MibSHeuristic::getBilevelSolution(const double * sol, double origLower,
   if(useLinkingSolutionPool){
     for(i = 0; i < uCols; i++){
       index = uColIndices[i];
-      if(fixedInd[index] == 1){
+      if(varType[index] == MibSVarLinking){
 	value = sol[index];
 	if((oSolver->isInteger(index)) &&
 	   (((value - floor(value)) < etol) ||

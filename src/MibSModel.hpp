@@ -189,7 +189,7 @@ private:
     int * structRowInd_;
 
     /** Indices of first-stage variables in second-stage constraints **/
-    int * fixedInd_;
+    int * varType_;
 
     /** LL objective coefficients **/
     double * lowerObjCoeffs_;
@@ -498,7 +498,7 @@ public:
     int * getLowerRowInd() {return lowerRowInd_;}
 
     /** Get pointer to the UL columns in LL problem array **/
-    int * getFixedInd() {return fixedInd_;}
+    int * getVarType() {return varType_;}
 
     /** Get pointer to the array of original column lower bounds **/
     double * getOrigColLb() const {return origColLb_;}

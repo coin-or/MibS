@@ -68,7 +68,7 @@ MibSBranchStrategyPseudo::createCandBranchObjects(int numPassesLeft, double ub)
     int minCount = 0;
     int numLowerTightens = 0;
     int numUpperTightens = 0;
-    double lpX, score, infeasibility, downDeg, upDeg, sumDeg = 0.0; 
+    double lpX, score, downDeg, upDeg, sumDeg = 0.0; 
     
     bool roundAgain, downKeep, downGood, upKeep, upGood;
 
@@ -77,10 +77,6 @@ MibSBranchStrategyPseudo::createCandBranchObjects(int numPassesLeft, double ub)
     int *ubInd = NULL;
     double *newLB = NULL;
     double *newUB = NULL;
-
-    double *saveUpper = NULL;
-    double *saveLower = NULL;
-    double *saveSolution = NULL;
 
     BlisModel *model = dynamic_cast<BlisModel *>(model_);
     MibSModel *mibsmodel = dynamic_cast<MibSModel *>(model);
@@ -92,13 +88,13 @@ MibSBranchStrategyPseudo::createCandBranchObjects(int numPassesLeft, double ub)
     int aveIterations = model->getAveIterations();
     int uN = mibsmodel->upperDim_;
     int * upperColInd = mibsmodel->getUpperColInd();
-    int * fixedInd = mibsmodel->fixedInd_;
+    int * varType = mibsmodel->varType_;
     char * colType = mibsmodel->colType_;
 
     // If upper-level variable is fixed -> fixedVar = 1
-    int *fixedVar = new int[numCols]();
+    //int *fixedVar = new int[numCols]();
 
-    int *candidate = new int[numCols]();
+    bool *candidate = new bool[numCols]();
 
      //------------------------------------------------------
     // Check if max time is reached or no pass is left.
@@ -107,7 +103,8 @@ MibSBranchStrategyPseudo::createCandBranchObjects(int numPassesLeft, double ub)
     double timeLimit = model->AlpsPar()->entry(AlpsParams::timeLimit);
     AlpsKnowledgeBroker *broker = model->getKnowledgeBroker();
     bool maxTimeReached = (broker->timer().getTime() > timeLimit);
-    bool selectNow = false;
+    bool selectNow(false);
+    bool isFractional;
     
     if (maxTimeReached || !numPassesLeft) {
         selectNow = true;
@@ -130,8 +127,8 @@ MibSBranchStrategyPseudo::createCandBranchObjects(int numPassesLeft, double ub)
 
     const double * lower = solver->getColLower();
     const double * upper = solver->getColUpper();
-    saveSolution = new double[numCols];
-    memcpy(saveSolution, solver->getColSolution(), numCols*sizeof(double));
+    double * solution = new double[numCols];
+    memcpy(solution, solver->getColSolution(), numCols*sizeof(double));
 
     //--------------------------------------------------
     // Find the infeasible objects.
@@ -139,171 +136,144 @@ MibSBranchStrategyPseudo::createCandBranchObjects(int numPassesLeft, double ub)
     //       a "feasible" solution.
     //--------------------------------------------------
     
-    for (pass = 0; pass < 2; ++pass) {
-	
-        numInfs = 0;
+    BcpsObject * object = NULL;
+    BlisObjectInt * intObject = NULL;
+    
+    infObjects.clear();
+    firstObjects.clear();
+    
+    bool fractionalLinkingVar(false), fractionalLowerVar(false);
+    
+    MibSBranchingStrategy branchPar = static_cast<MibSBranchingStrategy>
+       (mibsmodel->MibSPar_->entry(MibSParams::branchStrategy));
 
-        BcpsObject * object = NULL;
-        BlisObjectInt * intObject = NULL;
-            
-        infObjects.clear();
-        firstObjects.clear();
-
-	int index(0), found(0);
-
-	double value(0.0);
-
-	MibSBranchingStrategy branchPar = static_cast<MibSBranchingStrategy>
-	    (mibsmodel->MibSPar_->entry(MibSParams::branchStrategy));
-
-	if(branchPar == MibSBranchingStrategyLinking){
-	    for (i = 0; i < uN; ++i){
-		index = upperColInd[i];
-		if (fabs(lower[index]-upper[index])<=etol){
-		    fixedVar[index]=1;
-		}
-	    }
-	    for (i = 0; i < numCols; ++i) {
-		value = saveSolution[i];
-		infeasibility = fabs(floor(value + 0.5) - value);
-		if((fixedInd[i] == 1) && (fabs(infeasibility) > etol)){
-		    found = 1;
-		    break;
-		}
-	    }
-	}
-	
-	for (i = 0; i < numCols; ++i) {
-	    if(colType[i] == 'C'){
-		candidate[i] = 0;
-	    }
-	    else{
-		candidate[i] = 2;
-		value = saveSolution[i];
-		infeasibility = fabs(floor(value + 0.5) - value);
-		if(branchPar == MibSBranchingStrategyLinking){
-		    if((bS->isLinkVarsFixed_ == true) && (bS->isIntegral_ == false)){
-			if(fabs(infeasibility) > etol){
-			    candidate[i] = 1;
-			}
-		    }
-		    else if((fixedInd[i] == 1) && (((found == 0) &&
-						    (fixedVar[i] != 1)) ||
-						   (fabs(infeasibility) > etol))){
-			candidate[i] = 1;
-		    }
-		}
-		else if(infeasibility > etol){
-		    candidate[i] = 1;
-		}
-	    }
-	}
-	    
-	index = -1;
-        for (i = 0; i < numCols; ++i) {
-	    if(candidate[i] != 0){
-		index ++;
-		object = model->objects(index);
-	    }
-            
-            if (candidate[i] == 1) {
-                
-                ++numInfs;
-                intObject = dynamic_cast<BlisObjectInt *>(object);
-                
-                if (intObject) {
-                    infObjects.push_back(intObject);
-                    
-                    if (!selectNow) {
-                        minCount = 
-                            ALPS_MIN(intObject->pseudocost().getDownCount(),
-                                     intObject->pseudocost().getUpCount());
-                        
-                        if (minCount < 1) {
-                            firstObjects.push_back(intObject);
-                        }
-                    }
-
-#ifdef BLIS_DEBUG
-                    if (intObject->columnIndex() == 40) {
-                        std::cout << "x[40] = " << saveSolution[40] 
-                                  << std::endl;
-                    }
-#endif
-
-                    intObject = NULL;
-                }
-                else {
-                    // TODO: currently all are integer objects.
-#ifdef BLIS_DEBU
-                    assert(0);
-#endif
-                }
-                
-            }
-        }
-            
-        if (numInfs) {
-#if 0
-            std::cout << "PSEUDO: numInfs = " << numInfs
-                      << std::endl;
-#endif
-            break;
-        }
-        else if (pass == 0) {
-            // The first pass and is IP feasible.
-            
-#if 1
-            std::cout << "ERROR: PSEUDO: given a integer feasible sol, no fraction variable" << std::endl;
-            assert(0);
-#endif      
-            
-            roundAgain = false;
-            CoinWarmStartBasis * ws = 
-                dynamic_cast<CoinWarmStartBasis*>(solver->getWarmStart());
-            if (!ws) break;
-            
-            // Force solution values within bounds
-            for (i = 0; i < numCols; ++i) {
-                lpX = saveSolution[i];
-                if (lpX < lower[i]) {
-                    saveSolution[i] = lower[i];
-                    roundAgain = true;
-                    ws->setStructStatus(i, CoinWarmStartBasis::atLowerBound);
-                } 
-                else if (lpX > upper[i]) {
-                    saveSolution[i] = upper[i];
-                    roundAgain = true;
-                    ws->setStructStatus(i, CoinWarmStartBasis::atUpperBound);
-                } 
-            }
-            
-            if (roundAgain) {
-                // Need resolve and do the second round selection.
-                solver->setWarmStart(ws);
-                delete ws;
-                
-                // Resolve.
-                solver->resolve();
-		
-                if (!solver->isProvenOptimal()) {
-                    // Become infeasible, can do nothing. 
-                    bStatus = -2;
-                    goto TERM_CREATE;
-                }
-                else {
-                    // Save new lp solution.
-                    memcpy(saveSolution, solver->getColSolution(),
-                           numCols * sizeof(double));
-                    objValue = solver->getObjSense() * solver->getObjValue();
-                }
-            } 
-            else {
-                delete ws;
+    // Check for fractional linking variables
+    if(branchPar == MibSBranchingStrategyLinking){
+       for (i = 0; i < numCols; ++i) {
+          if (fabs(floor(solution[i] + 0.5) - solution[i]) > etol){
+             if (varType[i] == MibSVarLinking){
+                fractionalLinkingVar = true;
                 break;
-            }
-        }
-    } // EOF 2 pass
+             }else if (varType[i] == MibSVarLower){
+                fractionalLowerVar = true;
+                break;
+             }                
+          }
+       }
+    }
+    
+    for (i = 0; i < numCols; ++i) {
+       if(colType[i] == 'C'){
+          candidate[i] = false;
+          continue;
+       }
+
+       candidate[i] = false;
+       isFractional = fabs(floor(solution[i] + 0.5) - solution[i]) > etol;
+       switch (branchPar){
+        case MibSBranchingStrategyLinking:
+          if(bS->isLinkVarsFixed_ && isFractional){
+                candidate[i] = true;
+          }else if(varType[i] == MibSVarLinking &&
+                   ((!fractionalLinkingVar && fabs(upper[i]-lower[i]) > etol) ||
+                    isFractional)){
+             candidate[i] = true;
+          }
+          break;
+        case MibSBranchingStrategyFractional:
+          if(isFractional){
+             candidate[i] = true;
+          }
+          break;
+        case MibSBranchingStrategyLower:
+          if (isFractional &&
+              (varType[i] == MibSVarLower || !fractionalLowerVar)){
+             candidate[i] = true;
+          }
+          break;
+       }
+    }
+    
+    int index = 0;
+    for (i = 0; i < numCols; ++i) {
+       if(colType[i] == 'C'){
+          continue;
+       }
+       if (candidate[i]) {
+          ++numInfs;
+          intObject = dynamic_cast<BlisObjectInt *>(model->objects(index));
+          
+          if (intObject) {
+             infObjects.push_back(intObject);
+             
+             if (!selectNow) {
+                minCount = 
+                   ALPS_MIN(intObject->pseudocost().getDownCount(),
+                            intObject->pseudocost().getUpCount());
+                
+                if (minCount < 1) {
+                   firstObjects.push_back(intObject);
+                }
+             }
+             
+             intObject = NULL;
+          }
+       }
+       index++;
+    }
+            
+    if (!numInfs){
+       // In general, we shouldn't end up here. Not sure we eed this.
+#if 1
+       std::cout << "ERROR: PSEUDO: given a integer feasible sol, no fraction variable" << std::endl;
+       assert(0);
+#endif      
+       
+       roundAgain = false;
+       CoinWarmStartBasis * ws = 
+          dynamic_cast<CoinWarmStartBasis*>(solver->getWarmStart());
+
+       if (ws){
+          // Force solution values within bounds
+          for (i = 0; i < numCols; ++i) {
+             lpX = solution[i];
+             if (lpX < lower[i]) {
+                solution[i] = lower[i];
+                roundAgain = true;
+                ws->setStructStatus(i, CoinWarmStartBasis::atLowerBound);
+             } 
+             else if (lpX > upper[i]) {
+                solution[i] = upper[i];
+                roundAgain = true;
+                ws->setStructStatus(i, CoinWarmStartBasis::atUpperBound);
+             } 
+          }
+          
+          if (roundAgain) {
+             // Need resolve and do the second round selection.
+             solver->setWarmStart(ws);
+             delete ws;
+             
+             // Resolve.
+             solver->resolve();
+             
+             if (!solver->isProvenOptimal()) {
+                // Become infeasible, can do nothing. 
+                bStatus = -2;
+                goto TERM_CREATE;
+             }
+             else {
+                // Save new lp solution.
+                memcpy(solution, solver->getColSolution(),
+                       numCols * sizeof(double));
+                objValue = solver->getObjSense() * solver->getObjValue();
+             }
+          } 
+          else {
+             delete ws;
+          }
+       }
+    }
 
     //--------------------------------------------------
     // If we have a set of first time object, 
@@ -318,8 +288,8 @@ MibSBranchStrategyPseudo::createCandBranchObjects(int numPassesLeft, double ub)
         //--------------------------------------------------
         // Backup solver status and mark hot start.
         //--------------------------------------------------
-        saveLower = new double[numCols];
-        saveUpper = new double[numCols];
+        double * saveLower = new double[numCols];
+        double * saveUpper = new double[numCols];
         memcpy(saveLower, lower, numCols * sizeof(double));
         memcpy(saveUpper, upper, numCols * sizeof(double));
 
@@ -340,7 +310,7 @@ MibSBranchStrategyPseudo::createCandBranchObjects(int numPassesLeft, double ub)
 
             colInd = firstObjects[i]->columnIndex();
             
-            lpX = saveSolution[colInd];
+            lpX = solution[colInd];
             
             BlisStrongBranch(model, objValue, colInd, lpX,
                              saveLower, saveUpper,
@@ -387,10 +357,12 @@ MibSBranchStrategyPseudo::createCandBranchObjects(int numPassesLeft, double ub)
         //--------------------------------------------------
         
         solver->unmarkHotStart();
-        solver->setColSolution(saveSolution);
+        solver->setColSolution(solution);
         solver->setIntParam(OsiMaxNumIterationHotStart, saveLimit);
         solver->setWarmStart(ws);
         delete ws;
+        delete [] saveLower;
+        delete [] saveUpper;
     }
     
     if (bStatus < 0) {
@@ -444,10 +416,7 @@ MibSBranchStrategyPseudo::createCandBranchObjects(int numPassesLeft, double ub)
     delete [] ubInd;
     delete [] newLB;
     delete [] newUB;
-    delete [] saveSolution;
-    delete [] saveLower;
-    delete [] saveUpper;
-    delete [] fixedVar;
+    delete [] solution;
     delete [] candidate;
 
     return bStatus;

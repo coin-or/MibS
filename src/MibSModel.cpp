@@ -89,7 +89,7 @@ MibSModel::~MibSModel()
   if(lowerRowInd_) delete [] lowerRowInd_;
   if(inputLowerRowInd_) delete [] inputLowerRowInd_;
   if(structRowInd_) delete [] structRowInd_;
-  if(fixedInd_) delete [] fixedInd_;
+  if(varType_) delete [] varType_;
   if(interdictCost_) delete [] interdictCost_;
   if(origColLb_) delete [] origColLb_;
   if(origColUb_) delete [] origColUb_;
@@ -164,7 +164,7 @@ MibSModel::initialize()
   lowerRowInd_ = NULL;
   inputLowerRowInd_ = NULL;
   structRowInd_ = NULL;
-  fixedInd_ = NULL;
+  varType_ = NULL;
   origColLb_ = NULL;
   origColUb_ = NULL;
   lColLbInLProb_ = NULL;
@@ -1030,7 +1030,7 @@ MibSModel::readProblemData()
    delete [] colType;
 
    for (int i = 0; i < upperDim_; i++){
-      if (fixedInd_[i] == 1){
+      if (varType_[i] == MibSVarLinking){
          if (colType_[i] == 'C'){
             throw CoinError("All linking variables should be integer",
                             "readProblemData",
@@ -3469,25 +3469,27 @@ MibSModel::setRequiredFixedList()
     int rowIndex, posRow, start, end;
     int i, j;
 
-    if(!fixedInd_){
-	fixedInd_ = new int[numVars_]();
+    if(!varType_){
+	varType_ = new int[numVars_]();
     }
 
     for(i = 0; i < numVars_; i++){
-	fixedInd_[i] = 0;
 	if(binarySearch(0, uCols - 1, i, upperColInd) >= 0){
+           varType_[i] = MibSVarUpper;
 	    start = matStarts[i];
 	    end = start + colMatrix_->getVectorSize(i);
 	    for(j = start; j < end; j++){
 		rowIndex = matIndices[j];
 		posRow = binarySearch(0, lRows - 1, rowIndex, lowerRowInd);
 		if(posRow >= 0){
-		    fixedInd_[i] = 1;
+		    varType_[i] = MibSVarLinking;
 		    sizeFixedInd_ ++;
 		    break;
 		}
 	    }
-	}
+	}else{
+           varType_[i] = MibSVarLower;
+        }
     }
 
 }
@@ -3533,7 +3535,7 @@ MibSModel::analyzeStructure()
       for (i = 0; i < numCols; i++){
          if (colType_[i] != 'B'){
             if (binarySearch(0, lCols - 1, i, lColIndices) < 0){
-               if(fixedInd_[i] == 1){
+               if(varType_[i] == MibSVarLinking){
                   allLinkingBin_ = false;
                }
                allUpperBin_ = false;

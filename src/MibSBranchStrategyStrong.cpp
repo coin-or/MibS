@@ -86,7 +86,7 @@ MibSBranchStrategyStrong::createCandBranchObjects(int numPassesLeft, double ub)
     double etol = mibsmodel->etol_;
     int uN = mibsmodel->upperDim_;
     int * upperColInd = mibsmodel->getUpperColInd();
-    int * fixedInd = mibsmodel->fixedInd_;
+    int * varType = mibsmodel->varType_;
     char * colType = mibsmodel->colType_;
 
     // If upper-level variable is fixed -> fixedVar = 1
@@ -169,18 +169,21 @@ MibSBranchStrategyStrong::createCandBranchObjects(int numPassesLeft, double ub)
 		value = saveSolution[i];
 		infeasibility = fabs(floor(value + 0.5) - value);
 		if(branchPar == MibSBranchingStrategyLinking){
-		    if((fixedInd[i] == 1) && (fabs(infeasibility) > etol)){
-			found = 1;
-			break;
+		    if((varType[i] == MibSVarLinking) &&
+                       (fabs(infeasibility) > etol)){
+                       found = 1;
+                       break;
 		    }
-		    if((bS->isLinkVarsFixed_ == true) && (bS->isIntegral_ == false)){
+		    if((bS->isLinkVarsFixed_ == true) &&
+                       (bS->isIntegral_ == false)){
 			if(fabs(infeasibility) > etol){
 			    candidate[i] = 1;
 			}
 		    }
-		    else if((fixedInd[i] == 1) && (((found == 0) &&
-						    (fixedVar[i] != 1)) ||
-						   (fabs(infeasibility) > etol))){
+		    else if((varType[i] == MibSVarLinking) &&
+                            (((found == 0) &&
+                              (fixedVar[i] != 1)) ||
+                             (fabs(infeasibility) > etol))){
 			candidate[i] = 1;
 		    }
 		}
