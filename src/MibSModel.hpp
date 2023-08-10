@@ -637,7 +637,7 @@ public:
     virtual void decodeToSelf(AlpsEncoded&);
 
     /** Determine the list of first-stage variables participate in second-stage constraints */
-    void setRequiredFixedList();
+    void setVarTypes();
 
     /** Determines the properties of instance. */
     void analyzeStructure();

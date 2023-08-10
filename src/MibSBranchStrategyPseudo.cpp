@@ -150,14 +150,21 @@ MibSBranchStrategyPseudo::createCandBranchObjects(int numPassesLeft, double ub)
     // Check for fractional linking variables
     if(branchPar == MibSBranchingStrategyLinking){
        for (i = 0; i < numCols; ++i) {
-          if (fabs(floor(solution[i] + 0.5) - solution[i]) > etol){
-             if (varType[i] == MibSVarLinking){
-                fractionalLinkingVar = true;
-                break;
-             }else if (varType[i] == MibSVarLower){
-                fractionalLowerVar = true;
-                break;
-             }                
+          if (fabs(floor(solution[i] + 0.5) - solution[i]) > etol &&
+              varType[i] == MibSVarLinking){
+             fractionalLinkingVar = true;
+             break;
+          }
+       }
+    }
+    
+    // Check for fractional lower level variables variables
+    if(branchPar == MibSBranchingStrategyLower){
+       for (i = 0; i < numCols; ++i) {
+          if (fabs(floor(solution[i] + 0.5) - solution[i]) > etol &&
+              varType[i] == MibSVarLower){
+             fractionalLowerVar = true;
+             break;
           }
        }
     }

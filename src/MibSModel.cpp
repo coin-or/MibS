@@ -1439,7 +1439,7 @@ MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
    //checkProblemType(); // checks if MibS can solve problem entered
    setProblemType(); //determine the type of MIBLP
    //determine the list of first-stage variables participate in second-stage constraints
-   setRequiredFixedList();
+   setVarTypes();
 }
 
 //#############################################################################
@@ -3456,7 +3456,7 @@ MibSModel::decodeToSelf(AlpsEncoded& encoded)
 
 //#############################################################################
 void
-MibSModel::setRequiredFixedList()
+MibSModel::setVarTypes()
 {
     int uCols(upperDim_);
     int lRows(lowerRowNum_);
