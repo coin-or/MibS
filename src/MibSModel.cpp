@@ -202,9 +202,9 @@ MibSModel::readParameters(const int argnum, const char * const * arglist)
    MibSPar_->readFromArglist(argnum, arglist);
    
    BlisPar()->setEntry(BlisParams::cutStrategy,
-                       MibSPar_->entry(MibSParams::blisCutStrategy)); 
+                       MibSPar_->entry(MibSParams::blisCutStrategy));
    BlisPar()->setEntry(BlisParams::branchStrategy,
-                       MibSPar_->entry(MibSParams::blisBranchStrategy)); 
+                       MibSPar_->entry(MibSParams::blisBranchStrategy));
 
    if (MibSPar_->entry(MibSParams::printParameters)){
 
