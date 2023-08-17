@@ -385,8 +385,8 @@ MibSTreeNode::process(bool isRoot, bool rampUp)
 
 	  //if((bS->useBilevelBranching_ == false) &&
 	  // (bS->LPSolStatus_ != MibSLPSolStatusFeasible)){
-	  if((((branchPar == MibSBranchingStrategyLinking) && (bS->isLinkVarsFixed_)) ||
-	      (branchPar == MibSBranchingStrategyFractional)) && (bS->isIntegral_)){
+          if((branchPar == MibSBranchingStrategyLinking && bS->isLinkVarsFixed_) ||
+              bS->isIntegral_){
 	      tailOffTol = -1000;
 	  }
 	  else{
