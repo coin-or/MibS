@@ -195,11 +195,16 @@ void
 MibSModel::readParameters(const int argnum, const char * const * arglist)
 {
 
+   setBlisParameters();
+
    AlpsPar_->readFromArglist(argnum, arglist);
    BlisPar_->readFromArglist(argnum, arglist);
    MibSPar_->readFromArglist(argnum, arglist);
    
-   setBlisParameters();
+   BlisPar()->setEntry(BlisParams::cutStrategy,
+                       MibSPar_->entry(MibSParams::blisCutStrategy)); 
+   BlisPar()->setEntry(BlisParams::branchStrategy,
+                       MibSPar_->entry(MibSParams::blisBranchStrategy)); 
 
    if (MibSPar_->entry(MibSParams::printParameters)){
 
@@ -285,25 +290,14 @@ MibSModel::readInstance(const char* dataFile)
 void 
 MibSModel::setBlisParameters()
 {
-
-  int bliscuts(MibSPar_->entry(MibSParams::blisCutStrategy));
-  int blisbranch(MibSPar_->entry(MibSParams::blisBranchStrategy));
-
-  /* Set Blis Parameters to keep cutting until no cut is found */
-  BlisPar()->setEntry(BlisParams::cutFactor, ALPS_DBL_MAX);
-  BlisPar()->setEntry(BlisParams::cutPass, ALPS_INT_MAX);
-  BlisPar()->setEntry(BlisParams::tailOff, 1);
-  BlisPar()->setEntry(BlisParams::denseConFactor, ALPS_DBL_MAX);
-
-  BlisPar()->setEntry(BlisParams::heurStrategy, 0);
-  BlisPar()->setEntry(BlisParams::heurRoundStrategy, 0);
-  
-  /* Set Blis cut strategy using MibS parameters blisCutStrategy */
-  BlisPar()->setEntry(BlisParams::cutStrategy, bliscuts);
-  
-  /* Set Blis branch strategy using MibS parameters blisBranchStrategy */
-  BlisPar()->setEntry(BlisParams::branchStrategy, blisbranch);
-  
+   /* override defaults for some Blis paramters */
+   BlisPar()->setEntry(BlisParams::cutFactor, ALPS_DBL_MAX);
+   BlisPar()->setEntry(BlisParams::cutPass, ALPS_INT_MAX);
+   BlisPar()->setEntry(BlisParams::tailOff, 1);
+   BlisPar()->setEntry(BlisParams::denseConFactor, ALPS_DBL_MAX);
+   
+   BlisPar()->setEntry(BlisParams::heurStrategy, 0);
+   BlisPar()->setEntry(BlisParams::heurRoundStrategy, 0);
 }
 
 //#############################################################################
