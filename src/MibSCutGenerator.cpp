@@ -5879,7 +5879,7 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
   
   MibSIntersectionCutType cutType(MibSIntersectionCutTypeNotSet);
   
-  int useIntersectionCutTypeIC =
+  int useImprovingSolutionIC =
      localModel_->MibSPar_->entry(MibSParams::useImprovingSolutionIC);
   
   int useIntersectionCutImprovingDirection =
@@ -5988,7 +5988,7 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
         }		  
      }
      
-     if (useIntersectionCutTypeIC == PARAM_ON){
+     if (useImprovingSolutionIC == PARAM_ON){
         cutType = MibSIntersectionCutImprovingSolution;
         numCuts += intersectionCuts(conPool, bS->optLowerSolutionOrd_, cutType);
      }
@@ -6039,7 +6039,7 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
            numCuts += bendersInterdictionMultipleCuts(conPool);
         }		  
      }
-     if (useIntersectionCutTypeIC == PARAM_ON && haveSecondLevelSol &&
+     if (useImprovingSolutionIC == PARAM_ON && haveSecondLevelSol &&
          (relaxedObjVal > localModel_->bS_->objVal_ + localModel_->etol_ ||
           localModel_->MibSPar_->entry(MibSParams::bilevelFreeSetTypeISIC) == 1)){ 
         cutType = MibSIntersectionCutImprovingSolution;
@@ -6078,7 +6078,7 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
         cutType = MibSIntersectionCutImprovingDirection;
         numCuts += intersectionCuts(conPool, bS->optLowerSolutionOrd_, cutType);
      }
-     if (useIntersectionCutTypeIC == PARAM_ON && ((haveSecondLevelSol &&
+     if (useImprovingSolutionIC == PARAM_ON && ((haveSecondLevelSol &&
            relaxedObjVal > localModel_->bS_->objVal_ + localModel_->etol_) ||
           localModel_->MibSPar_->entry(MibSParams::bilevelFreeSetTypeISIC) == 1)){ 
         cutType = MibSIntersectionCutImprovingSolution;
