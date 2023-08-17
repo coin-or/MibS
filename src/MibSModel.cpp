@@ -991,6 +991,13 @@ MibSModel::readProblemData()
       if(!instName.empty()){
          // YX: write MPS using CoinIO function; filename truncated @NAME 
          j = (int) instName.length();
+         if((j > 3) || (instName.substr(j - 3).compare(".lp") == 0)){
+            CoinLpIO *lp = new CoinLpIO;
+            lp->setLpDataWithoutRowAndColNames(matrix, varLB, varUB, objCoef,
+                                               colType, conLB, conUB);
+            //lp->setLpDataRowAndColNames(rowName_, columnName_);
+            lp->writeLp(instName.c_str());
+         }
          if((j <= 3) || (instName.substr(j - 3).compare("mps") != 0)){
             instName.append(".mps"); 
          }
