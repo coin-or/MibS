@@ -3969,11 +3969,13 @@ MibSModel::instanceStructure()
        }
     }else if (MibSPar_->entry(MibSParams::branchStrategy) ==
               MibSBranchingStrategyLinking){
-       std::cout << "Branching strategy is MibSBranchingStrategyLinking.";
+       std::cout <<
+          "Branching strategy is set to branch on linking variables.";
        std::cout << std::endl;
     }else{
-       std::cout << "Branching procedure is MibSBranchingStrategyFractional.";
-       std::cout << std::endl;
+       std::cout <<
+          "Branching strategy set to branch on all variables with fractional values.";
+             std::cout << std::endl;
     }
 
     if (printProblemInfo == true){
@@ -4019,13 +4021,16 @@ MibSModel::instanceStructure()
 	if (MibSPar_->entry(MibSParams::useHypercubeIC) == PARAM_ON){
            std::cout << "Hypercube intersection cut generator is on." << std::endl;
 	}
-        
-        if (MibSPar_->entry(MibSParams::useFractionalCutsRootOnly) == 1){
-           std::cout << "Fractional cuts will be generated only in the root node." << std::endl;
-           MibSPar_->setEntry(MibSParams::useFractionalCuts, 0);
-        }
-        if (MibSPar_->entry(MibSParams::useFractionalCuts) == 1){
-           std::cout << "Fractional cuts will be generated." << std::endl;
+        if (MibSPar_->entry(MibSParams::useImprovingSolutionIC) == PARAM_ON ||
+            MibSPar_->entry(MibSParams::useImprovingDirectionIC) == PARAM_ON){
+            
+           if (MibSPar_->entry(MibSParams::useFractionalCutsRootOnly) == 1){
+              std::cout << "Fractional cuts will be generated only in the root node." << std::endl;
+              MibSPar_->setEntry(MibSParams::useFractionalCuts, 0);
+           }
+           if (MibSPar_->entry(MibSParams::useFractionalCuts) == 1){
+              std::cout << "Fractional cuts will be generated." << std::endl;
+           }
         }
         //}
     }
@@ -4097,6 +4102,8 @@ MibSModel::instanceStructure()
           std::cout << "Linking solution pool will not be used." << std::endl;
 	}
     }
+
+    std::cout << std::endl;
     //if (MibSPar_->entry(MibSParams::printParameters)){
     //   writeParameters(std::cout);
     //}
