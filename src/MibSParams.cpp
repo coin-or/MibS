@@ -385,23 +385,23 @@ MibSParams::setDefaultEntries() {
 
    setEntry(bilevelFreeSetTypeISIC, MibSBilevelFreeSetTypeISICNotSet);
 
-   setEntry(solveSecondLevelEveryIteration, PARAM_NOTSET);
+   setEntry(solveSecondLevelEveryIteration, PARAM_OFF);
 
-   setEntry(solveSecondLevelWhenXYVarsInt, PARAM_NOTSET);
+   setEntry(solveSecondLevelWhenXYVarsInt, PARAM_ON);
 
-   setEntry(solveSecondLevelWhenXVarsInt, PARAM_NOTSET);
+   setEntry(solveSecondLevelWhenXVarsInt, PARAM_OFF);
 
-   setEntry(solveSecondLevelWhenLVarsInt, PARAM_NOTSET);
+   setEntry(solveSecondLevelWhenLVarsInt, PARAM_OFF);
 
-   setEntry(solveSecondLevelWhenLVarsFixed, PARAM_NOTSET);
+   setEntry(solveSecondLevelWhenLVarsFixed, PARAM_ON);
 
-   setEntry(computeBestUBWhenXVarsInt, PARAM_NOTSET);
+   setEntry(computeBestUBWhenXVarsInt, PARAM_OFF);
 
-   setEntry(computeBestUBWhenLVarsInt, PARAM_NOTSET);
+   setEntry(computeBestUBWhenLVarsInt, PARAM_OFF);
 
-   setEntry(computeBestUBWhenLVarsFixed, PARAM_NOTSET);
+   setEntry(computeBestUBWhenLVarsFixed, PARAM_ON);
 
-   setEntry(useLinkingSolutionPool, PARAM_NOTSET);
+   setEntry(useLinkingSolutionPool, PARAM_ON);
 
    setEntry(newPureIntCutDepthLb, -1);
 

@@ -78,6 +78,9 @@ private:
     /** Number of UL variables **/
     int upperDim_;
 
+    /** Number of UL integer variables **/
+    int numUpperInt_;
+
     /** Number of UL constraints **/
     int upperRowNum_;
 
@@ -86,6 +89,9 @@ private:
 
     /** Number of LL variables **/
     int lowerDim_;
+
+    /** Number of LL integer variables **/
+    int numLowerInt_;
 
     /** Number of LL constraints **/
     int lowerRowNum_;
@@ -334,8 +340,14 @@ public:
     /** Set the lower-level dimension **/
     inline void setLowerDim(int val) {lowerDim_ = val;}
 
+    /** Set the number of lower-level integer variables **/
+    inline void setNumLowerInt(int val) {numLowerInt_ = val;}
+
     /** Set the upper-level dimension **/
     inline void setUpperDim(int val) {upperDim_ = val;}
+
+    /** Set the number of upper-level integer variables **/
+    inline void setNumUpperInt(int val) {numUpperInt_ = val;}
 
     /** Set the upper-level row number **/
     inline void setUpperRowNum(int val) {upperRowNum_ = val;}
@@ -440,8 +452,14 @@ public:
     /** Get the lower-level dimension **/
     int getLowerDim() {return lowerDim_;}
 
+    /** Get the number of lower-level integer **/
+    int getNumLowerInt() {return numLowerInt_;}
+
     /** Get the upper-level dimension **/
     int getUpperDim() {return upperDim_;}
+
+    /** Get the number of upper-level integer **/
+    int getNumUpperInt() {return numUpperInt_;}
 
     /** Get the number of original variables **/
     int getNumOrigVars() {return numOrigVars_;}
@@ -622,12 +640,21 @@ public:
     void setRequiredFixedList();
 
     /** Determines the properties of instance. */
-    void instanceStructure();
-                                                                                                                                                               
+    void analyzeStructure();
+
+    /** Adjust parameters based on structure. */
+    void adjustParameters();
+
+    /** Print problem information. */
+    void printProblemInfo();
+
     AlpsTreeNode * createRoot();
 
     virtual bool setupSelf();
   
+    /** Preprocessing the model. */
+    virtual void preprocess();
+
     void setBounds();
 
     void setProblemType();

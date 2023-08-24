@@ -126,8 +126,10 @@ MibSModel::initialize()
   numOrigCons_ = 0;
   objSense_ = 0.0;
   lowerDim_ = 0;
+  numLowerInt_ = 0;
   lowerObjSense_ = 0.0;
   upperDim_ = 0;
+  numUpperInt_ = 0;
   leftSlope_ = 0;
   rightSlope_ = 0;
   lowerRowNum_ = 0; 
@@ -319,10 +321,6 @@ MibSModel::readAuxiliaryData(int numCols, int numRows)
 	  fileName.copy(tmpArr, length);
 	  tmpArr[length]='\0';
 	  MibSPar()->setEntry(MibSParams::auxiliaryInfoFile, tmpArr);
-	  std::cout << "Warning: The auxiliary file was not specified. ";
-          std::cout << std::endl;
-          std::cout << "MibS used " <<  fileName << " automatically.";
-          std::cout << std::endl;
       }else{
           fileName = mpsFile.substr(0, mpsFile.find_last_of(".")+1);
           fileName.append("txt");
@@ -330,17 +328,17 @@ MibSModel::readAuxiliaryData(int numCols, int numRows)
 	      fileName.copy(tmpArr, length);
 	      tmpArr[length]='\0';
 	      MibSPar()->setEntry(MibSParams::auxiliaryInfoFile, tmpArr);
-              std::cout << "Warning: The auxiliary file is not specified. ";
-              std::cout << "MibS selected " <<  fileName << " automatically.";
-              std::cout << std::endl;
 	  }else{
-             std::cout << "Error: The auxiliary file is not specified. ";
+             std::cout << "Error: The auxiliary file is missing or not specified. ";
              std::cout << "Aborting." << std::endl;
              abort();
 	  }
       }
       delete [] tmpArr;
   }
+
+  std::cout << "Auxiliary file: " <<  fileName << std::endl;
+     
   fileCoinReadable(fileName);
   std::ifstream data_stream(fileName.c_str());
 
@@ -1029,7 +1027,7 @@ MibSModel::readProblemData()
       if (fixedInd_[i] == 1){
          if (colType_[i] == 'C'){
             throw CoinError("All linking variables should be integer",
-                            "instanceStructure",
+                            "readProblemData",
                             "MibSModel");
          }
       }
@@ -1436,7 +1434,6 @@ MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
    setProblemType(); //determine the type of MIBLP
    //determine the list of first-stage variables participate in second-stage constraints
    setRequiredFixedList();
-   instanceStructure();
 }
 
 //#############################################################################
@@ -2426,6 +2423,21 @@ MibSModel::checkUpperFeasibility(double * solution)
   }
   
   return upperFeasible;
+}
+
+//#############################################################################
+void
+MibSModel::preprocess()
+{
+   BlisModel::preprocess();
+
+   analyzeStructure();
+
+   adjustParameters();
+   
+   if (MibSPar_->entry(MibSParams::printProblemInfo)){
+      printProblemInfo();
+   }
 }
 
 //#############################################################################
@@ -3476,30 +3488,14 @@ MibSModel::setRequiredFixedList()
 
 //#############################################################################
 void                                                   
-MibSModel::instanceStructure()
+MibSModel::analyzeStructure()
 {
-   bool printProblemInfo(MibSPar_->entry(MibSParams::printProblemInfo));
-   
-   /** Determines the properties of instance **/
-   if(printProblemInfo == true){
-      std::cout<<"======================================="<<std::endl;
-      std::cout<<"Analyzing problem structure            "<<std::endl;
-      std::cout<<"======================================="<<std::endl;
-      std::cout << std::endl;
-      std::cout<<"Number of UL Variables: "<<upperDim_<<std::endl;
-      std::cout<<"Number of LL Variables: "<<lowerDim_<<std::endl;
-      std::cout<<"Number of UL Rows: "<<upperRowNum_<<std::endl;
-      std::cout<<"Number of LL Rows: "<<lowerRowNum_<<std::endl;
-   }
-   
    int i(0),j(0),index(0), mult(0);
    int numCols(numVars_);
    int numRows(numCons_);
    int uCols(upperDim_);
    int lCols(lowerDim_);
    int lRows(lowerRowNum_);
-   int numUpperInt(0);
-   int numLowerInt(0);
    int * uColIndices = getUpperColInd();         
    int * lColIndices = getLowerColInd();
    int * lRowIndices = getLowerRowInd();
@@ -3508,28 +3504,14 @@ MibSModel::instanceStructure()
    for(i = 0; i < uCols; i++){
       index = uColIndices[i];
       if (colType_[index] != 'C'){
-         numUpperInt ++;
+         numUpperInt_ ++;
       }
    }
-   if (printProblemInfo == true){
-      std::cout <<"Number of integer UL Variables: ";
-      std::cout << numUpperInt << std::endl;
-   }
+
    for (i = 0; i < lCols; i++){
       index = lColIndices[i];
       if (colType_[index] != 'C'){
-         numLowerInt++;
-      }
-   }
-   if (printProblemInfo == true){
-      std::cout <<"Number of integer LL Variables: ";
-      std::cout << numLowerInt << std::endl;
-   }
-   
-   //Checks general or interdiction 
-   if (isInterdict_ == true){
-      if (printProblemInfo == true){
-         std::cout << "This instance is an interdiction problem." << std::endl;
+         numLowerInt_++;
       }
    }
    
@@ -3557,23 +3539,6 @@ MibSModel::instanceStructure()
                break;
             }
          }
-      }
-   }
-   
-   if (printProblemInfo == true){
-      if (isPureInteger_ == true){
-         std::cout << "This instance is a pure integer problem." << std::endl;
-      }
-      else{
-         std::cout << "This instance is a mixed integer problem." << std::endl;
-      }
-      
-      if (allUpperBin_ == true){
-         std::cout << "All upper level variables are binary." << std::endl;
-      }
-      
-      if (allLowerBin_ == true){
-         std::cout << "All lower level variables are binary." << std::endl; 
       }
    }
    
@@ -3703,30 +3668,14 @@ MibSModel::instanceStructure()
           }
        }
     }
-    
-    if (printProblemInfo == true){
-       if (positiveA1_ == true){
-          std::cout << "Coefficient matrix of upper level variables in upper level problem is non-negative." << std::endl;
-       }
-       
-       if (positiveG1_ == true){
-          std::cout << "Coefficient matrix of lower level variables in upper level problem is non-negative." << std::endl;
-       }
-       
-       if (positiveA2_ == true){
-          std::cout << "Coefficient matrix of upper level variables in lower level problem is non-negative." << std::endl;
-       }
-       
-       if (positiveG2_ == true){
-          std::cout << "Coefficient matrix of lower level variables in upper level problem is non-negative." << std::endl;
-       }
-    }
 
-    std::cout << std::endl;
-    std::cout << "=======================================" <<std::endl;
-    std::cout << "Setting parameters                     " <<std::endl;
-    std::cout << "=======================================" <<std::endl;
-    std::cout << std::endl;
+}
+
+//#############################################################################
+void
+MibSModel::adjustParameters()
+{
+
     //set the default value of time limit if it is not set by user
     //Alps sets the default value of this parameter to a very large value
     //but it is very large and creats memory issues for setting the time limit
@@ -3946,164 +3895,226 @@ MibSModel::instanceStructure()
        MibSPar()->setEntry(MibSParams::useIntegerNoGoodCut, PARAM_OFF);
     }
 
-//Param: "MibS_branchProcedure"
     MibSBranchingStrategy branchPar = static_cast<MibSBranchingStrategy>
 	  (MibSPar_->entry(MibSParams::branchStrategy));
     if (branchPar == MibSBranchingStrategyNotSet){
        if (isInterdict_ == true){
           MibSPar()->setEntry(MibSParams::branchStrategy,
                               MibSBranchingStrategyLinking);
-          if (printProblemInfo == true){
-             std::cout <<
-                "Branching strategy is to branch on linking variables.";
-             std::cout << std::endl;
-          }
        }else{
           MibSPar()->setEntry(MibSParams::branchStrategy,
                               MibSBranchingStrategyFractional);
-          if (printProblemInfo == true){
-             std::cout <<
-                "Branching strategy is to branch on all variables with fractional values.";
-             std::cout << std::endl;
+       }
+    }
+
+}
+
+//#############################################################################
+void
+MibSModel::printProblemInfo(){
+   
+    std::cout << "=======================================" << std::endl
+              << "Problem structure            "<<std::endl
+              << "======================================="<<std::endl
+              << std::endl
+              << "Number of UL Variables (total): " << upperDim_ << std::endl
+              << "Number of UL Variables (integer): " << numUpperInt_ << std::endl
+              << "Number of LL Variables (total): " << lowerDim_<<std::endl
+              << "Number of LL Variables (integer): " << numLowerInt_ << std::endl
+              << "Number of UL Rows: " << upperRowNum_<<std::endl
+              << "Number of LL Rows: " << lowerRowNum_<<std::endl;
+    
+    
+    if (isInterdict_ == true){
+       std::cout << "This instance is an interdiction problem." << std::endl;
+    }
+    
+    if (isPureInteger_ == true){
+       std::cout << "This instance is a pure integer problem." << std::endl;
+    } else{
+       std::cout << "This instance is a mixed integer problem." << std::endl;
+    }
+    
+    if (allUpperBin_ == true){
+       std::cout << "All upper level variables are binary." << std::endl;
+    }
+    
+    if (allLowerBin_ == true){
+       std::cout << "All lower level variables are binary." << std::endl; 
+    }
+    
+    if (positiveA1_ == true){
+       std::cout << "Coefficient matrix of upper level variables in upper level problem is non-negative." << std::endl;
+    }
+    
+    if (positiveG1_ == true){
+       std::cout << "Coefficient matrix of lower level variables in upper level problem is non-negative." << std::endl;
+    }
+    
+    if (positiveA2_ == true){
+       std::cout << "Coefficient matrix of upper level variables in lower level problem is non-negative." << std::endl;
+    }
+    
+    if (positiveG2_ == true){
+       std::cout << "Coefficient matrix of lower level variables in upper level problem is non-negative." << std::endl;
+    }
+    
+    std::cout << std::endl
+              << "=======================================" << std::endl
+              << "Parameter Settings                     " << std::endl
+              << "=======================================" << std::endl
+              << std::endl;
+
+    if (MibSPar_->entry(MibSParams::branchStrategy) ==
+        MibSBranchingStrategyLinking){
+       std::cout << "Branching strategy is to prioritize branching on linking variables."
+                 << std::endl;
+    }else{
+       std::cout << "Branching strategy is to branch only on variable with fractional values."
+                 << std::endl;
+    }
+    
+    if(MibSPar_->entry(MibSParams::useBendersBinaryCut) == PARAM_ON){
+       std::cout << "Benders binary cut generator is on.";
+       std::cout << std::endl;
+    }
+    
+    if (MibSPar_->entry(MibSParams::useBendersInterdictionCut) == PARAM_ON){
+       if (MibSPar_->entry(MibSParams::bendersInterdictionCutType) ==
+           MibSBendersInterdictionCutTypeJustOneCut){
+          std::cout << "Benders interdiction cut generator (just one cut) is on.";
+          std::cout << std::endl;
+       }else{
+          std::cout << "Benders interdiction cut generator (multiple cuts) is on.";
+          std::cout << std::endl;
+       }
+    }
+    
+    if (MibSPar_->entry(MibSParams::useIntegerNoGoodCut) == PARAM_ON){
+       std::cout << "Integer no-good cut generator is on."<< std::endl;
+    }
+    
+    if (MibSPar_->entry(MibSParams::useNoGoodCut) == PARAM_ON){
+       std::cout << "No-good cut generator is on."<< std::endl;
+    }
+    
+    if (MibSPar_->entry(MibSParams::useGeneralizedNoGoodCut) == PARAM_ON){
+       std::cout << "Generalized no-good cut generator is on."<< std::endl;
+    }
+    
+    if (MibSPar_->entry(MibSParams::useImprovingSolutionIC) == PARAM_ON){
+       if (MibSPar_->entry(MibSParams::bilevelFreeSetTypeISIC) ==
+           MibSBilevelFreeSetTypeISICWithLLOptSol){
+          std::cout << "Improving solution intersection cut generator (Type I) is on." << std::endl;
+       }else{
+          std::cout << "Improving solution intersection cut generator (Type II) is on." << std::endl;
+       }              
+    }
+
+    if (MibSPar_->entry(MibSParams::useImprovingDirectionIC) == PARAM_ON){
+       std::cout << "Improving direction intersection cut generator is on." << std::endl;
+    }
+
+    if (MibSPar_->entry(MibSParams::useHypercubeIC) == PARAM_ON){
+       std::cout << "Hypercube intersection cut generator is on." << std::endl;
+    }
+
+    if (MibSPar_->entry(MibSParams::useImprovingSolutionIC) == PARAM_ON ||
+        MibSPar_->entry(MibSParams::useImprovingDirectionIC) == PARAM_ON){
+       
+       if (MibSPar_->entry(MibSParams::useFractionalCutsRootOnly) == 1){
+          std::cout << "Fractional solutions will be seperated in the root node." << std::endl;
+          MibSPar_->setEntry(MibSParams::useFractionalCuts, 0);
+       }
+       if (MibSPar_->entry(MibSParams::useFractionalCuts) == 1){
+          std::cout << "Fractional solutions will be separated using intersection cuts."
+                    << std::endl;
+       }else{
+          std::cout << "Only integer solutions will be separated using intersection cuts."
+                    << std::endl;
+       }
+    }
+    
+    if (MibSPar_->entry(MibSParams::solveSecondLevelEveryIteration) ==
+        PARAM_OFF &&
+        MibSPar_->entry(MibSParams::solveSecondLevelWhenXYVarsInt) ==
+        PARAM_OFF &&
+        MibSPar_->entry(MibSParams::solveSecondLevelWhenXVarsInt) ==
+        PARAM_OFF &&
+        MibSPar_->entry(MibSParams::solveSecondLevelWhenLVarsInt) ==
+        PARAM_OFF &&
+        MibSPar_->entry(MibSParams::solveSecondLevelWhenLVarsFixed) ==
+        PARAM_OFF){
+       std::cout << "Second level problem will not be solved" << std::endl;
+    }else{
+       std::cout << "Second level problem will be solved";
+       if (MibSPar_->entry(MibSParams::solveSecondLevelEveryIteration) ==
+           PARAM_ON){
+          std::cout << " in every iteration.";
+       }else if (MibSPar_->entry(MibSParams::solveSecondLevelWhenLVarsInt) ==
+                 PARAM_ON){
+          std::cout << " when linking variables are integer.";
+       }else{
+          if (MibSPar_->entry(MibSParams::solveSecondLevelWhenLVarsFixed) == PARAM_ON){
+             std::cout << " when linking variables are fixed";
+             if (MibSPar_->entry(MibSParams::solveSecondLevelWhenXVarsInt) ==
+                 PARAM_ON){
+                std::cout << std::endl
+                          << "  or first level variables are integer.";
+             }else if (MibSPar_->entry(MibSParams::solveSecondLevelWhenXYVarsInt) ==
+                       PARAM_ON){
+                std::cout << std::endl
+                          << "  or first and second level variables are integer.";
+             }else{
+                std::cout << ".";
+             }
+          }else{ 
+             if (MibSPar_->entry(MibSParams::solveSecondLevelWhenXVarsInt) ==
+                 PARAM_ON){
+                std::cout << " when first level variables are integer.";
+             }else if (MibSPar_->entry(MibSParams::solveSecondLevelWhenXYVarsInt) ==
+                       PARAM_ON){
+                std::cout << " when first and second level variables are integer.";
+             }
           }
        }
-    }else if (MibSPar_->entry(MibSParams::branchStrategy) ==
-              MibSBranchingStrategyLinking){
-       std::cout <<
-          "Branching strategy is set to branch on linking variables.";
        std::cout << std::endl;
+    }
+    
+    if (MibSPar_->entry(MibSParams::computeBestUBWhenXVarsInt) ==
+        PARAM_OFF &&
+        MibSPar_->entry(MibSParams::computeBestUBWhenLVarsInt) ==
+        PARAM_OFF &&
+        MibSPar_->entry(MibSParams::computeBestUBWhenLVarsFixed) ==
+        PARAM_OFF){
+       std::cout << "Upper bounding problem will not be solved." << std::endl;
     }else{
-       std::cout <<
-          "Branching strategy set to branch on all variables with fractional values.";
-             std::cout << std::endl;
-    }
-
-    if (printProblemInfo == true){
-	if(MibSPar_->entry(MibSParams::useBendersBinaryCut) == PARAM_ON){
-           std::cout << "Benders binary cut generator is on.";
-           std::cout << std::endl;
-	}
-
-	if (MibSPar_->entry(MibSParams::useBendersInterdictionCut) == PARAM_ON){
-           if (MibSPar_->entry(MibSParams::bendersInterdictionCutType) ==
-               MibSBendersInterdictionCutTypeJustOneCut){
-              std::cout << "Benders interdiction cut generator (just one cut) is on.";
-              std::cout << std::endl;
-           }else{
-              std::cout << "Benders interdiction cut generator (multiple cuts) is on.";
-              std::cout << std::endl;
-           }
-	}
-        
-        if (MibSPar_->entry(MibSParams::useIntegerNoGoodCut) == PARAM_ON){
-           std::cout << "Integer no-good cut generator is on."<< std::endl;
-	}
-        
-	if (MibSPar_->entry(MibSParams::useNoGoodCut) == PARAM_ON){
-           std::cout << "No-good cut generator is on."<< std::endl;
-	}
-
-	if (MibSPar_->entry(MibSParams::useGeneralizedNoGoodCut) == PARAM_ON){
-           std::cout << "Generalized no-good cut generator is on."<< std::endl;
-	}
-
-	if (MibSPar_->entry(MibSParams::useImprovingSolutionIC) == PARAM_ON){
-           if (MibSPar_->entry(MibSParams::bilevelFreeSetTypeISIC) ==
-               MibSBilevelFreeSetTypeISICWithLLOptSol){
-              std::cout << "Improving solution intersection cut generator (Type I) is on." << std::endl;
-           }else{
-              std::cout << "Improving solution intersection cut generator (Type II) is on." << std::endl;
-           }              
-	}
-	if (MibSPar_->entry(MibSParams::useImprovingDirectionIC) == PARAM_ON){
-           std::cout << "Improving direction intersection cut generator is on." << std::endl;
-	}
-	if (MibSPar_->entry(MibSParams::useHypercubeIC) == PARAM_ON){
-           std::cout << "Hypercube intersection cut generator is on." << std::endl;
-	}
-        if (MibSPar_->entry(MibSParams::useImprovingSolutionIC) == PARAM_ON ||
-            MibSPar_->entry(MibSParams::useImprovingDirectionIC) == PARAM_ON){
-            
-           if (MibSPar_->entry(MibSParams::useFractionalCutsRootOnly) == 1){
-              std::cout << "Fractional cuts will be generated only in the root node." << std::endl;
-              MibSPar_->setEntry(MibSParams::useFractionalCuts, 0);
-           }
-           if (MibSPar_->entry(MibSParams::useFractionalCuts) == 1){
-              std::cout << "Fractional cuts will be generated." << std::endl;
-           }
-        }
-        //}
-    }
-	
-    //Setting parameters of solving (VF) and (UB)
-    int solveSecondLevelEveryIteration(MibSPar_->entry(MibSParams::solveSecondLevelEveryIteration));
-    int solveSecondLevelWhenXYVarsInt(MibSPar_->entry(MibSParams::solveSecondLevelWhenXYVarsInt));
-    int solveSecondLevelWhenXVarsInt(MibSPar_->entry(MibSParams::solveSecondLevelWhenXVarsInt));
-    int solveSecondLevelWhenLVarsInt(MibSPar_->entry(MibSParams::solveSecondLevelWhenLVarsInt));
-    int solveSecondLevelWhenLVarsFixed(MibSPar_->entry(MibSParams::solveSecondLevelWhenLVarsFixed));
-    int computeBestUBWhenXVarsInt(MibSPar_->entry(MibSParams::computeBestUBWhenXVarsInt));
-    int computeBestUBWhenLVarsInt(MibSPar_->entry(MibSParams::computeBestUBWhenLVarsInt));
-    int computeBestUBWhenLVarsFixed(MibSPar_->entry(MibSParams::computeBestUBWhenLVarsFixed));
-
-    if ((solveSecondLevelWhenXYVarsInt == PARAM_NOTSET) &&
-        (solveSecondLevelEveryIteration == PARAM_NOTSET) &&
-        (solveSecondLevelWhenXVarsInt == PARAM_NOTSET) &&
-        (solveSecondLevelWhenLVarsInt == PARAM_NOTSET) &&
-        (solveSecondLevelWhenLVarsFixed == PARAM_NOTSET) &&
-        (computeBestUBWhenXVarsInt == PARAM_NOTSET) &&
-        (computeBestUBWhenLVarsInt == PARAM_NOTSET) &&
-        (computeBestUBWhenLVarsFixed == PARAM_NOTSET)){
-       MibSPar()->setEntry(MibSParams::solveSecondLevelWhenXYVarsInt, PARAM_ON);
-       MibSPar()->setEntry(MibSParams::solveSecondLevelWhenLVarsFixed, PARAM_ON);
-       MibSPar()->setEntry(MibSParams::computeBestUBWhenLVarsFixed, PARAM_ON);
-    }
-
-    if (printProblemInfo == true){
-       if (MibSPar_->entry(MibSParams::solveSecondLevelWhenXYVarsInt) == PARAM_ON){
-          std::cout << "solveSecondLevelWhenXYVarsInt is set." << std::endl;
-       }
-    
-       if (MibSPar_->entry(MibSParams::solveSecondLevelWhenXVarsInt) == PARAM_ON){
-          std::cout << "solveSecondLevelWhenXVarsInt is set." <<std::endl;
-       }
-
-       if (MibSPar_->entry(MibSParams::solveSecondLevelWhenLVarsInt) == PARAM_ON){
-          std::cout << "solveSecondLevelWhenLVarsInt is set." <<std::endl;
-       }
-       
-       if (MibSPar_->entry(MibSParams::solveSecondLevelWhenLVarsFixed) == PARAM_ON){
-          std::cout << "solveSecondLevelWhenLVarsFixed is set." <<std::endl;
-       }
-       
-       if (MibSPar_->entry(MibSParams::computeBestUBWhenXVarsInt) == PARAM_ON){
-          std::cout << "computeBestUBWhenXVarsInt is set." <<std::endl;
-	}
-
+       std::cout << "Upper bounding problem will be solved";
        if (MibSPar_->entry(MibSParams::computeBestUBWhenLVarsInt) == PARAM_ON){
-          std::cout << "computeBestUBWhenLVarsInt is set." <<std::endl;
-       }
-       
-       if (MibSPar_->entry(MibSParams::computeBestUBWhenLVarsFixed) == PARAM_ON){
-          std::cout << "computeBestUBWhenLVarsFixed is set." <<std::endl;
-       }
+          std::cout << " when linking variables are integer.";
+       }else{
+          if (MibSPar_->entry(MibSParams::computeBestUBWhenLVarsFixed) == PARAM_ON){
+             std::cout << " when linking variables are fixed";
+             if (MibSPar_->entry(MibSParams::computeBestUBWhenXVarsInt) == PARAM_ON){
+                std::cout << " or first level variables are integer.";
+             }else{
+                std::cout << ".";
+             }
+          }else if (MibSPar_->entry(MibSParams::computeBestUBWhenXVarsInt) == PARAM_ON){
+             std::cout << " when first level variables are integer.";
+          }
+       }       
+       std::cout << std::endl;
     }
-    
-    //Setting "saveSeenLinkingSols" parameter
-    
-    if (MibSPar_->entry(MibSParams::useLinkingSolutionPool) == PARAM_NOTSET){
-       MibSPar()->setEntry(MibSParams::useLinkingSolutionPool, PARAM_ON);
+    if(MibSPar_->entry(MibSParams::useLinkingSolutionPool) == PARAM_ON){
+       std::cout << "Linking solution pool will be used." << std::endl;
     }
-    
-    if (printProblemInfo == true){
-       if(MibSPar_->entry(MibSParams::useLinkingSolutionPool) == PARAM_ON){
-          std::cout << "Linking solution pool will be used." << std::endl;
-       }
-       else{
-          std::cout << "Linking solution pool will not be used." << std::endl;
-	}
+    else{
+       std::cout << "Linking solution pool will not be used." << std::endl;
     }
 
     std::cout << std::endl;
+
     //if (MibSPar_->entry(MibSParams::printParameters)){
     //   writeParameters(std::cout);
     //}
