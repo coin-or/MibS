@@ -385,11 +385,13 @@ MibSTreeNode::process(bool isRoot, bool rampUp)
 
 	  //if((bS->useBilevelBranching_ == false) &&
 	  // (bS->LPSolStatus_ != MibSLPSolStatusFeasible)){
-          if((branchPar == MibSBranchingStrategyLinking && bS->isLinkVarsFixed_) ||
-              bS->isIntegral_){
-	      tailOffTol = -1000;
-	  }
-	  else{
+          if ((depth_ == 0 || 
+               (branchPar == MibSBranchingStrategyLinking &&
+                bS->isLinkVarsFixed_) ||
+               branchPar == MibSBranchingStrategyFractional)
+              && bS->isIntegral_){
+	      tailOffTol = -1;
+	  } else{
 	      tailOffTol = BlisPar->entry(BlisParams::tailOff);
 	  }
 
@@ -421,7 +423,9 @@ MibSTreeNode::process(bool isRoot, bool rampUp)
                 //------------------------------------------
 
                 if (model->boundingPass_ > 1) {
-                    improvement = quality_ - preObjValue;
+                   improvement = fabs(quality_) > 1 ?
+                      fabs((quality_ - preObjValue)/quality_) :
+                      quality_ - preObjValue;
                     if (improvement > tailOffTol) {
                         // NOTE: still need remove slacks, although
                         //       tailoff.
