@@ -6028,7 +6028,7 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
      //and should always be false (see BlisTreeNode.cpp)
      return (false);
 
-  }else if (bS->isUpperIntegral_){
+  }else if (bS->isLinkVarsIntegral_){
      if (localModel_->isInterdict_ && useBendersInterdictionCut == PARAM_ON
          && haveSecondLevelSol){
         int bendersInterdictionCutType =
@@ -6073,8 +6073,8 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
      //and should always be false (see BlisTreeNode.cpp)
      return (false);
 
-  }else if (useFractionalCuts || (useFractionalCutsRootOnly &&
-                                  localModel_->activeNode_->getDepth() == 0)){
+  }else if (bS->isLowerIntegral_ || useFractionalCuts ||
+            (useFractionalCutsRootOnly && localModel_->activeNode_->getDepth() == 0)){
      
      if (useImprovingDirectionIC == PARAM_ON){
         cutType = MibSIntersectionCutImprovingDirection;
