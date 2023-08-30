@@ -5882,16 +5882,16 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
   int useImprovingSolutionIC =
      localModel_->MibSPar_->entry(MibSParams::useImprovingSolutionIC);
   
-  int useIntersectionCutImprovingDirection =
+  int useImprovingDirectionIC =
      localModel_->MibSPar_->entry(MibSParams::useImprovingDirectionIC);
   
-  int useIntersectionCutTypeHypercubeIC =
+  int useHypercubeIC =
      localModel_->MibSPar_->entry(MibSParams::useHypercubeIC);
   
-  int useIntersectionCutTypeTenderIC =
+  int useTenderIC =
      localModel_->MibSPar_->entry(MibSParams::useTenderIC);
   
-  int useIntersectionCutTypeHybridIC =
+  int useHybridIC =
      localModel_->MibSPar_->entry(MibSParams::useHybridIC);
   
   int useGeneralizedNoGoodCut = 
@@ -5993,22 +5993,22 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
         numCuts += intersectionCuts(conPool, bS->optLowerSolutionOrd_, cutType);
      }
      
-     if (useIntersectionCutImprovingDirection == PARAM_ON){
+     if (useImprovingDirectionIC == PARAM_ON){
         cutType = MibSIntersectionCutImprovingDirection;
         numCuts += intersectionCuts(conPool, bS->optLowerSolutionOrd_, cutType);
      }
      
-     if (useIntersectionCutTypeHypercubeIC == PARAM_ON){
+     if (useHypercubeIC == PARAM_ON){
         cutType = MibSIntersectionCutHypercube;
         numCuts += intersectionCuts(conPool, bS->optLowerSolutionOrd_, cutType);
      }
      
-     if (useIntersectionCutTypeTenderIC == PARAM_ON){
+     if (useTenderIC == PARAM_ON){
         cutType = MibSIntersectionCutTender;
         numCuts += intersectionCuts(conPool, bS->optLowerSolutionOrd_, cutType);
      }
      
-     if (useIntersectionCutTypeHybridIC == PARAM_ON){
+     if (useHybridIC == PARAM_ON){
         cutType = MibSIntersectionCutHybrid;
         numCuts += intersectionCuts(conPool, bS->optLowerSolutionOrd_, cutType);
      }
@@ -6046,12 +6046,12 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
         numCuts += intersectionCuts(conPool, bS->optLowerSolutionOrd_, cutType);
      }
 
-     if (useIntersectionCutImprovingDirection == PARAM_ON){
+     if (useImprovingDirectionIC == PARAM_ON){
         cutType = MibSIntersectionCutImprovingDirection;
         numCuts += intersectionCuts(conPool, bS->optLowerSolutionOrd_, cutType);
      }
      
-     if (useIntersectionCutTypeHypercubeIC == PARAM_ON && haveSecondLevelSol){
+     if (useHypercubeIC == PARAM_ON && haveSecondLevelSol){
         cutType = MibSIntersectionCutHypercube;
         numCuts += intersectionCuts(conPool, bS->optLowerSolutionOrd_, cutType);
      }
@@ -6074,7 +6074,7 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
   }else if (useFractionalCuts || (useFractionalCutsRootOnly &&
                                   localModel_->activeNode_->getDepth() == 0)){
      
-     if (useIntersectionCutImprovingDirection == PARAM_ON){
+     if (useImprovingDirectionIC == PARAM_ON){
         cutType = MibSIntersectionCutImprovingDirection;
         numCuts += intersectionCuts(conPool, bS->optLowerSolutionOrd_, cutType);
      }
