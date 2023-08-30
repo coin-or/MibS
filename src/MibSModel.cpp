@@ -971,7 +971,6 @@ MibSModel::readProblemData()
    loadProblemData(matrix, varLB, varUB, objCoef, conLB, conUB, colType, 
 		   objSense, mps->getInfinity(), rowSense);
 
-   delete [] colType;
    delete [] varLB;
    delete [] varUB;
    delete [] conLB;
@@ -991,8 +990,12 @@ MibSModel::readProblemData()
          j = (int) instName.length();
          if((j > 3) || (instName.substr(j - 3).compare(".lp") == 0)){
             CoinLpIO *lp = new CoinLpIO;
-            lp->setLpDataWithoutRowAndColNames(matrix, varLB, varUB, objCoef,
-                                               colType, conLB, conUB);
+            lp->setLpDataWithoutRowAndColNames(*(mps->getMatrixByCol()),
+                                               mps->getColLower(),
+                                               mps->getColUpper(),
+                                               mps->getObjCoefficients(),
+                                               colType, mps->getRowLower(),
+                                               mps->getRowUpper());
             //lp->setLpDataRowAndColNames(rowName_, columnName_);
             lp->writeLp(instName.c_str());
          }
@@ -1019,9 +1022,12 @@ MibSModel::readProblemData()
       }
 
       delete mps;
+      delete [] colType;
       printf("Exit after mps/aux files are successfully written\n");
       exit(0);
    }
+
+   delete [] colType;
 
    for (int i = 0; i < upperDim_; i++){
       if (fixedInd_[i] == 1){
