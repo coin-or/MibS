@@ -102,6 +102,7 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
   
   isIntegral_ = true;
   isUpperIntegral_ = true;
+  isLowerIntegral_ = true;
   isLinkVarsIntegral_ = true;
   LPSolStatus_ = MibSLPSolStatusUnknown;
   isLinkVarsFixed_ = true;
@@ -150,7 +151,8 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
 	  //This check is failing when Blis has already declared the solution integral
 	  //It's not really needed
 	  if(mibs->solver()->isInteger(index)){
-	     isIntegral_ = false;
+             isLowerIntegral_ = false;
+             isIntegral_ = false;
 	     LPSolStatus_ = MibSLPSolStatusInfeasible;
 	  }
 #endif
@@ -233,7 +235,8 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
      if((tagInSeenLinkingPool_ == MibSLinkingPoolTagLowerIsFeasible ||
           tagInSeenLinkingPool_ == MibSLinkingPoolTagUBIsSolved) ||
          (!isContainedInLinkingPool_ &&
-	  ((branchPar == MibSBranchingStrategyLinking && isIntegral_ && isLinkVarsFixed_) ||
+	  ((branchPar == MibSBranchingStrategyLinking && isIntegral_ &&
+            isLinkVarsFixed_) ||
 	   (branchPar == MibSBranchingStrategyFractional && isIntegral_) ||
 	   (solveSecondLevelEveryIteration) ||
 	   (solveSecondLevelWhenXYVarsInt && isIntegral_) ||

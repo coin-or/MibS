@@ -45,6 +45,7 @@ private:
 
     bool isIntegral_;
     bool isUpperIntegral_;
+    bool isLowerIntegral_;
     bool isLinkVarsIntegral_;
     bool useBilevelBranching_;
     bool isLinkVarsFixed_;
@@ -78,14 +79,15 @@ private:
    
 public:
    
-    MibSBilevel() : isIntegral_(true), isUpperIntegral_(true),
-		    isLinkVarsIntegral_(true), useBilevelBranching_(true),
-		    isLinkVarsFixed_(true), isProvenOptimal_(false),
-		    isLowerSolved_(false), isUBSolved_(false),
-		    shouldPrune_(false), isContainedInLinkingPool_(false),
-		    tagInSeenLinkingPool_(MibSLinkingPoolTagIsNotSet),
-		    LPSolStatus_(MibSLPSolStatusUnknown), objVal_(0.0),
-		    linkIntegralCount_(0){
+   MibSBilevel() : isIntegral_(true), isUpperIntegral_(true),
+                   isLowerIntegral_(false), isLinkVarsIntegral_(true),
+                   useBilevelBranching_(true), isLinkVarsFixed_(true),
+                   isProvenOptimal_(false), isLowerSolved_(false),
+                   isUBSolved_(false), shouldPrune_(false),
+                   isContainedInLinkingPool_(false),
+                   tagInSeenLinkingPool_(MibSLinkingPoolTagIsNotSet),
+                   LPSolStatus_(MibSLPSolStatusUnknown), objVal_(0.0),
+                   linkIntegralCount_(0){
 	upperSolutionOrd_ = 0;
 	lowerSolutionOrd_ = 0;
 	//optLowerSolution_ = 0;
