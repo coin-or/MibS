@@ -5976,7 +5976,8 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
   
   if (bS->isIntegral_){
 
-     if (localModel_->isInterdict_ && useBendersInterdictionCut == PARAM_ON){
+     if (localModel_->isInterdict_ && useBendersInterdictionCut == PARAM_ON &&
+         haveSecondLevelSol){
         int bendersInterdictionCutType =
            localModel_->MibSPar_->entry(MibSParams::bendersInterdictionCutType);
         if(bendersInterdictionCutType == MibSBendersInterdictionCutTypeJustOneCut){
@@ -6027,8 +6028,9 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
      //and should always be false (see BlisTreeNode.cpp)
      return (false);
 
-  }else if(bS->isUpperIntegral_){
-     if (localModel_->isInterdict_ && useBendersInterdictionCut == PARAM_ON){
+  }else if (bS->isUpperIntegral_){
+     if (localModel_->isInterdict_ && useBendersInterdictionCut == PARAM_ON
+         && haveSecondLevelSol){
         int bendersInterdictionCutType =
            localModel_->MibSPar_->entry(MibSParams::bendersInterdictionCutType);
         if(bendersInterdictionCutType == MibSBendersInterdictionCutTypeJustOneCut){
@@ -6039,9 +6041,9 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
            numCuts += bendersInterdictionMultipleCuts(conPool);
         }		  
      }
-     if (useImprovingSolutionIC == PARAM_ON && haveSecondLevelSol &&
-         (relaxedObjVal > localModel_->bS_->objVal_ + localModel_->etol_ ||
-          localModel_->MibSPar_->entry(MibSParams::bilevelFreeSetTypeISIC) == 1)){ 
+     if (useImprovingSolutionIC == PARAM_ON && ((haveSecondLevelSol &&
+          relaxedObjVal > localModel_->bS_->objVal_ + localModel_->etol_) ||
+          localModel_->MibSPar_->entry(MibSParams::bilevelFreeSetTypeISIC) == 1)){
         cutType = MibSIntersectionCutImprovingSolution;
         numCuts += intersectionCuts(conPool, bS->optLowerSolutionOrd_, cutType);
      }
