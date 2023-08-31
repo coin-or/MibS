@@ -30,6 +30,14 @@
 
 //#############################################################################
 
+enum MibSVarType{
+    MibSVarUpper,
+    MibSVarLinking,
+    MibSVarLower,
+};
+
+//#############################################################################
+
 enum MibSSolType{
     MibSNoSol = -1,
     MibSRelaxationSol,
@@ -41,7 +49,8 @@ enum MibSSolType{
 enum MibSBranchingStrategy{
     MibSBranchingStrategyNotSet = -1,
     MibSBranchingStrategyFractional,
-    MibSBranchingStrategyLinking
+    MibSBranchingStrategyLinking,
+    MibSBranchingStrategyLower
 };
  
 //#############################################################################

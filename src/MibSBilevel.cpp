@@ -80,7 +80,7 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
   int *indices = sol->getIndices();
   double *values = sol->getElements();
   int numElements(sol->getNumElements()); // number of nonzero elements
-  int * fixedInd = model_->fixedInd_; 
+  int * varType = model_->varType_; 
  
   if(!upperSolutionOrd_){
       upperSolutionOrd_ = new double[uN];
@@ -134,7 +134,7 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
     if(binarySearch(0, uN - 1, index, upperColInd) >= 0){
        if(fabs(floor(value + 0.5) - value) > etol){
 #if 1
-	   if(fixedInd[index] == 1){
+	   if(varType[index] == MibSVarLinking){
 	       isLinkVarsIntegral_ = false;
 	   }
 	   if(mibs->solver()->isInteger(index)){
@@ -162,7 +162,8 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
 
   for(i = 0; i < N; i ++){
       if(binarySearch(0, uN - 1, i, upperColInd) >= 0){
-	  if((fixedInd[i] == 1) && (fabs(upper[i] - lower[i]) > etol)){
+	  if((varType[i] == MibSVarLinking) &&
+             (fabs(upper[i] - lower[i]) > etol)){
 	      isLinkVarsFixed_ = false;
 	      break;
 	  }
@@ -204,7 +205,7 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
       std::vector<double> linkSol;
       for(i = 0; i < uN; i++){
 	  index = upperColInd[i];
-	  if(fixedInd[index] == 1){
+	  if(varType[index] == MibSVarLinking){
 	      linkSol.push_back(upperSolutionOrd_[i]);
 	  }
       }
@@ -288,7 +289,7 @@ MibSBilevel::checkBilevelFeasibility(bool isRoot)
     int uN(model_->upperDim_); // upper-level dimension
     int i(0), index(0), pos(0);
     double etol(model_->etol_), objVal(0.0), lowerObj(0.0);
-    int * fixedInd = model_->fixedInd_;
+    int * varType = model_->varType_;
     int * lowerColInd = model_->getLowerColInd();
     int * upperColInd = model_->getUpperColInd();
     double *lowerSol = new double[lN];
@@ -302,7 +303,7 @@ MibSBilevel::checkBilevelFeasibility(bool isRoot)
     std::vector<double> linkSol;
     for(i = 0; i < uN; i++){
 	index = upperColInd[i];
-	if(fixedInd[index] == 1){
+	if(varType[index] == MibSVarLinking){
 	    linkSol.push_back(upperSolutionOrd_[i]);
 	}
     }
@@ -709,7 +710,7 @@ MibSBilevel::setUpUBModel(OsiSolverInterface * oSolver, double objValLL,
 	lpSol = oSolver->getColSolution();
     }
 
-    int * fixedInd = model_->fixedInd_;
+    int * varType = model_->varType_;
 
     int i(0), index1(0);
     double value(0.0);
@@ -753,7 +754,7 @@ MibSBilevel::setUpUBModel(OsiSolverInterface * oSolver, double objValLL,
 
 	for(i = 0; i < uCols; i++){
 	    index1 = uColIndices[i];
-	    if(fixedInd[index1] == 1){
+	    if(varType[index1] == MibSVarLinking){
 		colLb[index1] = floor(lpSol[index1] + 0.5);
 	        colUb[index1] = colLb[index1];
 	    }
@@ -846,7 +847,7 @@ MibSBilevel::setUpUBModel(OsiSolverInterface * oSolver, double objValLL,
 	nSolver->setRowUpper(rowNum-1, objValLL);
 	for(i = 0; i < uCols; i++){
 	    index1 = uColIndices[i];
-	    if(fixedInd[index1] == 1){
+	    if(varType[index1] == MibSVarLinking){
 		value = floor(lpSol[index1] + 0.5);
 		nSolver->setColLower(index1, value);
 		nSolver->setColUpper(index1, value);
@@ -1345,7 +1346,7 @@ void
     int i(0),index(0);
     int uN(model_->upperDim_);
     int * upperColInd = model_->getUpperColInd();
-    int * fixedInd = model_->fixedInd_;
+    int * varType = model_->varType_;
     int solType = static_cast<int>(solTag);
 
     LINKING_SOLUTION linkingSolution;
@@ -1353,7 +1354,7 @@ void
     std::vector<double> linkSol;
     for(i = 0; i < uN; i++){
 	index = upperColInd[i];
-	if(fixedInd[index] == 1){
+	if(varType[index] == MibSVarLinking){
 	    linkSol.push_back(upperSolutionOrd_[i]);
 	}
     }

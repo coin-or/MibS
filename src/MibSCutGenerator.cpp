@@ -1709,14 +1709,14 @@ MibSCutGenerator::storeBestSolHypercubeIC(const double* lpSol, double optLowerOb
     int lN(localModel_->getLowerDim());
     double objVal(0.0);
     //double startTimeUB(0.0);
-    int * fixedInd = localModel_->getFixedInd();
+    int * varType = localModel_->getVarType();
     
     int useLinkingSolutionPool(localModel_->MibSPar_->entry
 		   (MibSParams::useLinkingSolutionPool));
 
     std::vector<double> linkSol;
     for(i = 0; i < uN + lN; i++){
-	if(fixedInd[i] == 1){
+	if(varType[i] == MibSVarLinking){
 	    linkSol.push_back(lpSol[i]);
 	}
     }
@@ -1843,7 +1843,7 @@ void
 MibSCutGenerator::getAlphaHypercubeIC(double** extRay, int numStruct, int numNonBasic,
 				      std::vector<double> &alphaVec)
 {
-    int * fixedInd = localModel_->getFixedInd();
+    int * varType = localModel_->getVarType();
     double etol(localModel_->etol_);
 
     int i(0), j(0);
@@ -1853,7 +1853,7 @@ MibSCutGenerator::getAlphaHypercubeIC(double** extRay, int numStruct, int numNon
     for(i = 0; i < numNonBasic; i++){
 	alphaVec[i] = -1;
 	for(j = 0; j < numStruct; j++){
-	    if(fixedInd[j] == 1){
+	    if(varType[j] == MibSVarLinking){
 		coeff = extRay[i][j];
 	        if(coeff > etol){
 		    mult = 1;
@@ -1898,7 +1898,7 @@ MibSCutGenerator::storeBestSolTenderIC(const double* lpSol, double optLowerObj)
     int * uColIndices = localModel_->getUpperColInd();
     int * lColIndices = localModel_->getLowerColInd();
     int * lRowIndices = localModel_->getLowerRowInd();
-    int * fixedInd = localModel_->getFixedInd();
+    int * varType = localModel_->getVarType();
     const double * uObjCoeffs = oSolver->getObjCoefficients();
     double * lObjCoeffs = localModel_->getLowerObjCoeffs();
     double * colUb = new double[numCols];
@@ -2004,7 +2004,7 @@ MibSCutGenerator::storeBestSolTenderIC(const double* lpSol, double optLowerObj)
 	    cnt++;
 	    indexRow = lRowIndices[i];
 	    for(j = 0; j < numCols; j++){
-		if(fixedInd[j] == 1){
+		if(varType[j] == MibSVarLinking){
 		    tmp =  matrix->getCoefficient(indexRow, j);
 		    row.insert(j, tmp);
 		    rowLb[origNumRows+cnt] += tmp * lpSol[j];
@@ -2075,7 +2075,7 @@ MibSCutGenerator::getAlphaTenderIC(double** extRay, int numNonBasic,
     double etol(localModel_->etol_);
     int * uColIndices = localModel_->getUpperColInd();
     int * lRowIndices = localModel_->getLowerRowInd();
-    int * fixedInd = localModel_->getFixedInd();
+    int * varType = localModel_->getVarType();
 
     int withULVarSize(0);
     int * withULVar = new int[lRows]();
@@ -2105,7 +2105,7 @@ MibSCutGenerator::getAlphaTenderIC(double** extRay, int numNonBasic,
 		indexRow = lRowIndices[j];
 		coeff = 0;
 		for(k = 0; k < numCols; k++){
-		    if(fixedInd[k] == 1){
+		    if(varType[k] == MibSVarLinking){
 			tmp =  matrix->getCoefficient(indexRow, k);
 			coeff += tmp * extRay[i][k];
 		    }
@@ -2698,7 +2698,7 @@ MibSCutGenerator::solveLeafNode(int leafNodeIndex, bool *isTimeLimReached)
   double *lObjCoeffs = localModel_->getLowerObjCoeffs();
   int *uColInd = localModel_->getUpperColInd();
   int *lColInd = localModel_->getLowerColInd();
-  int *fixedInd = localModel_->getFixedInd();
+  int *varType = localModel_->getVarType();
 
   double *leafColLb = new double[numCols];
   double *leafColUb = new double[numCols];
@@ -2748,7 +2748,7 @@ MibSCutGenerator::solveLeafNode(int leafNodeIndex, bool *isTimeLimReached)
   memcpy(upperSol, newColLb, sizeof(double) * numCols);
   for(i = 0; i < uCols; i++){
       index = uColInd[i];
-      if(fixedInd[index] == 1){
+      if(varType[index] == MibSVarLinking){
 	  if(fabs(newColLb[index] - newColUb[index]) <= etol){
 	      value = floor(newColLb[index] + 0.5);
 	      linkSol.push_back(floor(value));
@@ -3196,7 +3196,7 @@ MibSCutGenerator::generalizedNoGoodCut(BcpsConstraintPool &conPool)
     const double * sol = solver->getColSolution();
     int uN(localModel_->upperDim_);
     int * upperColInd = localModel_->getUpperColInd();
-    int * fixedInd = localModel_->getFixedInd();
+    int * varType = localModel_->getVarType();
 
     int i(0), index(0);
     double cutub(- 1.0);
@@ -3235,7 +3235,7 @@ MibSCutGenerator::generalizedNoGoodCut(BcpsConstraintPool &conPool)
 
     for(i = 0; i < uN; i++){
 	index = upperColInd[i];
-	if(fixedInd[index] == 1){
+	if(varType[index] == MibSVarLinking){
 	    indexList.push_back(index);
 	    if(sol[index] > etol){
 		valsList.push_back(1.0);
@@ -4813,7 +4813,7 @@ MibSCutGenerator::generalWeakBendersBinaryCutCurrent(BcpsConstraintPool &conPool
     double etol(localModel_->etol_);
     int uN(localModel_->getUpperDim());
     int lN(localModel_->getLowerDim());
-    int *fixedInd(localModel_->getFixedInd());
+    int *varType(localModel_->getVarType());
     int *upperColInd(localModel_->getUpperColInd());
     int *lowerColInd(localModel_->getLowerColInd());
     double *lObjCoeffs(localModel_->getLowerObjCoeffs());
@@ -4843,7 +4843,7 @@ MibSCutGenerator::generalWeakBendersBinaryCutCurrent(BcpsConstraintPool &conPool
 
     for(i = 0; i < uN; i++){
 	index = upperColInd[i];
-	if (fixedInd[index]){
+	if (varType[index] == MibSVarLinking){
            if (sol[index] < etol){
                if (localModel_->colSignsA2_[i] != MibSModel::colSignPositive){
                   indexList.push_back(index);
