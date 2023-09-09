@@ -297,6 +297,7 @@ MibSModel::setBlisParameters()
    BlisPar()->setEntry(BlisParams::cutPass, ALPS_INT_MAX);
    BlisPar()->setEntry(BlisParams::tailOff, .05);
    BlisPar()->setEntry(BlisParams::denseConFactor, ALPS_DBL_MAX);
+   BlisPar()->setEntry(BlisParams::scaleConFactor, ALPS_DBL_MAX);
    
    BlisPar()->setEntry(BlisParams::heurStrategy, 0);
    BlisPar()->setEntry(BlisParams::heurRoundStrategy, 0);
