@@ -105,6 +105,9 @@ private:
     /** Size of first-stage variables in second-stage constraints **/
     int sizeFixedInd_;
 
+    /** Alignment between lower and upper objectives **/
+    double objAlignment_;
+
     /** Number of (VF) solved **/
     int counterVF_;
 

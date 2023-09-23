@@ -161,8 +161,6 @@ class MibSCutGenerator : public BlisConGenerator {
    /** Add disjunctive cuts for binary upper-level variables (maximal sol) **/
    int bendersBinaryCutMaximal(BcpsConstraintPool &conPool);
 
-   int generalWeakBendersBinaryCutCurrent(BcpsConstraintPool &conPool);
-
    double findBigMBendersBinaryCut();
 
    /** Add disjunctive cuts for binary upper-level variables (current sol)**/

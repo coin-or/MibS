@@ -4799,7 +4799,7 @@ MibSCutGenerator::interdictionCuts(BcpsConstraintPool &conPool)
 
 //#############################################################################
 int
-MibSCutGenerator::generalWeakBendersBinaryCutCurrent(BcpsConstraintPool &conPool)
+MibSCutGenerator::bendersBinaryCut(BcpsConstraintPool &conPool)
 {
     bool allowRemoveCut(localModel_->MibSPar_->entry
 			(MibSParams::allowRemoveCut));
@@ -5263,26 +5263,6 @@ MibSCutGenerator::binaryCuts(BcpsConstraintPool &conPool)
       //std::cout << "No BINARY Cuts generated" << std::endl;
       return 0;
   }
-}
-
-//#############################################################################
-int
-MibSCutGenerator::bendersBinaryCut(BcpsConstraintPool &conPool)
-{
-
-  int numCuts(0);
-
-  //numCuts += bendersBinaryCutCurrent(conPool);
-
-  //numCuts += bendersBinaryCutMaximal(conPool);
-
-  numCuts += generalWeakBendersBinaryCutCurrent(conPool);
-  
-  //if(!maximalCutCount_)
-  //numCuts += weakBendersBinaryCutMaximal(conPool);
-
-  return numCuts;
-
 }
 
 //#############################################################################
@@ -6018,8 +5998,9 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
         numCuts += generalizedNoGoodCut(conPool);
      }
      
-     if (useBendersBinaryCut == PARAM_ON){
-        numCuts += generalWeakBendersBinaryCutCurrent(conPool);
+     if (useBendersBinaryCut == PARAM_ON &&
+         relaxedObjVal > localModel_->bS_->objVal_ + localModel_->etol_){
+        numCuts += bendersBinaryCut(conPool);
      }
      
      numCuts += feasibilityCuts(conPool) ? true : false;

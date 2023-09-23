@@ -14,6 +14,7 @@
 /*===========================================================================*/
 
 #include <sstream>
+#include <numeric>
 
 #include "MibSConfig.hpp"
 #include "CoinUtilsConfig.h"
@@ -138,6 +139,7 @@ MibSModel::initialize()
   origUpperRowNum_ =0;
   structRowNum_ = 0;
   sizeFixedInd_ = 0;
+  objAlignment_ = 0;
   counterVF_ = 0;
   counterUB_ = 0;
   timerVF_ = 0.0;
@@ -971,6 +973,23 @@ MibSModel::readProblemData()
    
    loadProblemData(matrix, varLB, varUB, objCoef, conLB, conUB, colType, 
 		   objSense, mps->getInfinity(), rowSense);
+
+   //Compute objective alignment
+   double normU(0.0), normL(0.0);
+   
+   for (j = 0; j < lowerDim_; j++){
+      normU += objCoef[lowerColInd_[j]]*objCoef[lowerColInd_[j]];
+      normL += lowerObjCoeffs_[j]*lowerObjCoeffs_[j];
+   }
+   
+   normU = std::sqrt(normU);
+   normL = std::sqrt(normL);
+
+   for (j = 0; j < lowerDim_; j++){
+      objAlignment_ += objCoef[lowerColInd_[j]]*lowerObjCoeffs_[j];
+   }
+   
+   objAlignment_ /= normU*normL;
 
    delete [] varLB;
    delete [] varUB;
@@ -3968,6 +3987,11 @@ MibSModel::printProblemInfo(){
        std::cout << "Coefficient matrix of lower level variables in upper level problem is non-negative." << std::endl;
     }
     
+    std::cout << "Degree of objective alignment: " << objAlignment_
+              << std::endl;
+
+    exit(0);
+   
     std::cout << std::endl
               << "=======================================" << std::endl
               << "Parameter Settings                     " << std::endl
