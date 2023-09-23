@@ -3990,8 +3990,6 @@ MibSModel::printProblemInfo(){
     std::cout << "Degree of objective alignment: " << objAlignment_
               << std::endl;
 
-    exit(0);
-   
     std::cout << std::endl
               << "=======================================" << std::endl
               << "Parameter Settings                     " << std::endl
