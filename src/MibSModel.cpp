@@ -978,7 +978,7 @@ MibSModel::readProblemData()
    double normU(0.0), normL(0.0);
    
    for (j = 0; j < lowerDim_; j++){
-      normU += objCoef[lowerColInd_[j]]*objCoef[lowerColInd_[j]];
+      normU += objCoef_[lowerColInd_[j]]*objCoef_[lowerColInd_[j]];
       normL += lowerObjCoeffs_[j]*lowerObjCoeffs_[j];
    }
    
@@ -986,7 +986,7 @@ MibSModel::readProblemData()
    normL = std::sqrt(normL);
 
    for (j = 0; j < lowerDim_; j++){
-      objAlignment_ += objCoef[lowerColInd_[j]]*lowerObjCoeffs_[j];
+      objAlignment_ += objCoef_[lowerColInd_[j]]*lowerObjCoeffs_[j];
    }
    
    objAlignment_ /= normU*normL;
