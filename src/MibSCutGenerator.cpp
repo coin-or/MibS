@@ -58,6 +58,7 @@ MibSCutGenerator::MibSCutGenerator(MibSModel *mibs)
   maximalCutCount_ = 0;
   numCalledBoundCut_ = -1;
   isBigMIncObjSet_ = false;
+  isBigMIncObjErr_ = false;
   bigMIncObj_ = 0.0;
   ImprovingDirectionICSolver_ = 0;
 }
@@ -4836,7 +4837,13 @@ MibSCutGenerator::bendersBinaryCut(BcpsConstraintPool &conPool)
     
     if(!isBigMIncObjSet_){
        bigMIncObj_ = findBigMBendersBinaryCut();
-       isBigMIncObjSet_ = true;
+      // YX: skip if bigM is not found
+      if(bigMIncObj_ > -solver->getInfinity()){
+        isBigMIncObjSet_ = true;        
+      }else{
+        isBigMIncObjErr_ = true; 
+        goto TERM_INCOBJ;
+      }
     }
 
     bigM = bigMIncObj_ - lObjVal + 1;
@@ -5007,7 +5014,10 @@ MibSCutGenerator::findBigMBendersBinaryCut()
 	bigM = nSolver->getObjValue();
     }
     else{
-	assert(0);
+      // YX: if the problem did not find a solution, return value = -inf 
+      // throw CoinError("BigM problem is unbounded (or other error occurs).",
+      //   "findBigMBendersBinaryCut", "MibSCutGenerator");
+      bigM = - oSolver->getInfinity();
     }
 
     delete nSolver;
@@ -6001,6 +6011,14 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
      if (useBendersBinaryCut == PARAM_ON &&
          relaxedObjVal > localModel_->bS_->objVal_ + localModel_->etol_){
         numCuts += bendersBinaryCut(conPool);
+
+        // YX: if any error occurs in finding bigM, turn off the cut  
+        if(isBigMIncObjErr_){
+          std::cout << "Warning: an error occurred when solving the bigM problem; ";
+          std::cout << "Benders binary cut generator is turned off.";
+          std::cout << std::endl;
+          localModel_->MibSPar_->setEntry(MibSParams::useBendersBinaryCut, PARAM_OFF);
+        }
      }
      
      numCuts += feasibilityCuts(conPool) ? true : false;
@@ -6047,6 +6065,14 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
         if (useBendersBinaryCut == PARAM_ON &&
             relaxedObjVal > localModel_->bS_->objVal_ + localModel_->etol_){
            numCuts += bendersBinaryCut(conPool);
+          
+          // YX: if any error occurs in finding bigM, turn off the cut  
+          if(isBigMIncObjErr_){
+            std::cout << "Warning: an error occurred when solving the bigM problem; ";
+            std::cout << "Benders binary cut generator is turned off.";
+            std::cout << std::endl;
+            localModel_->MibSPar_->setEntry(MibSParams::useBendersBinaryCut, PARAM_OFF);
+          } 
         }
      }
 

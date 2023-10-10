@@ -30,6 +30,7 @@ class MibSCutGenerator : public BlisConGenerator {
    int maximalCutCount_;
    int numCalledBoundCut_;
    bool isBigMIncObjSet_;
+   bool isBigMIncObjErr_;
    double bigMIncObj_;
    OsiSolverInterface * ImprovingDirectionICSolver_;
    std::vector<int> leafNodeCutTmpHist_; 
