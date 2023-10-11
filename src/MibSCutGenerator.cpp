@@ -58,7 +58,6 @@ MibSCutGenerator::MibSCutGenerator(MibSModel *mibs)
   maximalCutCount_ = 0;
   numCalledBoundCut_ = -1;
   isBigMIncObjSet_ = false;
-  isBigMIncObjErr_ = false;
   bigMIncObj_ = 0.0;
   ImprovingDirectionICSolver_ = 0;
 }
@@ -4806,9 +4805,8 @@ MibSCutGenerator::bendersBinaryCut(BcpsConstraintPool &conPool)
 			(MibSParams::allowRemoveCut));
     
     OsiSolverInterface *solver = localModel_->solver();
-    int i;
-    int index(0);
-    int numCuts(0);
+    bool bigMFound(false);
+    int i(0), index(0), numCuts(0);
     double cutub(0.0), cutlb(-solver->getInfinity()), bigM(0.0);
     double lObjVal(localModel_->bS_->objVal_);
     double etol(localModel_->etol_);
@@ -4836,12 +4834,15 @@ MibSCutGenerator::bendersBinaryCut(BcpsConstraintPool &conPool)
     }
     
     if(!isBigMIncObjSet_){
-       bigMIncObj_ = findBigMBendersBinaryCut();
+      bigMFound = findBigMBendersBinaryCut(bigMIncObj_);
       // YX: skip if bigM is not found
-      if(bigMIncObj_ > -solver->getInfinity()){
+      if(bigMFound){
         isBigMIncObjSet_ = true;        
       }else{
-        isBigMIncObjErr_ = true; 
+        std::cout << "Warning: an error occurred when solving the bigM problem; ";
+        std::cout << "Benders binary cut generator will be turned off.";
+        std::cout << std::endl;
+        localModel_->MibSPar_->setEntry(MibSParams::useBendersBinaryCut, PARAM_OFF);
         goto TERM_INCOBJ;
       }
     }
@@ -4886,8 +4887,8 @@ MibSCutGenerator::bendersBinaryCut(BcpsConstraintPool &conPool)
 }
 
 //#############################################################################
-double
-MibSCutGenerator::findBigMBendersBinaryCut()
+bool
+MibSCutGenerator::findBigMBendersBinaryCut(double &bigM)
 {
 
     std::string feasCheckSolver =
@@ -4901,9 +4902,8 @@ MibSCutGenerator::findBigMBendersBinaryCut()
     
     OsiSolverInterface *oSolver = localModel_->solver();
 
-    int i(0);
-    int intCnt(0), colIndex(0);
-    double bigM(0.0);
+    bool bigMFound(false);
+    int i(0), intCnt(0), colIndex(0);
     int colNum(localModel_->getNumOrigVars());
     int lCols(localModel_->getLowerDim());
     double lObjSense(localModel_->getLowerObjSense());
@@ -5011,20 +5011,21 @@ MibSCutGenerator::findBigMBendersBinaryCut()
     nSolver->branchAndBound();
     
     if (nSolver->isProvenOptimal()){
-	bigM = nSolver->getObjValue();
+      bigM = nSolver->getObjValue();
+      bigMFound = true;
     }
     else{
       // YX: if the problem did not find a solution, return value = -inf 
       // throw CoinError("BigM problem is unbounded (or other error occurs).",
       //   "findBigMBendersBinaryCut", "MibSCutGenerator");
-      bigM = - oSolver->getInfinity();
+      bigMFound = false;
     }
 
     delete nSolver;
     delete [] objCoeffs;
     delete [] integerVars;
 
-    return bigM;
+    return bigMFound;
 }
 
 //#############################################################################
@@ -6011,14 +6012,6 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
      if (useBendersBinaryCut == PARAM_ON &&
          relaxedObjVal > localModel_->bS_->objVal_ + localModel_->etol_){
         numCuts += bendersBinaryCut(conPool);
-
-        // YX: if any error occurs in finding bigM, turn off the cut  
-        if(isBigMIncObjErr_){
-          std::cout << "Warning: an error occurred when solving the bigM problem; ";
-          std::cout << "Benders binary cut generator is turned off.";
-          std::cout << std::endl;
-          localModel_->MibSPar_->setEntry(MibSParams::useBendersBinaryCut, PARAM_OFF);
-        }
      }
      
      numCuts += feasibilityCuts(conPool) ? true : false;
@@ -6065,14 +6058,6 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
         if (useBendersBinaryCut == PARAM_ON &&
             relaxedObjVal > localModel_->bS_->objVal_ + localModel_->etol_){
            numCuts += bendersBinaryCut(conPool);
-          
-          // YX: if any error occurs in finding bigM, turn off the cut  
-          if(isBigMIncObjErr_){
-            std::cout << "Warning: an error occurred when solving the bigM problem; ";
-            std::cout << "Benders binary cut generator is turned off.";
-            std::cout << std::endl;
-            localModel_->MibSPar_->setEntry(MibSParams::useBendersBinaryCut, PARAM_OFF);
-          } 
         }
      }
 
