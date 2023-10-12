@@ -57,8 +57,8 @@ MibSCutGenerator::MibSCutGenerator(MibSModel *mibs)
   upper_ = 0.0;
   maximalCutCount_ = 0;
   numCalledBoundCut_ = -1;
-  isBigMIncObjSet_ = false;
-  bigMIncObj_ = 0.0;
+  isBigMBendBinSet_ = false;
+  bigMBendBin_ = 0.0;
   ImprovingDirectionICSolver_ = 0;
 }
 
@@ -4805,7 +4805,6 @@ MibSCutGenerator::bendersBinaryCut(BcpsConstraintPool &conPool)
 			(MibSParams::allowRemoveCut));
     
     OsiSolverInterface *solver = localModel_->solver();
-    bool bigMFound(false);
     int i(0), index(0), numCuts(0);
     double cutub(0.0), cutlb(-solver->getInfinity()), bigM(0.0);
     double lObjVal(localModel_->bS_->objVal_);
@@ -4830,24 +4829,22 @@ MibSCutGenerator::bendersBinaryCut(BcpsConstraintPool &conPool)
     if ((useLinkingSolutionPool == PARAM_ON &&
          bS->tagInSeenLinkingPool_ == MibSLinkingPoolTagIsNotSet) ||
         (useLinkingSolutionPool != PARAM_ON && bS->isLowerSolved_ == false)){
-       goto TERM_INCOBJ;
+       goto TERM_BENDBIN;
     }
     
-    if(!isBigMIncObjSet_){
-      bigMFound = findBigMBendersBinaryCut(bigMIncObj_);
-      // YX: skip if bigM is not found
-      if(bigMFound){
-        isBigMIncObjSet_ = true;        
-      }else{
+    if(!isBigMBendBinSet_){
+      isBigMBendBinSet_ = findBigMBendersBinaryCut(bigMBendBin_);
+      // YX: turn off the cut if bigM is not found
+      if(!isBigMBendBinSet_){
         std::cout << "Warning: an error occurred when solving the bigM problem; ";
         std::cout << "Benders binary cut generator will be turned off.";
         std::cout << std::endl;
         localModel_->MibSPar_->setEntry(MibSParams::useBendersBinaryCut, PARAM_OFF);
-        goto TERM_INCOBJ;
+        goto TERM_BENDBIN;
       }
     }
 
-    bigM = bigMIncObj_ - lObjVal + 1;
+    bigM = bigMBendBin_ - lObjVal + 1;
 
     for(i = 0; i < uN; i++){
 	index = upperColInd[i];
@@ -4880,7 +4877,7 @@ MibSCutGenerator::bendersBinaryCut(BcpsConstraintPool &conPool)
     assert(indexList.size() == valsList.size());
     numCuts += addCut(conPool, cutlb, cutub, indexList, valsList, allowRemoveCut);
 
- TERM_INCOBJ:
+ TERM_BENDBIN:
     
     return numCuts;
 
@@ -5015,7 +5012,6 @@ MibSCutGenerator::findBigMBendersBinaryCut(double &bigM)
       bigMFound = true;
     }
     else{
-      // YX: if the problem did not find a solution, return value = -inf 
       // throw CoinError("BigM problem is unbounded (or other error occurs).",
       //   "findBigMBendersBinaryCut", "MibSCutGenerator");
       bigMFound = false;

@@ -29,8 +29,8 @@ class MibSCutGenerator : public BlisConGenerator {
    int auxCount_;
    int maximalCutCount_;
    int numCalledBoundCut_;
-   bool isBigMIncObjSet_;
-   double bigMIncObj_;
+   bool isBigMBendBinSet_;
+   double bigMBendBin_;
    OsiSolverInterface * ImprovingDirectionICSolver_;
    std::vector<int> leafNodeCutTmpHist_; 
     
