@@ -29,8 +29,8 @@ class MibSCutGenerator : public BlisConGenerator {
    int auxCount_;
    int maximalCutCount_;
    int numCalledBoundCut_;
-   bool isBigMIncObjSet_;
-   double bigMIncObj_;
+   bool isBigMBendBinSet_;
+   double bigMBendBin_;
    OsiSolverInterface * ImprovingDirectionICSolver_;
    std::vector<int> leafNodeCutTmpHist_; 
     
@@ -161,7 +161,8 @@ class MibSCutGenerator : public BlisConGenerator {
    /** Add disjunctive cuts for binary upper-level variables (maximal sol) **/
    int bendersBinaryCutMaximal(BcpsConstraintPool &conPool);
 
-   double findBigMBendersBinaryCut();
+   /** Solve the big M problem for Benders binary cut **/
+   bool findBigMBendersBinaryCut(double &bigM);
 
    /** Add disjunctive cuts for binary upper-level variables (current sol)**/
    int weakBendersBinaryCutCurrent(BcpsConstraintPool &conPool);
