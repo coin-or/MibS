@@ -314,11 +314,11 @@ MibSModel::readAuxiliaryData(int numCols, int numRows)
   std::string fileName = getLowerFile();
   if (fileName == ""){
       std::string mpsFile(getUpperFile());
-      int length = (int) mpsFile.length();
-      char *tmpArr = new char[length + 1];
       if (mpsFile.substr(mpsFile.find_last_of(".")+1) == "gz"){
          mpsFile = mpsFile.substr(0, mpsFile.find_last_of("."));
       }
+      int length = (int) mpsFile.length();
+      char *tmpArr = new char[length + 1];
       fileName = mpsFile.substr(0, mpsFile.find_last_of(".")+1);
       fileName.append("aux");
       if (fileCoinReadable(fileName)){
@@ -362,6 +362,10 @@ MibSModel::readAuxiliaryData(int numCols, int numRows)
   int lowerColNum(0), lowerRowNum(0);
   // Find out if we are reading an interdiction problem in legacy format
 
+  if (MibSPar_->entry(MibSParams::bilevelProblemType) == INTERDICT){
+     isInterdict_ = true;
+  }
+   
   while (data_stream >> key){
      if((key == "N")||(key == "@NUMVARS")){ 
 	   data_stream >> iValue;
@@ -522,7 +526,6 @@ TERM_ENDREADAUXDATA:
 
   data_stream.close();
   
-  std::cout << "LL Data File: " << getLowerFile() << "\n";
   std::cout << "Number of LL Variables:   " 
 	    << getLowerDim() << "\n\n";
 
@@ -3798,9 +3801,9 @@ MibSModel::adjustParameters()
     }
     else if (paramValue == PARAM_ON){
 	if (!isInterdict_){
-           std::cout << "The Benders' cut is only valid for interdiction"
+           std::cout << "The Benders cut is only valid for interdiction "
                      << "problems." << std::endl
-                     << "Please use setInterdictionProblem() to indicate if"
+                     << "Please use setInterdictionProblem() to indicate if "
                      << "you do have an interdiction problem" << std::endl;
            MibSPar()->setEntry(MibSParams::useBendersInterdictionCut, PARAM_OFF);
 	}
