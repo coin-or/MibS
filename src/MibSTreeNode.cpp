@@ -398,6 +398,10 @@ MibSTreeNode::process(bool isRoot, bool rampUp)
 	  if((!ipSol) && (bS->shouldPrune_)){
 	      setStatus(AlpsNodeStatusFathomed);
 	      goto TERM_PROCESS;
+	  }else if((!ipSol) && (mibsModel->isTimeLimitReached())){
+	      // YX: mark node as partially processed
+	      setStatus(AlpsNodeStatusEvaluated);
+	      goto TERM_PROCESS;
 	  }
 	      
 	  if (ipSol) {
