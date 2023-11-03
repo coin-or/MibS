@@ -583,11 +583,12 @@ MibSCutGenerator::intersectionCuts(BcpsConstraintPool &conPool,
                        delete [] lowerLevelSol;
                        goto TERM_INTERSECTIONCUT;
                     }
-		    if(isTimeLimReached == true){
-			delete [] uselessIneqs;
-			delete [] lowerLevelSol;
-			goto TERM_INTERSECTIONCUT;
-		    }
+            // YX: not used since it has been handled above
+            // if(isTimeLimReached == true){
+            //     delete [] uselessIneqs;
+            //     delete [] lowerLevelSol;
+            //     goto TERM_INTERSECTIONCUT;
+            // }
 		    intersectionFound = getAlphaIC(extRay, uselessIneqs, lowerLevelSol,
 						   numStruct, numNonBasic, sol, alpha);
 
@@ -621,11 +622,12 @@ MibSCutGenerator::intersectionCuts(BcpsConstraintPool &conPool,
 		    delete [] lowerLevelSol;
 		    goto TERM_INTERSECTIONCUT;
                 }                   
-		if(isTimeLimReached == true){
-		    delete [] uselessIneqs;
-		    delete [] lowerLevelSol;
-		    goto TERM_INTERSECTIONCUT;
-		}
+	        // YX: not used since it has been handled above
+	        // if(isTimeLimReached == true){
+	        //     delete [] uselessIneqs;
+	        //     delete [] lowerLevelSol;
+	        //     goto TERM_INTERSECTIONCUT;
+	        // }
 		intersectionFound = getAlphaImprovingDirectionIC(extRay, uselessIneqs, lowerLevelSol,
 							 numStruct, numNonBasic, lpSol, alpha);
 	        delete [] uselessIneqs;
@@ -1023,8 +1025,8 @@ MibSCutGenerator::findLowerLevelSol(double *uselessIneqs, double *lowerLevelSol,
     remainingTime = timeLimit - localModel_->broker_->subTreeTimer().getTime();
 
     if(remainingTime <= localModel_->etol_){
-	isTimeLimReached = true;
-	localModel_->bS_->shouldPrune_ = true;
+        isTimeLimReached = true;
+        localModel_->setTimeLimitReached(); // YX: replace shouldPrune_ by timeout
     }
     else{
 	remainingTime = CoinMax(remainingTime, 0.00);
@@ -1080,7 +1082,7 @@ MibSCutGenerator::findLowerLevelSol(double *uselessIneqs, double *lowerLevelSol,
 					       (dynamic_cast<OsiSymSolverInterface *>
 						(nSolver)->getSymphonyEnvironment()))){
 	    isTimeLimReached = true;
-	    localModel_->bS_->shouldPrune_ = true;
+	    localModel_->setTimeLimitReached(); // YX: replace shouldPrune_ by timeout
 	}
 	else if(nSolver->isProvenOptimal()){
 	    const double *optSol = nSolver->getColSolution();
@@ -1539,8 +1541,8 @@ MibSCutGenerator::findLowerLevelSolImprovingDirectionIC(double *uselessIneqs, do
 					   (dynamic_cast<OsiSymSolverInterface *>
 					    (nSolver)->getSymphonyEnvironment())))
        || (timeLimit - localModel_->broker_->subTreeTimer().getTime() < 3)){
-	isTimeLimReached = true;
-	localModel_->bS_->shouldPrune_ = true;
+        isTimeLimReached = true;
+        localModel_->setTimeLimitReached(); // YX: replace shouldPrune_ by timeout
     }
     else if(nSolver->isProvenOptimal()){
 	const double *optSol = nSolver->getColSolution();
@@ -1735,8 +1737,8 @@ MibSCutGenerator::storeBestSolHypercubeIC(const double* lpSol, double optLowerOb
     remainingTime = timeLimit - localModel_->broker_->subTreeTimer().getTime();
 
     if(remainingTime <= localModel_->etol_){
-	isTimeLimReached = true;
-	bS->shouldPrune_ = true;
+        isTimeLimReached = true;
+        localModel_->setTimeLimitReached(); // YX: replace shouldPrune_ by timeout
     }
     else{
 	remainingTime = CoinMax(remainingTime, 0.00);
@@ -1800,8 +1802,8 @@ MibSCutGenerator::storeBestSolHypercubeIC(const double* lpSol, double optLowerOb
         if((feasCheckSolver == "SYMPHONY") && (sym_is_time_limit_reached
 					       (dynamic_cast<OsiSymSolverInterface *>
 						(UBSolver)->getSymphonyEnvironment()))){
-	    isTimeLimReached = true;
-	    bS->shouldPrune_ = true;
+            isTimeLimReached = true;
+            localModel_->setTimeLimitReached(); // YX: replace shouldPrune_ by timeout
 	}
 	else if(UBSolver->isProvenOptimal()){
 	    MibSSolution *mibsSol = new MibSSolution(numCols,

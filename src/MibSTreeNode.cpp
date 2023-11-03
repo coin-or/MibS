@@ -771,8 +771,11 @@ MibSTreeNode::process(bool isRoot, bool rampUp)
 		    setStatus(AlpsNodeStatusFathomed);
 		    quality_ = -ALPS_OBJ_MAX;
 		    goto TERM_PROCESS;
-		}
-		    
+		}else if(mibsModel->isTimeLimitReached()){
+		    // YX: mark node as partially processed
+		    setStatus(AlpsNodeStatusEvaluated);
+		    goto TERM_PROCESS;
+		}   
             
 		if (lpStatus != BlisLpStatusOptimal) {
 		    setStatus(AlpsNodeStatusFathomed);
