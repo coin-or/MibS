@@ -577,18 +577,11 @@ MibSCutGenerator::intersectionCuts(BcpsConstraintPool &conPool,
 		    double *lowerLevelSol = new double[lCols];
 		    CoinZeroN(uselessIneqs, lRows);
 		    CoinZeroN(lowerLevelSol, lCols);
-		    isTimeLimReached = false;
-		    if (!findLowerLevelSol(uselessIneqs, lowerLevelSol, sol, isTimeLimReached)){
+		    if (!findLowerLevelSol(uselessIneqs, lowerLevelSol, sol)){
                        delete [] uselessIneqs;
                        delete [] lowerLevelSol;
                        goto TERM_INTERSECTIONCUT;
                     }
-            // YX: not used since it has been handled above
-            // if(isTimeLimReached == true){
-            //     delete [] uselessIneqs;
-            //     delete [] lowerLevelSol;
-            //     goto TERM_INTERSECTIONCUT;
-            // }
 		    intersectionFound = getAlphaIC(extRay, uselessIneqs, lowerLevelSol,
 						   numStruct, numNonBasic, sol, alpha);
 
@@ -615,19 +608,11 @@ MibSCutGenerator::intersectionCuts(BcpsConstraintPool &conPool,
 	        double *lowerLevelSol = new double[lCols];
 	        CoinZeroN(uselessIneqs, lRows);
 	        CoinZeroN(lowerLevelSol, lCols);
-		isTimeLimReached = false;
-	        if (!findLowerLevelSolImprovingDirectionIC(uselessIneqs, lowerLevelSol, lpSol,
-                                                   isTimeLimReached)){
+	        if (!findLowerLevelSolImprovingDirectionIC(uselessIneqs, lowerLevelSol, lpSol)){
 		    delete [] uselessIneqs;
 		    delete [] lowerLevelSol;
 		    goto TERM_INTERSECTIONCUT;
                 }                   
-	        // YX: not used since it has been handled above
-	        // if(isTimeLimReached == true){
-	        //     delete [] uselessIneqs;
-	        //     delete [] lowerLevelSol;
-	        //     goto TERM_INTERSECTIONCUT;
-	        // }
 		intersectionFound = getAlphaImprovingDirectionIC(extRay, uselessIneqs, lowerLevelSol,
 							 numStruct, numNonBasic, lpSol, alpha);
 	        delete [] uselessIneqs;
@@ -822,7 +807,7 @@ MibSCutGenerator::intersectionCuts(BcpsConstraintPool &conPool,
 //#############################################################################
 bool
 MibSCutGenerator::findLowerLevelSol(double *uselessIneqs, double *lowerLevelSol,
-				    const double *sol, bool &isTimeLimReached)
+				    const double *sol)
 {
     
     std::string feasCheckSolver(localModel_->MibSPar_->entry
@@ -1025,7 +1010,6 @@ MibSCutGenerator::findLowerLevelSol(double *uselessIneqs, double *lowerLevelSol,
     remainingTime = timeLimit - localModel_->broker_->subTreeTimer().getTime();
 
     if(remainingTime <= localModel_->etol_){
-        isTimeLimReached = true;
         localModel_->setTimeLimitReached(); // YX: replace shouldPrune_ by timeout
     }
     else{
@@ -1081,7 +1065,6 @@ MibSCutGenerator::findLowerLevelSol(double *uselessIneqs, double *lowerLevelSol,
         if((feasCheckSolver == "SYMPHONY") && (sym_is_time_limit_reached
 					       (dynamic_cast<OsiSymSolverInterface *>
 						(nSolver)->getSymphonyEnvironment()))){
-	    isTimeLimReached = true;
 	    localModel_->setTimeLimitReached(); // YX: replace shouldPrune_ by timeout
 	}
 	else if(nSolver->isProvenOptimal()){
@@ -1286,7 +1269,7 @@ MibSCutGenerator::solveModelIC(double *uselessIneqs, double *ray, double *rhs,
 //#############################################################################
 bool
 MibSCutGenerator::findLowerLevelSolImprovingDirectionIC(double *uselessIneqs, double *lowerLevelSol,
-						double* lpSol, bool &isTimeLimReached)
+						double* lpSol)
 {
     std::string feasCheckSolver(localModel_->MibSPar_->entry
 				(MibSParams::feasCheckSolver));
@@ -1541,7 +1524,6 @@ MibSCutGenerator::findLowerLevelSolImprovingDirectionIC(double *uselessIneqs, do
 					   (dynamic_cast<OsiSymSolverInterface *>
 					    (nSolver)->getSymphonyEnvironment())))
        || (timeLimit - localModel_->broker_->subTreeTimer().getTime() < 3)){
-        isTimeLimReached = true;
         localModel_->setTimeLimitReached(); // YX: replace shouldPrune_ by timeout
     }
     else if(nSolver->isProvenOptimal()){
