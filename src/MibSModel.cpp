@@ -138,7 +138,7 @@ MibSModel::initialize()
   upperRowNum_ = 0;
   origUpperRowNum_ =0;
   structRowNum_ = 0;
-  sizeFixedInd_ = 0;
+  sizeLinkVars_ = 0;
   objAlignment_ = 0;
   counterVF_ = 0;
   counterUB_ = 0;
@@ -1048,17 +1048,6 @@ MibSModel::readProblemData()
    }
 
    delete [] colType;
-
-   for (int i = 0; i < upperDim_; i++){
-      if (varType_[i] == MibSVarLinking){
-         if (colType_[i] == 'C'){
-            throw CoinError("All linking variables should be integer",
-                            "readProblemData",
-                            "MibSModel");
-         }
-      }
-   }
-   
    delete mps;
 }
 
@@ -3503,7 +3492,7 @@ MibSModel::setVarTypes()
 		posRow = binarySearch(0, lRows - 1, rowIndex, lowerRowInd);
 		if(posRow >= 0){
 		    varType_[i] = MibSVarLinking;
-		    sizeFixedInd_ ++;
+		    sizeLinkVars_ ++;
 		    break;
 		}
 	    }
@@ -3531,8 +3520,12 @@ MibSModel::analyzeStructure()
    
    for(i = 0; i < uCols; i++){
       index = uColIndices[i];
-      if (colType_[index] != 'C'){
+      if(colType_[index] != 'C'){
          numUpperInt_ ++;
+      }else if(varType_[index] == MibSVarLinking){
+         throw CoinError("All linking variables should be integer",
+                  "analyzeStructure",
+                  "MibSModel");
       }
    }
 

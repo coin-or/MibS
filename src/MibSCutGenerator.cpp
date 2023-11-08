@@ -1703,22 +1703,24 @@ MibSCutGenerator::storeBestSolHypercubeIC(const double* lpSol, double optLowerOb
     
     OsiSolverInterface * oSolver = localModel_->solver();
     MibSBilevel *bS = localModel_->bS_;
-    int i(0);
+    int i(0), index(0);
     int numCols(oSolver->getNumCols());
     int uN(localModel_->getUpperDim());
     int lN(localModel_->getLowerDim());
     double objVal(0.0);
     //double startTimeUB(0.0);
     int * varType = localModel_->getVarType();
+    int * uColInd = localModel_->getUpperColInd();
     
     int useLinkingSolutionPool(localModel_->MibSPar_->entry
 		   (MibSParams::useLinkingSolutionPool));
 
     std::vector<double> linkSol;
-    for(i = 0; i < uN + lN; i++){
-	if(varType[i] == MibSVarLinking){
-	    linkSol.push_back(lpSol[i]);
-	}
+    for(i = 0; i < uN; i++){
+      index = uColInd[i];
+      if(varType[index] == MibSVarLinking){
+        linkSol.push_back(lpSol[index]);
+      }
     }
     
     OsiSolverInterface *UBSolver;
