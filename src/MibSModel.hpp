@@ -102,9 +102,6 @@ private:
     /** Number of structural constraints **/
     int structRowNum_;
 
-    /** Size of first-stage variables in second-stage constraints **/
-    int sizeLinkVars_;
-
     /** Alignment between lower and upper objectives **/
     double objAlignment_;
 

@@ -138,7 +138,6 @@ MibSModel::initialize()
   upperRowNum_ = 0;
   origUpperRowNum_ =0;
   structRowNum_ = 0;
-  sizeLinkVars_ = 0;
   objAlignment_ = 0;
   counterVF_ = 0;
   counterUB_ = 0;
@@ -3468,37 +3467,40 @@ void
 MibSModel::setVarTypes()
 {
     int uCols(upperDim_);
+    int lCols(lowerDim_);
     int lRows(lowerRowNum_);
-    int * upperColInd = getUpperColInd();
-    int * lowerRowInd = getLowerRowInd();
+    int * uColIndices = getUpperColInd();
+    int * lColIndices = getLowerColInd();
+    int * lRowIndices = getLowerRowInd();
 
     const int * matIndices = colMatrix_->getIndices();
     const int * matStarts = colMatrix_->getVectorStarts();
 
     int rowIndex, posRow, start, end;
-    int i, j;
+    int i, j, index;
 
     if(!varType_){
 	varType_ = new int[numVars_]();
     }
 
-    for(i = 0; i < numVars_; i++){
-	if(binarySearch(0, uCols - 1, i, upperColInd) >= 0){
-           varType_[i] = MibSVarUpper;
-	    start = matStarts[i];
-	    end = start + colMatrix_->getVectorSize(i);
-	    for(j = start; j < end; j++){
-		rowIndex = matIndices[j];
-		posRow = binarySearch(0, lRows - 1, rowIndex, lowerRowInd);
-		if(posRow >= 0){
-		    varType_[i] = MibSVarLinking;
-		    sizeLinkVars_ ++;
-		    break;
-		}
-	    }
-	}else{
-           varType_[i] = MibSVarLower;
-        }
+    for(i = 0; i < uCols; i++){
+       index = uColIndices[i];
+       varType_[index] = MibSVarUpper;
+       start = matStarts[index];
+       end = start + colMatrix_->getVectorSize(index);
+       for(j = start; j < end; j++){
+          rowIndex = matIndices[j];
+          posRow = binarySearch(0, lRows - 1, rowIndex, lRowIndices);
+          if(posRow >= 0){
+             varType_[index] = MibSVarLinking;
+             break;
+          }
+       }
+    }
+    
+    for(i = 0; i < lCols; i++){
+       index = lColIndices[i];
+       varType_[i] = MibSVarLower;
     }
 
 }
