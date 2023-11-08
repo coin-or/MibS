@@ -156,6 +156,9 @@ private:
     /** Determines if matrix G2 is positive or not **/
     bool positiveG2_;
 
+    /** YX: Determines if time limit is reached or exceeded **/
+    bool timeLimitReached_;
+
     /** The signs of columns of matrix G2 (for Benders interdiction cut) **/
     int * colSignsG2_;
    
@@ -375,6 +378,12 @@ public:
 
     /** Set whether the problem is interdiction **/
     inline void setInterdictionProblem(bool b = true) {isInterdict_ = b;}
+
+    /** Query whether the time limit is reached **/
+    inline bool isTimeLimitReached() {return timeLimitReached_;}
+
+    /** Set whether the time limit is reached **/
+    inline void setTimeLimitReached(bool b = true) {timeLimitReached_ = b;}
 
     /** Set UL column indices **/
     void setUpperColInd(int *ptr) {upperColInd_ = ptr;} 

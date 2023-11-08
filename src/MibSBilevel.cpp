@@ -334,7 +334,8 @@ MibSBilevel::checkBilevelFeasibility(bool isRoot)
 
 	remainingTime = timeLimit - model_->broker_->subTreeTimer().getTime();
 	if(remainingTime <= etol){
-	    shouldPrune_ = true;
+	    // YX: replace shouldPrune_ by timeout
+	    model_->setTimeLimitReached();
 	    storeSol = MibSNoSol;
 	    goto TERM_CHECKBILEVELFEAS;
 	}
@@ -429,7 +430,8 @@ MibSBilevel::checkBilevelFeasibility(bool isRoot)
 	if((feasCheckSolver == "SYMPHONY") && (sym_is_time_limit_reached
 					       (dynamic_cast<OsiSymSolverInterface *>
 						(lSolver)->getSymphonyEnvironment()))){
-	    shouldPrune_ = true;
+	    // YX: replace shouldPrune_ by timeout
+	    model_->setTimeLimitReached();
 	    storeSol = MibSNoSol;
 	    goto TERM_CHECKBILEVELFEAS;
 	}
@@ -555,7 +557,8 @@ MibSBilevel::checkBilevelFeasibility(bool isRoot)
 		remainingTime = timeLimit - model_->broker_->subTreeTimer().getTime();
 
 		if(remainingTime <= etol){
-		    shouldPrune_ = true;
+		    // YX: replace shouldPrune_ by timeout
+		    model_->setTimeLimitReached();
 		    goto TERM_CHECKBILEVELFEAS;
 		}
 		
@@ -618,7 +621,8 @@ MibSBilevel::checkBilevelFeasibility(bool isRoot)
 		if((feasCheckSolver == "SYMPHONY") && (sym_is_time_limit_reached
 						       (dynamic_cast<OsiSymSolverInterface *>
 							(UBSolver)->getSymphonyEnvironment()))){
-		    shouldPrune_ = true;
+		    // YX: replace shouldPrune_ by timeout
+		    model_->setTimeLimitReached();
 		    goto TERM_CHECKBILEVELFEAS;
 		}
 

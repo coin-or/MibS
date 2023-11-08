@@ -157,6 +157,7 @@ MibSModel::initialize()
   positiveA2_ = true;
   positiveG1_ = true;
   positiveG2_ = true;
+  timeLimitReached_ = false;
   colSignsG2_ = NULL;
   colSignsA2_ = NULL;
   upperColInd_ = NULL;
