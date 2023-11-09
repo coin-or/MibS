@@ -106,17 +106,13 @@ The auxiliary file `generalExample.aux`:
 @NUMVARS
 1
 @NUMCONSTRS
-4
-@OBJSENSE
-MIN
+2
 @VARSBEGIN
-LV 1.
+C1 1.
 @VARSEND
 @CONSTRSBEGIN
-R1
 R2
 R3
-R4
 @CONSTRSEND
 @NAME
 General Example
@@ -125,12 +121,12 @@ generalExample.mps
 ```
 To solve with defult parameters, invoke MibS with
 ```
-mibs -Alps_instance generalExample.mps
+mibs -instance generalExample.mps
 ```
 Note that if the auiliary file has the same name as the MPS/LP file (but with the `aux` extension, 
 it is not necessary to specify the name of the auxiliary file. 
 
-For this example, the optimal solution should be: `x = 6, y = 5`
+For this example, the optimal solution should be: `C0 = 6, C1 = 5`
 
 ### The Auxiliary File (Legacy Index-based)
 
