@@ -138,6 +138,7 @@ MibSModel::initialize()
   upperRowNum_ = 0;
   origUpperRowNum_ =0;
   structRowNum_ = 0;
+  sizeLinkVars_ = 0;
   objAlignment_ = 0;
   counterVF_ = 0;
   counterUB_ = 0;
@@ -3493,6 +3494,7 @@ MibSModel::setVarTypes()
           posRow = binarySearch(0, lRows - 1, rowIndex, lRowIndices);
           if(posRow >= 0){
              varType_[index] = MibSVarLinking;
+             sizeLinkVars_ ++;
              break;
           }
        }
@@ -3500,7 +3502,7 @@ MibSModel::setVarTypes()
     
     for(i = 0; i < lCols; i++){
        index = lColIndices[i];
-       varType_[i] = MibSVarLower;
+       varType_[index] = MibSVarLower;
     }
 
 }
@@ -3605,8 +3607,6 @@ MibSModel::analyzeStructure()
          }
          lowerRow = binarySearch(0, lRows - 1,
                                  rowIndex, lRowIndices) < 0 ? false:true;
-         lowerCol = binarySearch(0, lCols - 1,
-                                 i, lColIndices) < 0 ? false:true;
          if ((fabs(matElements[j] - floor(matElements[j])) > etol_) &&
             (fabs(matElements[j] - ceil(matElements[j])) > etol_)){
             if (lowerRow){
