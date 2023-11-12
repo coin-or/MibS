@@ -138,7 +138,7 @@ MibSModel::initialize()
   upperRowNum_ = 0;
   origUpperRowNum_ =0;
   structRowNum_ = 0;
-  sizeFixedInd_ = 0;
+  sizeLinkVars_ = 0;
   objAlignment_ = 0;
   counterVF_ = 0;
   counterUB_ = 0;
@@ -1049,17 +1049,6 @@ MibSModel::readProblemData()
    }
 
    delete [] colType;
-
-   for (int i = 0; i < upperDim_; i++){
-      if (varType_[i] == MibSVarLinking){
-         if (colType_[i] == 'C'){
-            throw CoinError("All linking variables should be integer",
-                            "readProblemData",
-                            "MibSModel");
-         }
-      }
-   }
-   
    delete mps;
 }
 
@@ -3480,37 +3469,41 @@ void
 MibSModel::setVarTypes()
 {
     int uCols(upperDim_);
+    int lCols(lowerDim_);
     int lRows(lowerRowNum_);
-    int * upperColInd = getUpperColInd();
-    int * lowerRowInd = getLowerRowInd();
+    int * uColIndices = getUpperColInd();
+    int * lColIndices = getLowerColInd();
+    int * lRowIndices = getLowerRowInd();
 
     const int * matIndices = colMatrix_->getIndices();
     const int * matStarts = colMatrix_->getVectorStarts();
 
     int rowIndex, posRow, start, end;
-    int i, j;
+    int i, j, index;
 
     if(!varType_){
 	varType_ = new int[numVars_]();
     }
 
-    for(i = 0; i < numVars_; i++){
-	if(binarySearch(0, uCols - 1, i, upperColInd) >= 0){
-           varType_[i] = MibSVarUpper;
-	    start = matStarts[i];
-	    end = start + colMatrix_->getVectorSize(i);
-	    for(j = start; j < end; j++){
-		rowIndex = matIndices[j];
-		posRow = binarySearch(0, lRows - 1, rowIndex, lowerRowInd);
-		if(posRow >= 0){
-		    varType_[i] = MibSVarLinking;
-		    sizeFixedInd_ ++;
-		    break;
-		}
-	    }
-	}else{
-           varType_[i] = MibSVarLower;
-        }
+    for(i = 0; i < uCols; i++){
+       index = uColIndices[i];
+       varType_[index] = MibSVarUpper;
+       start = matStarts[index];
+       end = start + colMatrix_->getVectorSize(index);
+       for(j = start; j < end; j++){
+          rowIndex = matIndices[j];
+          posRow = binarySearch(0, lRows - 1, rowIndex, lRowIndices);
+          if(posRow >= 0){
+             varType_[index] = MibSVarLinking;
+             sizeLinkVars_ ++;
+             break;
+          }
+       }
+    }
+    
+    for(i = 0; i < lCols; i++){
+       index = lColIndices[i];
+       varType_[index] = MibSVarLower;
     }
 
 }
@@ -3519,21 +3512,35 @@ MibSModel::setVarTypes()
 void                                                   
 MibSModel::analyzeStructure()
 {
-   int i(0),j(0),index(0), mult(0);
+   bool lowerRow;
+   double rhs(0.0);
+   int i(0), j(0), index(0), mult(0);
    int numCols(numVars_);
    int numRows(numCons_);
    int uCols(upperDim_);
    int lCols(lowerDim_);
    int lRows(lowerRowNum_);
+   int counterStart, counterEnd, rowIndex;
+   double * lObjCoeffs  = getLowerObjCoeffs();
    int * uColIndices = getUpperColInd();         
    int * lColIndices = getLowerColInd();
+   int * uRowIndices = getUpperRowInd();
    int * lRowIndices = getLowerRowInd();
-   double * lObjCoeffs  = getLowerObjCoeffs();
+   const double * matElements = colMatrix_->getElements();
+   const int * matIndices = colMatrix_->getIndices();           
+   const int * matStarts = colMatrix_->getVectorStarts();
+
+   colSignsG2_ = new int[numCols];
+   colSignsA2_ = new int[numCols];
    
    for(i = 0; i < uCols; i++){
       index = uColIndices[i];
-      if (colType_[index] != 'C'){
+      if(colType_[index] != 'C'){
          numUpperInt_ ++;
+      }else if(varType_[index] == MibSVarLinking){
+         throw CoinError("All linking variables should be integer",
+                  "analyzeStructure",
+                  "MibSModel");
       }
    }
 
@@ -3553,34 +3560,27 @@ MibSModel::analyzeStructure()
          }
       }
       
-      for (i = 0; i < numCols; i++){
-         if (colType_[i] != 'B'){
-            if (binarySearch(0, lCols - 1, i, lColIndices) < 0){
-               if(varType_[i] == MibSVarLinking){
-                  allLinkingBin_ = false;
-               }
-               allUpperBin_ = false;
+      for(i = 0; i < uCols; i++){
+         index = uColIndices[i];
+         if(colType_[index] != 'B'){
+            if(varType_[index] == MibSVarLinking){
+               allLinkingBin_ = false;
             }
-            else{
-               allLowerBin_ = false;
-            }
-            if ((!allUpperBin_) && (!allLowerBin_) && (!allLinkingBin_)){
-               break;
-            }
+            allUpperBin_ = false;
+         }
+         if((!allUpperBin_) && (!allLinkingBin_)){
+            break;
+         }
+      }
+
+      for (i = 0; i < lCols; i++){
+         index = lColIndices[i];
+         if(colType_[index] != 'B'){
+            allLowerBin_ = false;
+            break;
          }
       }
    }
-   
-   int counterStart, counterEnd;
-   int rowIndex;
-   bool lowerRow, lowerCol;
-   double rhs(0.0);
-   
-   const double * matElements = colMatrix_->getElements();
-   const int * matIndices = colMatrix_->getIndices();           
-   const int * matStarts = colMatrix_->getVectorStarts();
-   colSignsG2_ = new int[numCols];
-   colSignsA2_ = new int[numCols];
 
    for (i = 0; i < lCols; i++){
       if ((fabs(lObjCoeffs[i] - floor(lObjCoeffs[i])) > etol_) &&
@@ -3590,14 +3590,46 @@ MibSModel::analyzeStructure()
       }
    }
    
+   for(i = 0; i < numRows; i++){
+      index = (i >= lRows)? uRowIndices[i-lRows]:lRowIndices[i];
+      switch(origRowSense_[index]){
+         case 'L':
+            rhs = conUB_[index];
+            break;
+         case 'G':
+            rhs = conLB_[index];
+            break;
+         case 'E':
+            std::cout << "Something went wrong in equality constraints conversion.";
+            std::cout << std::endl; 
+            abort(); // YX: handled in loadProblemData()
+            break;
+         case 'R':
+            std::cout << "Something went wrong in range constraints conversion.";
+            std::cout << std::endl;
+            abort(); // YX: handled in loadProblemData()
+            break;
+      }
+
+      if((isUpperCoeffInt_ || isLowerCoeffInt_) && 
+         ((fabs(rhs - floor(rhs)) > etol_) && (fabs(rhs - ceil(rhs)) > etol_))){ 
+         if(i >= lRows){   
+            isUpperCoeffInt_ = false;
+         }else{
+            isLowerCoeffInt_ = false;
+         }
+      }
+   }
+
    //Signs of matrices A1, A2, G1 and G2 are determined
    //based on converting the row senses to 'G' in order to match the
    //MibS cuts paper.
-   for (i = 0; i < numCols; i++){
-      counterStart = matStarts[i];
-      counterEnd = matStarts[i+1];
-      colSignsG2_[i] = MibSModel::colSignUnknown;
-      colSignsA2_[i] = MibSModel::colSignUnknown;
+   for (i = 0; i < uCols + lCols; i++){
+      index = (i >= lCols)? uColIndices[i-lCols]:lColIndices[i];
+      counterStart = matStarts[index];
+      counterEnd = matStarts[index + 1];
+      colSignsG2_[index] = MibSModel::colSignUnknown;
+      colSignsA2_[index] = MibSModel::colSignUnknown;
       for (j = counterStart; j < counterEnd; j++){                          
          rowIndex = matIndices[j];
          if (binarySearch(0, structRowNum_-1, rowIndex, structRowInd_) < 0){
@@ -3605,15 +3637,13 @@ MibSModel::analyzeStructure()
          }
          if(origRowSense_[rowIndex] == 'L'){
             mult = -1;
-         }
-         else{
+         }else{
             mult = 1;
          }
          lowerRow = binarySearch(0, lRows - 1,
                                  rowIndex, lRowIndices) < 0 ? false:true;
-         lowerCol = binarySearch(0, lCols - 1,
-                                 i, lColIndices) < 0 ? false:true;
-         if ((fabs(matElements[j] - floor(matElements[j])) > etol_) &&
+         if ((isLowerCoeffInt_ || isUpperCoeffInt_) &&
+            (fabs(matElements[j] - floor(matElements[j])) > etol_) &&
             (fabs(matElements[j] - ceil(matElements[j])) > etol_)){
             if (lowerRow){
                isLowerCoeffInt_ = false;
@@ -3622,82 +3652,52 @@ MibSModel::analyzeStructure()
             }
          }
          if (mult * matElements[j] < -etol_){
-            if (lowerRow){
-               if (lowerCol){
+            if((lowerRow) && 
+               ((colSignsG2_[index] != MibSModel::colSignInconsistent) ||
+               (colSignsA2_[index] != MibSModel::colSignInconsistent))){
+               if(i < lCols){
                   positiveG2_ = false;
-                  if (colSignsG2_[i] == MibSModel::colSignUnknown){
-                     colSignsG2_[i] = MibSModel::colSignNegative;
-                  }else if (colSignsG2_[i] == MibSModel::colSignPositive){
-                     colSignsG2_[i] = MibSModel::colSignInconsistent;
+                  if (colSignsG2_[index] == MibSModel::colSignUnknown){
+                     colSignsG2_[index] = MibSModel::colSignNegative;
+                  }else if (colSignsG2_[index] == MibSModel::colSignPositive){
+                     colSignsG2_[index] = MibSModel::colSignInconsistent;
                   }
                }else{
                   positiveA2_ = false;
-                  if (colSignsA2_[i] == MibSModel::colSignUnknown){
-                     colSignsA2_[i] = MibSModel::colSignNegative;
-                  }else if (colSignsA2_[i] == MibSModel::colSignPositive){
-                     colSignsA2_[i] = MibSModel::colSignInconsistent;
+                  if (colSignsA2_[index] == MibSModel::colSignUnknown){
+                     colSignsA2_[index] = MibSModel::colSignNegative;
+                  }else if (colSignsA2_[index] == MibSModel::colSignPositive){
+                     colSignsA2_[index] = MibSModel::colSignInconsistent;
                   }
                }
-            } else {
-               if (lowerCol){
+            }else if(!lowerRow){
+               if(i < lCols){
                   positiveG1_ = false;
-               } else {
+               }else{
                   positiveA1_ = false;
                }
             }
          } else {
-            if (lowerRow) {
-               if (lowerCol) {
-                  if (colSignsG2_[i] == MibSModel::colSignUnknown){
-                     colSignsG2_[i] = MibSModel::colSignPositive;
-                  }else if (colSignsG2_[i] == MibSModel::colSignNegative){
-                     colSignsG2_[i] = MibSModel::colSignInconsistent;
+            if((lowerRow) && 
+               ((colSignsG2_[index] != MibSModel::colSignInconsistent) ||
+               (colSignsA2_[index] != MibSModel::colSignInconsistent))) {
+               if (i < lCols) {
+                  if (colSignsG2_[index] == MibSModel::colSignUnknown){
+                     colSignsG2_[index] = MibSModel::colSignPositive;
+                  }else if (colSignsG2_[index] == MibSModel::colSignNegative){
+                     colSignsG2_[index] = MibSModel::colSignInconsistent;
                   }
                }else{
-                  if (colSignsA2_[i] == MibSModel::colSignUnknown){
-                     colSignsA2_[i] = MibSModel::colSignPositive;
-                  }else if (colSignsA2_[i] == MibSModel::colSignNegative){
-                     colSignsA2_[i] = MibSModel::colSignInconsistent;
+                  if (colSignsA2_[index] == MibSModel::colSignUnknown){
+                     colSignsA2_[index] = MibSModel::colSignPositive;
+                  }else if (colSignsA2_[index] == MibSModel::colSignNegative){
+                     colSignsA2_[index] = MibSModel::colSignInconsistent;
                   }
                }
             }
          }
       }
-    }
-
-    if ((isUpperCoeffInt_ == true) || (isLowerCoeffInt_ == true)){
-       for (i = 0; i < numRows; i++){
-          switch(origRowSense_[i]){
-           case 'L':
-             rhs = conUB_[i];
-             break;
-           case 'G':
-             rhs = conLB_[i];
-             break;
-           case 'E':
-             std::cout << "Something went wrong in equality constraints conversion.";
-             std::cout << std::endl; 
-             abort(); // YX: handled in loadProblemData()
-             break;
-           case 'R':
-             std::cout << "Something went wrong in range constraints conversion.";
-             std::cout << std::endl;
-             abort(); // YX: handled in loadProblemData()
-             break;
-          }
-          if ((fabs(rhs - floor(rhs)) > etol_) &&
-              (fabs(rhs - ceil(rhs)) > etol_)){
-             lowerRow = binarySearch(0, lRows - 1,
-                                     i, lRowIndices) < 0 ? false:true;
-             if (lowerRow){
-                isLowerCoeffInt_ = false;
-             } else {
-                isUpperCoeffInt_ = false;
-             }
-          }
-       }
-    }
-
+   }
 }
 
 //#############################################################################

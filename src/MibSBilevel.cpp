@@ -160,14 +160,13 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
     }
   }
 
-  for(i = 0; i < N; i ++){
-      if(binarySearch(0, uN - 1, i, upperColInd) >= 0){
-	  if((varType[i] == MibSVarLinking) &&
-             (fabs(upper[i] - lower[i]) > etol)){
-	      isLinkVarsFixed_ = false;
-	      break;
-	  }
-      }
+  for(i = 0; i < uN; i++){
+    index = upperColInd[i];
+    if((varType[index] == MibSVarLinking) &&
+      (fabs(upper[index] - lower[index]) > etol)){
+        isLinkVarsFixed_ = false;
+        break;
+    }  
   }
   
   /* put the solution in order by integers first */

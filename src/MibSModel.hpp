@@ -103,7 +103,7 @@ private:
     int structRowNum_;
 
     /** Size of first-stage variables in second-stage constraints **/
-    int sizeFixedInd_;
+    int sizeLinkVars_;
 
     /** Alignment between lower and upper objectives **/
     double objAlignment_;
