@@ -3612,7 +3612,7 @@ MibSModel::analyzeStructure()
 
       if((isUpperCoeffInt_ || isLowerCoeffInt_) && 
          ((fabs(rhs - floor(rhs)) > etol_) && (fabs(rhs - ceil(rhs)) > etol_))){ 
-         if(i - lRows >= 0){   
+         if(i >= lRows){   
             isUpperCoeffInt_ = false;
          }else{
             isLowerCoeffInt_ = false;
@@ -3623,7 +3623,7 @@ MibSModel::analyzeStructure()
    //Signs of matrices A1, A2, G1 and G2 are determined
    //based on converting the row senses to 'G' in order to match the
    //MibS cuts paper.
-   for (i = 0; i < numCols; i++){
+   for (i = 0; i < uCols + lCols; i++){
       index = (i >= lCols)? uColIndices[i-lCols]:lColIndices[i];
       counterStart = matStarts[index];
       counterEnd = matStarts[index + 1];
