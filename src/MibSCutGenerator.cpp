@@ -925,8 +925,10 @@ MibSCutGenerator::findLowerLevelSol(double *uselessIneqs, double *lowerLevelSol,
 	addedRow.append(row);
 	//since linking vars are int, we are sure that multA2XOpt
 	//is integer.
-	value = floor(multA2XOpt[i] + 0.5);
-	addedRow.insert(i + lCols, value - multA2XMax[i]);
+        // TKR: This is no longer true, now that we have fractional separation
+	//value = floor(multA2XOpt[i] + 0.5);
+	//addedRow.insert(i + lCols, value - multA2XMax[i]);
+	addedRow.insert(i + lCols, multA2XOpt[i] - multA2XMax[i]);
 	newMatrix->appendRow(addedRow);
 	addedRow.clear();
     }
@@ -1072,11 +1074,6 @@ MibSCutGenerator::findLowerLevelSol(double *uselessIneqs, double *lowerLevelSol,
 	    CoinDisjointCopyN(optSol, lCols, lowerLevelSol);
 	    CoinDisjointCopyN(optSol + lCols, numBinCols, uselessIneqs);
             foundSolution = true;
-	}
-	else{//this case should not happen when we use intersection cut for removing
-	    //the optimal solution of relaxation which satisfies integrality requirements
-	    //throw CoinError("The MIP which gives the best lower-level sol, cannot be infeasible!",
-           //		    "findLowerLevelSol", "MibSCutGenerator");
 	}
     }
 
@@ -1531,14 +1528,6 @@ MibSCutGenerator::findLowerLevelSolImprovingDirectionIC(double *uselessIneqs, do
 	CoinDisjointCopyN(optSol, lCols, lowerLevelSol);
 	CoinDisjointCopyN(optSol + lCols, numContCols, uselessIneqs);
         foundSolution = true;
-    }
-    else{//this case should not happen when we use intersection cut for removing
-	//the optimal solution of relaxation which satisfies integrality requirements
-	//std::cout << "iteration = " << localModel_->countIteration_ << std::endl;
-	//std::cout << "remaining time = " << remainingTime << std::endl;
-	//std::cout << "current time = " << timeLimit - localModel_->broker_->subTreeTimer().getTime() << std::endl;
-	//throw CoinError("The MIP which is solved for ImprovingDirectionIC, cannot be infeasible!",
-	//		"findLowerLevelSolImprovingDirectionIC", "MibSCutGenerator");
     }
     delete [] lCoeffsTimesLpSol;
     return foundSolution;
