@@ -6036,7 +6036,8 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
      //and should always be false (see BlisTreeNode.cpp)
      return (false);
 
-  }else if (bS->isLowerIntegral_ || useFractionalCuts ||
+  }else if (//bS->isLowerIntegral_ ||
+            useFractionalCuts ||
             (useFractionalCutsRootOnly && localModel_->activeNode_->getDepth() == 0)){
      
      if (useImprovingDirectionIC == PARAM_ON){
