@@ -85,7 +85,9 @@ class MibSCutGenerator : public BlisConGenerator {
     int intersectionCuts(BcpsConstraintPool &conPool,
 			 double *optLowerSolution, MibSIntersectionCutType ICType);
     /** Helper function for IC*/
-    bool findLowerLevelSol(double *uselessIneqs, double *lowerLevelSol, const double *sol);
+    bool findLowerLevelSolImprovingSolutionIC(double *uselessIneqs,
+                                              double *lowerLevelSol,
+                                              const double *sol);
 
     /** Helper function for IC*/
     bool getAlphaIC(double** extRay, double *uselessIneqs, double* lowerSolution, int numStruct,
@@ -95,16 +97,19 @@ class MibSCutGenerator : public BlisConGenerator {
     double solveModelIC(double *uselessIneqs, double *ray, double *rhs, int numNonBasic);
 
     /** Helper function for ImprovingDirectionIC **/
-    bool findLowerLevelSolImprovingDirectionIC(double *uselessIneqs, double *lowerLevelSol,
-				       double* lpSol);
+    bool findLowerLevelSolImprovingDirectionIC(double *uselessIneqs,
+                                               double *lowerLevelSol,
+                                               double* lpSol);
 
     /** Helper function for ImprovingDirectionIC*/
-    bool getAlphaImprovingDirectionIC(double** extRay, double *uselessIneqs, double* lowerSolution,
-			      int numStruct, int numNonBasic, double* lpSol,
-			      std::vector<double> &alphaVec);
+    bool getAlphaImprovingDirectionIC(double** extRay, double *uselessIneqs,
+                                      double* lowerSolution,
+                                      int numStruct, int numNonBasic, double* lpSol,
+                                      std::vector<double> &alphaVec);
 
     /** Helper function for hypercube IC*/
-    void storeBestSolHypercubeIC(const double* lpSol, double optLowerObj, bool &isTimeLimReached);
+    void storeBestSolHypercubeIC(const double* lpSol, double optLowerObj,
+                                 bool &isTimeLimReached);
 
     /** Helper function for hypercube IC*/
     void getAlphaHypercubeIC(double** extRay, int numStruct, int numNonBasic,

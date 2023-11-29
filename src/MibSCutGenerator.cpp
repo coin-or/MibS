@@ -577,7 +577,7 @@ MibSCutGenerator::intersectionCuts(BcpsConstraintPool &conPool,
 		    double *lowerLevelSol = new double[lCols];
 		    CoinZeroN(uselessIneqs, lRows);
 		    CoinZeroN(lowerLevelSol, lCols);
-		    if (!findLowerLevelSol(uselessIneqs, lowerLevelSol, sol)){
+		    if (!findLowerLevelSolImprovingSolutionIC(uselessIneqs, lowerLevelSol, sol)){
                        delete [] uselessIneqs;
                        delete [] lowerLevelSol;
                        goto TERM_INTERSECTIONCUT;
@@ -806,8 +806,9 @@ MibSCutGenerator::intersectionCuts(BcpsConstraintPool &conPool,
 
 //#############################################################################
 bool
-MibSCutGenerator::findLowerLevelSol(double *uselessIneqs, double *lowerLevelSol,
-				    const double *sol)
+MibSCutGenerator::findLowerLevelSolImprovingSolutionIC(double *uselessIneqs,
+                                                       double *lowerLevelSol,
+                                                       const double *sol)
 {
     
     std::string feasCheckSolver(localModel_->MibSPar_->entry
@@ -825,7 +826,7 @@ MibSCutGenerator::findLowerLevelSol(double *uselessIneqs, double *lowerLevelSol,
     bool getA2Matrix(false), getG2Matrix(false);
     OsiSolverInterface * oSolver = localModel_->solver();
     double infinity(oSolver->getInfinity());
-    int i;
+    int i, j;
     int index(0), cntInt(0);
     double lObjVal(0.0), value(0.0);
     int uCols(localModel_->getUpperDim());
@@ -852,10 +853,6 @@ MibSCutGenerator::findLowerLevelSol(double *uselessIneqs, double *lowerLevelSol,
 
     //stores A^2*x (x is the optimal first-level solution of relaxation)
     double *multA2XOpt = new double[lRows];
-    //stores A^2*lb(x)
-    double *multA2XLb = new double[lRows];
-    //stores A^2*ub(x)
-    double *multA2XUb =new double[lRows];
     //store max(A^2*lb(x), A^2*ub(x))
     double *multA2XMax = new double[lRows];
 
@@ -906,10 +903,12 @@ MibSCutGenerator::findLowerLevelSol(double *uselessIneqs, double *lowerLevelSol,
     matrixG2 = localModel_->getG2Matrix();
 
     matrixA2->times(optUpperSol, multA2XOpt);
-    matrixA2->times(upperColLb, multA2XLb);
-    matrixA2->times(upperColUb, multA2XUb);
     for(i = 0; i < lRows; i++){
-	multA2XMax[i] = CoinMax(multA2XLb[i], multA2XUb[i]);
+       multA2XMax[i] = 0;
+       for(j = 0; j < uCols; j++){
+          multA2XMax[i] += CoinMax(upperColLb[j]*matrixA2->getCoefficient(i,j),
+                                   upperColUb[j]*matrixA2->getCoefficient(i,j));
+       }
     }
 
     //filling matrix of coefficients
@@ -988,18 +987,18 @@ MibSCutGenerator::findLowerLevelSol(double *uselessIneqs, double *lowerLevelSol,
 	nSolver = new OsiSymSolverInterface();
 #else
 	throw CoinError("SYMPHONY chosen as solver, but it has not been enabled",
-			"findLowerLevelSol", "MibSCutGenerator");
+			"findLowerLevelSolImprovingSolutionIC", "MibSCutGenerator");
 #endif
     }else if (feasCheckSolver == "CPLEX"){
 #ifdef COIN_HAS_CPLEX
 	nSolver = new OsiCpxSolverInterface();
 #else
 	throw CoinError("CPLEX chosen as solver, but it has not been enabled",
-			"findLowerLevelSol", "MibsBilevel");
+			"findLowerLevelSolImprovingSolutionIC", "MibsBilevel");
 #endif
     }else{
 	throw CoinError("Unknown solver chosen",
-			"findLowerLevelSol", "MibsBilevel");
+			"findLowerLevelSolImprovingSolutionIC", "MibsBilevel");
     }
 
     nSolver->loadProblem(*newMatrix, newColLb, newColUb,
@@ -1073,13 +1072,12 @@ MibSCutGenerator::findLowerLevelSol(double *uselessIneqs, double *lowerLevelSol,
 	    const double *optSol = nSolver->getColSolution();
 	    CoinDisjointCopyN(optSol, lCols, lowerLevelSol);
 	    CoinDisjointCopyN(optSol + lCols, numBinCols, uselessIneqs);
+            nSolver->writeLp("tmpp.lp");
             foundSolution = true;
 	}
     }
 
     delete [] multA2XOpt;
-    delete [] multA2XLb;
-    delete [] multA2XUb;
     delete [] multA2XMax;
     delete [] optUpperSol;
     delete [] upperColLb;
@@ -6036,8 +6034,7 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
      //and should always be false (see BlisTreeNode.cpp)
      return (false);
 
-  }else if (//bS->isLowerIntegral_ ||
-            useFractionalCuts ||
+  }else if (bS->isLowerIntegral_ || useFractionalCuts ||
             (useFractionalCutsRootOnly && localModel_->activeNode_->getDepth() == 0)){
      
      if (useImprovingDirectionIC == PARAM_ON){
