@@ -3845,7 +3845,8 @@ MibSModel::adjustParameters()
     paramValue = MibSPar_->entry(MibSParams::useImprovingDirectionIC);
     
     if (paramValue == PARAM_NOTSET){
-       if (isPureInteger_ == false || isLowerCoeffInt_ == false || isInterdict_ == true){
+       if (isPureInteger_ == false || isLowerCoeffInt_ == false || 
+          isLowerObjInt_ == false || isInterdict_ == true){
           MibSPar()->setEntry(MibSParams::useImprovingDirectionIC, PARAM_OFF);
        }else{
           MibSPar()->setEntry(MibSParams::useImprovingDirectionIC, PARAM_ON);
