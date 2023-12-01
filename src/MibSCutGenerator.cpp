@@ -1279,6 +1279,7 @@ MibSCutGenerator::findLowerLevelSolImprovingDirectionIC(double *uselessIneqs, do
     OsiSolverInterface *oSolver = localModel_->solver();
     double infinity(oSolver->getInfinity());
     bool getA2G2Matrix(false), getG2Matrix(false);
+    bool solErr(true);
     int i;
     int rowIndex(0), colIndex(0), cntInt(0);
     double rhs(0.0), value(0.0);
@@ -1524,8 +1525,17 @@ MibSCutGenerator::findLowerLevelSolImprovingDirectionIC(double *uselessIneqs, do
     else if(nSolver->isProvenOptimal()){
 	const double *optSol = nSolver->getColSolution();
 	CoinDisjointCopyN(optSol, lCols, lowerLevelSol);
-	CoinDisjointCopyN(optSol + lCols, numContCols, uselessIneqs);
+      // YX: numerical issue; skip if the lowerLevelSol found is all zero
+      for(i = 0; i < lCols; i++){
+        if(fabs(lowerLevelSol[i]) > 0){
+          solErr = false;
+          break;
+        }
+      }
+      if(!solErr){
+        CoinDisjointCopyN(optSol + lCols, numContCols, uselessIneqs);
         foundSolution = true;
+      }
     }
     delete [] lCoeffsTimesLpSol;
     return foundSolution;
