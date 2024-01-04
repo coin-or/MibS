@@ -40,6 +40,7 @@ class MibSParams : public AlpsParameterSet {
      allowRemoveCut,
      useNewPureIntCut,
      printParameters,
+     solveInstance,
      endOfBoolParams
   };
   

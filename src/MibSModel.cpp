@@ -109,6 +109,7 @@ MibSModel::~MibSModel()
   if(bS_) delete bS_;
   if(colSignsG2_) delete [] colSignsG2_;
   if(colSignsA2_) delete [] colSignsA2_;
+  if(rowSigns_) delete [] rowSigns_;
 }
 
 //#############################################################################
@@ -157,9 +158,21 @@ MibSModel::initialize()
   positiveA2_ = true;
   positiveG1_ = true;
   positiveG2_ = true;
+  negativeA1_ = true;
+  negativeA2_ = true;
+  negativeG1_ = true;
+  negativeG2_ = true;
+  lowerRowSignsConsistent_ = true;
+  upperRowSignsConsistent_ = true;
+  allLowerRowsPositive_ = true;
+  allLowerRowsNegative_ = true;
+  allUpperRowsPositive_ = true;
+  allUpperRowsNegative_ = true;
+
   timeLimitReached_ = false;
   colSignsG2_ = NULL;
   colSignsA2_ = NULL;
+  rowSigns_ = NULL;
   upperColInd_ = NULL;
   lowerColInd_ = NULL;
   upperRowInd_ = NULL;
@@ -3522,6 +3535,7 @@ MibSModel::analyzeStructure()
    int numRows(numCons_);
    int uCols(upperDim_);
    int lCols(lowerDim_);
+   int uRows(upperRowNum_);
    int lRows(lowerRowNum_);
    int counterStart, counterEnd, rowIndex;
    double * lObjCoeffs  = getLowerObjCoeffs();
@@ -3535,6 +3549,7 @@ MibSModel::analyzeStructure()
 
    colSignsG2_ = new int[numCols];
    colSignsA2_ = new int[numCols];
+   rowSigns_ = new int[numRows];
    
    for(i = 0; i < uCols; i++){
       index = uColIndices[i];
@@ -3627,7 +3642,11 @@ MibSModel::analyzeStructure()
    //Signs of matrices A1, A2, G1 and G2 are determined
    //based on converting the row senses to 'G' in order to match the
    //MibS cuts paper.
-   for (i = 0; i < uCols + lCols; i++){
+   for (i = 0; i < uRows + lRows; i++){
+      rowSigns_[i] = MibSModel::rowSignUnknown;
+   }
+
+   for (i = 0; i< uCols + lCols; i++){
       index = (i >= lCols)? uColIndices[i-lCols]:lColIndices[i];
       counterStart = matStarts[index];
       counterEnd = matStarts[index + 1];
@@ -3655,10 +3674,13 @@ MibSModel::analyzeStructure()
             }
          }
          if (mult * matElements[j] < -etol_){
-            if((lowerRow) && 
-               ((colSignsG2_[index] != MibSModel::colSignInconsistent) ||
-               (colSignsA2_[index] != MibSModel::colSignInconsistent))){
-               if(i < lCols){
+            if (rowSigns_[rowIndex] == MibSModel::rowSignUnknown){
+               rowSigns_[rowIndex] = MibSModel::rowSignNegative;
+            }else if (rowSigns_[rowIndex] == MibSModel::rowSignPositive){
+               rowSigns_[rowIndex] = MibSModel::rowSignInconsistent;
+            }
+            if (lowerRow){ 
+               if (i < lCols){
                   positiveG2_ = false;
                   if (colSignsG2_[index] == MibSModel::colSignUnknown){
                      colSignsG2_[index] = MibSModel::colSignNegative;
@@ -3674,31 +3696,73 @@ MibSModel::analyzeStructure()
                   }
                }
             }else if(!lowerRow){
-               if(i < lCols){
+               if (i < lCols){
                   positiveG1_ = false;
                }else{
                   positiveA1_ = false;
                }
             }
          } else {
-            if((lowerRow) && 
-               ((colSignsG2_[index] != MibSModel::colSignInconsistent) ||
-               (colSignsA2_[index] != MibSModel::colSignInconsistent))) {
+            if (rowSigns_[rowIndex] == MibSModel::rowSignUnknown){
+               rowSigns_[rowIndex] = MibSModel::rowSignPositive;
+            }else if (rowSigns_[rowIndex] == MibSModel::rowSignNegative){
+               rowSigns_[rowIndex] = MibSModel::rowSignInconsistent;
+            }
+            if (lowerRow) {
                if (i < lCols) {
+                  negativeG2_ = false;
                   if (colSignsG2_[index] == MibSModel::colSignUnknown){
                      colSignsG2_[index] = MibSModel::colSignPositive;
                   }else if (colSignsG2_[index] == MibSModel::colSignNegative){
                      colSignsG2_[index] = MibSModel::colSignInconsistent;
                   }
                }else{
+                  negativeA2_ = false;
                   if (colSignsA2_[index] == MibSModel::colSignUnknown){
                      colSignsA2_[index] = MibSModel::colSignPositive;
                   }else if (colSignsA2_[index] == MibSModel::colSignNegative){
                      colSignsA2_[index] = MibSModel::colSignInconsistent;
                   }
                }
+            }else if(!lowerRow){
+               if (i < lCols){
+                  negativeG1_ = false;
+               }else{
+                  negativeA1_ = false;
+               }
             }
          }
+      }
+   }
+   for (int i = 0; i < upperRowNum_ + lowerRowNum_; i++){
+      lowerRow = binarySearch(0, lowerRowNum_ - 1,
+                              i, lRowIndices) < 0 ? false:true;
+      switch (rowSigns_[i]){
+       case MibSModel::rowSignPositive:
+         if (lowerRow){
+            allLowerRowsNegative_ = false;
+         }else{
+            allUpperRowsNegative_ = false;
+         }
+         break;
+       case MibSModel::rowSignNegative:
+         if (lowerRow){
+            allLowerRowsPositive_ = false;
+         }else{
+            allUpperRowsPositive_ = false;
+         }
+         break;
+       case MibSModel::rowSignInconsistent:
+         if (lowerRow){
+            allLowerRowsNegative_ = false;
+            allLowerRowsPositive_ = false;
+            lowerRowSignsConsistent_ = false;
+         }else{
+            allUpperRowsNegative_ = false;
+            allUpperRowsPositive_ = false;
+            upperRowSignsConsistent_ = false;
+         }
+         break;
       }
    }
 }
@@ -3846,7 +3910,8 @@ MibSModel::adjustParameters()
     
     if (paramValue == PARAM_NOTSET){
        if (isPureInteger_ == false || isLowerCoeffInt_ == false || 
-          isLowerObjInt_ == false || isInterdict_ == true){
+           isLowerObjInt_ == false || isInterdict_ == true ||
+           lowerRowSignsConsistent_ == false || upperRowSignsConsistent_ == false){
           MibSPar()->setEntry(MibSParams::useImprovingDirectionIC, PARAM_OFF);
        }else{
           MibSPar()->setEntry(MibSParams::useImprovingDirectionIC, PARAM_ON);
@@ -3875,7 +3940,11 @@ MibSModel::adjustParameters()
     paramValue = MibSPar_->entry(MibSParams::useImprovingSolutionIC);
     
     if (paramValue == PARAM_NOTSET){
-       MibSPar()->setEntry(MibSParams::useImprovingSolutionIC, PARAM_OFF);
+       if (lowerRowSignsConsistent_ == false || upperRowSignsConsistent_ == false){
+          MibSPar()->setEntry(MibSParams::useImprovingSolutionIC, PARAM_OFF);
+       }else{
+          MibSPar()->setEntry(MibSParams::useImprovingSolutionIC, PARAM_ON);
+       }
     }else if (paramValue == PARAM_ON){
        if ((isPureInteger_ == false) || (isLowerCoeffInt_ == false)){
           std::cout << "The improving solution intersection cut is only valid "
@@ -3976,11 +4045,11 @@ MibSModel::printProblemInfo(){
        std::cout << "All lower level variables are binary." << std::endl; 
     }
     
-    if (positiveA1_ == true){
+    if (positiveA1_ == true && upperRowNum_ > 0){
        std::cout << "Coefficient matrix of upper level variables in upper level problem is non-negative." << std::endl;
     }
     
-    if (positiveG1_ == true){
+    if (positiveG1_ == true && upperRowNum_ > 0){
        std::cout << "Coefficient matrix of lower level variables in upper level problem is non-negative." << std::endl;
     }
     
@@ -3990,6 +4059,46 @@ MibSModel::printProblemInfo(){
     
     if (positiveG2_ == true){
        std::cout << "Coefficient matrix of lower level variables in upper level problem is non-negative." << std::endl;
+    }
+    
+    if (negativeA1_ == true && upperRowNum_ > 0){
+       std::cout << "Coefficient matrix of upper level variables in upper level problem is non-negative." << std::endl;
+    }
+    
+    if (negativeG1_ == true && upperRowNum_ > 0){
+       std::cout << "Coefficient matrix of lower level variables in upper level problem is non-positive." << std::endl;
+    }
+    
+    if (negativeA2_ == true){
+       std::cout << "Coefficient matrix of upper level variables in lower level problem is non-positive." << std::endl;
+    }
+    
+    if (negativeG2_ == true){
+       std::cout << "Coefficient matrix of lower level variables in upper level problem is non-positive." << std::endl;
+    }
+
+    if (upperRowNum_ > 0){
+       if (allUpperRowsPositive_){
+          std::cout << "All rows at the upper level have non-negative coefficients"
+                    << std::endl;
+       }else if (allUpperRowsNegative_){
+          std::cout << "All rows at the upper level have non-positive coefficients"
+                    << std::endl;
+       }else if (upperRowSignsConsistent_){
+          std::cout << "All rows at the upper level have consistent signs"
+                    << std::endl;
+       }
+    }
+    
+    if (allLowerRowsPositive_){
+       std::cout << "All rows at the lower level have non-negative coefficients"
+                 << std::endl;
+    }else if (allLowerRowsNegative_){
+       std::cout << "All rows at the lower level have non-positive coefficients"
+                 << std::endl;
+    }else if (lowerRowSignsConsistent_){
+       std::cout << "All rows at the lower level have consistent signs"
+                 << std::endl;
     }
     
     std::cout << "Degree of objective alignment: " << objAlignment_

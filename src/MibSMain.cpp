@@ -84,14 +84,18 @@ int main(int argc, char* argv[])
       AlpsKnowledgeBrokerSerial broker(argc, argv, model, false);
 #endif
 
-      broker.search(&model);
-
-      std::string solnFile(model.MibSPar()->entry(MibSParams::writeSolnFile));
-      if(solnFile.compare("PARAM_NOTSET") != 0){
-         char *ptr_solnFile = &solnFile[0];
-         broker.printBestSolution(ptr_solnFile);
+      if (model.shouldInvokeSolver()){
+         broker.search(&model);
+         
+         std::string solnFile(model.MibSPar()->entry(MibSParams::writeSolnFile));
+         if(solnFile.compare("PARAM_NOTSET") != 0){
+            char *ptr_solnFile = &solnFile[0];
+            broker.printBestSolution(ptr_solnFile);
+         }
+         broker.printBestSolution();
+      }else{
+         std::cout << "Solver not invoked due to parameter settings. Exiting..."<< std::endl;
       }
-      broker.printBestSolution();
     }
     catch(CoinError& er) {
 	std::cerr << "ERROR:" << er.message() << std::endl

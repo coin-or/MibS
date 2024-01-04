@@ -156,6 +156,36 @@ private:
     /** Determines if matrix G2 is positive or not **/
     bool positiveG2_;
 
+    /** Determines if matrix A1 is positive or not **/
+    bool negativeA1_;
+  
+    /** Determines if matrix A2 is positive or not **/
+    bool negativeA2_;
+
+    /** Determines if matrix G1 is positive or not **/
+    bool negativeG1_;
+
+    /** Determines if matrix G2 is positive or not **/
+    bool negativeG2_;
+   
+    /** Whether signs of coeficients on all lower rows are consistent **/
+    bool lowerRowSignsConsistent_;
+
+    /** Whether signs of coeficients on all upper rows are consistent **/
+    bool upperRowSignsConsistent_;
+
+    /** Whether coefficients in all lower rows are positive **/
+    bool allLowerRowsPositive_;
+
+    /** Whether coefficients in all lower rows are negative **/
+    bool allLowerRowsNegative_;
+
+    /** Whether coefficients in all upper rows are positive **/
+    bool allUpperRowsPositive_;
+
+    /** Whether coefficients in all upper rows are negative **/
+    bool allUpperRowsNegative_;
+
     /** YX: Determines if time limit is reached or exceeded **/
     bool timeLimitReached_;
 
@@ -165,6 +195,9 @@ private:
     /** The signs of columns of matrix A2 (for Benders binary cut) **/
     int * colSignsA2_;
 
+    /** The signs of rows of entire coefficient matrix **/
+    int * rowSigns_;
+   
    /** the left (negative) slope of the lower-level value function **/
     double leftSlope_;
 
@@ -313,6 +346,13 @@ public:
        colSignUnknown
     };
    
+    enum RowSign {
+       rowSignPositive,
+       rowSignNegative,
+       rowSignInconsistent,
+       rowSignUnknown
+    };
+   
     /** Read in the problem data **/
     void readInstance(const char * dataFile);
 
@@ -446,7 +486,13 @@ public:
     void setBoundProbLinkingPool(std::map<std::vector<double>, LINKING_SOLUTION> linkingPool)
     {boundProbLinkingPool_ = linkingPool;}
   
-    /** Get the upper-level file **/
+    /** Whether to actually solve the instance **/
+    bool shouldInvokeSolver()
+    {
+	return MibSPar_->entry(MibSParams::solveInstance);
+    }
+
+   /** Get the upper-level file **/
     std::string getUpperFile() {return ulDataFile_;}
   
     /** Get the upper-level AMPL model file **/

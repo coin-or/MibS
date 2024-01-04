@@ -40,22 +40,34 @@ def parseOutput(outputDir, versions, scenarios, writeCSV=True, filename="summary
         "ub_solved": "UB) solved",
         "vf_time": "solving problem (VF)",
         "ub_time": "solving problem (UB)",
-        "objval": "Cost",
-        "gap": "gap",
+        "objval": "Best solution found had quality",
+        "gap": "optimality gap",
         "ul_int_var": "integer UL Variables",
         "ll_int_var": "integer LL Variables",
         "num_cuts": "Called MIBS cut generator",
         "infeasible": "infeasible",
+        "int_idic" : "integer IDICs",
+        "int_lv_idic" : "integer (LV) IDICs",
+        "frac_idic" : "fractional IDICs",
+        #"int_idic_failed": "Integer IDIC cut generation failed:",
+        "int_lv_idic_failed": "cut generation failed (LV)",
+        "frac_idic_failed": "Fractional IDIC cut generation failed"
     }
 
     results = collections.defaultdict(list)
+    opt_values = {}
     etol = np.finfo(float).eps
 
     # iterate over versions, scenarios, datasets, and files in each folder to read results
     for v in versions:
         for s in scenarios:
-            resultDir = os.path.join(outputDir, v, s)
-            if os.path.isdir(resultDir) == False:
+            found = False
+            for dir in outputDir:
+                resultDir = os.path.join(dir, v, s)
+                if os.path.isdir(resultDir) == True:
+                    found = True
+                    break
+            if not found:
                 continue
             # iterate over different datasets available
             with os.scandir(resultDir) as dataset_it:
@@ -73,14 +85,43 @@ def parseOutput(outputDir, versions, scenarios, writeCSV=True, filename="summary
                                 results["instance"].append(
                                     os.path.splitext(o_entry.name)[0]
                                 )
+                                if results["instance"][-1] not in opt_values:
+                                    opt_values[results["instance"][-1]] = np.inf
 
                                 incomplete = True  # mark incomplete output file
                                 nosoln = False  # mark no soluntion found
                                 results['num_cuts'].append(0)
                                 results['cut_time'].append(0)
+                                results['root_bound'].append(10000000)
+                                results['100_bound'].append(10000000)
+                                results['num_int_idic'].append(0)
+                                results['num_int_lv_idic'].append(0)
+                                results['num_frac_idic'].append(0)
+                                results['num_int_lv_idic_fail'].append(0)
+                                results['num_frac_idic_fail'].append(0)
+                                results['cg_called'].append(0)
+                                results['cg_failed'].append(0)
+                                results['cg_fail_rate'].append(0)
+                                results['num_idic'].append(0)
+                                results['depth_idic'].append(-1)
+                                results["vf_solved"].append(-1)
+                                results["ub_solved"].append(-1)
+                                if '1.0-opt' not in versions: 
+                                    results["vf_time"].append(-1)
+                                    results["ub_time"].append(-1)
+                                results["objval"].append(-1000000)
+                                results["gap"].append(1000000)
+
                                 # read value for each field from file
                                 with open(o_entry.path, "r") as file:
                                     for line in file.read().splitlines():
+                                        if (len(line.split()) > 1 and line.split()[0] == '0'):
+                                            if len(line.split()) == 4:
+                                                results["root_bound"][-1] = float(line.split()[1])
+                                            else:
+                                                results["root_bound"][-1] = float(line.split()[2])
+                                        if (len(line.split()) > 0 and line.split()[0] == '100'):
+                                            results["100_bound"][-1] = float(line.split()[2])
                                         if keywords["solved"] in line:
                                             nosoln = True
                                             results["solved"].append(False)
@@ -103,36 +144,27 @@ def parseOutput(outputDir, versions, scenarios, writeCSV=True, filename="summary
                                             )
 
                                         elif keywords["vf_solved"] in line:
-                                            results["vf_solved"].append(
-                                                int(line.split("=")[1])
-                                            )
+                                            results["vf_solved"][-1] = int(line.split("=")[1])
 
                                         elif keywords["ub_solved"] in line:
-                                            results["ub_solved"].append(
-                                                int(line.split("=")[1])
-                                            )
+                                            results["ub_solved"][-1] = int(line.split("=")[1])
 
-                                        elif keywords["vf_time"] in line:
-                                            results["vf_time"].append(
-                                                float(line.split("=")[1])
-                                            )
+                                        elif (keywords["vf_time"] in line and
+                                              '1.0-opt' not in versions):
+                                            results["vf_time"][-1] = float(line.split("=")[1])
 
-                                        elif keywords["ub_time"] in line:
-                                            results["ub_time"].append(
-                                                float(line.split("=")[1])
-                                            )
+                                        elif (keywords["ub_time"] in line and
+                                              '1.0-opt' not in versions):
+                                            results["ub_time"][-1] = float(line.split("=")[1])
 
                                         elif keywords["objval"] in line:
-                                            results["objval"].append(
-                                                int(float(line.split("=")[1]))
-                                            )
+                                            results["objval"][-1] = int(float(line.split()[6]))
 
                                         elif keywords["gap"] in line:
                                             incomplete = False
                                             if "infinity" in line:
-                                                results["gap"].append(
-                                                    1000000
-                                                )  # no soln found
+                                                results["gap"][-1] = 1000000
+                                                # no soln found
                                                 # results['solved'].append(False)
                                             else:
                                                 if nosoln:
@@ -140,64 +172,154 @@ def parseOutput(outputDir, versions, scenarios, writeCSV=True, filename="summary
                                                 solgap = float(
                                                     line.split(" ")[5].strip("%\n")
                                                 )
-                                                results["gap"].append(solgap)
+                                                results["gap"][-1] = solgap
                                                 # mark unsolved instances in given time limit
                                                 if nosoln == False:
                                                     if solgap - 0.0 < etol:
                                                         results["solved"].append(True)
                                                     else:
                                                         results["solved"].append(False)
+                                        elif keywords['frac_idic'] in line:
+                                            results['num_frac_idic'][-1] += 1
+                                            results['num_idic'][-1] += 1
+                                            depth = int(line.split()[4])
+                                            results['depth_idic'][-1] = ((
+                                                results['depth_idic'][-1]*(
+                                                    results['num_idic'][-1] - 1
+                                                    ) + depth)/results['num_idic'][-1])
+                                        elif keywords['int_lv_idic'] in line:
+                                            results['num_int_lv_idic'][-1] += 1
+                                            results['num_idic'][-1] += 1
+                                            depth = int(line.split()[5])
+                                            results['depth_idic'][-1] = ((
+                                                results['depth_idic'][-1]*(
+                                                    results['num_idic'][-1] - 1
+                                                    ) + depth)/results['num_idic'][-1])
+                                        elif keywords['int_idic'] in line:
+                                            results['num_int_idic'][-1] += 1
+                                            results['num_idic'][-1] += 1
+                                            depth = int(line.split()[4])
+                                            results['depth_idic'][-1] = ((
+                                                results['depth_idic'][-1]*(
+                                                    results['num_idic'][-1] - 1
+                                                    ) + depth)/results['num_idic'][-1])
+                                        elif keywords['int_lv_idic_failed'] in line:
+                                            results['num_int_lv_idic_fail'][-1]+=1
+                                            results['cg_failed'][-1] += 1
+                                        elif keywords['frac_idic_failed'] in line:
+                                            results['num_frac_idic_fail'][-1]+=1
+                                            results['cg_failed'][-1] += 1
                                         # elif keywords[10] in line:
                                         #    results['ul_int_var'].append(int(line.split(':')[1]))
-
+                                        #
                                         # elif keywords[11] in line:
                                         #    results['ll_int_var'].append(int(line.split(':')[1]))
                                         elif keywords["num_cuts"] in line:
                                             found = True
                                             results["num_cuts"][-1] = int(line.split(" ")[8])
                                             results["cut_time"][-1] = float(line.split(" ")[12])
+                                            results["cg_called"][-1] = float(line.split(" ")[5])
                                         elif keywords["infeasible"] in line:
                                             print("Infeasible instance!")
+                                        elif 'STAT;' in line and len(line.split(';')) > 6:
+                                            incomplete=False
+                                            results["objval"].append(
+                                                float(line.split(";")[2])
+                                            )
+                                            results["root_bound"][-1] = float(line.split(";")[4])
+                                            results["cpu"].append(
+                                                float(line.split(";")[5])
+                                            )
+                                            results["nodes"].append(
+                                                float(line.split(";")[8])
+                                            )
+                                            results["gap"].append(
+                                                float(line.split(";")[10])
+                                            )
+                                            results["vf_solved"].append(0)
+                                            results["ub_solved"].append(0)
+                                            results["vf_time"].append(0)
+                                            results["ub_time"].append(0)
+                                            if results["gap"][-1] - 0.0 < etol:
+                                                results["solved"].append(True)
+                                            else:
+                                                results["solved"].append(False)
+                                        elif 'User cuts applied:' in line:
+                                            results["num_cuts"][-1] = int(line.split()[3])
                                         else:
                                             pass
                                 if incomplete:
                                     results["nodes"].append(1000000000)
                                     results["cpu"].append(3600)
-                                    results["vf_solved"].append(-1)
-                                    results["ub_solved"].append(-1)
-                                    results["vf_time"].append(-1)
-                                    results["ub_time"].append(-1)
-                                    results["objval"].append(-1000000)
-                                    results["gap"].append(1000000)
                                     results["solved"].append(False)
                                     print(
                                         "Incomplete instance:", o_entry.name, s
                                     )
-                                elif nosoln:
-                                    results["vf_solved"].append(-1)
-                                    results["ub_solved"].append(-1)
-                                    results["vf_time"].append(-1)
-                                    results["ub_time"].append(-1)
-                                    results["objval"].append(-1000000)
-                                    results["gap"][-1] = 1000000
 
                                 if results["solved"][-1] == False:
                                     results["cpu"][-1] = 3600
+                                else:
+                                    if (opt_values[results["instance"][-1]] == np.inf):
+                                        opt_values[results["instance"][-1]] = results["objval"][-1]
+                                    elif opt_values[results["instance"][-1]] != results["objval"][-1]:
+                                        print("************ Warning: objective values don't agree!")
+                                        print("************ ",
+                                              results["instance"][-1],
+                                              opt_values[results["instance"][-1]],
+                                              ' != ',
+                                              results["objval"][-1])
+                                        
                                 if results["cpu"][-1] < 0.01:
-                                    print ("Bad value! ", results["cpu"][-1])
-                                    results["cpu"][-1] = .01
-
+                                    print ("Small value! ", results["cpu"][-1], results["instance"][-1])
+                                    #results["cpu"][-1] = .01
+                                if results['depth_idic'][-1] == 0:
+                                    results['depth_idic'][-1] = 0.1
+                                a = [len(results[k]) for k in results]
+                                b = [k for k in results]
+                                for i in range(len(a)):
+                                    if a[i] != a[0]:
+                                        print(o_entry.path+"!!!!!!!!!!!!!", b[i])
+                                    
+                                    
     #for k in results:
     #   print (k)
     #   print(len(results[k]))
+    #print (results['num_frac_idic'])
+    #print (results['num_int_idic'])
+    #print (results['num_idic'])
+    #print (results['depth_idic'])
+    #print(results['root_bound'])
+    #print(results['instance'])
+    for i in range(len(results["instance"])):
+        if results['cg_called'][i] > 0:
+            results['cg_fail_rate'][i] = results['cg_failed'][i]/results['cg_called'][i]
+        if (opt_values[results["instance"][i]] not in [0, np.inf] and
+            results['root_bound'][i] != 10000000):
+            results["root_gap"].append(round(100*abs((opt_values[results["instance"][i]] -
+                                                      results["root_bound"][i])/opt_values[results["instance"][i]]),
+                                                     2))
+        else:
+            results["root_gap"].append(100000)
+        #print(results["instance"][i], results["scenario"][i],
+        #      results["root_bound"][i], opt_values[results["instance"][i]])
+        if (opt_values[results["instance"][i]] not in [0, np.inf] and
+            results['100_bound'][i] != 10000000):
+            results["100_gap"].append(round(100*abs((opt_values[results["instance"][i]] -
+                                                     results["100_bound"][i])/opt_values[results["instance"][i]]),
+                                                     2))
+        else:
+            results["100_gap"].append(100000)
+        #print(results["instance"][i], results["scenario"][i],
+        #      results["100_bound"][i], opt_values[results["instance"][i]])
     df_result = pd.DataFrame(results)
 
     # make some adjustment to formats
     # display check feasibility time as % of search time?
     # sum vf+ub time -> feasibility time (or read from output directly?)
-    df_result["chk_feas_time"] = df_result["ub_time"] + df_result["vf_time"]
-    df_result["chk_feas_time"] = df_result["chk_feas_time"].astype(float).round(2)
-    df_result["cpu"] = df_result["cpu"].astype(float).round(2)
+    if '1.0-opt' not in versions:
+        df_result["chk_feas_time"] = df_result["ub_time"] + df_result["vf_time"]
+        df_result["chk_feas_time"] = df_result["chk_feas_time"].astype(float).round(2)
+    #df_result["cpu"] = df_result["cpu"].astype(float).round(2)
 
     # write results to .csv file
     if writeCSV:
@@ -291,13 +413,16 @@ def dropFilter(df, scenarios, ds):
     # filter out cases where time is < 5'' or > 3600'' for all methods
     col_list = df_time.columns.values.tolist()
 
-    drop_easy = df_time[(df_time[col_list] < 5).all(axis=1)].index.tolist()
+    drop_easy = df_time[(df_time[col_list] < 1).all(axis=1)].index.tolist()
+    drop_small_time = df_time[(df_time[col_list] <= 0.01).any(axis=1)].index.tolist()
     drop_unsolved = df_solved[(df_solved[col_list] != True).all(axis=1)].index.tolist()
-    drop_list_time = list(set(drop_easy) | set(drop_unsolved))
+    drop_list_time = list(set(drop_easy) | set(drop_unsolved) | set(drop_small_time))
     #drop_list_time.extend(["cap6000-0.100000","cap6000-0.500000","cap6000-0.900000"])
-    #print(drop_list_time)
+    #print(drop_easy)
+    #print(drop_small_time)
+    #print(drop_unsolved)
     df_solved = df.drop(drop_list_time)
-    print(df_solved)
+    #print(df_solved)
 
     df_gap = df.xs(
         (ds, "gap"), level=["datasets", "fields"], axis=1, drop_level=True
@@ -307,7 +432,7 @@ def dropFilter(df, scenarios, ds):
     #drop_list_gap.extend(["cap6000-0.100000","cap6000-0.500000","cap6000-0.900000"])
     #print(drop_list_gap)
     df_has_soln = df.drop(drop_list_gap)
-    print(df_has_soln)
+    #print(df_has_soln)
 
     return df_solved, df_has_soln
 
@@ -340,13 +465,22 @@ def plotPerfProf(
     col_list = df.columns.values.tolist()
     df["virtual_best"] = df[col_list].min(axis=1)
 
+    #print(df["virtual_best"])
+    
     for col in col_list:
         print(col)
         # for each col, compute ratio
         ratios = df[col] / df["virtual_best"]
+        with pd.option_context('display.max_rows', None,
+                              'display.max_columns', None,
+                              'display.precision', 3,
+        ):
+            print(df[col])
+        #    print(ratios.sort_values())
+        #    print(ratios)
         uniq_ratios = ratios.unique()
         uniq_ratios.sort()  # sort in place
-        print(uniq_ratios)
+        #print(uniq_ratios)
         cum_cnt = np.sum(np.array([ratios <= ur for ur in uniq_ratios]), axis=1)
         cum_frac = cum_cnt / len(ratios)
         #print(cum_frac)
@@ -371,6 +505,8 @@ def plotPerfProf(
         for j, r in enumerate(uniq_ratios[1:]):
             x_val.extend([r, r])
             y_val.extend([cum_frac[j], cum_frac[j + 1]])
+            #print(r, cum_frac[j])
+            #print(r, cum_frac[j+1])
         if cum_frac[-1] == 1.0:
             x_val.append(xmax)
             y_val.append(1.0)
@@ -423,9 +559,9 @@ def plotCumProf(df, plotname="cum_profile", plottitle = "Cumulative Profile",
     time_buckets = range(0, 3600)
 
     for col in col_list:
-        print(col)
+        #print(col)
         times = df_time[col]
-        print(times)
+        #print(times)
         cum_cnt = np.sum(np.array([times <= t for t in time_buckets]), axis=1)
         cum_frac = cum_cnt / len(df)
         #print(cum_frac)
@@ -448,9 +584,9 @@ def plotCumProf(df, plotname="cum_profile", plottitle = "Cumulative Profile",
     gap_buckets = np.linspace(0, 100, 1000)
 
     for col in col_list:
-        print(col)
+        #print(col)
         gaps = df_gap[col]
-        print(gaps)
+        #print(gaps)
         cum_cnt = np.sum(np.array([gaps <= g for g in gap_buckets]), axis=1)
         cum_frac = cum_cnt / len(df_gap)
         #print(cum_frac)
@@ -484,7 +620,7 @@ def plotCumProf(df, plotname="cum_profile", plottitle = "Cumulative Profile",
 
 def plotBaselineProf(
         df, baseline, plotname="base_profile", plottitle="Baseline Profile",
-        xmin=0.0, xmax=None, legendnames={}, versionleend=False
+        xmin=0.0, xmax=None, legendnames={}, versionlegend=False
 ):
     """
     Generate a performance profile plot for the given dataframe.
@@ -514,13 +650,13 @@ def plotBaselineProf(
     for col in col_list:
         if col == baseline or col[0] == "virtual_best":
             continue
-        print(col)
+        #print(col)
         # for each col, compute ratio
         ratios = df[col] / df[baseline]
-        print(df[col])
+        #print(df[col])
         uniq_ratios = ratios.unique()
         uniq_ratios.sort()  # sort in place
-        print(uniq_ratios)
+        #print(uniq_ratios)
         cum_cnt = np.sum(np.array([ratios <= ur for ur in uniq_ratios]), axis=1)
         cum_frac = cum_cnt / len(ratios)
 
@@ -531,7 +667,7 @@ def plotBaselineProf(
             uniq_ratios = np.append(uniq_ratios, xmax)  # append array at the boundary point
             cum_frac = np.append(cum_frac, cum_frac[-1])
 
-        print(uniq_ratios)
+        #print(uniq_ratios)
         #print(cum_frac)
 
         # Values less than one are scaled differently
@@ -609,72 +745,362 @@ def plotBaselineProf(
     fig.tight_layout()
     fig.savefig(plotname, dpi=fig.dpi)
 
+def plotBaselineProfSingle(
+        df, baseline, plotname="base_profile", plottitle="Baseline Profile",
+        xmin=0.0, xmax=None, legendnames={}, versionlegend=False
+):
+    """
+    Generate a performance profile plot for the given dataframe.
+    Assume data given are in number types.
+    x-axis label: multiple of virtual best;
+    y-axis label: franction of instances.
+    Input:
+        df: instances as index, field-to-plot as columns
+        plotname: name of the plot
+        fixmin: the base value used to compute ratio; using df min if not given
+        xmin: the smallest x-ticker to display; set by xlim
+        xmax: the largest x-ticker to display; set by xlim
+        displaynames: a dictionary contains legend name; using df col name if not given
+    """
+
+    fig, ax = plt.subplots(1, 1)
+
+    # if given legend name len != col #, use defualt column name
+    if legendnames and (len(legendnames) != len(df.columns)):
+        legendnames = {}
+
+    # find min value in the dataframe
+    col_list = df.columns.values.tolist()
+
+    for col in col_list:
+        if col == baseline or col[0] == "virtual_best":
+            continue
+        #print(col)
+        # for each col, compute ratio
+        ratios = df[col] / df[baseline]
+        #print(df[col])
+        uniq_ratios = ratios.unique()
+        uniq_ratios.sort()  # sort in place
+        #print(uniq_ratios)
+        cum_cnt = np.sum(np.array([ratios <= ur for ur in uniq_ratios]), axis=1)
+        cum_frac = cum_cnt / len(ratios)
+
+        # form x-tickers: if xmax is not given, use current max and round up
+        if xmax == None:
+            xmax = np.ceil(uniq_ratios[-1])
+        elif uniq_ratios[-1] < xmax:
+            uniq_ratios = np.append(uniq_ratios, xmax)  # append array at the boundary point
+            cum_frac = np.append(cum_frac, cum_frac[-1])
+
+        #print(uniq_ratios)
+        #print(cum_frac)
+
+        x_val = []
+        y_val = []
+        x_val.append(0.0)
+        y_val.append(0.0)
+        x_val.append(uniq_ratios[0])
+        y_val.append(0)
+        x_val.append(uniq_ratios[0])
+        y_val.append(cum_frac[0])
+        for j, r in enumerate(uniq_ratios[1:]):
+            if r > 1:
+                x_val.append(r)
+                y_val.append(cum_frac[j])
+                break
+            x_val.extend([r, r])
+            # j is indexed starting at zero, not one!
+            y_val.extend([cum_frac[j], cum_frac[j + 1]])
+
+        if legendnames:
+            # , color=colors[i])
+            plt.plot(x_val, y_val, label=legendnames[col])
+        elif versionlegend:
+            plt.plot(x_val, y_val, label=col)  # , color=colors[i])
+        else:
+            plt.plot(x_val, y_val, label=col[0])  # , color=colors[i])
+
+    # set plot properties
+    ax.set_xlim(0, 1)
+    ax.set_ylim(-0.02, 1.05)
+    ax.tick_params(axis="both", direction="in", right=True)
+
+    # set other figure elements
+    ax.set_title(plottitle)
+    ax.set_xlabel("Ratio of baseline")
+    ax.set_ylabel("Fraction of instances")
+    ax.legend(
+        loc="lower right",
+        #bbox_to_anchor=(0.9, 0.05),
+        markerscale=1.25,
+        frameon=True,
+        labelspacing=0.35,
+        fontsize="x-small",
+    )
+
+    fig.tight_layout()
+    fig.savefig(plotname, dpi=fig.dpi)
+
 if __name__ == "__main__":
 
     dataSets = [
-        'MIBLP-XU',
-        "IBLP-FIS",
-        'INTERD-DEN',
-        'IBLP-DEN',
-        'IBLP-ZHANG'
+        #'MIBLP-XU',
+        #"IBLP-FIS",
+        #'INTERD-DEN',
+        #'IBLP-DEN',
+        'IBLP-DEN2',
+        #'IBLP-ZHANG',
+        #'IBLP-ZHANG2',
+        #'all'
     ]
 
     # versions = ['1.1', 'ib']
     # versions = ["1.2-opt", "rev1"]
     # versions = ["1.2-opt", "1.2-opt-cplex"]
-    versions = ['1.2+newWS','1.2+5.6']
-    
+    # versions = ['1.2+newWS','1.2+5.6']
+    #versions = ['1.2-cplex-opt','1.2-opt','1.1-opt','1.0-opt']
+    #versions = ['1.2-opt','1.1-opt','1.0-opt','DenRal09']
+    #versions = ['1.1-opt','1.0-opt']
+    #versions = ['1.2-opt','1.1-opt','DenRal09']
+    #versions = ['1.2-opt','1.1-opt','1.0-opt']
+    #versions = ['1.2-opt','1.2-cplex-opt']
+    #versions = ['1.2-opt','1.2.0-opt']
+    #versions = ['tailoff','1.2.1-final']
+    #versions = ['1.2.1-opt','1.2-opt','1.2.0-opt']
+    #versions = ['1.2-opt']
+    versions = ['1.2.1-final','fischetti']
+    #versions = ['1.2.1-final2']
     # Output parent path
-    outputDir = "/home/ted/Projects/MibS/output"
+    outputDir = ["/home/ted/Projects/MibS/output"]
+    #outputDir = ["/home/ted/Projects/MibS/output-Mac"]
 
     scenarios = {
-        'default' : 'Default',
-        'default+WS' : 'Default w/ Warm Start',
-        # 'default-frac',
-        #'benders' : 'BendersInterdict (link)',
-        #'benders-frac' : 'BendersInterdict (frac)',
+        ###### fischetti
+
+        #'default-fis-seq-no_mip_cuts': 'Default (no MIP cuts)',
+        #'default-fis-seq': 'Default',
+        #'default-fis': 'Default (parallel)',
+
+        ###### 1.2.1-final
+
+        'noCut' : "No Cuts (link)", 
+        #'fracISICType1-frac': 'Frac ISIC Type 1 (frac)',
+        #'fracISICType1-frac-every': 'Frac ISIC Type 1 (frac)',
+        'ISICType1-frac': 'ISIC Type 1 (frac)', ##########
+        #'ISICType1-frac-lv': 'ISIC Type 1 (frac-lv)',
+        #'fracISICType1-link': 'Frac ISIC Type 1 (link)',
+        #'ISICType1-link': 'ISIC Type 1 (link)',
+        #'ISICType1-link-lv': 'ISIC Type 1 (link-lv)',
+        #'fracISICType2-frac': 'Frac ISIC Type 2 (frac)',
+        #'ISICType2-frac': 'ISIC Type 2 (frac)',
+        #'fracISICType2-link': 'Frac ISIC Type 2 (link)',
+        #'ISICType2-link': 'ISIC Type 2 (link)',  ##########
+        'fracIDIC-frac': 'Frac IDIC (frac)',     ##########
+        'fracIDIC+MIP-frac': 'Frac IDIC + MIP (frac)',
+        #'IDIC-frac': 'IDIC (frac)',
+        #'IDIC+MIP-frac': 'IDIC + MIP (frac)',
+        #'fracIDIC-link': 'Frac IDIC (link)',
+        #'IDIC-link': 'IDIC (link)',
+        #'fracIDIC-ll': 'Frac IDIC (ll)',
+        #'hyper-link': 'Hypercube IC (link)',
+        'hyper-frac': 'Hypercube IC (frac)',    ##########
+        #'hyper-link-lv': 'Hypercube IC (link-lv)',
+        #'hyper-frac-lv': 'Hypercube IC (frac-lv)',
+        #'bendersInterdiction-frac': 'Benders Interdict (frac)',
+        #'bendersInterdiction+MIP-frac': 'Benders Interdict + MIP (frac)',
+        #'bendersInterdiction-link': 'Benders Interdict (link)',
+        #'bendersInterdiction+MIP-link': 'Benders Interdict + MIP (link)',
+        #'bendersBinary-frac': 'Benders Binary (frac)', ##########
+        #'bendersBinary-link': 'Benders Binary (link)',
+        #'bendersBinary-frac-lv': 'Benders Binary (frac-lv)',
+        #'bendersBinary-link-lv': 'Benders Binary (link-lv)',
+        #'genNoGood-frac': 'Generalized No Good (frac)', ##########
+        #'genNoGood-link': 'Generalized No Good (link)',
+        'intNoGood-frac': 'Integer No Good (frac)',
+        'intNoGood+MIP-frac': 'Integer No Good + MIP (frac)',
+        #'intNoGood-link': 'Integer No Good (link)', ##########
+        'fracIDIC+ISICType1-frac': 'fracIDIC + ISIC Type 1 (frac)',
+        #'fracIDIC+ISICType1-frac-lv': 'fracIDIC + ISIC Type 1 (frac-lv)',
+        #'fracIDIC+ISICType1-bendersBinary-frac': 'fracIDIC + ISIC Type 1 + bendersBin (frac)',
+        #'fracIDIC+ISICType1-bendersBinary-frac-lv': 'fracIDIC + ISIC Type 1 +bendersBin (frac-lv)',
+
+        ###### 1.2.1-opt
+
+        # 'IDIC' : 'IDIC (link)',
+        # 'ISICType1' : 'ISIC Type1 (link)',
+        # 'ISICType2' : 'ISIC Type2 (link)',
+        # 'ISICType2-frac' : '',
+        # 'ISICType2-frac-old' : '',
+        # 'ISICType2-old' : '',
+        # 'benders+fracidic' : 'Benders + FracIDIC (link)',
+        # 'benders+fracidic-frac' : 'Benders + Frac IDIC (frac)',
+        # 'benders+idic' : 'Benders + IDIC (link)',
+        # 'benders+idic-frac' : 'Benders + IDIC (frac)',
+        # 'default+NoFractionalCutsAndFrac' : 'No Frac Cuts (Frac)',
+        # 'default+NoFractionalCutsAndLinking' : 'No Frac Cuts (Linking)',
+        # 'default+frac' : 'Default (frac)',
+        # 'default+linking': 'Default (Linking)',
+        # 'fracIDIC' : 'Frac IDIC (link)',
+        # 'fracISICType2' : 'Frac ISIC Type2 (link)',
+        # 'fracISICType2-frac' : 'Frac ISIC Type2 (frac)',
+        # 'fracISICType2-frac-old' : 'Frac ISIC Type2 (frac)',
+        # 'genNoGood' : 'GenNoGood (link)',
+        # 'hyper' : 'Hypercube IC (link)',
+        # 'intNoGood' : 'IntNoGood (link)',
+
+        ###### 1.2.0-opt
+
+        # 'IDIC-frac' : 'IDIC (frac)',    
+        # 'IDIC+MIP-frac' : 'IDIC+MIP (frac)',
+        # 'IDIC+MIP2-frac' : 'IDIC+MIP2 (frac)',
+        # 'default+FracRoot' : 'Default+FracRoot',
+        # 'default+MIP' : "Default + MIP",
+        # 'default+NoFractionalCutsAndFrac' : 'No Frac Cuts (Frac)',
+        # 'default+NoFractionalCutsAndLinking' : 'No Frac Cuts (Linking)',
+        #'defaultWithExtraOutput' : 'Default',
+        #'default+NoFractionalCutswithExtraOutput' : 'No Frac Cuts',
+        # 'default+Parallel' : 'Default Parallel',
+        # 'default+frac' : 'Default (frac)',
+        # 'default+linking': 'Default (Linking)',
+        # "fracIDIC-frac" : 'Frac IDIC (frac)',
+        # "fracIDIC+MIP-frac" : 'FracIDIC+MIP (frac)',
+        # "fracIDIC+MIP2-frac" : 'FracIDIC+MIP2 (frac)',
+
+        ###### 1.2-opt
+
+        #'benders' : 'Benders Interdict (link)',
+        #'benders-cplex' : 'Benders Interdict CPLEX (link)',
+        #'benders-frac' : 'Benders Interdict (frac)',
+        #'benders-frac-cplex' : 'Benders Interdict CPLEX (frac)',
+        #'bound+hyper-cplex' : 'Bound Cut + Hypercube IC',
+        #'boundCut-cplex': 'Bound Cut + Hypercube IC CPLEX',
+        #'fracWatermelon' : 'Frac1 IDIC (link)',
+        #"fracWatermelon-frac" : 'Frac IDIC (frac)',
+        #"fracWatermelon-frac-cplex" : 'Frac IDIC CPLEX (frac)',
+        #"fracWatermelon-frac-cplex-d10" : 'Frac IDIC CPLEX d10 (frac)',
+        #"fracWatermelon-frac-cplex-d20" : 'Frac IDIC CPLEX d20 (frac)',
+        #"fracType1-frac-cplex" : 'Frac Type 1 CPLEX (frac)',
+        #"fracType1-frac-cplex-d10" : 'Frac Type 1 CPLEX d10 (frac)',
+        #"fracType1-frac-cplex-d20" : 'Frac Type 1 CPLEX d20 (frac)',
+        #'genNoGood': 'Generalized No Good (link)',
+        #'genNoGood-frac': 'Generalized No Good (frac)',
+        #'hyper': 'Hypercube IC (link)',
+        #'hyper-frac': 'Hypercube IC (frac)',
+        #"incObj" : "BendersBinary (link)",
+        #'incObj-frac' : "BendersBinary (frac)",
+        #'noCut' : "No Cuts (link)", 
+        #'noCut-WS' : "No Cuts (link+WS)", 
+        #'noCut-cplex' : "No Cuts CPLEX (link)", 
+        #'noGood+incObj' : 'GenNoGood+BendBin (link)',
+        #'noGood+type1+pureInteger' : 'GenNoGood+Type1+IntNoGood (link)',
+        #'pureInteger' : 'IntNoGood (link)',
+        #'pureInteger-frac' : 'IntNoGood (frac)',
+        #'strengthenedIntegerNoGoodCut-cplex': 'Strengthened Int No Good CPLEX',
+        #"type1" : 'ISIC1 Type1 (link)',
+        #"type1-cplex" : 'Type1 (link)',
+        #"type1-frac" : 'Type1 (frac)',
+        #'type1-WS' : 'Type1 (link+WS)',
+        #"type2" : "ISIC1 Type2 (link)",
+        #"type2-frac" : "ISIC1 Type2 (frac)",
+        #'watermelon' : 'Watermelon (link)',
+        #'watermelon-frac' : 'Watermelon (frac)',    
+        #"watermelon-frac-LV" : 'Watermelon (frac+LV)',
         #'watermelon+type1-frac' : 'Watermelon+Type1 (frac)',
         #'watermelon+type1-frac-LV' : 'Watermelon+Type1 (frac+LV)',
         #'watermelon+type1+incObj-frac' : "Watermelon+Type1+BendBin (frac)",
         #'watermelon+type1+incObj-frac-LV' : 'Watermelon+Type1+BendBin (frac+LV)',
-        #'noGood+type1+pureInteger' : 'GenNoGood+Type1+IntNoGood (link)',
-        #'noGood+incObj' : 'GenNoGood+BendBin (link)',
+
+        ###### 1.2-cplex-opt
+
+        #'default' : 'Default',
+        #'default+ParallelCplex': 'Default Parallel CPLEX',
+
+        ###### tailoff
+
+        #'default-new-tailoff-05' : 'Default',
+        #'default+frac-new-tailoff' : 'Default (frac+new-tailoff-01)',
+        #'default+link-new-tailoff' : 'Default (link+new-tailoff-01)',
+        #'default+frac-new-tailoff-1' : 'Default (frac+new-tailoff-1)',
+        #'default+link-new-tailoff-1' : 'Default (link+new-tailoff-1)',
+        #'default+frac-new-tailoff-05' : 'Default (frac+new-tailoff-05)',
+        #'default+link-new-tailoff-05' : 'Default (link+new-tailoff-05)',
+        #'default+frac-new-tailoff-005' : 'Default (frac+new-tailoff-005)',
+        #'default+link-new-tailoff-005' : 'Default (link+new-tailoff-005)',
+        #'default+link-new-tailoff-001' : 'Default (link+new-tailoff-001)',
+
+        ###### 1.0-opt
+
+        #'default' : 'Default',
+        
+        ###### 1.1-opt
+
+        #'default' : 'Default',
+        
+        ###### DenRal09
+
+        #'default' : 'Default',
+
+        ###### rev1
+
+        #'fracWatermelon' : 'Frac1 IDIC (link)',
+        #"fracWatermelon-frac" : 'Frac IDIC (frac)',
+        #'genNoGood': 'Generalized No Good (link)',
+        #'genNoGood-frac': 'Generalized No Good (frac)',
+        #'hyper': 'Hypercube IC (link)',
+        #'hyper-frac': 'Hypercube IC (frac)',
         #"incObj" : "BendersBinary (link)",
         #'incObj-frac' : "BendersBinary (frac)",
-        #"genNoGood" : 'GenNoGood (link)',
-        #'genNoGood-frac' : 'GenNoGood (frac)',
+        #'noCut' : "No Cuts (link)", 
         #'pureInteger' : 'IntNoGood (link)',
         #'pureInteger-frac' : 'IntNoGood (frac)',
-        #'hyper' : 'Hypercube (link)',
-        #'hyper-frac' : 'Hypercube (frac)',
+        #"type1" : 'ISIC1 Type1 (link)',
+        #"type1-frac" : 'Type1 (frac)',
+        #"type2" : "ISIC1 Type2 (link)",
+        #"type2-frac" : "ISIC1 Type2 (frac)",
         #'watermelon' : 'Watermelon (link)',
+        #'watermelon+type1-frac' : 'Watermelon+Type1 (frac)',
+        #'watermelon+type1-frac-LV' : 'Watermelon+Type1 (frac+LV)',
         #'watermelon-frac' : 'Watermelon (frac)',    
         #"watermelon-frac-LV" : 'Watermelon (frac+LV)',
-        #'fracWatermelon' : 'FracWatermelon (link)',
-        #"fracWatermelon-frac" : 'FracWatermelon (frac)',
-        #"fracWatermelon-frac-cplex" : 'FracWatermelon (frac)',
-        #"type1" : 'Type1 (link)',
-        #"type1-cplex" : 'Type1 (link)',
-        #"type1-frac" : 'Type1 (frac)',
-        #'type1-WS' : 'Type1 (link+WS)',
-        #"type2" : "Type2 (link)",
-        #"type2-frac" : "Type2 (frac)",
-        'noCut' : "No Cuts (link)", 
-        #'noCut-WS' : "No Cuts (link+WS)", 
+       
+        #'fracISICType1-frac-everyIteration': 'Frac ISIC Type 1 (frac-every)',
+        #'fracWatermelon-frac': 'Default(frac)',
+        #'default+frac-.1' : 'Default (frac, 0.1)',
+        #'default+frac-.5' : 'Default (frac, 0.5)',
+        #'default+frac-1' : 'Default (frac, 1)',
+        #'default+NoFractionalCuts' : 'No Frac Cuts (frac)',
+        #'default+NoFractionalCuts+Frac' : 'No Frac Cuts (frac)',
+        #'default+NoFractionalCuts+Frac-.1' : 'No Frac Cuts (frac, 0.1)',
+        #'default+Linking': 'Default (linking)',
+        #'default+Linking-.1': 'Default (linking, 0.1)',
+        #'default+Linking-.5': 'Default (linking, 0.5)',
+        #'default+Linking-1': 'Default (linking, 1)',
+        #'default+NoFractionalCuts+Linking' : 'No Frac Cuts (linking)',
+        #'default+WS' : 'Default w/ Warm Start',
+        # 'default-frac',
+        #'benders-frac' : 'BendersInterdict (frac)',
+        #'genNoGood-frac' : 'GenNoGood (frac)',
+        #'hyper-frac' : 'Hypercube (frac)',
+        #'IDIC' : 'Watermelon (link)',
+        #'fracidic+ll' : 'Frac IDIC (ll)',
+        #"ISICType2" : "ISIC Type2 (link)",
+        #"ISICType2-frac" : "ISIC Type2 (frac)",
         # 'interdiction',
     }
     ################# Process & Save | Load from CSV ###################
     # specify summary file name
-    file_csv = "summary_"+dataSets[0]+".csv"
-
+    file_csv_out = "summary_"+dataSets[0]+".csv"
+    #file_csv_in = "summary-1.2.1.csv"
+    file_csv_in = "summary-1.2.1.csv"
+    
     # if len(args) == 0:
     if 1:
         df_r = parseOutput(
-            outputDir, versions, scenarios, writeCSV=True, filename=file_csv
+            outputDir, versions, scenarios, writeCSV=True, filename=file_csv_out
         )
     else:
         try:
-            df_r = pd.read_csv(file_csv)
+            df_r = pd.read_csv(file_csv_in)
             set_cond = (df_r["scenario"].isin(scenarios.values())) | (
                 df_r["dataset"].isin(dataSets)
             )
@@ -682,7 +1108,7 @@ if __name__ == "__main__":
         except FileNotFoundError:
             print("{} does not exist in current directory.".format(file_csv))
         else:
-            print("Reading from", file_csv)
+            print("Reading from", file_csv_in)
 
     ################### Format Data & Print Table ####################
     # specify txt file name to print tables in LATEX
@@ -693,11 +1119,24 @@ if __name__ == "__main__":
         "cpu": "CPU Search Time",
         "nodes": "Number of Processed Nodes",
         "gap": "Final Gap",
+        "root_gap": "Root Gap",
+        "100_gap": "Gap After 100 Nodes",
         "solved": "Solved",
-        # 'chk_feas_time': 'Check Feasibility Time',
-        # 'vf_solved': 'Number of VF problem solved',
-        # 'ub_solved': 'Number of UB problem solved',
-        # 'objval': 'Object Value'
+        #"num_int_idic": "Int IDIC Success",
+        #"num_int_lv_idic": "Int IDIC (LV) Success",
+        #"num_frac_idic": "Frac IDIC Success",
+        #"num_int_lv_idic_fail": "Int IDIC (LV) Fail",
+        #"num_frac_idic_fail": "Frac IDIC Fail",
+        "cg_called": "CG Calls",
+        #"cg_failed": "CG Failures",
+        #"cg_fail_rate": "CG Failure Rate",
+        "num_cuts": "Number of Cuts",
+        #"depth_idic" : "Average Depth of IDIC",
+        #"num_idic" : "Number of IDIC",
+        #'chk_feas_time': 'Check Feasibility Time',
+        #'vf_solved': 'Number of VF problem solved',
+        #'ub_solved': 'Number of UB problem solved',
+        'objval': 'Object Value'
     }
 
     df_proc = processTable(df_r, displayCols, writeLTX=False, filename=file_txt)
@@ -707,6 +1146,14 @@ if __name__ == "__main__":
     plotCols = {
         "cpu": ["CPU Time", 25],
         "nodes": ["Nodes Processed", 50],
+        #"root_gap": ["Root Gap", 10],
+        #"num_cuts": ["Number of Cuts", 50],
+        #"depth_idic" : ["Depth of IDICs", 10],
+        #"num_idic" : ["Number of IDICs", 10],
+        #'cg_called': ["CG Calls", 10],
+        #'cg_failed': ["CG Failures", 10],
+        #'cg_fail_rate': ['CG Failre Rate', 10],
+        #"100_gap": ["Gap After 100 Nodes", 10]
     }
     # plotCols = {}
 
@@ -717,23 +1164,32 @@ if __name__ == "__main__":
     #     else:
     #         scenarios[k] = 'fractionalBranchStrategy'
 
-    baseline = None
+    #baseline=None
+    baseline = ('No Cuts (link)', '1.2.1-final')
+    #baseline = ('Default', 'tailoff')
     #baseline = ("Type1IC", "1.2-opt")
     #baseline = ('GenNoGood+Type1+IntNoGood (link)', '1.2-opt')
     #baseline = ('Watermelon (frac+LV)', '1.2-opt')
     #baseline = ('FracWatermelon (frac)', '1.2-opt')
-    #baseline = ('BendersInterdict (link)', '1.2-opt')
+    #baseline = ('Benders Interdict (link)', '1.2.1-final')
     if len(versions) > 1:
         versionlegend = True
     else:
         versionlegend = False
+
+    print(df_proc)
         
     for ds in dataSets:
         df_solved, df_has_soln = dropFilter(df_proc, scenarios, ds)
         for col in plotCols:
-            df_sub = df_solved.xs(
-                (ds, col), level=["datasets", "fields"], axis=1, drop_level=True
-            ).copy()
+            if col != "root_gap":
+                df_sub = df_solved.xs(
+                    (ds, col), level=["datasets", "fields"], axis=1, drop_level=True
+                ).copy()
+            else:
+                df_sub = df_has_soln.xs(
+                    (ds, col), level=["datasets", "fields"], axis=1, drop_level=True
+                ).copy()
             print("")
             print("Creating performance profile for "+col)
             print("")
@@ -747,7 +1203,7 @@ if __name__ == "__main__":
                 print("")
                 print("Creating baseline profile for "+col)
                 print("")
-                plotBaselineProf(
+                plotBaselineProfSingle(
                     df_sub, baseline = baseline,
                     plotname="base_"+baseline[0]+"_"+col+"_"+ds,
                     plottitle = "Baseline Profile: "+plotCols[col][0]+" ("+ds+")",

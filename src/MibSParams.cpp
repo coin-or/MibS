@@ -72,6 +72,9 @@ MibSParams::createKeywordList() {
    keys_.push_back(make_pair(std::string("MibS_printParameters"),
 			     AlpsParameter(AlpsBoolPar, printParameters)));
 
+   keys_.push_back(make_pair(std::string("MibS_solveInstance"),
+			     AlpsParameter(AlpsBoolPar, solveInstance)));
+
    //--------------------------------------------------------
    // BoolArrayPar
    //--------------------------------------------------------
@@ -316,6 +319,8 @@ MibSParams::setDefaultEntries() {
    setEntry(useNewPureIntCut, false);
 
    setEntry(printParameters, false);
+
+   setEntry(solveInstance, true);
 
    //-------------------------------------------------------------
    // Int Parameters.
