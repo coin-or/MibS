@@ -18,6 +18,7 @@
 #ifdef MIBS_HAS_SYMPHONY
 #include "symphony.h"
 #include "SymConfig.h"
+#include "CoinUtilsConfig.h"
 #include "OsiSymSolverInterface.hpp"
 #endif
 #ifdef MIBS_HAS_CPLEX
@@ -1105,8 +1106,13 @@ MibSModel::readProblemData()
      }
    case 1: // ampl/gmpl
      {
+#ifdef COINUTILS_HAS_GLPK
        rc = mps->readGMPL(getUpperAmplModelFile().c_str(), 
 			  getUpperAmplDataFile().c_str());
+#else
+       throw CoinError("Trying to read a GMPL file with when GMPL support is"
+                       "not built in", "readInstance", "MibSModel");
+#endif
        break;
      }
    }
