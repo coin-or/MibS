@@ -155,7 +155,7 @@ int main(int argc, char* argv[])
    /* upper level and which are in the lower level, as well as     */
    /* specifying the lower-level objective function                */
    
-   model->loadAuxiliaryData(lowerColNum, lowerRowNum, lowerColInd,
+   model.loadAuxiliaryData(lowerColNum, lowerRowNum, lowerColInd,
                             lowerRowInd, 1.0, lObjCoeff,
                             upperColNum, upperRowNum, upperColInd,
                             upperRowInd, structRowNum, structRowInd,
@@ -165,7 +165,7 @@ int main(int argc, char* argv[])
    /* vectors of upper and lower bounds, etc., as usual for an     */
    /* MILP solver                                                  */
    
-   model->loadProblemData(*newMatrix, varLB, varUB, objCoef, conLB,
+   model.loadProblemData(*newMatrix, varLB, varUB, objCoef, conLB,
                           conUB, colType, 1, mps->getInfinity(),
                           rowSense);
 
