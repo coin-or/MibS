@@ -4149,10 +4149,10 @@ MibSModel::printProblemInfo(){
     
     if (MibSPar_->entry(MibSParams::useImprovingSolutionIC) == PARAM_ON){
        if (MibSPar_->entry(MibSParams::bilevelFreeSetTypeISIC) ==
-           MibSBilevelFreeSetTypeISICWithLLOptSol){
-          std::cout << "Improving solution intersection cut generator (Type I) is on." << std::endl;
-       }else{
+           MibSBilevelFreeSetTypeISICWithNewLLSol){
           std::cout << "Improving solution intersection cut generator (Type II) is on." << std::endl;
+       }else{
+          std::cout << "Improving solution intersection cut generator (Type I) is on." << std::endl;
        }              
     }
 
