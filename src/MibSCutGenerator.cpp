@@ -1072,7 +1072,7 @@ MibSCutGenerator::findLowerLevelSolImprovingSolutionIC(double *uselessIneqs,
 	    const double *optSol = nSolver->getColSolution();
 	    CoinDisjointCopyN(optSol, lCols, lowerLevelSol);
 	    CoinDisjointCopyN(optSol + lCols, numBinCols, uselessIneqs);
-            nSolver->writeLp("tmpp.lp");
+            //nSolver->writeLp("tmpp.lp");
             foundSolution = true;
 	}
     }
