@@ -340,7 +340,7 @@ MibSParams::setDefaultEntries() {
 
    setEntry(objBoundStrategy, LPBOUND);
 
-   setEntry(blisCutStrategy, 0);
+   setEntry(blisCutStrategy, -1);
 
    setEntry(blisBranchStrategy, 1);
 
