@@ -1,5 +1,25 @@
 MibS Change Log
 
+## 1.2.1
+ * Miscellaneous performance tweaks, bug fixes, and improvements to output.
+ * Some minor refactoring
+ * Skip IDIC if the generation problem has all zero solution (#131)
+ * Turn MIP cuts on by default
+ * Improve reporting of structural analysis for instance
+ * Add check for whether lower level objective is (#130)
+ * Fix bug in IDIC that arises for problem with mixed signs in constraints
+ * Fixing bug in ISIC Type 2 when doing fractional separation
+ * Fix incorrect node status when time limit is reached
+ * Change row bound rounding rule to be tolerance-based
+ * Skip the generation of Benders binary cut when bigM problem is unbounded
+ * Initialize objective sense socrrectly
+ * Compute degree of objective alignment and output it
+ * Disable filtering of cuts by scaling
+ * Complete refactoring of the way brnching is done and introduce new scheme to prioritize branching on lower-level variables
+ * Tweaking conditions for calling various cut generators
+ * Override Blis defaults before parsing command line for Blis parameters
+ * Write aux file without objective sense keyword (assumed min)
+	
 ## 1.2.0
 
  * Generalizing the Benders binary cut based on analyzing signs of matrix A2
