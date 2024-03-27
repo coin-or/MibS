@@ -112,7 +112,6 @@ solve these problems, there are two ways:
  * [COIN-OR general discussion forum](https://github.com/orgs/coin-or/discussions)
  * [MibS Discussion forum](https://github.com/coin-or/MibS/discussions)
  * [Report a bug](https://github.com/coin-or/$Description_Slug/issues/new)
- * [Doxygen generated documentation](http://coin-or.github.io/$Description_Slug/Doxygen)
 "
     
 echo "## ACKNOWLEDGEMENT
