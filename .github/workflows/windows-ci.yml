@@ -36,13 +36,13 @@ jobs:
           repository: coin-or/coinbrew
           path: coinbrew
       - name: Set up msvc
-        uses: ilammy/msvc-dev-cmd@v1
         if: ${{ matrix.arch == 'msvc' }}
+        uses: ilammy/msvc-dev-cmd@v1
       - name: Set correct host flag and install requirements
+        if: ${{ matrix.arch != 'msvc' }}
         run: |
           echo "host_flag=--host=${{ matrix.arch }}-w64-mingw32" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
           C:\msys64\usr\bin\pacman -S mingw-w64-${{ matrix.arch }}-lapack mingw-w64-${{ matrix.arch }}-winpthreads-git mingw-w64-${{ matrix.arch }}-readline mingw-w64-${{ matrix.arch }}-suitesparse mingw-w64-${{ matrix.arch }}-metis --noconfirm
-        if: ${{ matrix.arch != 'msvc' }}
       - name: Set up msys with ${{ matrix.msystem }}
         uses: msys2/setup-msys2@v2
         with:
@@ -61,7 +61,7 @@ jobs:
           ADD_BUILD_ARGS+=( --build=x86_64-w64-mingw32 --tests main --enable-relocatable )
           ADD_BUILD_ARGS+=( --verbosity 2 )
           [[ ${{ matrix.debug }} == "true" ]] && ADD_BUILD_ARGS+=( --enable-debug )
-          [[ ${{ matrix.arch }} == "msvc" ]] && ADD_BUILD_ARGS+=( --enable-msvc=MD )
+          [[ ${{ matrix.arch }} == "msvc" ]] && ADD_BUILD_ARGS+=( --enable-msvc )
           ./coinbrew/coinbrew fetch ${{ github.event.repository.name }} --skip-update "${ADD_ARGS[@]}"
           ./coinbrew/coinbrew build ${{ github.event.repository.name }} ${{ env.host_flag }} \
           "${ADD_ARGS[@]}" "${ADD_BUILD_ARGS[@]}"
@@ -86,7 +86,6 @@ jobs:
         shell: msys2 {0}
         if: ${{ matrix.arch != 'msvc' }}
       - name: Upload artifact
-        if: ${{ github.event_name == 'pull_request'}}
         uses: actions/upload-artifact@v4
         with:
           name: ${{ github.event.repository.name }}-${{ env.package_suffix }}
