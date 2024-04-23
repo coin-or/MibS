@@ -388,7 +388,7 @@ MibSParams::setDefaultEntries() {
 
    setEntry(useFractionalCutsRootOnly, 0);
 
-   setEntry(bilevelFreeSetTypeISIC, MibSBilevelFreeSetTypeISICNotSet);
+   setEntry(bilevelFreeSetTypeISIC, MibSBilevelFreeSetTypeISICWithLLOptSol);
 
    setEntry(solveSecondLevelEveryIteration, PARAM_OFF);
 
