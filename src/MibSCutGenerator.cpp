@@ -1273,6 +1273,7 @@ MibSCutGenerator::findLowerLevelSolImprovingDirectionIC(double *uselessIneqs, do
     int whichCutsLL(localModel_->MibSPar_->entry
 		    (MibSParams::whichCutsLL));
     double timeLimit(localModel_->AlpsPar()->entry(AlpsParams::timeLimit));
+    double etol(localModel_->etol_);
     double remainingTime(0.0);
     bool foundSolution = false;
     
@@ -1527,7 +1528,7 @@ MibSCutGenerator::findLowerLevelSolImprovingDirectionIC(double *uselessIneqs, do
 	CoinDisjointCopyN(optSol, lCols, lowerLevelSol);
       // YX: numerical issue; skip if the lowerLevelSol found is all zero
       for(i = 0; i < lCols; i++){
-        if(fabs(lowerLevelSol[i]) > 0){
+        if(fabs(lowerLevelSol[i]) > etol){
           solErr = false;
           break;
         }
