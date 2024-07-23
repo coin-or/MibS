@@ -101,7 +101,7 @@ MibSModel::initialize()
   numOrigCons_ = 0;
   objSense_ = 0.0;
   lowerDim_ = 0;
-  lowerObjSense_ = 0.0;
+  lowerObjSense_ = 1;
   upperDim_ = 0;
   leftSlope_ = 0;
   rightSlope_ = 0;
@@ -259,11 +259,11 @@ MibSModel::readAuxiliaryData(int numCols, int numRows)
   int lowerColNum(0), lowerRowNum(0);
 
   while (data_stream >> key){
-     if(key == "N"){ 
+     if((key == "N")||(key == "@NUMVARS")){ 
 	   data_stream >> iValue;
 	   setLowerDim(iValue);
      }
-     else if(key == "M"){
+     else if((key == "M")||(key == "@NUMCONSTRS")){
 	   data_stream >> iValue;
 	   setLowerRowNum(iValue);
      }
@@ -321,6 +321,11 @@ MibSModel::readAuxiliaryData(int numCols, int numRows)
 	data_stream >> dValue;
 	lowerObjSense_ = dValue; //1 min; -1 max
      }
+     else if(key == "@OBJSENSE"){
+        data_stream >> cValue;
+        // YX: if not MAX, assume MIN
+        lowerObjSense_ = (cValue.compare("MAX") == 0)? -1: 1; 
+     }
      else if(key == "IC"){
        if(!getInterdictCost()){
 	 //FIXME: ALLOW MORE THAN ONE ROW
@@ -348,22 +353,26 @@ MibSModel::readAuxiliaryData(int numCols, int numRows)
 	     data_stream >> cValue;
 	     data_stream >> dValue;
 	     for(p = 0; p < numCols; ++p){
-		 if(columnName_[p] == cValue){
-		     pos = p;
-		     break;
-		 }
+                if(columnName_[p] == cValue){
+                   pos = p;
+                   break;
+                }
 	     }
 	     if(pos < 0){
-		 std::cout << cValue << " does not belong to the list of variables." << std::endl;
+                std::cout << cValue
+                          << " does not belong to the list of variables."
+                          << std::endl;
 	     }
 	     else{
-		 lowerObjCoeffs_[pos] = dValue;
-		 lowerColInd_[i] = pos;
+                lowerColInd_[i] = pos;
+                // YX: counter idx changed to match N at TERM
+                lowerObjCoeffs_[k] = dValue;
+                k++;
 	     }
 	     pos = -1;
 	 }
      }
-     else if(key == "@CONSTSBEGIN"){
+     else if(key == "@CONSTRSBEGIN"){ // YX: keyword changed
 	 pos = -1;
 	 lowerRowNum = getLowerRowNum();
 	 if(!getLowerRowInd())
