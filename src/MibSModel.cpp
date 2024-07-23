@@ -126,7 +126,7 @@ MibSModel::initialize()
   numOrigCons_ = 0;
   objSense_ = 0.0;
   lowerDim_ = 0;
-  lowerObjSense_ = 0.0;
+  lowerObjSense_ = 1;
   upperDim_ = 0;
   leftSlope_ = 0;
   rightSlope_ = 0;
