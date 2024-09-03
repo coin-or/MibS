@@ -1104,7 +1104,8 @@ MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
    int problemType(MibSPar_->entry(MibSParams::bilevelProblemType));
 
    int i(0), j(0), k(0), start(0), end(0), beg(0);
-
+   
+   bool matType = matrix.isColOrdered(); // YX: check input matrix orientation
    int inputNumRows = matrix.getNumRows(); // YX: to diff from #eqConstrs
    int numCols = matrix.getNumCols();
 
@@ -1118,6 +1119,13 @@ MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
    CoinPackedMatrix rowMatrix;
    CoinPackedMatrix *newMatrix = NULL;
    CoinPackedMatrix *matrix1 = NULL; // YX: w/ appended equality constrs
+   
+   // YX: need col mat to start; cp to matrix1 if row-ordered
+   if(!matType){
+      matrix1 = new CoinPackedMatrix();
+      matrix1->copyOf(matrix);
+      matrix1->reverseOrdering();
+   }
 
    // --- prepare for equality constraints (if any) ---
    
@@ -1176,12 +1184,17 @@ MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
 
    // YX: add rows to the problem matrix and link pointers to vectors 
    if(numRows > inputNumRows){
-      matrix1 = new CoinPackedMatrix();
-      matrix1->copyOf(matrix);
+      if(!matrix1){
+         matrix1 = new CoinPackedMatrix();
+         matrix1->copyOf(matrix);
+      }
       matrix1->reverseOrdering();
 
       rowMatrix = matrix;
-      rowMatrix.reverseOrdering();
+      // YX: switch if matrix was col ordered
+      if(matType){
+         rowMatrix.reverseOrdering();
+      }
       const double * matElements = rowMatrix.getElements();
       const int * matIndices = rowMatrix.getIndices();
       const int * matStarts = rowMatrix.getVectorStarts();
