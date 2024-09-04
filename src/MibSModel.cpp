@@ -1099,11 +1099,10 @@ MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
    CoinPackedMatrix *newMatrix = NULL;
    CoinPackedMatrix *matrix1 = NULL; // YX: w/ appended equality constrs
    
-   // YX: need col mat to start; cp to matrix1 if row-ordered
+   // YX: note that MibS defaults to using a column matrix.
    if(!matType){
-      matrix1 = new CoinPackedMatrix();
-      matrix1->copyOf(matrix);
-      matrix1->reverseOrdering();
+      throw CoinError("Expect a column-oriented matrix. Try matrix.reverseOrdering() before loading the matrix.", 
+         "loadProblemData", "MibSModel");
    }
 
    // --- prepare for equality constraints (if any) ---
@@ -1163,17 +1162,12 @@ MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
 
    // YX: add rows to the problem matrix and link pointers to vectors 
    if(numRows > inputNumRows){
-      if(!matrix1){
-         matrix1 = new CoinPackedMatrix();
-         matrix1->copyOf(matrix);
-      }
+      matrix1 = new CoinPackedMatrix();
+      matrix1->copyOf(matrix);
       matrix1->reverseOrdering();
 
       rowMatrix = matrix;
-      // YX: switch if matrix was col ordered
-      if(matType){
-         rowMatrix.reverseOrdering();
-      }
+      rowMatrix.reverseOrdering();
       const double * matElements = rowMatrix.getElements();
       const int * matIndices = rowMatrix.getIndices();
       const int * matStarts = rowMatrix.getVectorStarts();
