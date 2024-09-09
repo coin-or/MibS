@@ -6019,7 +6019,7 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
         numCuts += intersectionCuts(conPool, bS->optLowerSolutionOrd_, cutType);
      }
 
-     if (useImprovingDirectionIC == PARAM_ON){
+     if (useFractionalCuts && useImprovingDirectionIC == PARAM_ON){
         cutType = MibSIntersectionCutImprovingDirection;
         numCuts += intersectionCuts(conPool, bS->optLowerSolutionOrd_, cutType);
      }
@@ -6044,9 +6044,10 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
      //and should always be false (see BlisTreeNode.cpp)
      return (false);
 
-  }else if (bS->isLowerIntegral_ || useFractionalCuts ||
-            (useFractionalCutsRootOnly && localModel_->activeNode_->getDepth() == 0)){
-     
+  }else if (bS->isLowerIntegral_ &&
+            (useFractionalCuts ||
+             (useFractionalCutsRootOnly &&
+              localModel_->activeNode_->getDepth() == 0))){
      if (useImprovingDirectionIC == PARAM_ON){
         cutType = MibSIntersectionCutImprovingDirection;
         numCuts += intersectionCuts(conPool, bS->optLowerSolutionOrd_, cutType);
