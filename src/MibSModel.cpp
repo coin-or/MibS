@@ -3937,6 +3937,11 @@ MibSModel::adjustParameters()
     }
 
     //Param: "MibS_useImprovingSolutionIC" 
+    if ((turnOffDefaultCuts == true) &&
+        (MibSPar_->entry(MibSParams::useImprovingSolutionIC) == PARAM_NOTSET)){
+       MibSPar()->setEntry(MibSParams::useImprovingSolutionIC, PARAM_OFF);
+    }
+
     paramValue = MibSPar_->entry(MibSParams::useImprovingSolutionIC);
     
     if (paramValue == PARAM_NOTSET){
