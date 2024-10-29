@@ -3933,7 +3933,10 @@ MibSModel::adjustParameters()
        }
     }
     if (MibSPar_->entry(MibSParams::useImprovingDirectionIC) == PARAM_ON){
-	defaultCutIsOn = true;
+       defaultCutIsOn = true;
+       if (MibSPar_->entry(MibSParams::IDICGenStrategy) == MibSIDICGenStrategyNotSet){
+          MibSPar()->setEntry(MibSParams::IDICGenStrategy, MibSIDICGenStrategyXYInt);
+       }
     }
 
     //Param: "MibS_useImprovingSolutionIC" 
@@ -3958,13 +3961,34 @@ MibSModel::adjustParameters()
           std::cout << std::endl;
           MibSPar()->setEntry(MibSParams::useImprovingSolutionIC, PARAM_OFF);
        }
-       if (MibSPar_->entry(MibSParams::bilevelFreeSetTypeISIC) == 1 &&
-           isLowerObjInt_ == false){
+       if (MibSPar_->entry(MibSParams::bilevelFreeSetTypeISIC) ==
+           MibSBilevelFreeSetTypeISICWithNewLLSol && isLowerObjInt_ == false){
           std::cout << "The improving solution intersection cut (type II) are "
                     << "only valid for problems with integer lower-level "
                     << "objective coefficients.";
           std::cout << std::endl;
           MibSPar()->setEntry(MibSParams::useImprovingSolutionIC, PARAM_OFF);
+       }
+    }
+    if (MibSPar_->entry(MibSParams::useImprovingSolutionIC) == PARAM_ON){
+       switch (MibSPar_->entry(MibSParams::ISICGenStrategy)) {
+        case MibSISICGenStrategyNotSet:
+          MibSPar()->setEntry(MibSParams::ISICGenStrategy, MibSISICGenStrategyXYInt);
+        case MibSISICGenStrategyXYInt:
+          MibSPar()->setEntry(MibSParams::solveSecondLevelWhenXYVarsInt, 1);
+          break;
+        case MibSISICGenStrategyLInt:
+          MibSPar()->setEntry(MibSParams::solveSecondLevelWhenLVarsInt, 1);
+          break;
+        case MibSISICGenStrategyYInt:
+          MibSPar()->setEntry(MibSParams::solveSecondLevelWhenYVarsInt, 1);
+          break;
+        case MibSISICGenStrategyAlways:
+          MibSPar()->setEntry(MibSParams::solveSecondLevelEveryIteration, 1);
+          break;
+        case MibSISICGenStrategyAlwaysRoot:
+          MibSPar()->setEntry(MibSParams::solveSecondLevelEveryIterationRoot, 1);
+          break;
        }
     }
 
@@ -4155,36 +4179,68 @@ MibSModel::printProblemInfo(){
     if (MibSPar_->entry(MibSParams::useImprovingSolutionIC) == PARAM_ON){
        if (MibSPar_->entry(MibSParams::bilevelFreeSetTypeISIC) ==
            MibSBilevelFreeSetTypeISICWithLLOptSol){
-          std::cout << "Improving solution intersection cut generator (Type I) is on." << std::endl;
+          std::cout << "Improving solution intersection cut generator "
+                    << "(Type I) is on." << std::endl;
        }else{
-          std::cout << "Improving solution intersection cut generator (Type II) is on." << std::endl;
+          std::cout << "Improving solution intersection cut generator "
+                    << "(Type II) is on." << std::endl;
        }              
+       switch (MibSPar_->entry(MibSParams::ISICGenStrategy)){
+        case MibSISICGenStrategyLInt:
+          std::cout << "ISICs will be used to separate solutions "
+                    << "with integer linking variables." << std::endl;
+          break;
+        case MibSISICGenStrategyYInt:
+          std::cout << "ISICs will be used to separate solutions "
+                    << "with integer lower-level variables." << std::endl;
+          break;
+        case MibSISICGenStrategyXYInt:
+          std::cout << "ISICs will be used to separate only solutions "
+                    << "that are fully integer." << std::endl;
+          break;
+        case MibSISICGenStrategyAlwaysRoot:
+          std::cout << "ISICs will be used to separate fractional solutions "
+                    << "only in the root node." << std::endl;
+          break;
+        case MibSISICGenStrategyAlways:
+          std::cout << "ISICs will be used to separate all solutions."
+                    << std::endl;
+          break;
+       }
     }
 
     if (MibSPar_->entry(MibSParams::useImprovingDirectionIC) == PARAM_ON){
-       std::cout << "Improving direction intersection cut generator is on." << std::endl;
+       std::cout << "Improving direction intersection cut generator is on."
+                 << std::endl;
+       switch (MibSPar_->entry(MibSParams::IDICGenStrategy)){
+        case MibSIDICGenStrategyLInt:
+          std::cout << "IDICs will be used to separate solutions "
+                    << "with integer linking variables." << std::endl;
+          break;
+        case MibSIDICGenStrategyYInt:
+          std::cout << "IDICs will be used to separate solutions "
+                    << "with integer lower-level variables." << std::endl;
+          break;
+        case MibSIDICGenStrategyXYInt:
+          std::cout << "IDICs will be used to separate only solutions "
+                    << "that are fully integer." << std::endl;
+          break;
+        case MibSIDICGenStrategyAlwaysRoot:
+          std::cout << "IDICs will be used to separate fractional solutions "
+                    << "only in the root node." << std::endl;
+          break;
+        case MibSIDICGenStrategyAlways:
+          std::cout << "IDICs will be used to separate all solutions."
+                    << std::endl;
+          break;
+       }
     }
 
     if (MibSPar_->entry(MibSParams::useHypercubeIC) == PARAM_ON){
-       std::cout << "Hypercube intersection cut generator is on." << std::endl;
+       std::cout << "Hypercube intersection cut generator is on."
+                 << std::endl;
     }
 
-    if (MibSPar_->entry(MibSParams::useImprovingSolutionIC) == PARAM_ON ||
-        MibSPar_->entry(MibSParams::useImprovingDirectionIC) == PARAM_ON){
-       
-       if (MibSPar_->entry(MibSParams::useFractionalCutsRootOnly) == 1){
-          std::cout << "Fractional solutions will be seperated in the root node." << std::endl;
-          MibSPar_->setEntry(MibSParams::useFractionalCuts, 0);
-       }
-       if (MibSPar_->entry(MibSParams::useFractionalCuts) == 1){
-          std::cout << "Fractional solutions will be separated using intersection cuts."
-                    << std::endl;
-       }else{
-          std::cout << "Only integer solutions will be separated using intersection cuts."
-                    << std::endl;
-       }
-    }
-    
     if (MibSPar_->entry(MibSParams::solveSecondLevelEveryIteration) ==
         PARAM_OFF &&
         MibSPar_->entry(MibSParams::solveSecondLevelWhenXYVarsInt) ==

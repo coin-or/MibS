@@ -98,6 +98,28 @@ enum MibSBilevelFreeSetTypeISIC{
 
 //#############################################################################
 
+enum MibSIDICGenStrategy{
+    MibSIDICGenStrategyNotSet = -1,
+    MibSIDICGenStrategyAlways,
+    MibSIDICGenStrategyAlwaysRoot,
+    MibSIDICGenStrategyXYInt,
+    MibSIDICGenStrategyLInt,
+    MibSIDICGenStrategyYInt
+};
+
+//#############################################################################
+
+enum MibSISICGenStrategy{
+    MibSISICGenStrategyNotSet = -1,
+    MibSISICGenStrategyAlways,
+    MibSISICGenStrategyAlwaysRoot,
+    MibSISICGenStrategyXYInt,
+    MibSISICGenStrategyLInt,
+    MibSISICGenStrategyYInt,
+};
+
+//#############################################################################
+
 enum MibSRelaxTypeParamBoundCut{
   MibSRelaxTypeParamBoundCutLP = 0,
   MibSRelaxTypeParamBoundCutMIP

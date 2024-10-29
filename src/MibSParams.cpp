@@ -177,9 +177,18 @@ MibSParams::createKeywordList() {
    keys_.push_back(make_pair(std::string("MibS_useTypeIC"),
 			     AlpsParameter(AlpsIntPar, useImprovingSolutionIC)));
 
+   keys_.push_back(make_pair(std::string("MibS_ISICGenStrategy"),
+			     AlpsParameter(AlpsIntPar, ISICGenStrategy)));
+
    keys_.push_back(make_pair(std::string("MibS_useImprovingDirectionIC"),
 			     AlpsParameter(AlpsIntPar, useImprovingDirectionIC)));
    //legacy parameter name
+   keys_.push_back(make_pair(std::string("MibS_useTypeWatermelon"),
+			     AlpsParameter(AlpsIntPar, useImprovingDirectionIC)));
+
+   keys_.push_back(make_pair(std::string("MibS_IDICGenStrategy"),
+			     AlpsParameter(AlpsIntPar, IDICGenStrategy)));
+
    keys_.push_back(make_pair(std::string("MibS_useTypeWatermelon"),
 			     AlpsParameter(AlpsIntPar, useImprovingDirectionIC)));
 
@@ -195,22 +204,22 @@ MibSParams::createKeywordList() {
    keys_.push_back(make_pair(std::string("MibS_bilevelFreeSetTypeISIC"),
 			     AlpsParameter(AlpsIntPar, bilevelFreeSetTypeISIC)));
 
-   keys_.push_back(make_pair(std::string("MibS_useFractionalCuts"),
-			     AlpsParameter(AlpsIntPar, useFractionalCuts)));
-
-   keys_.push_back(make_pair(std::string("MibS_useFractionalCutsRootOnly"),
-			     AlpsParameter(AlpsIntPar,
-                                           useFractionalCutsRootOnly)));
-
    //solve lower-level Parameters
    keys_.push_back(make_pair(std::string("MibS_solveSecondLevelEveryIteration"),
 			     AlpsParameter(AlpsIntPar, solveSecondLevelEveryIteration)));
+
+   keys_.push_back(make_pair(std::string("MibS_solveSecondLevelEveryIterationRoot"),
+			     AlpsParameter(AlpsIntPar,
+                                           solveSecondLevelEveryIterationRoot)));
 
    keys_.push_back(make_pair(std::string("MibS_solveSecondLevelWhenXYVarsInt"),
 			     AlpsParameter(AlpsIntPar, solveSecondLevelWhenXYVarsInt)));
 
    keys_.push_back(make_pair(std::string("MibS_solveSecondLevelWhenXVarsInt"),
 			     AlpsParameter(AlpsIntPar, solveSecondLevelWhenXVarsInt)));
+
+   keys_.push_back(make_pair(std::string("MibS_solveSecondLevelWhenYVarsInt"),
+			     AlpsParameter(AlpsIntPar, solveSecondLevelWhenYVarsInt)));
 
    keys_.push_back(make_pair(std::string("MibS_solveSecondLevelWhenLVarsInt"),
 			     AlpsParameter(AlpsIntPar, solveSecondLevelWhenLVarsInt)));
@@ -384,17 +393,17 @@ MibSParams::setDefaultEntries() {
 
    setEntry(useHybridIC, PARAM_NOTSET);
 
-   setEntry(useFractionalCuts, 1);
-
-   setEntry(useFractionalCutsRootOnly, 0);
-
    setEntry(bilevelFreeSetTypeISIC, MibSBilevelFreeSetTypeISICWithLLOptSol);
 
    setEntry(solveSecondLevelEveryIteration, PARAM_OFF);
 
+   setEntry(solveSecondLevelEveryIterationRoot, PARAM_OFF);
+
    setEntry(solveSecondLevelWhenXYVarsInt, PARAM_ON);
 
    setEntry(solveSecondLevelWhenXVarsInt, PARAM_OFF);
+
+   setEntry(solveSecondLevelWhenYVarsInt, PARAM_OFF);
 
    setEntry(solveSecondLevelWhenLVarsInt, PARAM_OFF);
 
