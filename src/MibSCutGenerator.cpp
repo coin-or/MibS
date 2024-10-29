@@ -5870,11 +5870,11 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
   int useBendersBinaryCut
      = localModel_->MibSPar_->entry(MibSParams::useBendersBinaryCut);
   
-  int useFractionalCuts =
-     localModel_->MibSPar_->entry(MibSParams::useFractionalCuts);
+  int IDICGenStrategy =
+     localModel_->MibSPar_->entry(MibSParams::IDICGenStrategy);
   
-  int useFractionalCutsRootOnly =
-     localModel_->MibSPar_->entry(MibSParams::useFractionalCutsRootOnly);
+  int ISICGenStrategy =
+     localModel_->MibSPar_->entry(MibSParams::ISICGenStrategy);
   
   double relaxedObjVal = localModel_->bS_->getLowerObj(
                          localModel_->solver()->getColSolution(),
@@ -6012,14 +6012,25 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
            numCuts += bendersInterdictionMultipleCuts(conPool);
         }		  
      }
-     if (useImprovingSolutionIC == PARAM_ON && ((haveSecondLevelSol &&
-          relaxedObjVal > localModel_->bS_->objVal_ + localModel_->etol_) ||
-          localModel_->MibSPar_->entry(MibSParams::bilevelFreeSetTypeISIC) == 1)){
+     if (useImprovingSolutionIC == PARAM_ON &&
+         ((haveSecondLevelSol &&
+           relaxedObjVal > localModel_->bS_->objVal_ + localModel_->etol_) ||
+          (localModel_->MibSPar_->entry(MibSParams::bilevelFreeSetTypeISIC) ==
+           MibSBilevelFreeSetTypeISICWithNewLLSol &&
+           ISICGenStrategy == MibSIDICGenStrategyLInt))){
         cutType = MibSIntersectionCutImprovingSolution;
         numCuts += intersectionCuts(conPool, bS->optLowerSolutionOrd_, cutType);
      }
 
-     if (useFractionalCuts && useImprovingDirectionIC == PARAM_ON){
+     if (useImprovingDirectionIC == PARAM_ON &&
+         ((haveSecondLevelSol &&
+           relaxedObjVal > localModel_->bS_->objVal_ + localModel_->etol_) ||
+          (localModel_->MibSPar_->entry(MibSParams::bilevelFreeSetTypeISIC) ==
+           MibSBilevelFreeSetTypeISICWithNewLLSol &&
+           (ISICGenStrategy == MibSIDICGenStrategyLInt ||
+            ISICGenStrategy == MibSIDICGenStrategyAlways ||
+            (ISICGenStrategy == MibSIDICGenStrategyAlwaysRoot &&
+             localModel_->activeNode_->getDepth() == 0))))){
         cutType = MibSIntersectionCutImprovingDirection;
         numCuts += intersectionCuts(conPool, bS->optLowerSolutionOrd_, cutType);
      }
@@ -6044,17 +6055,43 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
      //and should always be false (see BlisTreeNode.cpp)
      return (false);
 
-  }else if (bS->isLowerIntegral_ &&
-            (useFractionalCuts ||
-             (useFractionalCutsRootOnly &&
-              localModel_->activeNode_->getDepth() == 0))){
-     if (useImprovingDirectionIC == PARAM_ON){
+  }else if (bS->isLowerIntegral_){
+     if (useImprovingDirectionIC == PARAM_ON &&
+        (IDICGenStrategy == MibSIDICGenStrategyAlways ||
+         IDICGenStrategy == MibSIDICGenStrategyYInt ||
+         (IDICGenStrategy == MibSIDICGenStrategyAlwaysRoot &&
+          localModel_->activeNode_->getDepth() == 0))){
         cutType = MibSIntersectionCutImprovingDirection;
         numCuts += intersectionCuts(conPool, bS->optLowerSolutionOrd_, cutType);
      }
-     if (useImprovingSolutionIC == PARAM_ON && ((haveSecondLevelSol &&
+     if (useImprovingSolutionIC == PARAM_ON &&
+         ((haveSecondLevelSol &&
            relaxedObjVal > localModel_->bS_->objVal_ + localModel_->etol_) ||
-          localModel_->MibSPar_->entry(MibSParams::bilevelFreeSetTypeISIC) == 1)){ 
+          (localModel_->MibSPar_->entry(MibSParams::bilevelFreeSetTypeISIC) ==
+           MibSBilevelFreeSetTypeISICWithNewLLSol &&
+           (ISICGenStrategy == MibSIDICGenStrategyYInt ||
+            ISICGenStrategy == MibSIDICGenStrategyAlways ||
+            (ISICGenStrategy == MibSIDICGenStrategyAlwaysRoot &&
+             localModel_->activeNode_->getDepth() == 0))))){
+        cutType = MibSIntersectionCutImprovingSolution;
+        numCuts += intersectionCuts(conPool, bS->optLowerSolutionOrd_, cutType);
+     }
+  }else{
+     if (useImprovingDirectionIC == PARAM_ON &&
+         (IDICGenStrategy == MibSIDICGenStrategyAlways ||
+          (IDICGenStrategy == MibSIDICGenStrategyAlwaysRoot &&
+           localModel_->activeNode_->getDepth() == 0))){
+        cutType = MibSIntersectionCutImprovingDirection;
+        numCuts += intersectionCuts(conPool, bS->optLowerSolutionOrd_, cutType);
+     }
+     if (useImprovingSolutionIC == PARAM_ON &&
+         ((haveSecondLevelSol &&
+           relaxedObjVal > localModel_->bS_->objVal_ + localModel_->etol_) ||
+          (localModel_->MibSPar_->entry(MibSParams::bilevelFreeSetTypeISIC) ==
+           MibSBilevelFreeSetTypeISICWithNewLLSol &&
+           (ISICGenStrategy == MibSIDICGenStrategyAlways ||
+            (ISICGenStrategy == MibSIDICGenStrategyAlwaysRoot &&
+             localModel_->activeNode_->getDepth() == 0))))){
         cutType = MibSIntersectionCutImprovingSolution;
         numCuts += intersectionCuts(conPool, bS->optLowerSolutionOrd_, cutType);
      }

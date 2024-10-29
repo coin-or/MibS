@@ -57,15 +57,19 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
       (model_->MibSPar_->entry(MibSParams::branchStrategy));
 
   bool solveSecondLevelEveryIteration(model_->MibSPar_->entry
-                                     (MibSParams::solveSecondLevelEveryIteration) == PARAM_ON);
+       (MibSParams::solveSecondLevelEveryIteration) == PARAM_ON);
+  bool solveSecondLevelEveryIterationRoot(model_->MibSPar_->entry
+       (MibSParams::solveSecondLevelEveryIterationRoot) == PARAM_ON);
   bool solveSecondLevelWhenXYVarsInt(model_->MibSPar_->entry
-                                     (MibSParams::solveSecondLevelWhenXYVarsInt) == PARAM_ON);
+       (MibSParams::solveSecondLevelWhenXYVarsInt) == PARAM_ON);
   bool solveSecondLevelWhenXVarsInt(model_->MibSPar_->entry
-                                    (MibSParams::solveSecondLevelWhenXVarsInt) == PARAM_ON);
+       (MibSParams::solveSecondLevelWhenXVarsInt) == PARAM_ON);
+  bool solveSecondLevelWhenYVarsInt(model_->MibSPar_->entry
+       (MibSParams::solveSecondLevelWhenXVarsInt) == PARAM_ON);
   bool solveSecondLevelWhenLVarsInt(model_->MibSPar_->entry
-                                    (MibSParams::solveSecondLevelWhenLVarsInt) == PARAM_ON);
+       (MibSParams::solveSecondLevelWhenLVarsInt) == PARAM_ON);
   bool solveSecondLevelWhenLVarsFixed(model_->MibSPar_->entry
-                                      (MibSParams::solveSecondLevelWhenLVarsFixed) == PARAM_ON);
+       (MibSParams::solveSecondLevelWhenLVarsFixed) == PARAM_ON);
   int cutStrategy(model_->MibSPar_->entry
 		  (MibSParams::cutStrategy));
 
@@ -239,8 +243,11 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
             isLinkVarsFixed_) ||
 	   (branchPar == MibSBranchingStrategyFractional && isIntegral_) ||
 	   (solveSecondLevelEveryIteration) ||
+	   (solveSecondLevelEveryIterationRoot &&
+            model_->activeNode_->getDepth() == 0) ||
 	   (solveSecondLevelWhenXYVarsInt && isIntegral_) ||
 	   (solveSecondLevelWhenXVarsInt && isUpperIntegral_) ||
+	   (solveSecondLevelWhenYVarsInt && isLowerIntegral_) ||
 	   (solveSecondLevelWhenLVarsInt && isLinkVarsIntegral_) ||
 	   (solveSecondLevelWhenLVarsFixed && isLinkVarsFixed_ )))){
 	  storeSol = checkBilevelFeasibility(mibs->isRoot_);
@@ -420,6 +427,7 @@ MibSBilevel::checkBilevelFeasibility(bool isRoot)
 	}else{
 	  startTimeVF = model_->broker_->subTreeTimer().getTime();
 	  lSolver->branchAndBound();
+          lSolver->writeLp("water");
 	  model_->timerVF_ += model_->broker_->subTreeTimer().getTime() - startTimeVF;
 	}
   
