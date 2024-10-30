@@ -427,7 +427,7 @@ MibSBilevel::checkBilevelFeasibility(bool isRoot)
 	}else{
 	  startTimeVF = model_->broker_->subTreeTimer().getTime();
 	  lSolver->branchAndBound();
-          lSolver->writeLp("water");
+          //lSolver->writeLp("water");
 	  model_->timerVF_ += model_->broker_->subTreeTimer().getTime() - startTimeVF;
 	}
   
