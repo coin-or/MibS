@@ -828,7 +828,7 @@ MibSCutGenerator::findLowerLevelSolImprovingSolutionIC(double *uselessIneqs,
     double infinity(oSolver->getInfinity());
     int i, j;
     int index(0), cntInt(0);
-    double lObjVal(0.0), value(0.0);
+    double lObjVal(0.0);
     int uCols(localModel_->getUpperDim());
     int lCols(localModel_->getLowerDim());
     int lRows(localModel_->getLowerRowNum());
@@ -6012,34 +6012,30 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
            numCuts += bendersInterdictionMultipleCuts(conPool);
         }		  
      }
+     if (useImprovingDirectionIC == PARAM_ON &&
+         (IDICGenStrategy == MibSIDICGenStrategyLInt ||
+          IDICGenStrategy == MibSIDICGenStrategyAlways ||
+          (IDICGenStrategy == MibSIDICGenStrategyAlwaysRoot &&
+           localModel_->activeNode_->getDepth() == 0))){
+        cutType = MibSIntersectionCutImprovingSolution;
+        numCuts += intersectionCuts(conPool, bS->optLowerSolutionOrd_, cutType);
+     }
      if (useImprovingSolutionIC == PARAM_ON &&
          ((haveSecondLevelSol &&
            relaxedObjVal > localModel_->bS_->objVal_ + localModel_->etol_) ||
           (localModel_->MibSPar_->entry(MibSParams::bilevelFreeSetTypeISIC) ==
            MibSBilevelFreeSetTypeISICWithNewLLSol &&
-           ISICGenStrategy == MibSIDICGenStrategyLInt))){
-        cutType = MibSIntersectionCutImprovingSolution;
-        numCuts += intersectionCuts(conPool, bS->optLowerSolutionOrd_, cutType);
-     }
-
-     if (useImprovingDirectionIC == PARAM_ON &&
-         ((haveSecondLevelSol &&
-           relaxedObjVal > localModel_->bS_->objVal_ + localModel_->etol_) ||
-          (localModel_->MibSPar_->entry(MibSParams::bilevelFreeSetTypeISIC) ==
-           MibSBilevelFreeSetTypeISICWithNewLLSol &&
-           (ISICGenStrategy == MibSIDICGenStrategyLInt ||
-            ISICGenStrategy == MibSIDICGenStrategyAlways ||
-            (ISICGenStrategy == MibSIDICGenStrategyAlwaysRoot &&
+           (ISICGenStrategy == MibSISICGenStrategyLInt ||
+            ISICGenStrategy == MibSISICGenStrategyAlways ||
+            (ISICGenStrategy == MibSISICGenStrategyAlwaysRoot &&
              localModel_->activeNode_->getDepth() == 0))))){
         cutType = MibSIntersectionCutImprovingDirection;
         numCuts += intersectionCuts(conPool, bS->optLowerSolutionOrd_, cutType);
      }
-     
      if (useHypercubeIC == PARAM_ON && haveSecondLevelSol){
         cutType = MibSIntersectionCutHypercube;
         numCuts += intersectionCuts(conPool, bS->optLowerSolutionOrd_, cutType);
      }
-
      if (localModel_->allUpperBin_){
         //problem with binary UL variables and integer LL variables
         if (useGeneralizedNoGoodCut == PARAM_ON){
@@ -6057,8 +6053,8 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
 
   }else if (bS->isLowerIntegral_){
      if (useImprovingDirectionIC == PARAM_ON &&
-        (IDICGenStrategy == MibSIDICGenStrategyAlways ||
-         IDICGenStrategy == MibSIDICGenStrategyYInt ||
+        (IDICGenStrategy == MibSIDICGenStrategyYInt ||
+         IDICGenStrategy == MibSIDICGenStrategyAlways ||
          (IDICGenStrategy == MibSIDICGenStrategyAlwaysRoot &&
           localModel_->activeNode_->getDepth() == 0))){
         cutType = MibSIntersectionCutImprovingDirection;
@@ -6069,9 +6065,9 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
            relaxedObjVal > localModel_->bS_->objVal_ + localModel_->etol_) ||
           (localModel_->MibSPar_->entry(MibSParams::bilevelFreeSetTypeISIC) ==
            MibSBilevelFreeSetTypeISICWithNewLLSol &&
-           (ISICGenStrategy == MibSIDICGenStrategyYInt ||
-            ISICGenStrategy == MibSIDICGenStrategyAlways ||
-            (ISICGenStrategy == MibSIDICGenStrategyAlwaysRoot &&
+           (ISICGenStrategy == MibSISICGenStrategyYInt ||
+            ISICGenStrategy == MibSISICGenStrategyAlways ||
+            (ISICGenStrategy == MibSISICGenStrategyAlwaysRoot &&
              localModel_->activeNode_->getDepth() == 0))))){
         cutType = MibSIntersectionCutImprovingSolution;
         numCuts += intersectionCuts(conPool, bS->optLowerSolutionOrd_, cutType);
