@@ -6017,7 +6017,7 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
           IDICGenStrategy == MibSIDICGenStrategyAlways ||
           (IDICGenStrategy == MibSIDICGenStrategyAlwaysRoot &&
            localModel_->activeNode_->getDepth() == 0))){
-        cutType = MibSIntersectionCutImprovingSolution;
+        cutType = MibSIntersectionCutImprovingDirection;
         numCuts += intersectionCuts(conPool, bS->optLowerSolutionOrd_, cutType);
      }
      if (useImprovingSolutionIC == PARAM_ON &&
@@ -6029,7 +6029,7 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
             ISICGenStrategy == MibSISICGenStrategyAlways ||
             (ISICGenStrategy == MibSISICGenStrategyAlwaysRoot &&
              localModel_->activeNode_->getDepth() == 0))))){
-        cutType = MibSIntersectionCutImprovingDirection;
+        cutType = MibSIntersectionCutImprovingSolution;
         numCuts += intersectionCuts(conPool, bS->optLowerSolutionOrd_, cutType);
      }
      if (useHypercubeIC == PARAM_ON && haveSecondLevelSol){
