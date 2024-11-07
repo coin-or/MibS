@@ -114,6 +114,69 @@ private:
     /** Number of (UB) solved **/
     int counterUB_;
 
+    /** Number of IDICs generated when solution is fully integer **/
+    int counterXYIntIDIC_;
+
+    /** Number of IDICs generated when linking variables are integer **/
+    int counterLIntIDIC_;
+
+    /** Number of IDICs generated when lower-level is integer **/
+    int counterYIntIDIC_;
+
+    /** Number of IDICs generated when solutions is fractional **/
+    int counterFracIDIC_;
+
+    /** Number of IDIC fails when solution is fully integer **/
+    int counterXYIntIDICFail_;
+
+    /** Number of IDIC fails when linking variables are integer **/
+    int counterLIntIDICFail_;
+
+    /** Number of IDIC fails when lower-level is integer **/
+    int counterYIntIDICFail_;
+
+    /** Number of IDIC fails when solutions is fractional **/
+    int counterFracIDICFail_;
+
+    /** Number of ISICs generated when solution is fully integer **/
+    int counterXYIntISIC_;
+
+    /** Number of ISICs generated when linking variables are integer **/
+    int counterLIntISIC_;
+
+    /** Number of ISICs generated when lower-level is integer **/
+    int counterYIntISIC_;
+
+    /** Number of ISICs generated when solutions is fractional **/
+    int counterFracISIC_;
+
+    /** Number of ISIC fails when solution is fully integer **/
+    int counterXYIntISICFail_;
+
+    /** Number of ISIC fails when linking variables are integer **/
+    int counterLIntISICFail_;
+
+    /** Number of ISIC fails when lower-level is integer **/
+    int counterYIntISICFail_;
+
+    /** Number of ISIC fails when solutions is fractional**/
+    int counterFracISICFail_;
+
+    /** Number of Benders Interdiction cuts generated **/
+    int counterBendersInterdict_;
+
+    /** Number of Hypercube Intersection cuts generated **/
+    int counterHypercubeIC_;
+
+    /** Number of Generalized No Good cuts generated **/
+    int counterGeneralizedNoGood_;
+
+    /** Number of Benders Binary cuts generated **/
+    int counterBendersBinary_;
+
+    /** Number of Integer No Good cuts generated **/
+    int counterIntegerNoGood_;
+
     /** Time for solving (VF) **/
     double timerVF_;
 

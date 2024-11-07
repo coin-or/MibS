@@ -166,11 +166,88 @@ MibSSolution::print(std::ostream& os) const
       }
    }
 
-   if(&os == &std::cout){
-      std::cout << "Number of problems (VF) solved = " << localModel_->counterVF_ << std::endl;
-      std::cout << "Number of problems (UB) solved = " << localModel_->counterUB_ << std::endl;
-      std::cout << "Time for solving problem (VF) = " << localModel_->timerVF_ << std::endl;
-      std::cout << "Time for solving problem (UB) = " << localModel_->timerUB_ << std::endl;
+  int useBendersInterdictionCut = 
+     localModel_->MibSPar_->entry(MibSParams::useBendersInterdictionCut);
+  int useImprovingSolutionIC =
+     localModel_->MibSPar_->entry(MibSParams::useImprovingSolutionIC);
+  int useImprovingDirectionIC =
+     localModel_->MibSPar_->entry(MibSParams::useImprovingDirectionIC);
+  int useHypercubeIC =
+     localModel_->MibSPar_->entry(MibSParams::useHypercubeIC);
+  int useGeneralizedNoGoodCut = 
+     localModel_->MibSPar_->entry(MibSParams::useGeneralizedNoGoodCut);
+  int useBendersBinaryCut
+     = localModel_->MibSPar_->entry(MibSParams::useBendersBinaryCut);
+  int useIntegerNoGoodCut
+     = localModel_->MibSPar_->entry(MibSParams::useIntegerNoGoodCut);
+
+   os << "Number of problems (VF) solved = " << localModel_->counterVF_
+      << std::endl
+      << "Number of problems (UB) solved = " << localModel_->counterUB_
+      << std::endl
+      << "Time for solving problem (VF) = " << localModel_->timerVF_
+      << std::endl
+      << "Time for solving problem (UB) = " << localModel_->timerUB_
+      << std::endl;
+   if (useBendersInterdictionCut){
+      os << "Number of Benders Interdiction Cuts Generated: "
+         << localModel_->counterBendersInterdict_ << std::endl;
+   }
+   if (useHypercubeIC){
+      os << "Number of Hypercube Intersection Cuts Generated: "
+         << localModel_->counterHypercubeIC_ << std::endl;
+   }
+   if (useGeneralizedNoGoodCut){
+      os << "Number of Generalized No Good Cuts Generated: "
+         << localModel_->counterGeneralizedNoGood_ << std::endl;
+   }
+   if (useBendersBinaryCut){
+      os << "Number of Benders Binary Cuts Generated: "
+         << localModel_->counterBendersBinary_ << std::endl;
+   }
+   if (useIntegerNoGoodCut){
+      os << "Number of Integer No Good Cuts Generated: "
+         << localModel_->counterIntegerNoGood_ << std::endl;
+   }
+   if (useImprovingDirectionIC){
+      os << "Number of IDICs Generated:" << std::endl
+         << "   Full Int IDIC:                " << localModel_->counterXYIntIDIC_
+         << std::endl
+         << "   Linking Int IDIC:             "  << localModel_->counterLIntIDIC_
+         << std::endl
+         << "   Second-level Int IDIC:        "  << localModel_->counterYIntIDIC_
+         << std::endl
+         << "   Fractional IDIC:              "  << localModel_->counterFracIDIC_
+         << std::endl
+         << "Number of IDIC Generation Failures:"  << std::endl
+         << "   Full Int IDIC (Fail):         "  << localModel_->counterXYIntIDICFail_
+         << std::endl
+         << "   Linking Int IDIC (Fail):      "  << localModel_->counterLIntIDICFail_
+         << std::endl
+         << "   Second-level Int IDIC (Fail): "  << localModel_->counterYIntIDICFail_
+         << std::endl
+         << "   Fractional IDIC (Fail):       "  << localModel_->counterFracIDICFail_
+         << std::endl;
+   }
+   if (useImprovingSolutionIC){
+      os << "Number of ISICs Generated:" << std::endl
+         << "   Full Int ISIC:                " << localModel_->counterXYIntISIC_
+         << std::endl
+         << "   Linking Int ISIC:             "  << localModel_->counterLIntISIC_
+         << std::endl
+         << "   Second-level Int ISIC:        "  << localModel_->counterYIntISIC_
+         << std::endl
+         << "   Fractional:                   "  << localModel_->counterFracISIC_
+         << std::endl
+         << "Number of ISIC Generation Failures:"  << std::endl
+         << "   Full Int ISIC (Fail):         "  << localModel_->counterXYIntISICFail_
+         << std::endl
+         << "   Linking Int ISIC (Fail):      "  << localModel_->counterLIntISICFail_
+         << std::endl
+         << "   Second-level Int ISIC (Fail): "  << localModel_->counterYIntISICFail_
+         << std::endl
+         << "   Fractional ISIC (Fail):       "  << localModel_->counterFracISICFail_
+         << std::endl;
    }
 }
 

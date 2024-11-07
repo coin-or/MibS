@@ -385,8 +385,12 @@ MibSParams::setDefaultEntries() {
 
    setEntry(useImprovingSolutionIC, PARAM_NOTSET);
 
+   setEntry(ISICGenStrategy, MibSISICGenStrategyNotSet);
+            
    setEntry(useImprovingDirectionIC, PARAM_NOTSET);
 
+   setEntry(IDICGenStrategy, MibSIDICGenStrategyNotSet);
+            
    setEntry(useHypercubeIC, PARAM_NOTSET);
 
    setEntry(useTenderIC, PARAM_NOTSET);

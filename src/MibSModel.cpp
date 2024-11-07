@@ -143,6 +143,27 @@ MibSModel::initialize()
   objAlignment_ = 0;
   counterVF_ = 0;
   counterUB_ = 0;
+  counterXYIntIDIC_ = 0;
+  counterLIntIDIC_ = 0;
+  counterYIntIDIC_ = 0;
+  counterFracIDIC_ = 0;
+  counterXYIntIDICFail_ = 0;
+  counterLIntIDICFail_ = 0;
+  counterYIntIDICFail_ = 0;
+  counterFracIDICFail_ = 0;
+  counterXYIntISIC_ = 0;
+  counterLIntISIC_ = 0;
+  counterYIntISIC_ = 0;
+  counterFracISIC_ = 0;
+  counterXYIntISICFail_ = 0;
+  counterLIntISICFail_ = 0;
+  counterYIntISICFail_ = 0;
+  counterFracISICFail_ = 0;
+  counterBendersInterdict_ = 0;
+  counterHypercubeIC_ = 0;
+  counterGeneralizedNoGood_ = 0;
+  counterBendersBinary_ = 0;
+  counterIntegerNoGood_ = 0;
   timerVF_ = 0.0;
   timerUB_ = 0.0;
   countIteration_ = 0;
@@ -3934,8 +3955,10 @@ MibSModel::adjustParameters()
     }
     if (MibSPar_->entry(MibSParams::useImprovingDirectionIC) == PARAM_ON){
        defaultCutIsOn = true;
-       if (MibSPar_->entry(MibSParams::IDICGenStrategy) == MibSIDICGenStrategyNotSet){
-          MibSPar()->setEntry(MibSParams::IDICGenStrategy, MibSIDICGenStrategyXYInt);
+       if (MibSPar_->entry(MibSParams::IDICGenStrategy) ==
+           MibSIDICGenStrategyNotSet){
+          MibSPar()->setEntry(MibSParams::IDICGenStrategy,
+                              MibSIDICGenStrategyAlways);
        }
     }
 
@@ -3948,7 +3971,10 @@ MibSModel::adjustParameters()
     paramValue = MibSPar_->entry(MibSParams::useImprovingSolutionIC);
     
     if (paramValue == PARAM_NOTSET){
-       if (lowerRowSignsConsistent_ == false || upperRowSignsConsistent_ == false){
+       if (lowerRowSignsConsistent_ == false || upperRowSignsConsistent_ == false ||
+           isPureInteger_ == false || isLowerCoeffInt_ == false ||
+           (MibSPar_->entry(MibSParams::bilevelFreeSetTypeISIC) ==
+            MibSBilevelFreeSetTypeISICWithNewLLSol && isLowerObjInt_ == false)){
           MibSPar()->setEntry(MibSParams::useImprovingSolutionIC, PARAM_OFF);
        }else{
           MibSPar()->setEntry(MibSParams::useImprovingSolutionIC, PARAM_ON);
