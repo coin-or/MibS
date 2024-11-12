@@ -65,7 +65,7 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
   bool solveSecondLevelWhenXVarsInt(model_->MibSPar_->entry
        (MibSParams::solveSecondLevelWhenXVarsInt) == PARAM_ON);
   bool solveSecondLevelWhenYVarsInt(model_->MibSPar_->entry
-       (MibSParams::solveSecondLevelWhenXVarsInt) == PARAM_ON);
+       (MibSParams::solveSecondLevelWhenYVarsInt) == PARAM_ON);
   bool solveSecondLevelWhenLVarsInt(model_->MibSPar_->entry
        (MibSParams::solveSecondLevelWhenLVarsInt) == PARAM_ON);
   bool solveSecondLevelWhenLVarsFixed(model_->MibSPar_->entry
@@ -250,7 +250,7 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
 	   (solveSecondLevelWhenYVarsInt && isLowerIntegral_) ||
 	   (solveSecondLevelWhenLVarsInt && isLinkVarsIntegral_) ||
 	   (solveSecondLevelWhenLVarsFixed && isLinkVarsFixed_ )))){
-	  storeSol = checkBilevelFeasibility(mibs->isRoot_);
+           storeSol = checkBilevelFeasibility(mibs->isRoot_);
       }
   }
   

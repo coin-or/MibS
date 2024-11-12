@@ -5880,9 +5880,11 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
                          localModel_->getLowerObjSense());
 
   bool haveSecondLevelSol = ((useLinkingSolutionPool == PARAM_ON &&
+                              bS->isLinkVarsIntegral_ &&
                               bS->tagInSeenLinkingPool_ != MibSLinkingPoolTagIsNotSet &&
                               bS->tagInSeenLinkingPool_ != MibSLinkingPoolTagLowerIsInfeasible) ||
-                             (useLinkingSolutionPool != PARAM_ON &&
+                             ((useLinkingSolutionPool != PARAM_ON ||
+                               !bS->isLinkVarsIntegral_) &&
                               bS->isLowerSolved_ != false &&
                               bS->isProvenOptimal_ != false));
 
