@@ -3999,7 +3999,7 @@ MibSModel::adjustParameters()
     if (MibSPar_->entry(MibSParams::useImprovingSolutionIC) == PARAM_ON){
        switch (MibSPar_->entry(MibSParams::ISICGenStrategy)) {
         case MibSISICGenStrategyNotSet:
-          MibSPar()->setEntry(MibSParams::ISICGenStrategy, MibSISICGenStrategyXYInt);
+          MibSPar()->setEntry(MibSParams::ISICGenStrategy, MibSISICGenStrategyLInt);
         case MibSISICGenStrategyXYInt:
           MibSPar()->setEntry(MibSParams::solveSecondLevelWhenXYVarsInt, 1);
           break;
