@@ -104,7 +104,8 @@ enum MibSIDICGenStrategy{
     MibSIDICGenStrategyAlwaysRoot,
     MibSIDICGenStrategyXYInt,
     MibSIDICGenStrategyLInt,
-    MibSIDICGenStrategyYInt
+    MibSIDICGenStrategyYInt,
+    MibSIDICGenStrategyYLInt
 };
 
 //#############################################################################
@@ -116,6 +117,7 @@ enum MibSISICGenStrategy{
     MibSISICGenStrategyXYInt,
     MibSISICGenStrategyLInt,
     MibSISICGenStrategyYInt,
+    MibSISICGenStrategyYLInt,
 };
 
 //#############################################################################

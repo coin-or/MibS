@@ -237,7 +237,7 @@ MibSSolution::print(std::ostream& os) const
          << std::endl
          << "   Second-level Int ISIC:        "  << localModel_->counterYIntISIC_
          << std::endl
-         << "   Fractional:                   "  << localModel_->counterFracISIC_
+         << "   Fractional ISIC:              "  << localModel_->counterFracISIC_
          << std::endl
          << "Number of ISIC Generation Failures:"  << std::endl
          << "   Full Int ISIC (Fail):         "  << localModel_->counterXYIntISICFail_
