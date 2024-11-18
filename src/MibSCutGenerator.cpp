@@ -6040,6 +6040,7 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
      }
      if (useImprovingDirectionIC == PARAM_ON &&
          (IDICGenStrategy == MibSIDICGenStrategyLInt ||
+          IDICGenStrategy == MibSIDICGenStrategyYLInt ||
           IDICGenStrategy == MibSIDICGenStrategyAlways ||
           (IDICGenStrategy == MibSIDICGenStrategyAlwaysRoot &&
            localModel_->activeNode_->getDepth() == 0))){
@@ -6058,6 +6059,7 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
           (localModel_->MibSPar_->entry(MibSParams::bilevelFreeSetTypeISIC) ==
            MibSBilevelFreeSetTypeISICWithNewLLSol)) &&
            (ISICGenStrategy == MibSISICGenStrategyLInt ||
+            ISICGenStrategy == MibSISICGenStrategyYLInt ||
             ISICGenStrategy == MibSISICGenStrategyAlways ||
             (ISICGenStrategy == MibSISICGenStrategyAlwaysRoot &&
              localModel_->activeNode_->getDepth() == 0))){
@@ -6098,6 +6100,7 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
   }else if (bS->isLowerIntegral_){
      if (useImprovingDirectionIC == PARAM_ON &&
         (IDICGenStrategy == MibSIDICGenStrategyYInt ||
+         IDICGenStrategy == MibSIDICGenStrategyYLInt ||
          IDICGenStrategy == MibSIDICGenStrategyAlways ||
          (IDICGenStrategy == MibSIDICGenStrategyAlwaysRoot &&
           localModel_->activeNode_->getDepth() == 0))){
@@ -6116,6 +6119,7 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
           (localModel_->MibSPar_->entry(MibSParams::bilevelFreeSetTypeISIC) ==
            MibSBilevelFreeSetTypeISICWithNewLLSol &&
            (ISICGenStrategy == MibSISICGenStrategyYInt ||
+            ISICGenStrategy == MibSISICGenStrategyYLInt ||
             ISICGenStrategy == MibSISICGenStrategyAlways ||
             (ISICGenStrategy == MibSISICGenStrategyAlwaysRoot &&
              localModel_->activeNode_->getDepth() == 0))))){
