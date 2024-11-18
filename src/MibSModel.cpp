@@ -4009,6 +4009,10 @@ MibSModel::adjustParameters()
         case MibSISICGenStrategyYInt:
           MibSPar()->setEntry(MibSParams::solveSecondLevelWhenYVarsInt, 1);
           break;
+        case MibSISICGenStrategyYLInt:
+          MibSPar()->setEntry(MibSParams::solveSecondLevelWhenYVarsInt, 1);
+          MibSPar()->setEntry(MibSParams::solveSecondLevelWhenLVarsInt, 1);
+          break;
         case MibSISICGenStrategyAlways:
           MibSPar()->setEntry(MibSParams::solveSecondLevelEveryIteration, 1);
           break;
@@ -4220,6 +4224,10 @@ MibSModel::printProblemInfo(){
           std::cout << "ISICs will be used to separate solutions "
                     << "with integer lower-level variables." << std::endl;
           break;
+        case MibSISICGenStrategyYLInt:
+          std::cout << "ISICs will be used to separate solutions "
+                    << "with integer linking or lower-level variables." << std::endl;
+          break;
         case MibSISICGenStrategyXYInt:
           std::cout << "ISICs will be used to separate only solutions "
                     << "that are fully integer." << std::endl;
@@ -4246,6 +4254,10 @@ MibSModel::printProblemInfo(){
         case MibSIDICGenStrategyYInt:
           std::cout << "IDICs will be used to separate solutions "
                     << "with integer lower-level variables." << std::endl;
+          break;
+        case MibSIDICGenStrategyYLInt:
+          std::cout << "IDICs will be used to separate solutions "
+                    << "with integer linking or lower-level variables." << std::endl;
           break;
         case MibSIDICGenStrategyXYInt:
           std::cout << "IDICs will be used to separate only solutions "
