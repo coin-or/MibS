@@ -4000,11 +4000,11 @@ MibSModel::adjustParameters()
        switch (MibSPar_->entry(MibSParams::ISICGenStrategy)) {
         case MibSISICGenStrategyNotSet:
           MibSPar()->setEntry(MibSParams::ISICGenStrategy, MibSISICGenStrategyLInt);
-        case MibSISICGenStrategyXYInt:
-          MibSPar()->setEntry(MibSParams::solveSecondLevelWhenXYVarsInt, 1);
-          break;
         case MibSISICGenStrategyLInt:
           MibSPar()->setEntry(MibSParams::solveSecondLevelWhenLVarsInt, 1);
+          break;
+        case MibSISICGenStrategyXYInt:
+          MibSPar()->setEntry(MibSParams::solveSecondLevelWhenXYVarsInt, 1);
           break;
         case MibSISICGenStrategyYInt:
           MibSPar()->setEntry(MibSParams::solveSecondLevelWhenYVarsInt, 1);
