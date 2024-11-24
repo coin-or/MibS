@@ -6054,23 +6054,28 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
         numCuts += returnVal;
      }
      if (useImprovingSolutionIC == PARAM_ON &&
-         ((haveSecondLevelSol &&
-           relaxedObjVal > localModel_->bS_->objVal_ + localModel_->etol_) ||
-          (localModel_->MibSPar_->entry(MibSParams::bilevelFreeSetTypeISIC) ==
-           MibSBilevelFreeSetTypeISICWithNewLLSol)) &&
-           (ISICGenStrategy == MibSISICGenStrategyLInt ||
-            ISICGenStrategy == MibSISICGenStrategyYLInt ||
-            ISICGenStrategy == MibSISICGenStrategyAlways ||
-            (ISICGenStrategy == MibSISICGenStrategyAlwaysRoot &&
-             localModel_->activeNode_->getDepth() == 0))){
-        cutType = MibSIntersectionCutImprovingSolution;
-        returnVal = intersectionCuts(conPool, bS->optLowerSolutionOrd_, cutType);
-        if (returnVal){
-           localModel_->counterLIntISIC_++;
-        }else{
-           localModel_->counterLIntISICFail_++;
+         (ISICGenStrategy == MibSISICGenStrategyLInt ||
+          ISICGenStrategy == MibSISICGenStrategyYLInt ||
+          ISICGenStrategy == MibSISICGenStrategyAlways ||
+          (ISICGenStrategy == MibSISICGenStrategyAlwaysRoot &&
+           localModel_->activeNode_->getDepth() == 0))){
+        if (localModel_->MibSPar_->entry(MibSParams::bilevelFreeSetTypeISIC) ==
+            MibSBilevelFreeSetTypeISICWithLLOptSol && haveSecondLevelSol &&
+            relaxedObjVal <= localModel_->bS_->objVal_ + localModel_->etol_){
+           localModel_->counterFracISICFail_++;
+        }else if ((localModel_->MibSPar_->entry(MibSParams::bilevelFreeSetTypeISIC) ==
+                   MibSBilevelFreeSetTypeISICWithLLOptSol && haveSecondLevelSol) ||
+                  localModel_->MibSPar_->entry(MibSParams::bilevelFreeSetTypeISIC) ==
+                  MibSBilevelFreeSetTypeISICWithNewLLSol){
+           cutType = MibSIntersectionCutImprovingSolution;
+           returnVal = intersectionCuts(conPool, bS->optLowerSolutionOrd_, cutType);
+           if (returnVal){
+              localModel_->counterFracISIC_++;
+           }else{
+              localModel_->counterFracISICFail_++;
+           }
+           numCuts += returnVal;
         }
-        numCuts += returnVal;
      }
      if (useHypercubeIC == PARAM_ON && haveSecondLevelSol){
         cutType = MibSIntersectionCutHypercube;
@@ -6114,23 +6119,28 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
         numCuts += returnVal;
      }
      if (useImprovingSolutionIC == PARAM_ON &&
-         ((haveSecondLevelSol &&
-           relaxedObjVal > localModel_->bS_->objVal_ + localModel_->etol_) ||
-          (localModel_->MibSPar_->entry(MibSParams::bilevelFreeSetTypeISIC) ==
-           MibSBilevelFreeSetTypeISICWithNewLLSol &&
-           (ISICGenStrategy == MibSISICGenStrategyYInt ||
-            ISICGenStrategy == MibSISICGenStrategyYLInt ||
-            ISICGenStrategy == MibSISICGenStrategyAlways ||
-            (ISICGenStrategy == MibSISICGenStrategyAlwaysRoot &&
-             localModel_->activeNode_->getDepth() == 0))))){
-        cutType = MibSIntersectionCutImprovingSolution;
-        returnVal = intersectionCuts(conPool, bS->optLowerSolutionOrd_, cutType);
-        if (returnVal){
-           localModel_->counterYIntISIC_++;
-        }else{
-           localModel_->counterYIntISICFail_++;
+         (ISICGenStrategy == MibSISICGenStrategyYInt ||
+          ISICGenStrategy == MibSISICGenStrategyYLInt ||
+          ISICGenStrategy == MibSISICGenStrategyAlways ||
+          (ISICGenStrategy == MibSISICGenStrategyAlwaysRoot &&
+           localModel_->activeNode_->getDepth() == 0))){
+        if (localModel_->MibSPar_->entry(MibSParams::bilevelFreeSetTypeISIC) ==
+            MibSBilevelFreeSetTypeISICWithLLOptSol && haveSecondLevelSol &&
+            relaxedObjVal <= localModel_->bS_->objVal_ + localModel_->etol_){
+           localModel_->counterFracISICFail_++;
+        }else if ((localModel_->MibSPar_->entry(MibSParams::bilevelFreeSetTypeISIC) ==
+                   MibSBilevelFreeSetTypeISICWithLLOptSol && haveSecondLevelSol) ||
+                  localModel_->MibSPar_->entry(MibSParams::bilevelFreeSetTypeISIC) ==
+                  MibSBilevelFreeSetTypeISICWithNewLLSol){
+           cutType = MibSIntersectionCutImprovingSolution;
+           returnVal = intersectionCuts(conPool, bS->optLowerSolutionOrd_, cutType);
+           if (returnVal){
+              localModel_->counterFracISIC_++;
+           }else{
+              localModel_->counterFracISICFail_++;
+           }
+           numCuts += returnVal;
         }
-        numCuts += returnVal;
      }
   }else{
      if (useImprovingDirectionIC == PARAM_ON &&
@@ -6147,21 +6157,26 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
         numCuts += returnVal;
      }
      if (useImprovingSolutionIC == PARAM_ON &&
-         ((haveSecondLevelSol &&
-           relaxedObjVal > localModel_->bS_->objVal_ + localModel_->etol_) ||
-          (localModel_->MibSPar_->entry(MibSParams::bilevelFreeSetTypeISIC) ==
-           MibSBilevelFreeSetTypeISICWithNewLLSol &&
-           (ISICGenStrategy == MibSIDICGenStrategyAlways ||
-            (ISICGenStrategy == MibSIDICGenStrategyAlwaysRoot &&
-             localModel_->activeNode_->getDepth() == 0))))){
-        cutType = MibSIntersectionCutImprovingSolution;
-         returnVal = intersectionCuts(conPool, bS->optLowerSolutionOrd_, cutType);
-        if (returnVal){
-           localModel_->counterFracISIC_++;
-        }else{
+         (ISICGenStrategy == MibSISICGenStrategyAlways ||
+          (ISICGenStrategy == MibSISICGenStrategyAlwaysRoot &&
+           localModel_->activeNode_->getDepth() == 0))){
+        if (localModel_->MibSPar_->entry(MibSParams::bilevelFreeSetTypeISIC) ==
+            MibSBilevelFreeSetTypeISICWithLLOptSol && haveSecondLevelSol &&
+            relaxedObjVal <= localModel_->bS_->objVal_ + localModel_->etol_){
            localModel_->counterFracISICFail_++;
+        }else if ((localModel_->MibSPar_->entry(MibSParams::bilevelFreeSetTypeISIC) ==
+                   MibSBilevelFreeSetTypeISICWithLLOptSol && haveSecondLevelSol) ||
+                  localModel_->MibSPar_->entry(MibSParams::bilevelFreeSetTypeISIC) ==
+                  MibSBilevelFreeSetTypeISICWithNewLLSol){
+           cutType = MibSIntersectionCutImprovingSolution;
+           returnVal = intersectionCuts(conPool, bS->optLowerSolutionOrd_, cutType);
+           if (returnVal){
+              localModel_->counterFracISIC_++;
+           }else{
+              localModel_->counterFracISICFail_++;
+           }
+           numCuts += returnVal;
         }
-        numCuts += returnVal;
      }
   }
   

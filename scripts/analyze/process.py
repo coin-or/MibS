@@ -17,12 +17,13 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 
-def parseOutput(outputDir, versions, scenarios, writeCSV=True, filename="summary.csv"):
+def parseOutput(outputDir, versions, scenarios, writeCSV=True,
+                filename="summary.csv", name=''):
     """
     The function parse the output file in the given directory.
-    Assume the subfolders hierarchy: outputDir/param_scenario_name/testset_name/BR_Output/file.out.
+    Assume the subfolders hierarchy: 
+    outputDir/param_scenario_name/testset_name/BR_Output/file.out.
     The result will also be written to a .csv file if not specified.
-    Note: currently not able to read incomplete output due to external interruption.
     Input:
         outputDir: string, a path to the parent output directory
         writeCSV: boolean, whether to save the results in structured format
@@ -42,14 +43,14 @@ def parseOutput(outputDir, versions, scenarios, writeCSV=True, filename="summary
         "ub_time": "solving problem (UB)",
         "objval": "Best solution found had quality",
         "gap": "optimality gap",
-        "ul_int_var": "integer UL Variables",
-        "ll_int_var": "integer LL Variables",
+        "ul_int_var": "UL Variables (integer)",
+        "ll_int_var": "LL Variables (integer)",
         "num_cuts": "Called MIBS cut generator",
         "infeasible": "infeasible",
         "int_idic" : "integer IDICs",
         "int_lv_idic" : "integer (LV) IDICs",
         "frac_idic" : "fractional IDICs",
-        #"int_idic_failed": "Integer IDIC cut generation failed:",
+        "int_idic_failed": "IDIC cut generation failed:",
         "int_lv_idic_failed": "cut generation failed (LV)",
         "frac_idic_failed": "Fractional IDIC cut generation failed"
     }
@@ -58,7 +59,7 @@ def parseOutput(outputDir, versions, scenarios, writeCSV=True, filename="summary
     opt_values = {}
     etol = np.finfo(float).eps
 
-    # iterate over versions, scenarios, datasets, and files in each folder to read results
+    # iterate over versions, scenarios, datasets, and files in each folder
     for v in versions:
         for s in scenarios:
             found = False
@@ -78,8 +79,15 @@ def parseOutput(outputDir, versions, scenarios, writeCSV=True, filename="summary
                     with os.scandir(d_entry.path) as output_it:
                         for o_entry in output_it:
                             if o_entry.name.endswith(".out"):
+                                #if (o_entry.name.startswith("K") or
+                                #    o_entry.name.startswith("bmilp")):
+                                #    print("Skipping!!!!")
+                                #    continue
                                 # start to write result to the dictionary
-                                results["dataset"].append(d_entry.name)
+                                if name == '':
+                                    results["dataset"].append(d_entry.name)
+                                else:
+                                    results["dataset"].append(name)
                                 results["scenario"].append(scenarios[s])
                                 results["version"].append(v)
                                 results["instance"].append(
@@ -97,6 +105,7 @@ def parseOutput(outputDir, versions, scenarios, writeCSV=True, filename="summary
                                 results['num_int_idic'].append(0)
                                 results['num_int_lv_idic'].append(0)
                                 results['num_frac_idic'].append(0)
+                                results['num_int_idic_fail'].append(0)
                                 results['num_int_lv_idic_fail'].append(0)
                                 results['num_frac_idic_fail'].append(0)
                                 results['cg_called'].append(0)
@@ -106,7 +115,8 @@ def parseOutput(outputDir, versions, scenarios, writeCSV=True, filename="summary
                                 results['depth_idic'].append(-1)
                                 results["vf_solved"].append(-1)
                                 results["ub_solved"].append(-1)
-                                if '1.0-opt' not in versions: 
+                                if ('1.0.0-opt' not in versions and
+                                    'filmosi' not in versions): 
                                     results["vf_time"].append(-1)
                                     results["ub_time"].append(-1)
                                 results["objval"].append(-1000000)
@@ -115,7 +125,9 @@ def parseOutput(outputDir, versions, scenarios, writeCSV=True, filename="summary
                                 # read value for each field from file
                                 with open(o_entry.path, "r") as file:
                                     for line in file.read().splitlines():
-                                        if (len(line.split()) > 1 and line.split()[0] == '0'):
+                                        if (len(line.split()) > 1 and
+                                            line.split()[0] == '0' and
+                                            results["version"][-1] != 'filmosi'):
                                             if len(line.split()) == 4:
                                                 results["root_bound"][-1] = float(line.split()[1])
                                             else:
@@ -150,11 +162,13 @@ def parseOutput(outputDir, versions, scenarios, writeCSV=True, filename="summary
                                             results["ub_solved"][-1] = int(line.split("=")[1])
 
                                         elif (keywords["vf_time"] in line and
-                                              '1.0-opt' not in versions):
+                                              '1.0.0-opt' not in versions and
+                                              'filmosi' not in versions):
                                             results["vf_time"][-1] = float(line.split("=")[1])
 
                                         elif (keywords["ub_time"] in line and
-                                              '1.0-opt' not in versions):
+                                              '1.0.0-opt' not in versions and
+                                              'filmosi' not in versions):
                                             results["ub_time"][-1] = float(line.split("=")[1])
 
                                         elif keywords["objval"] in line:
@@ -203,29 +217,31 @@ def parseOutput(outputDir, versions, scenarios, writeCSV=True, filename="summary
                                                 results['depth_idic'][-1]*(
                                                     results['num_idic'][-1] - 1
                                                     ) + depth)/results['num_idic'][-1])
+                                        elif keywords['int_idic_failed'] in line:
+                                            results['num_int_idic_fail'][-1]+=1
+                                            results['cg_failed'][-1] += 1
                                         elif keywords['int_lv_idic_failed'] in line:
                                             results['num_int_lv_idic_fail'][-1]+=1
                                             results['cg_failed'][-1] += 1
                                         elif keywords['frac_idic_failed'] in line:
                                             results['num_frac_idic_fail'][-1]+=1
                                             results['cg_failed'][-1] += 1
-                                        # elif keywords[10] in line:
+                                        #elif keywords['ul_int_var'] in line:
                                         #    results['ul_int_var'].append(int(line.split(':')[1]))
-                                        #
-                                        # elif keywords[11] in line:
+                                        #elif keywords['ll_int_var'] in line:
                                         #    results['ll_int_var'].append(int(line.split(':')[1]))
                                         elif keywords["num_cuts"] in line:
                                             found = True
                                             results["num_cuts"][-1] = int(line.split(" ")[8])
                                             results["cut_time"][-1] = float(line.split(" ")[12])
                                             results["cg_called"][-1] = float(line.split(" ")[5])
-                                        elif keywords["infeasible"] in line:
+                                        elif (keywords["infeasible"] in line and
+                                              results["version"][-1] != 'filmosi'):
                                             print("Infeasible instance!")
                                         elif 'STAT;' in line and len(line.split(';')) > 6:
                                             incomplete=False
-                                            results["objval"].append(
+                                            results["objval"][-1] = \
                                                 float(line.split(";")[2])
-                                            )
                                             results["root_bound"][-1] = float(line.split(";")[4])
                                             results["cpu"].append(
                                                 float(line.split(";")[5])
@@ -233,13 +249,12 @@ def parseOutput(outputDir, versions, scenarios, writeCSV=True, filename="summary
                                             results["nodes"].append(
                                                 float(line.split(";")[8])
                                             )
-                                            results["gap"].append(
+                                            results["gap"][-1] = \
                                                 float(line.split(";")[10])
-                                            )
-                                            results["vf_solved"].append(0)
-                                            results["ub_solved"].append(0)
-                                            results["vf_time"].append(0)
-                                            results["ub_time"].append(0)
+                                            results["vf_solved"][-1] = 0
+                                            results["ub_solved"][-1] = 0
+                                            #results["vf_time"][-1] = 0
+                                            #results["ub_time"][-1] = 0
                                             if results["gap"][-1] - 0.0 < etol:
                                                 results["solved"].append(True)
                                             else:
@@ -316,7 +331,7 @@ def parseOutput(outputDir, versions, scenarios, writeCSV=True, filename="summary
     # make some adjustment to formats
     # display check feasibility time as % of search time?
     # sum vf+ub time -> feasibility time (or read from output directly?)
-    if '1.0-opt' not in versions:
+    if '1.0.0-opt' not in versions and 'filmosi' not in versions:
         df_result["chk_feas_time"] = df_result["ub_time"] + df_result["vf_time"]
         df_result["chk_feas_time"] = df_result["chk_feas_time"].astype(float).round(2)
     #df_result["cpu"] = df_result["cpu"].astype(float).round(2)
@@ -370,6 +385,7 @@ def processTable(df, displayCols, writeLTX=False, filename="ltx_tb.txt"):
 
     # convert dict to structured df: change to formal column names?
     df_forprint = pd.DataFrame.from_dict(rsltDict, orient="index")
+    print (df_forprint)
     df_forprint.columns.names = ["scn", "v", "datasets", "fields"]
     df_forprint = df_forprint.sort_index()
 
@@ -413,14 +429,20 @@ def dropFilter(df, scenarios, ds):
     # filter out cases where time is < 5'' or > 3600'' for all methods
     col_list = df_time.columns.values.tolist()
 
-    drop_easy = df_time[(df_time[col_list] < 1).all(axis=1)].index.tolist()
-    drop_small_time = df_time[(df_time[col_list] <= 0.01).any(axis=1)].index.tolist()
-    drop_unsolved = df_solved[(df_solved[col_list] != True).all(axis=1)].index.tolist()
-    drop_list_time = list(set(drop_easy) | set(drop_unsolved) | set(drop_small_time))
-    #drop_list_time.extend(["cap6000-0.100000","cap6000-0.500000","cap6000-0.900000"])
-    #print(drop_easy)
-    #print(drop_small_time)
-    #print(drop_unsolved)
+    if 1: #ds == 'INTERD-DEN':
+        drop_easy = df_time[(df_time[col_list] < 1).all(axis=1)].index.tolist()
+        drop_small_time = df_time[(df_time[col_list] <= 0.01).any(axis=1)].index.tolist()
+        drop_unsolved = df_solved[(df_solved[col_list] != True).all(axis=1)].index.tolist()
+        drop_list_time = list(set(drop_easy) | set(drop_unsolved) | set(drop_small_time))
+    else:
+        drop_easy = df_time[(df_time[col_list] < 5).all(axis=1)].index.tolist()
+        drop_unsolved = df_solved[(df_solved[col_list] != True).all(axis=1)].index.tolist()
+        drop_list_time = list(set(drop_easy) | set(drop_unsolved))
+
+    ##drop_list_time.extend(["cap6000-0.100000","cap6000-0.500000","cap6000-0.900000"])
+    ##print(drop_easy)
+    ##print(drop_small_time)
+    ##print(drop_unsolved)
     df_solved = df.drop(drop_list_time)
     #print(df_solved)
 
@@ -438,7 +460,7 @@ def dropFilter(df, scenarios, ds):
 
 
 def plotPerfProf(
-        df, plotname="perf_profile", plottitle="Performance Profile",
+        df, versions, plotname="perf_profile", plottitle="Performance Profile",
         xmin=0.0, xmax=None, legendnames={}, versionlegend=False
 ):
     """
@@ -515,7 +537,7 @@ def plotPerfProf(
             # , color=colors[i])
             plt.plot(x_val, y_val, label=legendnames[col])
         elif versionlegend:
-            plt.plot(x_val, y_val, label=col)  # , color=colors[i])
+            plt.plot(x_val, y_val, label=col[0]+':'+versions[col[1]])  # , color=colors[i])
         else:
             plt.plot(x_val, y_val, label=col[0])  # , color=colors[i])
 
@@ -541,7 +563,8 @@ def plotPerfProf(
     fig.savefig(plotname, dpi=fig.dpi)
 
 
-def plotCumProf(df, plotname="cum_profile", plottitle = "Cumulative Profile",
+def plotCumProf(df, versions, plotname="cum_profile",
+                plottitle = "Cumulative Profile",
                 legendnames={}, versionlegend=False):
 
     fig = plt.figure()
@@ -569,7 +592,7 @@ def plotCumProf(df, plotname="cum_profile", plottitle = "Cumulative Profile",
         if legendnames:
             ax[0].plot(time_buckets, cum_frac, label=legendnames[col])
         elif versionlegend:
-            ax[0].plot(time_buckets, cum_frac, label=col)  # , color=colors[i])
+            ax[0].plot(time_buckets, cum_frac, label=col[0]+':'+versions[col[1]])  # , color=colors[i])
         else:
             ax[0].plot(time_buckets, cum_frac, label=col[0])
 
@@ -594,7 +617,7 @@ def plotCumProf(df, plotname="cum_profile", plottitle = "Cumulative Profile",
         if legendnames:
             ax[1].plot(gap_buckets, cum_frac, label=legendnames[col])
         elif versionlegend:
-            ax[1].plot(gap_buckets, cum_frac, label=col)  # , color=colors[i])
+            ax[1].plot(gap_buckets, cum_frac, label=col[0]+':'+versions[col[1]])  # , color=colors[i])
         else:
             ax[1].plot(gap_buckets, cum_frac, label=col[0])
 
@@ -619,7 +642,8 @@ def plotCumProf(df, plotname="cum_profile", plottitle = "Cumulative Profile",
     # fig.savefig("./performance/barchart/"+plotname+'.eps', format='eps', dpi=600)
 
 def plotBaselineProf(
-        df, baseline, plotname="base_profile", plottitle="Baseline Profile",
+        df, versions, baseline, plotname="base_profile",
+        plottitle="Baseline Profile",
         xmin=0.0, xmax=None, legendnames={}, versionlegend=False
 ):
     """
@@ -693,7 +717,7 @@ def plotBaselineProf(
                 # , color=colors[i])
                 ax[0].plot(x_val, y_val, label=legendnames[col])
             elif versionlegend:
-                ax[0].plot(x_val, y_val, label=col)  # , color=colors[i])
+                ax[0].plot(x_val, y_val, label=col[0]+':'+versions[col[1]])  # , color=colors[i])
             else:
                 ax[0].plot(x_val, y_val, label=col[0])  # , color=colors[i])
 
@@ -718,7 +742,7 @@ def plotBaselineProf(
             # , color=colors[i])
             ax[1].plot(x_val, y_val, label=legendnames[col])
         elif versionlegend:
-            ax[1].plot(x_val, y_val, label=col)  # , color=colors[i])
+            ax[1].plot(x_val, y_val, label=col[0]+':'+versions[col[1]])  # , color=colors[i])
         else:
             ax[1].plot(x_val, y_val, label=col[0])  # , color=colors[i])
 
@@ -739,14 +763,18 @@ def plotBaselineProf(
         fontsize="x-small",
     )
 
-    fig.supxlabel("Ratio of baseline")
+    if versionlegend:
+        fig.supxlabel("Ratio of baseline: v"+baseline[1]+", "+baseline[0])
+    else:
+        fig.supxlabel("Ratio of baseline: "+baseline[0])
     fig.supylabel("Fraction of instances")
     fig.suptitle(plottitle)
     fig.tight_layout()
     fig.savefig(plotname, dpi=fig.dpi)
 
 def plotBaselineProfSingle(
-        df, baseline, plotname="base_profile", plottitle="Baseline Profile",
+        df, versions, baseline, plotname="base_profile",
+        plottitle="Baseline Profile",
         xmin=0.0, xmax=None, legendnames={}, versionlegend=False
 ):
     """
@@ -816,7 +844,7 @@ def plotBaselineProfSingle(
             # , color=colors[i])
             plt.plot(x_val, y_val, label=legendnames[col])
         elif versionlegend:
-            plt.plot(x_val, y_val, label=col)  # , color=colors[i])
+            plt.plot(x_val, y_val, label=col[0]+':'+versions[col[1]])  # , color=colors[i])
         else:
             plt.plot(x_val, y_val, label=col[0])  # , color=colors[i])
 
@@ -827,10 +855,13 @@ def plotBaselineProfSingle(
 
     # set other figure elements
     ax.set_title(plottitle)
-    ax.set_xlabel("Ratio of baseline")
+    if versionlegend:
+        ax.set_xlabel("Ratio of baseline: v"+baseline[1]+", "+baseline[0])
+    else:
+        ax.set_xlabel("Ratio of baseline: "+baseline[0])
     ax.set_ylabel("Fraction of instances")
     ax.legend(
-        loc="lower right",
+        loc="upper left",
         #bbox_to_anchor=(0.9, 0.05),
         markerscale=1.25,
         frameon=True,
@@ -845,48 +876,123 @@ if __name__ == "__main__":
 
     dataSets = [
         #'MIBLP-XU',
-        #"IBLP-FIS",
-        #'INTERD-DEN',
-        #'IBLP-DEN',
+        "IBLP-FIS",
+        'INTERD-DEN',
+        'IBLP-DEN',
         'IBLP-DEN2',
-        #'IBLP-ZHANG',
-        #'IBLP-ZHANG2',
+        'IBLP-ZHANG',
+        'IBLP-ZHANG2',
+        #'BENCHMARK'
         #'all'
     ]
+    aggregate = True
+#    aggregate = False
+    name = ''
 
-    # versions = ['1.1', 'ib']
-    # versions = ["1.2-opt", "rev1"]
-    # versions = ["1.2-opt", "1.2-opt-cplex"]
-    # versions = ['1.2+newWS','1.2+5.6']
-    #versions = ['1.2-cplex-opt','1.2-opt','1.1-opt','1.0-opt']
-    #versions = ['1.2-opt','1.1-opt','1.0-opt','DenRal09']
-    #versions = ['1.1-opt','1.0-opt']
-    #versions = ['1.2-opt','1.1-opt','DenRal09']
-    #versions = ['1.2-opt','1.1-opt','1.0-opt']
-    #versions = ['1.2-opt','1.2-cplex-opt']
-    #versions = ['1.2-opt','1.2.0-opt']
-    #versions = ['tailoff','1.2.1-final']
-    #versions = ['1.2.1-opt','1.2-opt','1.2.0-opt']
-    #versions = ['1.2-opt']
-    versions = ['1.2.1-final','fischetti']
-    #versions = ['1.2.1-final2']
+    if aggregate:
+        for i in dataSets:
+            if i == 'MIBLP-XU':
+                name = name + 'X-'
+            elif i == "IBLP-FIS":
+                name = name + 'F-'
+            elif i == 'INTERD-DEN':
+                name = name + 'INT-'
+            elif i == 'IBLP-DEN':
+                name = name + 'D-'
+            elif i == 'IBLP-DEN2':
+                name = name + 'D2-'
+            elif i == 'IBLP-ZHANG':
+                name = name + 'Z-'
+            elif i == 'IBLP-ZHANG2':
+                name = name + 'Z2-'
+            elif i == 'BENCHMARK':
+                name = name + 'BENCH-'
+        name = name[:len(name)-1]
+    
+
+    versions = {
+        #'filmosi':'filmosi',
+        #'1.0.0-opt':'1.0.0',
+        #'1.1.3-opt':'1.1.3',
+        #'1.2.0-opt':'1.2.0',
+        #'1.2.1-opt':'1.2.1',
+        #'1.2.1-cplex-opt':'1.2.1-cplex',
+        '1.2.2-opt':'1.2.2',
+        #'1.2.2-opt-cg-fail':'1.2.2'
+    }
+    
     # Output parent path
     outputDir = ["/home/ted/Projects/MibS/output"]
     #outputDir = ["/home/ted/Projects/MibS/output-Mac"]
 
     scenarios = {
-        ###### fischetti
+        #### Interdiction
+        #'noCut' : "No Cuts (link)", 
+        #'fracISICType2-link': 'Frac ISIC Type 2 (link)',
+        #'ISICType2-link': 'ISIC Type 2 (link)',
+        #'fracIDIC-link': 'Frac IDIC (link)',
+        #'IDIC-link': 'IDIC (link)',
+        #'bendersInterdiction-frac': 'Benders Interdict (frac)',
+        #'bendersInterdiction-link': 'Benders Interdict (link)',
 
-        #'default-fis-seq-no_mip_cuts': 'Default (no MIP cuts)',
-        #'default-fis-seq': 'Default',
-        #'default-fis': 'Default (parallel)',
+        #### Pure Integer
+        #'noCut' : "No Cuts (link)",
+        #'fracIDIC+ISICType1-frac' : 'Frac IDIC + ISIC Type 1 (frac)',
+        #'ISICType1-frac': 'ISIC Type 1 (frac)', 
+        #'fracISICType2-frac': 'Frac ISIC Type 2 (frac)',
+        #'ISICType2-frac': 'ISIC Type 2 (frac)',
+        #'fracIDIC-frac': 'Frac IDIC (frac)',    
+        #'IDIC-frac': 'IDIC (frac)',
+        #'hyper-frac': 'Hypercube IC (frac)',    
+        #'intNoGood-frac': 'Integer No Good (frac)',
 
+        #### Pure Binary
+        # 'noCut' : "No Cuts (link)", 
+        # 'ISICType1-frac': 'ISIC Type 1 (frac)', 
+        # 'fracISICType2-frac': 'Frac ISIC Type 2 (frac)',
+        # 'ISICType2-frac': 'ISIC Type 2 (frac)',
+        # 'fracIDIC-frac': 'Frac IDIC (frac)',    
+        # 'IDIC-frac': 'IDIC (frac)',
+        # 'hyper-frac': 'Hypercube IC (frac)',    
+        # 'intNoGood-frac': 'Integer No Good (frac)',
+        # 'bendersBinary-frac': 'Benders Binary (frac)', 
+        # 'genNoGood-frac': 'Generalized No Good (frac)', 
+
+        ###### filmosi
+
+        #'default' : 'Default',
+        #'default2' : 'Default 2',
+        #'default2' : 'Default',
+        #'default-MIP' : 'Default (no MIP cuts)',
+        #'default+parallel' : 'Default (parallel)'
+
+        ###### 1.2.2-opt
+
+        #'LIntIDIC-frac' : 'LIntIDIC-frac',
+        #'LIntIDIC-link' : 'LIntIDIC-link',
+        #'XYIntIDIC-frac' : 'XYIntIDIC-frac',
+        #'XYIntIDIC-link' : 'XYIntIDIC-link',
+        #'YIntIDIC-frac' : 'YIntIDIC-frac',
+        #'YIntIDIC-link' : 'YIntIDIC-link',
+        'AlwaysIDIC-frac' : 'AlwaysIDIC-frac',
+        #'AlwaysIDIC-link' : 'AlwaysIDIC-link',
+        'AlwaysISICType1-frac' : 'AlwaysType1-frac',
+        'XYIntISICType1-frac' : 'XYIntType1-frac',
+        'LIntISICType1-frac' : 'LIntType1-frac',
+        'YIntISICType1-frac' : 'YIntType1-frac',
+        
         ###### 1.2.1-final
 
-        'noCut' : "No Cuts (link)", 
+        #'default' : 'Default (frac)',
+        #'default' : 'Default',
+        #'default-MIP' : 'Default (no MIP cuts)',
+        #'default+linking' : 'Default (link)',
+        #'default+ll' : 'Default (lower)',
+        #'default+ll' : 'Branch on second level variables',
+        #'noCut' : "No Cuts (link)", 
         #'fracISICType1-frac': 'Frac ISIC Type 1 (frac)',
         #'fracISICType1-frac-every': 'Frac ISIC Type 1 (frac)',
-        'ISICType1-frac': 'ISIC Type 1 (frac)', ##########
+        #'ISICType1-frac': 'ISIC Type 1 (frac)', ##########
         #'ISICType1-frac-lv': 'ISIC Type 1 (frac-lv)',
         #'fracISICType1-link': 'Frac ISIC Type 1 (link)',
         #'ISICType1-link': 'ISIC Type 1 (link)',
@@ -895,20 +1001,22 @@ if __name__ == "__main__":
         #'ISICType2-frac': 'ISIC Type 2 (frac)',
         #'fracISICType2-link': 'Frac ISIC Type 2 (link)',
         #'ISICType2-link': 'ISIC Type 2 (link)',  ##########
-        'fracIDIC-frac': 'Frac IDIC (frac)',     ##########
-        'fracIDIC+MIP-frac': 'Frac IDIC + MIP (frac)',
+        #'fracIDIC-frac': 'Frac IDIC (frac)',     ##########
+        #'fracIDIC+MIP-frac': 'Frac IDIC + MIP (frac)',
         #'IDIC-frac': 'IDIC (frac)',
         #'IDIC+MIP-frac': 'IDIC + MIP (frac)',
         #'fracIDIC-link': 'Frac IDIC (link)',
         #'IDIC-link': 'IDIC (link)',
         #'fracIDIC-ll': 'Frac IDIC (ll)',
         #'hyper-link': 'Hypercube IC (link)',
-        'hyper-frac': 'Hypercube IC (frac)',    ##########
+        #'hyper-frac': 'Hypercube IC (frac)',    ##########
         #'hyper-link-lv': 'Hypercube IC (link-lv)',
         #'hyper-frac-lv': 'Hypercube IC (frac-lv)',
         #'bendersInterdiction-frac': 'Benders Interdict (frac)',
+        #'bendersInterdiction-frac': 'Branch on all variables',
         #'bendersInterdiction+MIP-frac': 'Benders Interdict + MIP (frac)',
         #'bendersInterdiction-link': 'Benders Interdict (link)',
+        #'bendersInterdiction-link': 'Branch on linking variables',
         #'bendersInterdiction+MIP-link': 'Benders Interdict + MIP (link)',
         #'bendersBinary-frac': 'Benders Binary (frac)', ##########
         #'bendersBinary-link': 'Benders Binary (link)',
@@ -916,10 +1024,10 @@ if __name__ == "__main__":
         #'bendersBinary-link-lv': 'Benders Binary (link-lv)',
         #'genNoGood-frac': 'Generalized No Good (frac)', ##########
         #'genNoGood-link': 'Generalized No Good (link)',
-        'intNoGood-frac': 'Integer No Good (frac)',
-        'intNoGood+MIP-frac': 'Integer No Good + MIP (frac)',
+        #'intNoGood-frac': 'Integer No Good (frac)',
+        #'intNoGood+MIP-frac': 'Integer No Good + MIP (frac)',
         #'intNoGood-link': 'Integer No Good (link)', ##########
-        'fracIDIC+ISICType1-frac': 'fracIDIC + ISIC Type 1 (frac)',
+        #'fracIDIC+ISICType1-frac': 'fracIDIC + ISIC Type 1 (frac)',
         #'fracIDIC+ISICType1-frac-lv': 'fracIDIC + ISIC Type 1 (frac-lv)',
         #'fracIDIC+ISICType1-bendersBinary-frac': 'fracIDIC + ISIC Type 1 + bendersBin (frac)',
         #'fracIDIC+ISICType1-bendersBinary-frac-lv': 'fracIDIC + ISIC Type 1 +bendersBin (frac-lv)',
@@ -1089,14 +1197,15 @@ if __name__ == "__main__":
     }
     ################# Process & Save | Load from CSV ###################
     # specify summary file name
-    file_csv_out = "summary_"+dataSets[0]+".csv"
+    file_csv_out = "summary_"+name+".csv"
     #file_csv_in = "summary-1.2.1.csv"
-    file_csv_in = "summary-1.2.1.csv"
+    file_csv_in = "summary_branching.csv"
     
     # if len(args) == 0:
     if 1:
         df_r = parseOutput(
-            outputDir, versions, scenarios, writeCSV=True, filename=file_csv_out
+            outputDir, versions, scenarios, writeCSV=True, filename=file_csv_out,
+            name=name
         )
     else:
         try:
@@ -1122,17 +1231,17 @@ if __name__ == "__main__":
         "root_gap": "Root Gap",
         "100_gap": "Gap After 100 Nodes",
         "solved": "Solved",
-        #"num_int_idic": "Int IDIC Success",
-        #"num_int_lv_idic": "Int IDIC (LV) Success",
-        #"num_frac_idic": "Frac IDIC Success",
-        #"num_int_lv_idic_fail": "Int IDIC (LV) Fail",
-        #"num_frac_idic_fail": "Frac IDIC Fail",
+        "num_int_idic": "Int IDIC Success",
+        "num_int_lv_idic": "Int IDIC (LV) Success",
+        "num_frac_idic": "Frac IDIC Success",
+        "num_int_lv_idic_fail": "Int IDIC (LV) Fail",
+        "num_frac_idic_fail": "Frac IDIC Fail",
         "cg_called": "CG Calls",
-        #"cg_failed": "CG Failures",
-        #"cg_fail_rate": "CG Failure Rate",
+        "cg_failed": "CG Failures",
+        "cg_fail_rate": "CG Failure Rate",
         "num_cuts": "Number of Cuts",
-        #"depth_idic" : "Average Depth of IDIC",
-        #"num_idic" : "Number of IDIC",
+        "depth_idic" : "Average Depth of IDIC",
+        "num_idic" : "Number of IDIC",
         #'chk_feas_time': 'Check Feasibility Time',
         #'vf_solved': 'Number of VF problem solved',
         #'ub_solved': 'Number of UB problem solved',
@@ -1146,7 +1255,7 @@ if __name__ == "__main__":
     plotCols = {
         "cpu": ["CPU Time", 25],
         "nodes": ["Nodes Processed", 50],
-        #"root_gap": ["Root Gap", 10],
+        "root_gap": ["Root Gap", 10],
         #"num_cuts": ["Number of Cuts", 50],
         #"depth_idic" : ["Depth of IDICs", 10],
         #"num_idic" : ["Number of IDICs", 10],
@@ -1164,9 +1273,9 @@ if __name__ == "__main__":
     #     else:
     #         scenarios[k] = 'fractionalBranchStrategy'
 
-    #baseline=None
-    baseline = ('No Cuts (link)', '1.2.1-final')
-    #baseline = ('Default', 'tailoff')
+    baseline=None
+    #baseline = ('IDIC-frac', '1.2.1-opt')
+    #baseline = ('default', '1.2.1-opt')
     #baseline = ("Type1IC", "1.2-opt")
     #baseline = ('GenNoGood+Type1+IntNoGood (link)', '1.2-opt')
     #baseline = ('Watermelon (frac+LV)', '1.2-opt')
@@ -1178,6 +1287,9 @@ if __name__ == "__main__":
         versionlegend = False
 
     print(df_proc)
+
+    if name != '':
+        dataSets = [name]
         
     for ds in dataSets:
         df_solved, df_has_soln = dropFilter(df_proc, scenarios, ds)
@@ -1190,12 +1302,17 @@ if __name__ == "__main__":
                 df_sub = df_has_soln.xs(
                     (ds, col), level=["datasets", "fields"], axis=1, drop_level=True
                 ).copy()
+            if versionlegend:
+                plottitle = ": "+plotCols[col][0]+" ("+ds+")"
+            else:
+                plottitle = " (v"+list(versions.values())[0]+"): "+plotCols[col][0]+" ("+ds+")"
+
             print("")
             print("Creating performance profile for "+col)
             print("")
             plotPerfProf(
-                df_sub, plotname="perf_" + col + "_" + ds,
-                plottitle = "Performance Profile: "+plotCols[col][0]+" ("+ds+")",
+                df_sub, versions, plotname="perf_" + col + "_" + ds,
+                plottitle = "Performance Profile"+plottitle,
                 xmin = 0.0, xmax=plotCols[col][1],
                 versionlegend = versionlegend
             )
@@ -1203,25 +1320,40 @@ if __name__ == "__main__":
                 print("")
                 print("Creating baseline profile for "+col)
                 print("")
-                plotBaselineProfSingle(
-                    df_sub, baseline = baseline,
-                    plotname="base_"+baseline[0]+"_"+col+"_"+ds,
-                    plottitle = "Baseline Profile: "+plotCols[col][0]+" ("+ds+")",
-                    xmax=plotCols[col][1],
-                    versionlegend = versionlegend
-                )
-            plotCumProf(df_has_soln, plotname="cum_" + col + "_" + ds,
-                        plottitle="Cumulative Profile: "+plotCols[col][0]+" ("+ds+")",
-                        versionlegend = versionlegend
+                try:
+                    if col != 'root_gap':
+                        plotBaselineProf(
+                            df_sub, versions,
+                            baseline = (scenarios[baseline[0]],baseline[1]),
+                            plotname="base_"+baseline[0]+"_"+col+"_"+ds,
+                            plottitle = "Baseline Profile"+plottitle,
+                            xmax=plotCols[col][1],
+                            versionlegend = versionlegend
+                        )
+                    else:
+                        plotBaselineProfSingle(
+                            df_sub, versions,
+                            baseline = (scenarios[baseline[0]],baseline[1]),
+                            plotname="base_"+baseline[0]+"_"+col+"_"+ds,
+                            plottitle = "Baseline Profile"+plottitle,
+                            xmax=plotCols[col][1],
+                            versionlegend = versionlegend
+                        )
+                except KeyError:
+                    pass
+            if col == 'cpu':
+                plotCumProf(df_has_soln, versions, plotname="cum_" + col + "_" + ds,
+                            plottitle="Cumulative Profile"+plottitle,
+                            versionlegend = versionlegend
 )
-        if baseline is not None: 
-            print("")
-            print("Creating baseline profile for gap")
-            print("")
-            df_gap = df_has_soln.xs(
-                (ds, "gap"), level=["datasets", "fields"], axis=1, drop_level=True
-            ).copy()
-            df_baseline_has_gap = df_gap.drop(df_gap[df_gap[baseline] == 0].index.to_list())
+        # if baseline is not None: 
+        #     print("")
+        #     print("Creating baseline profile for gap")
+        #     print("")
+        #     df_gap = df_has_soln.xs(
+        #         (ds, "gap"), level=["datasets", "fields"], axis=1, drop_level=True
+        #     ).copy()
+        #     df_baseline_has_gap = df_gap.drop(df_gap[df_gap[baseline] == 0].index.to_list())
             # plotBaselineProf(
             #     df_baseline_has_gap, baseline = baseline,
             #     plotname="base_" + baseline[0] + "_" + "gap_" + ds,
