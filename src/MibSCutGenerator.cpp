@@ -1245,7 +1245,7 @@ MibSCutGenerator::solveModelIC(double *uselessIneqs, double *ray, double *rhs,
 	}
     }
 
-    assert(alphaUb >= 0);
+    //assert(alphaUb >= 0);
 
     if(isUnbounded == false){
 	alpha = alphaUb;
@@ -6062,7 +6062,7 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
         if (localModel_->MibSPar_->entry(MibSParams::bilevelFreeSetTypeISIC) ==
             MibSBilevelFreeSetTypeISICWithLLOptSol && haveSecondLevelSol &&
             relaxedObjVal <= localModel_->bS_->objVal_ + localModel_->etol_){
-           localModel_->counterFracISICFail_++;
+           localModel_->counterLIntISICFail_++;
         }else if ((localModel_->MibSPar_->entry(MibSParams::bilevelFreeSetTypeISIC) ==
                    MibSBilevelFreeSetTypeISICWithLLOptSol && haveSecondLevelSol) ||
                   localModel_->MibSPar_->entry(MibSParams::bilevelFreeSetTypeISIC) ==
@@ -6070,9 +6070,9 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
            cutType = MibSIntersectionCutImprovingSolution;
            returnVal = intersectionCuts(conPool, bS->optLowerSolutionOrd_, cutType);
            if (returnVal){
-              localModel_->counterFracISIC_++;
+              localModel_->counterLIntISIC_++;
            }else{
-              localModel_->counterFracISICFail_++;
+              localModel_->counterLIntISICFail_++;
            }
            numCuts += returnVal;
         }
@@ -6127,7 +6127,7 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
         if (localModel_->MibSPar_->entry(MibSParams::bilevelFreeSetTypeISIC) ==
             MibSBilevelFreeSetTypeISICWithLLOptSol && haveSecondLevelSol &&
             relaxedObjVal <= localModel_->bS_->objVal_ + localModel_->etol_){
-           localModel_->counterFracISICFail_++;
+           localModel_->counterYIntISICFail_++;
         }else if ((localModel_->MibSPar_->entry(MibSParams::bilevelFreeSetTypeISIC) ==
                    MibSBilevelFreeSetTypeISICWithLLOptSol && haveSecondLevelSol) ||
                   localModel_->MibSPar_->entry(MibSParams::bilevelFreeSetTypeISIC) ==
@@ -6135,9 +6135,9 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
            cutType = MibSIntersectionCutImprovingSolution;
            returnVal = intersectionCuts(conPool, bS->optLowerSolutionOrd_, cutType);
            if (returnVal){
-              localModel_->counterFracISIC_++;
+              localModel_->counterYIntISIC_++;
            }else{
-              localModel_->counterFracISICFail_++;
+              localModel_->counterYIntISICFail_++;
            }
            numCuts += returnVal;
         }

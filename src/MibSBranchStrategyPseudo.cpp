@@ -158,17 +158,28 @@ MibSBranchStrategyPseudo::createCandBranchObjects(int numPassesLeft, double ub)
        }
     }
     
-    // Check for fractional lower level variables variables
+    // Check for fractional lower level variables
     if(branchPar == MibSBranchingStrategyLower){
        for (i = 0; i < numCols; ++i) {
           if (fabs(floor(solution[i] + 0.5) - solution[i]) > etol &&
-              varType[i] == MibSVarLower){
+              varType[i] == MibSVarLower && colType[i] == 'C'){
              fractionalLowerVar = true;
              break;
           }
        }
     }
     
+    // Check for fractional variables overall
+    if(branchPar == MibSBranchingStrategyFractional){
+       for (i = 0; i < numCols; ++i) {
+          if (fabs(floor(solution[i] + 0.5) - solution[i]) > etol &&
+              colType[i] != 'C'){
+             branchPar = MibSBranchingStrategyLinking;
+             break;
+          }
+       }
+    }
+
     for (i = 0; i < numCols; ++i) {
        if(colType[i] == 'C'){
           candidate[i] = false;
