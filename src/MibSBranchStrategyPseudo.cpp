@@ -143,6 +143,7 @@ MibSBranchStrategyPseudo::createCandBranchObjects(int numPassesLeft, double ub)
     firstObjects.clear();
     
     bool fractionalLinkingVar(false), fractionalLowerVar(false);
+    bool allVarsIntegral(true);
     
     MibSBranchingStrategy branchPar = static_cast<MibSBranchingStrategy>
        (mibsmodel->MibSPar_->entry(MibSParams::branchStrategy));
@@ -174,12 +175,16 @@ MibSBranchStrategyPseudo::createCandBranchObjects(int numPassesLeft, double ub)
        for (i = 0; i < numCols; ++i) {
           if (fabs(floor(solution[i] + 0.5) - solution[i]) > etol &&
               colType[i] != 'C'){
-             branchPar = MibSBranchingStrategyLinking;
+             allVarsIntegral = false;
              break;
           }
        }
     }
 
+    if (allVarsIntegral){
+       branchPar = MibSBranchingStrategyLinking;
+    }
+    
     for (i = 0; i < numCols; ++i) {
        if(colType[i] == 'C'){
           candidate[i] = false;
