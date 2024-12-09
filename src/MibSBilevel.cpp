@@ -362,12 +362,12 @@ MibSBilevel::checkBilevelFeasibility(bool isRoot)
 	    if (warmStartLL){
                sym_set_int_param(env, "keep_warm_start", TRUE);
                sym_set_int_param(env, "should_use_rel_br", FALSE);
-               sym_set_int_param(env, "use_hot_starts", FALSE);
                sym_set_int_param(env, "should_warmstart_node", TRUE);
                sym_set_int_param(env, "sensitivity_analysis", TRUE);
                sym_set_int_param(env, "sensitivity_bounds", TRUE);
                sym_set_int_param(env, "set_obj_upper_lim", FALSE);
 	    }
+            sym_set_int_param(env, "use_hot_starts", FALSE);
 	    sym_set_dbl_param(env, "time_limit", remainingTime);
 	    sym_set_int_param(env, "do_primal_heuristic", FALSE);
 	    sym_set_int_param(env, "verbosity", -2);
@@ -580,7 +580,7 @@ MibSBilevel::checkBilevelFeasibility(bool isRoot)
 		    // (lSolver)->setSymParam("prep_level", -1);
 		    sym_environment *env = dynamic_cast<OsiSymSolverInterface *>
 			(UBSolver)->getSymphonyEnvironment();
-		    //Always uncomment for debugging!!
+                    sym_set_int_param(env, "use_hot_starts", FALSE);
 		    sym_set_dbl_param(env, "time_limit", remainingTime);
 		    sym_set_int_param(env, "do_primal_heuristic", FALSE);
 		    sym_set_int_param(env, "verbosity", -2);

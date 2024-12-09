@@ -1022,6 +1022,7 @@ MibSCutGenerator::findLowerLevelSolImprovingSolutionIC(double *uselessIneqs,
 #if COIN_HAS_SYMPHONY
 	    sym_environment *env = dynamic_cast<OsiSymSolverInterface *>
 		(nSolver)->getSymphonyEnvironment();
+            sym_set_int_param(env, "use_hot_starts", FALSE);
 	    sym_set_dbl_param(env, "time_limit", remainingTime);
 	    sym_set_int_param(env, "do_primal_heuristic", FALSE);
             sym_set_int_param(env, "verbosity", -2);
@@ -1733,7 +1734,7 @@ MibSCutGenerator::storeBestSolHypercubeIC(const double* lpSol, double optLowerOb
 
 	    sym_environment *env = dynamic_cast<OsiSymSolverInterface *>
 		(UBSolver)->getSymphonyEnvironment();
-	    //Always uncomment for debugging!!
+            sym_set_int_param(env, "use_hot_starts", FALSE);
 	    sym_set_dbl_param(env, "time_limit", remainingTime);
 	    sym_set_int_param(env, "do_primal_heuristic", FALSE);
 	    sym_set_int_param(env, "verbosity", -2);
@@ -3118,6 +3119,7 @@ MibSCutGenerator::solveMips(OsiSolverInterface * mipSolver)
 #if COIN_HAS_SYMPHONY
         sym_environment *env = dynamic_cast<OsiSymSolverInterface *>
 	  (mipSolver)->getSymphonyEnvironment();
+        sym_set_int_param(env, "use_hot_starts", FALSE);
 	sym_set_dbl_param(env, "time_limit", remainingTime);
 	sym_set_int_param(env, "do_primal_heuristic", FALSE);
 	sym_set_int_param(env, "verbosity", -2);
