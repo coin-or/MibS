@@ -3830,6 +3830,11 @@ MibSModel::adjustParameters()
        }
     }
 
+    if (isInterdict_){
+       MibSPar()->setEntry(MibSParams::blisCutStrategy, 0);
+       BlisPar()->setEntry(BlisParams::cutStrategy, 0);
+    }
+    
     if (MibSPar_->entry(MibSParams::cutStrategy) == BRANCHONLY){
        turnOffDefaultCuts = true;
     }
