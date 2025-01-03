@@ -4041,7 +4041,7 @@ MibSModel::adjustParameters()
     paramValue = MibSPar_->entry(MibSParams::useHypercubeIC);
     
     if (paramValue == PARAM_NOTSET){
-	if(defaultCutIsOn == false){
+	if(defaultCutIsOn == false || isPureInteger_ == false){
            MibSPar()->setEntry(MibSParams::useHypercubeIC, PARAM_ON);
 	}
     }
