@@ -240,8 +240,8 @@ MibSModel::readParameters(const int argnum, const char * const * arglist)
    BlisPar_->readFromArglist(argnum, arglist);
    MibSPar_->readFromArglist(argnum, arglist);
    
-   BlisPar()->setEntry(BlisParams::cutStrategy,
-                       MibSPar_->entry(MibSParams::blisCutStrategy));
+   //BlisPar()->setEntry(BlisParams::cutStrategy,
+   //                    MibSPar_->entry(MibSParams::milpCutStrategy));
    BlisPar()->setEntry(BlisParams::branchStrategy,
                        MibSPar_->entry(MibSParams::blisBranchStrategy));
 
@@ -3830,9 +3830,14 @@ MibSModel::adjustParameters()
        }
     }
 
-    if (isInterdict_){
-       MibSPar()->setEntry(MibSParams::blisCutStrategy, 0);
-       BlisPar()->setEntry(BlisParams::cutStrategy, 0);
+    if (MibSPar()->entry(MibSParams::milpCutStrategy) == MibSMILPCutStrategyNotSet){
+       if (isInterdict_){
+          MibSPar()->setEntry(MibSParams::milpCutStrategy, MibSMILPCutStrategyOff);
+          BlisPar()->setEntry(BlisParams::cutStrategy, BlisCutStrategyNone);
+       }else{
+          MibSPar()->setEntry(MibSParams::milpCutStrategy, MibSMILPCutStrategyOn);
+          BlisPar()->setEntry(BlisParams::cutStrategy, BlisCutStrategyNotSet);
+       }
     }
     
     if (MibSPar_->entry(MibSParams::cutStrategy) == BRANCHONLY){

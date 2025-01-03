@@ -106,8 +106,8 @@ MibSParams::createKeywordList() {
    keys_.push_back(make_pair(std::string("MibS_objBoundStrategy"),
 			     AlpsParameter(AlpsIntPar, objBoundStrategy)));
 
-   keys_.push_back(make_pair(std::string("MibS_blisCutStrategy"),
-			     AlpsParameter(AlpsIntPar, blisCutStrategy)));
+   keys_.push_back(make_pair(std::string("MibS_milpCutStrategy"),
+			     AlpsParameter(AlpsIntPar, milpCutStrategy)));
 
    keys_.push_back(make_pair(std::string("MibS_blisBranchStrategy"),
 			     AlpsParameter(AlpsIntPar, blisBranchStrategy)));
@@ -349,7 +349,7 @@ MibSParams::setDefaultEntries() {
 
    setEntry(objBoundStrategy, LPBOUND);
 
-   setEntry(blisCutStrategy, -1);
+   setEntry(milpCutStrategy, MibSMILPCutStrategyDefault);
 
    setEntry(blisBranchStrategy, 1);
 

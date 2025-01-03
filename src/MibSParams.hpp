@@ -53,7 +53,7 @@ class MibSParams : public AlpsParameterSet {
      bilevelCutTypes,
      cutStrategy,
      objBoundStrategy,
-     blisCutStrategy,
+     milpCutStrategy,
      blisBranchStrategy,
      branchStrategy,
      upperFileFormat,

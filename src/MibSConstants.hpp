@@ -46,6 +46,17 @@ enum MibSSolType{
 
 //#############################################################################
 
+enum MibSMILPCutStrategy{
+   MibSMILPCutStrategyNotSet = -2,
+   MibSMILPCutStrategyOn,              //blisCutStrategyNotSet 
+   MibSMILPCutStrategyOff,             //blisCutStrategyNone
+   MibSMILPCutStrategyRoot,            //blisCutStrategyRoot
+   MibSMILPCutStrategyAuto,            //blisCutStrategyAuto 
+   MibSMILPCutStrategyPeriodic         //blisCutStrategyPeriodic
+};
+
+//#############################################################################
+
 enum MibSBranchingStrategy{
     MibSBranchingStrategyNotSet = -1,
     MibSBranchingStrategyFractional,
