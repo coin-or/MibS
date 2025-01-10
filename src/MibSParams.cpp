@@ -100,8 +100,8 @@ MibSParams::createKeywordList() {
    keys_.push_back(make_pair(std::string("MibS_bilevelCutTypes"),
 			     AlpsParameter(AlpsIntPar, bilevelCutTypes)));
    
-   keys_.push_back(make_pair(std::string("MibS_cutStrategy"),
-			     AlpsParameter(AlpsIntPar, cutStrategy)));
+   keys_.push_back(make_pair(std::string("MibS_miblpCutStrategy"),
+			     AlpsParameter(AlpsIntPar, miblpCutStrategy)));
 
    keys_.push_back(make_pair(std::string("MibS_objBoundStrategy"),
 			     AlpsParameter(AlpsIntPar, objBoundStrategy)));
@@ -345,7 +345,7 @@ MibSParams::setDefaultEntries() {
 
    setEntry(bilevelCutTypes, GENERALONLY);
 
-   setEntry(cutStrategy, BRANCHANDCUT);
+   setEntry(miblpCutStrategy, BRANCHANDCUT);
 
    setEntry(objBoundStrategy, LPBOUND);
 

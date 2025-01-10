@@ -5827,7 +5827,7 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
   int numCuts(0);
 
   int cutStrategy =
-    localModel_->MibSPar_->entry(MibSParams::cutStrategy);
+    localModel_->MibSPar_->entry(MibSParams::miblpCutStrategy);
 
   int useLinkingSolutionPool(localModel_->MibSPar_->entry
                              (MibSParams::useLinkingSolutionPool));

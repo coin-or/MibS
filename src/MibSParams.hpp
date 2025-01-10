@@ -51,7 +51,7 @@ class MibSParams : public AlpsParameterSet {
      maxNumActiveCons,
      bilevelProblemType,
      bilevelCutTypes,
-     cutStrategy,
+     miblpCutStrategy,
      objBoundStrategy,
      milpCutStrategy,
      blisBranchStrategy,

@@ -2054,7 +2054,7 @@ MibSModel::setupSelf()
    // Add cut generators.
    //------------------------------------------------------
 
-   if (MibSPar_->entry(MibSParams::cutStrategy) != BRANCHONLY){
+   if (MibSPar_->entry(MibSParams::miblpCutStrategy) != BRANCHONLY){
 
       MibSCutGenerator *cg = new MibSCutGenerator(this);
 
@@ -3832,15 +3832,20 @@ MibSModel::adjustParameters()
 
     if (MibSPar()->entry(MibSParams::milpCutStrategy) == MibSMILPCutStrategyNotSet){
        if (isInterdict_){
-          MibSPar()->setEntry(MibSParams::milpCutStrategy, MibSMILPCutStrategyOff);
+          MibSPar()->setEntry(MibSParams::milpCutStrategy, MibSMILPCutStrategyNone);
           BlisPar()->setEntry(BlisParams::cutStrategy, BlisCutStrategyNone);
        }else{
-          MibSPar()->setEntry(MibSParams::milpCutStrategy, MibSMILPCutStrategyOn);
+          std::cout << "Generic MILP cuts will be generated.";
+          std::cout << std::endl; 
+          MibSPar()->setEntry(MibSParams::milpCutStrategy, MibSMILPCutStrategyDefault);
           BlisPar()->setEntry(BlisParams::cutStrategy, BlisCutStrategyNotSet);
        }
+    }else{
+       BlisPar()->setEntry(BlisParams::cutStrategy,
+                           MibSPar_->entry(MibSParams::milpCutStrategy));
     }
-    
-    if (MibSPar_->entry(MibSParams::cutStrategy) == BRANCHONLY){
+
+    if (MibSPar_->entry(MibSParams::miblpCutStrategy) == BRANCHONLY){
        turnOffDefaultCuts = true;
     }
     
@@ -4188,6 +4193,14 @@ MibSModel::printProblemInfo(){
                  << std::endl;
     }
     
+    if (MibSPar_->entry(MibSParams::milpCutStrategy) == MibSMILPCutStrategyNone){ 
+       std::cout << "Generic MILP cuts will not be generated.";
+       std::cout << std::endl; 
+    }else{
+       std::cout << "Generic MILP cuts will be generated.";
+       std::cout << std::endl; 
+    }
+
     if(MibSPar_->entry(MibSParams::useBendersBinaryCut) == PARAM_ON){
        std::cout << "Benders binary cut generator is on.";
        std::cout << std::endl;

@@ -71,7 +71,7 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
   bool solveSecondLevelWhenLVarsFixed(model_->MibSPar_->entry
        (MibSParams::solveSecondLevelWhenLVarsFixed) == PARAM_ON);
   int cutStrategy(model_->MibSPar_->entry
-		  (MibSParams::cutStrategy));
+		  (MibSParams::miblpCutStrategy));
 
   MibSSolType storeSol(MibSNoSol);
   
