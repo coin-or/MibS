@@ -18,14 +18,14 @@
 /***************************************************************************/
 
 /* Version number of project */
-#define MIBS_VERSION "trunk"
+#define MIBS_VERSION "1.2.2"
 
 /* Major Version number of project */
-#define MIBS_VERSION_MAJOR   9999
+#define MIBS_VERSION_MAJOR 1
 
 /* Minor Version number of project */
-#define MIBS_VERSION_MINOR   9999
+#define MIBS_VERSION_MINOR 2
 
 /* Release Version number of project */
-#define MIBS_VERSION_RELEASE 9999
+#define MIBS_VERSION_RELEASE 2
 

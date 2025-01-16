@@ -19,7 +19,7 @@
 AC_PREREQ(2.59)
 
 m4_define([gitversion], m4_esyscmd([sh -c "git describe --always | cut -d '=' -f 2 | head --bytes -1"]))
-AC_INIT([MibS],[1.2],[https://github.com/tkralphs/MibS/issues/new])
+AC_INIT([MibS],[1.2.2],[https://github.com/tkralphs/MibS/issues/new])
 
 AC_DEFINE([MIBS_GIT_VERSION], [gitversion], [MibS git version])
 
@@ -61,7 +61,7 @@ AC_CANONICAL_BUILD
 # the source root directory contains definition of where to find those
 # externals.  The following macro ensures that those externals are
 # retrieved by svn if they are not there yet.
-AC_COIN_PROJECTDIR_INIT(MibS)
+AC_COIN_PROJECTDIR_INIT(MibS,5:2:2)
 
 # Check if user wants to produce debugging code
 AC_COIN_DEBUG_COMPILE(MibS)
