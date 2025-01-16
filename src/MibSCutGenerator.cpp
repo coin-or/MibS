@@ -5980,7 +5980,7 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
      if (useImprovingDirectionIC == PARAM_ON){
         cutType = MibSIntersectionCutImprovingDirection;
         returnVal = intersectionCuts(conPool, bS->optLowerSolutionOrd_, cutType);
-        if (returnVal){
+        if (returnVal || localModel_->bS_->shouldPrune_){
            localModel_->counterXYIntIDIC_++;
         }else{
            localModel_->counterXYIntIDICFail_++;
@@ -6048,7 +6048,7 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
            localModel_->activeNode_->getDepth() == 0))){
         cutType = MibSIntersectionCutImprovingDirection;
         returnVal = intersectionCuts(conPool, bS->optLowerSolutionOrd_, cutType);
-        if (returnVal){
+        if (returnVal || localModel_->bS_->shouldPrune_){
            localModel_->counterLIntIDIC_++;
         }else{
            localModel_->counterLIntIDICFail_++;
@@ -6113,7 +6113,7 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
           localModel_->activeNode_->getDepth() == 0))){
         cutType = MibSIntersectionCutImprovingDirection;
         returnVal = intersectionCuts(conPool, bS->optLowerSolutionOrd_, cutType);
-        if (returnVal){
+        if (returnVal || localModel_->bS_->shouldPrune_){
            localModel_->counterYIntIDIC_++;
         }else{
            localModel_->counterYIntIDICFail_++;
@@ -6151,7 +6151,7 @@ MibSCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
            localModel_->activeNode_->getDepth() == 0))){
         cutType = MibSIntersectionCutImprovingDirection;
         returnVal = intersectionCuts(conPool, bS->optLowerSolutionOrd_, cutType);
-        if (returnVal){
+        if (returnVal || localModel_->bS_->shouldPrune_){
            localModel_->counterFracIDIC_++;
         }else{
            localModel_->counterFracIDICFail_++;
