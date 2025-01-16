@@ -62,10 +62,15 @@ MibS has its own startegies for chosing the list of candidates (see below)
 ### Cuts
 
 These are parameters for controlling generation of inequalites valid for
-MILPs, which can be used to eliminate fractional solutions if desired. These
-cuts are all off by default, as they're usually not effective. 
-MibS has its own bilevel-specific cuts (see below)
+MILPs, which can be used to eliminate fractional solutions if desired. 
+In general, one should not (need to) adjust these paramters. MibS has its
+parameters for overall generaion of MILP cuts (whether or not to generate
+MILP cuts at all, etc.) and these should be used in most cases. 
+MibS also has its own bilevel-specific cuts (see below)
 Note that `Blis_scaleConFactor` and `Blis_denseConFactor` do affect the addition of bilevel-specific cuts.
+The values of these parameters can significantly affect algorithmic performance 
+(and even correctness) so they should generally not be changed from thier 
+defaults.
 
 | Parameter Name | Description                                     |
 |----------------|-------------------------------------------------|
@@ -142,7 +147,8 @@ but are not documented.
 
 | Parameter Name | Description                                     |
 |----------------|-------------------------------------------------|
-| MibS_cutStrategy |  `0`: branch only <br> `1`: cut only <br> `2`: use cut and branch |
+| MibS_miblpCutStrategy |  `0`: branch only <br> `1`: cut only <br> `2`: use cut and branch |
+| MibS_milpCutStrategy | `-1`: Blis automatically chosen default (for solving MILPs) <br> `0`: Don't generate MLP cuts <br> `1`: Only generate MILP cuts in the root node <br> `2`: Blis strategy `blisCutStrategyAuto` <br>`3`: Blis Strategy `blisCutStrategyPeriodic` |
 | MibS_maxCutDepth | Deepest level of the tree at which cuts should be generated|
 | MibS_turnOffDefaultCuts | Turn off all cuts not explicitly turned on by parameters <br> `0`: false <br> `1`: true |
 | MibS_useFractionalCuts | Whether to generate cuts when solution is fractional (see tech report) <br> `0`: false <br> `1`: true |
@@ -155,7 +161,9 @@ but are not documented.
 | MibS_useGeneralizedNoGoodCut | Whether to generate generalized no good cuts <br> `0`: false <br> `1`: true |
 | MibS_useImprovingSolutionIC | Whether to generate improving solution intersection cuts <br> `0`: false <br> `1`: true |
 | MibS_bilevelFreeSetTypeISIC | What kind of bilevel free set type to use for improving solution ICs <br> `0`: Derive solution by solving lower level problem to optimality <br> `1`: Derive a solution by solving an auxiliary problem |
+| MibS_ISICGenStrategy | `0`: Separate all solutions <br> `1`: Separate all solutions in root only <br> `2`: Separate only solution that are fully integer <br> `3`: Separate only solution where the linking variables are all integer <br> `4`: Separate only solution where the second-level variables are all integer <br> `5`: Separate solution where either all of the linking variables or all of the second-level variables are integer <br>
 | MibS_useImprovingDirectionIC | Whether to generate improving direction intersection cuts <br> `0`: false <br> `1`: true |
+| MibS_IDICGenStrategy | `0`: Separate all solutions <br> `1`: Separate all solutions in root only <br> `2`: Separate only solution that are fully integer <br> `3`: Separate only solution where the linking variables are all integer <br> `4`: Separate only solution where the second-level variables are all integer <br> `5`: Separate solution where either all of the linking variables or all of the second-level variables are integer <br>
 | MibS_useHypecubeIC | Whether to generate hypercube intersection cuts <br> `0`: false <br> `1`: true |
 | MibS_useBoundCut | Whether to generate this cut (see tech report) <br> `0`: false <br> `1`: true |
 | MibS_boundCutOptimal | What kind of bound cut to generate (there is currently only one option) <br> `0`: false <br> `1`: true |
