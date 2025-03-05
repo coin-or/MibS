@@ -84,8 +84,9 @@ MibSModel::~MibSModel()
   if(A2Matrix_) delete A2Matrix_;
   if(G2Matrix_) delete G2Matrix_;
   if(bS_) delete bS_;
-  if(stocA2Matrix_) delete stocA2Matrix_;
-    
+  if(stocA2Matrix_) delete stocA2Matrix_;  
+  if(colSignsG2_) delete [] colSignsG2_;
+  if(colSignsA2_) delete [] colSignsA2_;
 }
 
 //#############################################################################
@@ -124,6 +125,7 @@ MibSModel::initialize()
   isPureInteger_ = true;
   isUpperCoeffInt_ = true;
   isLowerCoeffInt_ = true;
+  isLowerObjInt_ = true;
   allUpperBin_ = true;
   allLowerBin_ = true;
   allLinkingBin_ = true;
@@ -131,6 +133,8 @@ MibSModel::initialize()
   positiveA2_ = true;
   positiveG1_ = true;
   positiveG2_ = true;
+  colSignsG2_ = NULL;
+  colSignsA2_ = NULL;
   upperColInd_ = NULL;
   lowerColInd_ = NULL;
   upperRowInd_ = NULL;
@@ -163,15 +167,6 @@ MibSModel::initialize()
   //bindingMethod_ = "BASIS"; //FIXME: should make this a parameter
   MibSPar_ = new MibSParams;
   //maxAuxCols_ = 0; //FIXME: should make this a parameter
-
-  MibSCutGenerator *cg = new MibSCutGenerator(this);
-
-  cg->setStrategy(BlisCutStrategyPeriodic);
-  cg->setCutGenerationFreq(1);  // Generate cuts at every node
-
-  addCutGenerator(cg);
-
-  setBlisParameters();
 }
 
 //#############################################################################
@@ -180,10 +175,13 @@ MibSModel::initialize()
 void 
 MibSModel::readParameters(const int argnum, const char * const * arglist)
 {
-     //std::cout << "Reading parameters ..." << std::endl;
-    AlpsPar_->readFromArglist(argnum, arglist); 
+    setBlisParameters();
+
+    //std::cout << "Reading parameters ..." << std::endl;
+    AlpsPar_->readFromArglist(argnum, arglist);
     BlisPar_->readFromArglist(argnum, arglist);
     MibSPar_->readFromArglist(argnum, arglist);
+
 }
 
 //#############################################################################
@@ -239,7 +237,7 @@ MibSModel::setBlisParameters()
   /* Set Blis Parameters to keep cutting until no cut is found */
   BlisPar()->setEntry(BlisParams::cutFactor, ALPS_DBL_MAX);
   BlisPar()->setEntry(BlisParams::cutPass, ALPS_INT_MAX);
-  BlisPar()->setEntry(BlisParams::tailOff, -10000);
+  BlisPar()->setEntry(BlisParams::tailOff, 1);
   BlisPar()->setEntry(BlisParams::denseConFactor, ALPS_DBL_MAX);
  
   /* Set cut generation frequency to 1 */
@@ -325,12 +323,14 @@ MibSModel::readAuxiliaryData(const CoinPackedMatrix& rowMatrix,
      double dValue(0.0);
      int i(0), j(0), k(0), m(0), p(0), pos(0);
      int lowerColNum(0), lowerRowNum(0);
+     // Find out if we are reading an interdiction problem in legacy format
 
      while (data_stream >> key){
 	 if(key == "N"){
 	     data_stream >> iValue;
 	     setLowerDim(iValue);
 	     setTruncLowerDim(iValue);
+         lowerColNum = iValue; // for interdiction problem reading
 	 }
          else if(key == "M"){
 	     data_stream >> iValue;
@@ -343,7 +343,7 @@ MibSModel::readAuxiliaryData(const CoinPackedMatrix& rowMatrix,
 
 	     if(inputFormat == "indexBased"){
 		 data_stream >> iValue;
-		 lowerColInd_[i] = iValue;
+	     lowerColInd_[i] = iValue;
 	     }
 	     else{
 		 data_stream >> cValue;
@@ -403,6 +403,7 @@ MibSModel::readAuxiliaryData(const CoinPackedMatrix& rowMatrix,
 	 }
 	 else if(key == "IB"){
 	     isInterdict_ = true;
+         MibSPar()->setEntry(MibSParams::bilevelProblemType, INTERDICT);
 	     //FIXME: ALLOW MORE THAN ONE ROW
 	     data_stream >> dValue;
 	     interdictBudget_ = dValue;
@@ -456,7 +457,19 @@ MibSModel::readAuxiliaryData(const CoinPackedMatrix& rowMatrix,
 	     }
 	 }
      }
-
+    
+  //A ridiculous hack for a legacy data format that was poorly designed
+  if (getInterdictCost() && inputFormat == "indexBased"){
+     // Previously, the interdiction variables were assumed to come first
+     // Now we assume they come second so that the lower-level variables
+     // have the same indices as in the lower level MPS file. But the
+     // auxiliary files shifted the indices, this is lunacy!
+     // The solutions is just not to use index based anymore, which never
+     // made much sense.
+     for (i = 0; i < lowerColNum; i++){
+        lowerColInd_[i] -= lowerColNum;
+     }
+  }
      data_stream.close();
   
      std::cout << "LL Data File: " << getLowerFile() << "\n";
@@ -946,22 +959,44 @@ MibSModel::loadAuxiliaryData(int lowerColNum, int lowerRowNum,
 			     const double *lColLbInLProb,
 			     const double *lColUbInLProb)
 {
-   int *copyLowerColInd = new int[lowerColNum];
-   int *copyLowerRowInd = new int[lowerRowNum];
-   double *copyLowerObjCoef = new double[lowerColNum];
-   int *copyUpperColInd = NULL;
-   int *copyUpperRowInd = NULL;
+   int problemType(MibSPar_->entry(MibSParams::bilevelProblemType));
+
+   double *copyLowerObjCoef(new double[lowerColNum]);
+   int *copyLowerColInd(new int[lowerColNum]);
+   int *copyLowerRowInd(NULL);
+   int *copyUpperColInd(NULL);
+   int *copyUpperRowInd(NULL);
    int *copyStructRowInd = NULL;
    double *copyInterdictCost = NULL;
    double *copyLColLbInLProb = NULL;
    double *copyLColUbInLProb = NULL;
 
-   if (upperColInd != NULL){
-      copyUpperColInd = new int[upperColNum];
+   if (interdictCost != NULL || problemType == INTERDICT){
+       isInterdict_ = true;
+       MibSPar()->setEntry(MibSParams::bilevelProblemType, INTERDICT);
+       if (interdictCost){
+          upperColNum = lowerColNum;
+          upperRowNum = 1;
+          //lowerColNum += 1;
+          lowerRowNum += upperColNum;
+       }else{
+          assert(upperColNum == lowerColNum);
+          //lowerColNum += 1;
+          lowerRowNum += upperColNum;
+       }     
+   }else{
+      MibSPar()->setEntry(MibSParams::bilevelProblemType, GENERAL);
    }
-   if (upperRowInd != NULL){
-      copyUpperRowInd = new int[upperRowNum];
-   }
+
+   assert(lowerRowNum >0 && lowerColNum >0 && upperRowNum >0 && upperColNum >0);
+   assert(lowerRowInd && lowerColInd && upperRowNum && upperColInd); 
+   assert(lowerObjCoef);
+
+   copyUpperColInd = new int[upperColNum];
+   copyUpperRowInd = new int[upperRowNum];      
+   copyLowerColInd = new int[lowerColNum];
+   copyLowerRowInd = new int[lowerRowNum];
+
    if (structRowInd != NULL){
       copyStructRowInd = new int[structRowNum];
    }
@@ -978,7 +1013,19 @@ MibSModel::loadAuxiliaryData(int lowerColNum, int lowerRowNum,
    }
 
    CoinDisjointCopyN(lowerColInd, lowerColNum, copyLowerColInd);
-   CoinDisjointCopyN(lowerRowInd, lowerRowNum, copyLowerRowInd);
+   if (isInterdict_){
+      CoinDisjointCopyN(lowerRowInd, lowerRowNum - upperColNum,
+                        copyLowerRowInd);
+      CoinIotaN(copyLowerRowInd+(lowerRowNum-upperColNum), upperColNum,
+                lowerRowNum-upperColNum+upperRowNum);
+   }else{
+      CoinDisjointCopyN(lowerRowInd, lowerRowNum, copyLowerRowInd);
+   }
+   
+   if (interdictCost){
+      CoinIotaN(upperColInd_, upperColNum, lowerColNum);
+   }
+   
    CoinDisjointCopyN(lowerObjCoef, lowerColNum, copyLowerObjCoef);
    if (upperColInd != NULL){
       CoinDisjointCopyN(upperColInd, upperColNum, copyUpperColInd);
@@ -1018,7 +1065,6 @@ MibSModel::loadAuxiliaryData(int lowerColNum, int lowerRowNum,
       setStructRowInd(copyStructRowInd);
    }
    if (interdictCost != NULL){
-       isInterdict_ = true;
       setInterdictBudget(interdictBudget);
       setInterdictCost(copyInterdictCost);
    }
@@ -3552,35 +3598,32 @@ MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
 
     if(stochasticityType == "deterministic"){
 
-        //int i(0);
+	// if(isInterdict_ == true){
+	//     if(problemType == PARAM_NOTSET){
+	// 	MibSPar()->setEntry(MibSParams::bilevelProblemType, INTERDICT);
+	//     }
+	//     else if(problemType == GENERAL){
+	// 	std::cout << "Wrong value for MibSProblemType. Automatically modifying its value." << std::endl;
+	// 	MibSPar()->setEntry(MibSParams::bilevelProblemType, INTERDICT);
+	//     }
+	// }
+	// else{
+	//     if(problemType == PARAM_NOTSET){
+	// 	MibSPar()->setEntry(MibSParams::bilevelProblemType, GENERAL);
+	//     }
+	//     else if(problemType == INTERDICT){
+	// 	std::cout << "Wrong value for MibSProblemType. Automatically modifying its value." << std::endl;
+	// 	MibSPar()->setEntry(MibSParams::bilevelProblemType, GENERAL);
+	//     }
+	// }
 
-	if(isInterdict_ == true){
-	    if(problemType == PARAM_NOTSET){
-		MibSPar()->setEntry(MibSParams::bilevelProblemType, INTERDICT);
-	    }
-	    else if(problemType == GENERAL){
-		std::cout << "Wrong value for MibSProblemType. Automatically modifying its value." << std::endl;
-		MibSPar()->setEntry(MibSParams::bilevelProblemType, INTERDICT);
-	    }
-	}
-	else{
-	    if(problemType == PARAM_NOTSET){
-		MibSPar()->setEntry(MibSParams::bilevelProblemType, GENERAL);
-	    }
-	    else if(problemType == INTERDICT){
-		std::cout << "Wrong value for MibSProblemType. Automatically modifying its value." << std::endl;
-		MibSPar()->setEntry(MibSParams::bilevelProblemType, GENERAL);
-	    }
-	}
-
-	problemType = MibSPar_->entry(MibSParams::bilevelProblemType);
+	// problemType = MibSPar_->entry(MibSParams::bilevelProblemType);
 
 	numRows = matrix.getNumRows();
 	numCols = matrix.getNumCols();
     }
   
-   int i(0), j(0);
-   int beg(0);
+   int i(0), j(0), beg(0);
 
    double *varLB(NULL);  
    double *varUB(NULL);  
@@ -3591,14 +3634,13 @@ MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
 
    CoinPackedMatrix *newMatrix = NULL;
 
-   //switch (problemType){
-      
-       //case 0:
 
    if((stochasticityType != "deterministic") ||
-      (problemType == 0) || (interdictCost_ == NULL)){
+    //   (problemType == 0) || (interdictCost_ == NULL)){
+      (problemType == GENERAL)){
 
       if(stochasticityType == "deterministic"){
+        // TODO Change structRowInd_ to be an indicator vector
 	  if (!structRowInd_){
 	      structRowInd_ = new int[numRows];
 	      CoinIotaN(structRowInd_, numRows, 0);
@@ -3775,48 +3817,45 @@ MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
       //------------------------------------------------------
       // Add interdict vars and aux UL rows
       //------------------------------------------------------
-      
+
       double * intCosts = getInterdictCost();
-      int numInterdictNZ(0);
-      //FIXME: ALLOW MORE THAN ONE ROW
-      int auxULRows(1);
+
+      // Interdiction variables are already added
+      numCols = intCosts ? numCols:numCols/2;
+
+      int auxULRows(intCosts ? 1:0);
       int interdictRows(numCols);
       int auxRows(auxULRows + interdictRows);
       int numTotalCols(0), numTotalRows(0);
       //int numAuxCols(2 * numCols);
       int numAuxCols(1);
       //int numAuxCols(0);//this breaks orig interdiction cut
-      int i(0);
       
       //FIXME:  NEED TO CHANGE THIS AROUND
       //maxAuxCols_ = numAuxCols;
       
-      for(i = 0; i < numCols; i++){
-	 if((intCosts[i] > etol_) || (intCosts[i] < - etol_)){
-	    numInterdictNZ++;
-	 }
-      }
-      
-      numTotalCols = 2 * numCols + numAuxCols;
+      numTotalCols = 2*numCols + numAuxCols;
       numTotalRows = numRows + auxRows;
-      
-      int structRows(numTotalRows - interdictRows);
-      structRowInd_ = new int[structRows];
-      CoinIotaN(structRowInd_, structRows, 0);
-      structRowNum_ = structRows;
+
+      if (!structRowInd_){
+         structRowNum_ = numTotalRows - interdictRows;
+         structRowInd_ = new int[structRowNum_];
+         CoinIotaN(structRowInd_, structRowNum_, 0);
+      }
       
       varLB = new double [numTotalCols];
       varUB = new double [numTotalCols];
       
       conLB = new double [numTotalRows];
       conUB = new double [numTotalRows];
-      
-      CoinDisjointCopyN(colLB, numCols, varLB + numCols);
-      CoinDisjointCopyN(colUB, numCols, varUB + numCols);
 
-      CoinFillN(varLB, numCols, 0.0); 
-      CoinFillN(varUB, numCols, 1.0); 
-   
+      CoinDisjointCopyN(colLB, numCols + (intCosts ? 0:numCols), varLB);
+      CoinDisjointCopyN(colUB, numCols + (intCosts ? 0:numCols), varUB);
+      if (intCosts) {
+         CoinFillN(varLB+numCols, numCols, 0.0); 
+         CoinFillN(varUB+numCols, numCols, 1.0);
+      }
+         
       CoinFillN(varLB + 2 * numCols, numAuxCols, 0.0); 
       CoinFillN(varUB + 2 * numCols, numAuxCols, 1.0);
       
@@ -3824,33 +3863,43 @@ MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
       CoinDisjointCopyN(rowUB, numRows, conUB + auxULRows);
       
       /* Add interdiction budget row */
-      CoinFillN(conLB, auxULRows, - 1 * infinity);
-      CoinFillN(conUB, auxULRows, getInterdictBudget());
+      if (intCosts){
+         CoinFillN(conLB, auxULRows, - 1 * infinity);
+         CoinFillN(conUB, auxULRows, getInterdictBudget());
+      }
       
-      /* Add VUB rows */
+      /* Add bounds for VUB rows */
       CoinFillN(conLB + (numTotalRows - interdictRows), 
 		interdictRows, - 1 * infinity);
-      CoinDisjointCopyN(colUB, interdictRows, conUB + (numTotalRows - interdictRows));
+      CoinDisjointCopyN(colUB, interdictRows, conUB +
+                        (numTotalRows - interdictRows));
       
       objCoef = new double [numTotalCols];
       CoinZeroN(objCoef, numTotalCols);
-      //This is a work-around because the MPS files in our test set have the lower-level
-      //objective instead of the upper level one
-      for (j = 0; j < numCols; j++){ 
-	 objCoef[j + numCols] = -obj[j];
+      //This is a work-around because the MPS files in our test set have the
+      //lower-level objective instead of the upper level one
+      if (intCosts){
+         for (j = 0; j < numCols; j++){ 
+            objCoef[j] = -obj[j];
+         }
+      }else{
+         CoinDisjointCopyN(obj, numTotalCols - numAuxCols, objCoef);
       }
+      
       
       //------------------------------------------------------
       // Set colType_
       //------------------------------------------------------
       
       colType = new char [numTotalCols];   
+
+      CoinDisjointCopyN(types, numCols+(intCosts ? 0:numCols), colType);
       
-      for(j = 0; j < numCols; ++j) {
-	 colType[j] = 'B';
+      if (intCosts) {
+         for(j = numCols; j < 2*numCols; ++j) {
+            colType[j] = 'B';
+         }
       }
-      
-      CoinDisjointCopyN(types, numCols, colType + numCols);
       
       /* Auxilliary indicator columns, used later*/
       
@@ -3867,16 +3916,17 @@ MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
       
       newMatrix = new CoinPackedMatrix(false, 0, 0);
       newMatrix->setDimensions(0, numTotalCols);
-      int start(0), end(0), tmp(0), index(0);
+      int start(0), end(0);
       
       /* Add interdiction budget row */
-      
-      for(i = 0; i < auxULRows; i++){
-	 CoinPackedVector row;
-	 for(j = 0; j < numCols; j++){
-	    row.insert(j, intCosts[j]);
-	 }
-	 newMatrix->appendRow(row);
+      if (intCosts){
+         for(i = 0; i < auxULRows; i++){
+            CoinPackedVector row;
+            for(j = 0; j < numCols; j++){
+               row.insert(j+numCols, intCosts[j]);
+            }
+            newMatrix->appendRow(row);
+         }
       }
       
       /* lower-level rows */
@@ -3886,46 +3936,42 @@ MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
 	 start = matStarts[i];
 	 end = start + rowMatrix.getVectorSize(i);
 	 for(j = start; j < end; j++){
-	    index = matIndices[j] + numCols;
-	    row.insert(index, matElements[j]);
+	    row.insert(matIndices[j], matElements[j]);
 	 }
 	 newMatrix->appendRow(row);
       }
       
-      /* Add VUB rows */
+      /* Add VUB rows (we assume here that all lower-level variables come 
+         first and then all interdiction */
       
       for (i = 0; i < numCols; i++){
 	 CoinPackedVector row;
-	 row.insert(i, colUB[i]);
-	 row.insert(i + numCols, 1.0);
+	 row.insert(i + numCols, colUB[i]);
+	 row.insert(i, 1.0);
 	 newMatrix->appendRow(row);
+         lowerRowInd_[numRows+i];
       }
       
       newMatrix->reverseOrdering();
       
-      setUpperDim(numCols);
-      setUpperRowNum(1);
-
-      int *upperColInd = new int[numCols];
-      int *upperRowInd = new int[1];      
-      CoinIotaN(upperColInd, numCols, 0);
-      upperRowInd[0] = 0;
-
       origRowSense_ = new char[numTotalRows];
       CoinDisjointCopyN(rowSense, numRows, origRowSense_ + auxULRows);
       CoinFillN(origRowSense_, auxULRows, 'L');
       CoinFillN(origRowSense_ + (numTotalRows - interdictRows),
-		interdictRows, 'L');
-
-      setUpperColInd(upperColInd);
-      setUpperRowInd(upperRowInd);
+                interdictRows, 'L');
       
+      if (intCosts){
+         upperColInd_ = new int[numCols];
+         CoinIotaN(upperColInd_, numCols, numCols);
+         upperDim_ = numCols;
+         upperRowInd_ = new int[1];
+         upperRowInd_[0] = 0;
+         upperRowNum_ = 1;
+      }
+
       // store the indices of the structural constraints
       //for(i = 0; i < interdictRows; i++)
       //	vubRowInd_[i] = lowerRowInd_[numTotalRows - interdictRows + i];
-      
-      //break;
-      
    }
 
    setColMatrix(newMatrix);   
@@ -4003,9 +4049,9 @@ MibSModel::loadProblemData(const CoinPackedMatrix& matrix,
    //checkProblemType(); // checks if MibS can solve problem entered
    setProblemType(); //determine the type of MIBLP
    //determine the list of first-stage variables participate in second-stage constraints
-   setRequiredFixedList(newMatrix);
+   setRequiredFixedList();
    if((stochasticityType == "deterministic") || (stochasticityType == "stochasticWithoutSAA")){
-       instanceStructure(newMatrix, conLB, conUB, rowSense);
+       instanceStructure();
    }
 }
 
@@ -4625,7 +4671,17 @@ MibSModel::setupSelf()
    //------------------------------------------------------
    // Add cut generators.
    //------------------------------------------------------
-   
+
+   if (MibSPar_->entry(MibSParams::cutStrategy) != BRANCHONLY){
+
+      MibSCutGenerator *cg = new MibSCutGenerator(this);
+
+      cg->setStrategy(BlisCutStrategyPeriodic);
+      cg->setCutGenerationFreq(1);  // Generate cuts at every node
+      
+      addCutGenerator(cg);
+
+   }
    
    //----------------------------------
    // Add probe cut generator.
@@ -6084,7 +6140,7 @@ MibSModel::decodeToSelf(AlpsEncoded& encoded)
 
 //#############################################################################
 void
-MibSModel::setRequiredFixedList(const CoinPackedMatrix *newMatrix)
+MibSModel::setRequiredFixedList()
 {
     //saharSto: we should change the structure of fixedInd
     std::string stochasticityType(MibSPar_->entry
@@ -6095,9 +6151,9 @@ MibSModel::setRequiredFixedList(const CoinPackedMatrix *newMatrix)
     int * upperColInd = getUpperColInd();
     int * lowerRowInd = getLowerRowInd();
 
-    const double * matElements = newMatrix->getElements();
-    const int * matIndices = newMatrix->getIndices();
-    const int * matStarts = newMatrix->getVectorStarts();
+    const double * matElements = colMatrix_->getElements();
+    const int * matIndices = colMatrix_->getIndices();
+    const int * matStarts = colMatrix_->getVectorStarts();
 
     int index1, rowIndex, posRow, start, end, begPos, endPos;
     int i, j;
@@ -6112,7 +6168,7 @@ MibSModel::setRequiredFixedList(const CoinPackedMatrix *newMatrix)
 	    fixedInd_[i] = 0;
 	    if(binarySearch(0, uCols - 1, i, upperColInd) >= 0){
 		start = matStarts[i];
-	        end = start + newMatrix->getVectorSize(i);
+	        end = start + colMatrix_->getVectorSize(i);
 		for(j = start; j < end; j++){
 		    rowIndex = matIndices[j];
 		    posRow = binarySearch(0, lRows - 1, rowIndex, lowerRowInd);
@@ -6132,7 +6188,7 @@ MibSModel::setRequiredFixedList(const CoinPackedMatrix *newMatrix)
 	    fixedInd_[i] = 0;
 	    if(i < uCols){
 		start = matStarts[i];
-		end = start + newMatrix->getVectorSize(i);
+		end = start + colMatrix_->getVectorSize(i);
 		for(j = start; j < end; j++){
 		    rowIndex = matIndices[j];
 		    if((begPos <= rowIndex) && (rowIndex <= endPos)){
@@ -6148,10 +6204,8 @@ MibSModel::setRequiredFixedList(const CoinPackedMatrix *newMatrix)
 }
 
 //#############################################################################
-void                                                                                                                                                       
-MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix,
-                             const double* rowLB, const double* rowUB,
-                             const char *rowSense)
+void                                                   
+MibSModel::instanceStructure()
 {
 
    bool printProblemInfo(MibSPar_->entry(MibSParams::printProblemInfo));
@@ -6341,48 +6395,33 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix,
    int numRows(numCons_);
    int uCols(upperDim_);
    int lCols(lowerDim_);
-   int uRows(upperRowNum_);
    int lRows(lowerRowNum_);
    int numUpperInt(0);
    int numLowerInt(0);
    int * uColIndices = getUpperColInd();         
    int * lColIndices = getLowerColInd();
    int * lRowIndices = getLowerRowInd();
-   char * newRowSense = new char[numRows];
+   double * lObjCoeffs  = getLowerObjCoeffs();
    
-   if (isInterdict_ == false){
-      for(i = 0; i < uCols; i++){
-         index = uColIndices[i];
-         if (colType_[index] != 'C'){
-            numUpperInt ++;
-         }
-      }
-      if (printProblemInfo == true){
-         std::cout <<"Number of integer UL Variables: ";
-         std::cout << numUpperInt << std::endl;
-      }
-      for (i = 0; i < lCols; i++){
-         index = lColIndices[i];
-         if (colType_[index] != 'C'){
-            numLowerInt++;
-         }
-      }
-      if (printProblemInfo == true){
-         std::cout <<"Number of integer LL Variables: ";
-         std::cout << numLowerInt << std::endl;
+   for(i = 0; i < uCols; i++){
+      index = uColIndices[i];
+      if (colType_[index] != 'C'){
+         numUpperInt ++;
       }
    }
-   
-   
-   if (isInterdict_ == false){
-      CoinDisjointCopyN(rowSense, numRows, newRowSense);
-   }else{
-      for (i = 0; i < numRows; i++){
-         newRowSense[i] = 'L';
+   if (printProblemInfo == true){
+      std::cout <<"Number of integer UL Variables: ";
+      std::cout << numUpperInt << std::endl;
+   }
+   for (i = 0; i < lCols; i++){
+      index = lColIndices[i];
+      if (colType_[index] != 'C'){
+         numLowerInt++;
       }
-      for (i = 0; i < lRows-lCols; i++){
-         newRowSense[i+uRows] = rowSense[i];
-      }
+   }
+   if (printProblemInfo == true){
+      std::cout <<"Number of integer LL Variables: ";
+      std::cout << numLowerInt << std::endl;
    }
    
    //Checks general or interdiction 
@@ -6436,50 +6475,94 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix,
       }
    }
    
-   int nonZero (newMatrix->getNumElements());
    int counterStart, counterEnd;
-   int rowIndex, posRow, posCol;
+   int rowIndex;
+   bool lowerRow, lowerCol;
    double rhs(0.0);
    
-   const double * matElements = newMatrix->getElements();
-   const int * matIndices = newMatrix->getIndices();           
-   const int * matStarts = newMatrix->getVectorStarts();
+   const double * matElements = colMatrix_->getElements();
+   const int * matIndices = colMatrix_->getIndices();           
+   const int * matStarts = colMatrix_->getVectorStarts();
+   colSignsG2_ = new int[numCols];
+   colSignsA2_ = new int[numCols];
+
+   for (i = 0; i < lCols; i++){
+      if ((fabs(lObjCoeffs[i] - floor(lObjCoeffs[i])) > etol_) &&
+          (fabs(lObjCoeffs[i] - ceil(lObjCoeffs[j])) > etol_)){
+         isLowerObjInt_ = false;
+         break;
+      }
+   }
+   
    //Signs of matrices A1, A2, G1 and G2 are determined
-   //based on converting the row senses to 'L'.  
+   //based on converting the row senses to 'G' in order to match the
+   //MibS cuts paper.
    for (i = 0; i < numCols; i++){
       counterStart = matStarts[i];
       counterEnd = matStarts[i+1];
+      colSignsG2_[i] = MibSModel::colSignUnknown;
+      colSignsA2_[i] = MibSModel::colSignUnknown;
       for (j = counterStart; j < counterEnd; j++){                          
          rowIndex = matIndices[j];
-         if(newRowSense[rowIndex] == 'L'){
-            mult = 1;
+         if (binarySearch(0, structRowNum_-1, rowIndex, structRowInd_) < 0){
+            continue;
          }
-         else{
+         if(origRowSense_[rowIndex] == 'L'){
             mult = -1;
          }
-         posRow = binarySearch(0, lRows - 1, rowIndex, lRowIndices);       
-         posCol = binarySearch(0, lCols - 1, i, lColIndices);
+         else{
+            mult = 1;
+         }
+         lowerRow = binarySearch(0, lRows - 1,
+                                 rowIndex, lRowIndices) < 0 ? false:true;
+         lowerCol = binarySearch(0, lCols - 1,
+                                 i, lColIndices) < 0 ? false:true;
          if ((fabs(matElements[j] - floor(matElements[j])) > etol_) &&
             (fabs(matElements[j] - ceil(matElements[j])) > etol_)){
-            if (posRow < 0){
-               isUpperCoeffInt_ = false;
-            }else{
+            if (lowerRow){
                isLowerCoeffInt_ = false;
+            } else {
+               isUpperCoeffInt_ = false;
             }
          }
          if (mult * matElements[j] < -etol_){
-            if (posRow < 0){
-               if (posCol < 0){
-                  positiveA1_ = false;
-               }  
-               else{
-                  positiveG1_ = false;
-               }  
-            }else{  
-               if (posCol < 0){
-                  positiveA2_ = false;
-               }else{
+            if (lowerRow){
+               if (lowerCol){
                   positiveG2_ = false;
+                  if (colSignsG2_[i] == MibSModel::colSignUnknown){
+                     colSignsG2_[i] = MibSModel::colSignNegative;
+                  }else if (colSignsG2_[i] == MibSModel::colSignPositive){
+                     colSignsG2_[i] = MibSModel::colSignInconsistent;
+                  }
+               }else{
+                  positiveA2_ = false;
+                  if (colSignsA2_[i] == MibSModel::colSignUnknown){
+                     colSignsA2_[i] = MibSModel::colSignNegative;
+                  }else if (colSignsA2_[i] == MibSModel::colSignPositive){
+                     colSignsA2_[i] = MibSModel::colSignInconsistent;
+                  }
+               }
+            } else {
+               if (lowerCol){
+                  positiveG1_ = false;
+               } else {
+                  positiveA1_ = false;
+               }
+            }
+         } else {
+            if (lowerRow) {
+               if (lowerCol) {
+                  if (colSignsG2_[i] == MibSModel::colSignUnknown){
+                     colSignsG2_[i] = MibSModel::colSignPositive;
+                  }else if (colSignsG2_[i] == MibSModel::colSignNegative){
+                     colSignsG2_[i] = MibSModel::colSignInconsistent;
+                  }
+               }else{
+                  if (colSignsA2_[i] == MibSModel::colSignUnknown){
+                     colSignsA2_[i] = MibSModel::colSignPositive;
+                  }else if (colSignsA2_[i] == MibSModel::colSignNegative){
+                     colSignsA2_[i] = MibSModel::colSignInconsistent;
+                  }
                }
             }
          }
@@ -6488,12 +6571,12 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix,
 
     if ((isUpperCoeffInt_ == true) || (isLowerCoeffInt_ == true)){
        for (i = 0; i < numRows; i++){
-          switch(newRowSense[i]){
+          switch(origRowSense_[i]){
            case 'L':
-             rhs = rowUB[i];
+             rhs = conUB_[i];
              break;
            case 'G':
-             rhs = rowLB[i];
+             rhs = conLB_[i];
              break;
            case 'E':
              std::cout << "MibS cannot currently handle equality constraints.";
@@ -6508,11 +6591,12 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix,
           }
           if ((fabs(rhs - floor(rhs)) > etol_) &&
               (fabs(rhs - ceil(rhs)) > etol_)){
-             posRow = binarySearch(0, lRows - 1, rowIndex, lRowIndices);
-             if (posRow < 0){
-                isUpperCoeffInt_ = false;
-             }else{
+             lowerRow = binarySearch(0, lRows - 1,
+                                     i, lRowIndices) < 0 ? false:true;
+             if (lowerRow){
                 isLowerCoeffInt_ = false;
+             } else {
+                isUpperCoeffInt_ = false;
              }
           }
        }
@@ -6521,10 +6605,9 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix,
     for (i = 0; i < numCols; i++){
        if (fixedInd_[i] == 1){
           if (colType_[i] == 'C'){
-             std::cout << "All linking variables should be discrete";
-             std::cout << std::endl;
-             i = -1;
-             assert(i > 0);
+             throw CoinError("All linking variables should be integer",
+                             "instanceStructure",
+                             "MibSModel");
           }
        }
     }
@@ -6553,21 +6636,8 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix,
     std::cout << "=======================================" <<std::endl;
     std::cout << std::endl;
    
-   
-    //MibSIntersectionCutType cutType(MibSIntersectionCutTypeNotSet);
-    //bool isHypercubeOn(false);
-    
     bool turnOffOtherCuts(MibSPar_->entry(MibSParams::turnOffOtherCuts));
     bool defaultCutIsOn(false);
-    
-    /*//Check if hypercube IC is on or off
-      paramValue = MibSPar_->entry(MibSParams::useIntersectionCut);
-      cutType =  MibSPar_->entry(MibSParams::intersectionCutType);
-      
-      if((paramValue == PARAM_ON) && (cutType == 2)){
-      isHypercubeOn = true;
-      }*/
-   
     
     //Param: "MibS_usePreprocessor" 
     paramValue = MibSPar_->entry(MibSParams::usePreprocessor);
@@ -6592,6 +6662,10 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix,
           std::cout << std::endl; 
        }
     }
+
+    if (MibSPar_->entry(MibSParams::cutStrategy) == BRANCHONLY){
+       turnOffOtherCuts = true;
+    }
     
     //Param: "MibS_useIncObjCut"
     if ((turnOffOtherCuts == true) &&
@@ -6601,45 +6675,27 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix,
     
     paramValue = MibSPar_->entry(MibSParams::useIncObjCut);
     
-    if (paramValue == PARAM_NOTSET){
-	MibSPar()->setEntry(MibSParams::useIncObjCut, PARAM_OFF);
-    }else if (paramValue == PARAM_ON){
-       if ((allLinkingBin_ == false) || (positiveA2_ == false)){
-          std::cout << "The increasing objective cut is not valid for this problem.";
-          std::cout << std::endl;
-          MibSPar()->setEntry(MibSParams::useIncObjCut, PARAM_OFF);
+    if (allLinkingBin_ == true){
+       if (turnOffOtherCuts == false && paramValue == PARAM_NOTSET){
+          MibSPar()->setEntry(MibSParams::useIncObjCut, PARAM_ON);
        }
+    }else if (paramValue == PARAM_ON){
+       std::cout << "The increasing objective cut is only valid when "
+                 << "linking variables are binary.";
+       std::cout << std::endl;
+       MibSPar()->setEntry(MibSParams::useIncObjCut, PARAM_OFF);
+    }else if (paramValue == PARAM_NOTSET){
+       MibSPar()->setEntry(MibSParams::useIncObjCut, PARAM_OFF);
     }
     
-    //Param: "MibS_useInterSectionCut" (MibSIntersectionCutTypeIC)
-    paramValue = MibSPar_->entry(MibSParams::useTypeIC);
-    //cutType = static_cast<MibSIntersectionCutType>
-    //	(MibSPar_->entry(MibSParams::intersectionCutType));
-    
-    if (paramValue == PARAM_NOTSET){
-       MibSPar()->setEntry(MibSParams::useTypeIC, PARAM_OFF);
-    }else if (paramValue == PARAM_ON){
-       if ((isPureInteger_ == false) || (isLowerCoeffInt_ == false)){
-          std::cout << "The intersection cut IC is not valid for this problem.";
-          std::cout << std::endl;
-          MibSPar()->setEntry(MibSParams::useTypeIC, PARAM_OFF);
-       }
-    }
-    /*if((paramValue == PARAM_ON) && (cutType == MibSIntersectionCutTypeIC)){
-      if((isPureInteger_ == false) || (isLowerCoeffInt_ == false)){
-	    std::cout << "The intersection cut IC is not valid problem.";
-	    std::cout << std::endl;
-	    MibSPar()->setEntry(MibSParams::useIntersectionCut, PARAM_NOTSET);
-	}
-    }*/    
-
     //Param: "MibS_useNoGoodCut"
     paramValue = MibSPar_->entry(MibSParams::useNoGoodCut);
 
     if (paramValue == PARAM_NOTSET){
 	MibSPar()->setEntry(MibSParams::useNoGoodCut, PARAM_OFF);
     } else if ((paramValue == PARAM_ON) && (allUpperBin_ == false)){
-       std::cout << "The no-good cut is not valid for this problem.";
+       std::cout << "The no-good cut is only valid when "
+                 << "all upper level variables are binary.";
        std::cout << std::endl;
        MibSPar()->setEntry(MibSParams::useNoGoodCut, PARAM_OFF);
     }
@@ -6653,7 +6709,7 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix,
     paramValue = MibSPar_->entry(MibSParams::useBendersCut);
 
     if (paramValue == PARAM_NOTSET){
-	if ((isInterdict_ == false) || (positiveG2_ == false)){
+	if (!isInterdict_){
 	    MibSPar()->setEntry(MibSParams::useBendersCut, PARAM_OFF);
 	}else{
 	    MibSPar()->setEntry(MibSParams::useBendersCut, PARAM_ON);
@@ -6662,9 +6718,11 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix,
 	}
     }
     else if (paramValue == PARAM_ON){
-	if ((isInterdict_ == false) || (positiveG2_ == false)){
-           std::cout << "The Benders cut is not valid for this problem.";
-           std::cout << std::endl;
+	if (!isInterdict_){
+           std::cout << "The Benders cut is only valid for interdiction"
+                     << "problems." << std::endl
+                     << "Please use setInterdictionProblem() to indicate if"
+                     << "you do have an interdiction problem" << std::endl;
            MibSPar()->setEntry(MibSParams::useBendersCut, PARAM_OFF);
 	}
     }
@@ -6674,7 +6732,7 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix,
 
     //Param: "MibS_useGeneralNoGoodCut"
     if ((turnOffOtherCuts == true) &&
-        (MibSPar_->entry(MibSParams::useNoGoodCut) == PARAM_NOTSET)){
+        (MibSPar_->entry(MibSParams::useGeneralNoGoodCut) == PARAM_NOTSET)){
        MibSPar()->setEntry(MibSParams::useGeneralNoGoodCut, PARAM_OFF);
     }
     
@@ -6687,12 +6745,80 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix,
           MibSPar()->setEntry(MibSParams::useGeneralNoGoodCut, PARAM_ON);
        }
     }else if ((paramValue == PARAM_ON) && (allLinkingBin_ == false)){
-       std::cout << "Generalized no-good cut is not valid for this problem.";
+       std::cout << "The generalized no-good cut is only valid when "
+                 << "all linking variables are binary.";
        std::cout << std::endl;
        MibSPar()->setEntry(MibSParams::useGeneralNoGoodCut, PARAM_OFF);
     }
     if (MibSPar_->entry(MibSParams::useGeneralNoGoodCut) == PARAM_ON){
        defaultCutIsOn = true;
+    }
+    
+    //Param: "MibS_useTypeWatermelon" 
+    if ((turnOffOtherCuts == true) &&
+        (MibSPar_->entry(MibSParams::useTypeWatermelon) == PARAM_NOTSET)){
+       MibSPar()->setEntry(MibSParams::useTypeWatermelon, PARAM_OFF);
+    }
+
+    paramValue = MibSPar_->entry(MibSParams::useTypeWatermelon);
+    
+    if (paramValue == PARAM_NOTSET){
+       if ((isPureInteger_ == false) || (isLowerCoeffInt_ == false)){
+          MibSPar()->setEntry(MibSParams::useTypeWatermelon, PARAM_OFF);
+       }else if (defaultCutIsOn == false){
+          MibSPar()->setEntry(MibSParams::useTypeWatermelon, PARAM_ON);
+       }
+    }else if (paramValue == PARAM_ON){
+       if ((isPureInteger_ == false) || (isLowerCoeffInt_ == false)){
+          std::cout << "The watermelon cut is only valid for pure integer "
+                    << "problems with integer lower-level constraints matrix.";
+          std::cout << std::endl;
+          MibSPar()->setEntry(MibSParams::useTypeWatermelon, PARAM_OFF);
+       }
+       if (isLowerObjInt_ == false){
+          std::cout << "The watermelon cut is only valid for problems "
+                    << "with integer lower-level objective coefficients.";
+          std::cout << std::endl;
+          MibSPar()->setEntry(MibSParams::useTypeWatermelon, PARAM_OFF);
+       }
+    }
+    if (MibSPar_->entry(MibSParams::useTypeWatermelon) == PARAM_ON){
+	defaultCutIsOn = true;
+    }
+
+    //Param: "MibS_useTypeIC" 
+    paramValue = MibSPar_->entry(MibSParams::useTypeIC);
+    
+    if (paramValue == PARAM_NOTSET){
+       MibSPar()->setEntry(MibSParams::useTypeIC, PARAM_OFF);
+    }else if (paramValue == PARAM_ON){
+       if ((isPureInteger_ == false) || (isLowerCoeffInt_ == false)){
+          std::cout << "The intersection cut is only valid for pure integer "
+                    << "problems with integer lower-level constraints matrix.";
+          std::cout << std::endl;
+          MibSPar()->setEntry(MibSParams::useTypeIC, PARAM_OFF);
+       }
+       if (MibSPar_->entry(MibSParams::bilevelFreeSetTypeIC) == 1 &&
+           isLowerObjInt_ == false){
+          std::cout << "Type II intersection cuts are only valid for problems "
+                    << "with integer lower-level objective coefficients.";
+          std::cout << std::endl;
+          MibSPar()->setEntry(MibSParams::useTypeIC, PARAM_OFF);
+       }
+    }
+
+    //Param: "MibS_useTypeHyperCubeIC"
+    if ((turnOffOtherCuts == true) &&
+        (MibSPar_->entry(MibSParams::useTypeHypercubeIC) == PARAM_NOTSET)){
+       MibSPar()->setEntry(MibSParams::useTypeHypercubeIC, PARAM_OFF);
+    }
+    
+    paramValue = MibSPar_->entry(MibSParams::useTypeHypercubeIC);
+    
+    if (paramValue == PARAM_NOTSET){
+	if(defaultCutIsOn == false){
+           MibSPar()->setEntry(MibSParams::useTypeHypercubeIC, PARAM_ON);
+	}
     }
     
     //Param: "MibS_usePureIntegerCut"
@@ -6704,40 +6830,17 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix,
     paramValue = MibSPar_->entry(MibSParams::usePureIntegerCut);
 
     if (paramValue == PARAM_NOTSET){
-       if ((isPureInteger_ == false) || (isUpperCoeffInt_ == false)
-           || (isLowerCoeffInt_ == false)){
-          MibSPar()->setEntry(MibSParams::usePureIntegerCut, PARAM_OFF);
-       }else if (defaultCutIsOn == false){
-          MibSPar()->setEntry(MibSParams::usePureIntegerCut, PARAM_ON);
-       }
+       MibSPar()->setEntry(MibSParams::usePureIntegerCut, PARAM_OFF);
     }else if((paramValue == PARAM_ON) &&
              ((isPureInteger_ == false) ||
               (isUpperCoeffInt_ == false) ||
               (isLowerCoeffInt_ == false))){
-       std::cout << "The pure integer cut is not valid for this problem.";
+       std::cout << "The integer no-good cut is only valid for pure integer"
+                 << "problems with integer constraint matrices";
        std::cout << std::endl;
        MibSPar()->setEntry(MibSParams::usePureIntegerCut, PARAM_OFF);
     }
-    if (MibSPar_->entry(MibSParams::usePureIntegerCut) == PARAM_ON){
-	defaultCutIsOn = true;
-    }
 
-    //Param: "MibS_useInterSectionCut" (MibSIntersectionCutTypeHypercubeIC) 
-    if ((turnOffOtherCuts == true) &&
-        (MibSPar_->entry(MibSParams::useTypeHypercubeIC) == PARAM_NOTSET)){
-       MibSPar()->setEntry(MibSParams::useTypeHypercubeIC, PARAM_OFF);
-    }
-    
-    paramValue = MibSPar_->entry(MibSParams::useTypeHypercubeIC);
-    
-    if (paramValue == PARAM_NOTSET){
-	if(defaultCutIsOn == false){
-           MibSPar()->setEntry(MibSParams::useTypeHypercubeIC, PARAM_ON);
-           /*MibSPar()->setEntry(MibSParams::intersectionCutType,
-             MibSIntersectionCutTypeHypercubeIC);*/
-	}
-    }
-    
     //Param: "MibS_branchProcedure"
     MibSBranchingStrategy branchPar = static_cast<MibSBranchingStrategy>
 	  (MibSPar_->entry(MibSParams::branchStrategy));
@@ -6797,20 +6900,28 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix,
            std::cout << "Generalized no-good cut generator is on."<< std::endl;
 	}
 
-        //if(MibSPar_->entry(MibSParams::useIntersectionCut) == PARAM_ON){
 	if (MibSPar_->entry(MibSParams::useTypeIC) == PARAM_ON){
-           std::cout << "Intersection cut IC generator is on." << std::endl;
+           if (MibSPar_->entry(MibSParams::bilevelFreeSetTypeIC) ==
+               MibSBilevelFreeSetTypeICWithLLOptSol){
+              std::cout << "Intersection cut IC generator (Type I) is on." << std::endl;
+           }else{
+              std::cout << "Intersection cut IC generator (Type II) is on." << std::endl;
+           }              
 	}
 	if (MibSPar_->entry(MibSParams::useTypeWatermelon) == PARAM_ON){
-           std::cout << "watermelon IC generator is on." << std::endl;
+           std::cout << "Watermelon IC generator is on." << std::endl;
 	}
 	if (MibSPar_->entry(MibSParams::useTypeHypercubeIC) == PARAM_ON){
-           std::cout << "hypercube IC generator is on." << std::endl;
+           std::cout << "Hypercube IC generator is on." << std::endl;
 	}
+        if (MibSPar_->entry(MibSParams::useFractionalCuts) == 1){
+           std::cout << "Fractional cuts will be generated.";
+        }
         //}
     }
 	
     //Setting parameters of solving (VF) and (UB)
+    int solveSecondLevelEveryIteration(MibSPar_->entry(MibSParams::solveSecondLevelEveryIteration));
     int solveSecondLevelWhenXYVarsInt(MibSPar_->entry(MibSParams::solveSecondLevelWhenXYVarsInt));
     int solveSecondLevelWhenXVarsInt(MibSPar_->entry(MibSParams::solveSecondLevelWhenXVarsInt));
     int solveSecondLevelWhenLVarsInt(MibSPar_->entry(MibSParams::solveSecondLevelWhenLVarsInt));
@@ -6820,6 +6931,7 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix,
     int computeBestUBWhenLVarsFixed(MibSPar_->entry(MibSParams::computeBestUBWhenLVarsFixed));
 
     if ((solveSecondLevelWhenXYVarsInt == PARAM_NOTSET) &&
+        (solveSecondLevelEveryIteration == PARAM_NOTSET) &&
         (solveSecondLevelWhenXVarsInt == PARAM_NOTSET) &&
         (solveSecondLevelWhenLVarsInt == PARAM_NOTSET) &&
         (solveSecondLevelWhenLVarsFixed == PARAM_NOTSET) &&
@@ -6876,6 +6988,4 @@ MibSModel::instanceStructure(const CoinPackedMatrix *newMatrix,
 	}
     }
     std::cout << std::endl;
-    
-    delete [] newRowSense;
 }

@@ -152,6 +152,9 @@ private:
     /** Determines if all lower-level coefficients are integer or not**/
     bool isLowerCoeffInt_;  
 
+    /** Determines if all lower-level objective coeffs are integer or not**/
+    bool isLowerObjInt_;  
+
     /** Determines if all variables of upper-level problem are binary or not **/
     bool allUpperBin_;
 
@@ -172,8 +175,14 @@ private:
 
     /** Determines if matrix G2 is positive or not **/
     bool positiveG2_;
-  
-    /** the left (negative) slope of the lower-level value function **/
+
+    /** The signs of columns of matrix G2 (for Benders interdiction cut) **/
+    int * colSignsG2_;
+   
+    /** The signs of columns of matrix A2 (for Benders binary cut) **/
+    int * colSignsA2_;
+
+   /** the left (negative) slope of the lower-level value function **/
     double leftSlope_;
 
     /** the right (positive) slope of the lower-level value function **/
@@ -320,6 +329,13 @@ public:
     MibSModel();
     ~MibSModel();
 
+    enum colSign {
+       colSignPositive,
+       colSignNegative,
+       colSignInconsistent,
+       colSignUnknown
+    };
+   
     /** Read in the problem data **/
     void readInstance(const char * dataFile);
 
@@ -379,6 +395,12 @@ public:
 
     /** Set the interdiction budget **/
     inline void setInterdictBudget(double val) {interdictBudget_ = val;}
+
+    /** Query whether the problem is interdiction **/
+    inline bool isInterdictionProblem() {return isInterdict_;}
+
+    /** Set whether the problem is interdiction **/
+    inline void setInterdictionProblem(bool b = true) {isInterdict_ = b;}
 
     /** Set UL column indices **/
     void setUpperColInd(int *ptr) {upperColInd_ = ptr;} 
@@ -666,11 +688,10 @@ public:
     virtual void decodeToSelf(AlpsEncoded&);
 
     /** Determine the list of first-stage variables participate in second-stage constraints */
-    void setRequiredFixedList(const CoinPackedMatrix *newMatrix);
+    void setRequiredFixedList();
 
     /** Determines the properties of instance. */
-    void instanceStructure(const CoinPackedMatrix *newMatrix, const double* rowLB,
-			   const double* rowUB, const char *rowSense);
+    void instanceStructure();
                                                                                                                                                                
     AlpsTreeNode * createRoot();
 
