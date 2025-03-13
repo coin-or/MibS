@@ -148,7 +148,7 @@ but are not documented.
 | Parameter Name | Description                                     |
 |----------------|-------------------------------------------------|
 | MibS_miblpCutStrategy |  `0`: branch only <br> `1`: cut only <br> `2`: use cut and branch |
-| MibS_milpCutStrategy | `-1`: Blis automatically chosen default (for solving MILPs) <br> `0`: Don't generate MLP cuts <br> `1`: Only generate MILP cuts in the root node <br> `2`: Blis strategy `blisCutStrategyAuto` <br>`3`: Blis Strategy `blisCutStrategyPeriodic` |
+| MibS_milpCutStrategy | `-1`: Blis automatically chosen default (for solving MILPs) <br> `0`: Don't generate MILP cuts <br> `1`: Only generate MILP cuts in the root node <br> `2`: Blis strategy `blisCutStrategyAuto` <br>`3`: Blis Strategy `blisCutStrategyPeriodic` |
 | MibS_maxCutDepth | Deepest level of the tree at which cuts should be generated|
 | MibS_turnOffDefaultCuts | Turn off all cuts not explicitly turned on by parameters <br> `0`: false <br> `1`: true |
 | MibS_useFractionalCuts | Whether to generate cuts when solution is fractional (see tech report) <br> `0`: false <br> `1`: true |
