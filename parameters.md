@@ -156,7 +156,7 @@ but are not documented.
 | MibS_useValFuncCut | Whether to generate value function cuts <br> `0`: false <br> `1`: true |
 | MibS_useNoGoodCut | Whether to generate no good cuts <br> `0`: false <br> `1`: true |
 | MibS_useBendersBinaryCut | Whether to generate Benders binary cuts <br> `0`: false <br> `1`: true |
-| MibS_useBendersInterdictionCut | Whether to generate Benders intersection cuts <br>`0`: false <br> `1`: true |
+| MibS_useBendersInterdictionCut | Whether to generate Benders interdiction cuts <br>`0`: false <br> `1`: true |
 | MibS_bendersInterdictionCutType | Whether to generate a single or multiple cuts (from different solutions) in each iteration <br> `0`: justOne <br> `1`: multiple |
 | MibS_useGeneralizedNoGoodCut | Whether to generate generalized no good cuts <br> `0`: false <br> `1`: true |
 | MibS_useImprovingSolutionIC | Whether to generate improving solution intersection cuts <br> `0`: false <br> `1`: true |
