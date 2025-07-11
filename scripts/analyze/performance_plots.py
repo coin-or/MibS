@@ -16,7 +16,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-def parseFile(o_entry, d_entry, results, keywords, opt_values, etol):
+def parseInstanceOutput(o_entry, d_entry, results, keywords, opt_values, etol):
 
     incomplete = True  # mark incomplete output file
     nosoln = False  # mark no soluntion found
@@ -28,7 +28,7 @@ def parseFile(o_entry, d_entry, results, keywords, opt_values, etol):
     results['100_bound'].append(10000000)
     results['num_idic'].append(0)
     results['num_idic_fail'].append(0)
-    results['idic_fail_rate'].append(-1)
+    results['idic_fail_rate'].append("")
     results['num_full_int_idic'].append(0)
     results['num_link_int_idic'].append(0)
     results['num_lower_int_idic'].append(0)
@@ -37,13 +37,13 @@ def parseFile(o_entry, d_entry, results, keywords, opt_values, etol):
     results['num_link_int_idic_fail'].append(0)
     results['num_lower_int_idic_fail'].append(0)
     results['num_frac_idic_fail'].append(0)
-    results['full_int_idic_fail_rate'].append(-1)
-    results['link_int_idic_fail_rate'].append(-1)
-    results['lower_int_idic_fail_rate'].append(-1)
-    results['frac_idic_fail_rate'].append(-1)
+    results['full_int_idic_fail_rate'].append("")
+    results['link_int_idic_fail_rate'].append("")
+    results['lower_int_idic_fail_rate'].append("")
+    results['frac_idic_fail_rate'].append("")
     results['num_isic'].append(0)
     results['num_isic_fail'].append(0)
-    results['isic_fail_rate'].append(-1)
+    results['isic_fail_rate'].append("")
     results['num_full_int_isic'].append(0)
     results['num_link_int_isic'].append(0)
     results['num_lower_int_isic'].append(0)
@@ -52,17 +52,20 @@ def parseFile(o_entry, d_entry, results, keywords, opt_values, etol):
     results['num_link_int_isic_fail'].append(0)
     results['num_lower_int_isic_fail'].append(0)
     results['num_frac_isic_fail'].append(0)
-    results['full_int_isic_fail_rate'].append(-1)
-    results['link_int_isic_fail_rate'].append(-1)
-    results['lower_int_isic_fail_rate'].append(-1)
-    results['frac_isic_fail_rate'].append(-1)
-    results["vf_solved"].append(-1)
-    results["ub_solved"].append(-1)
+    results['full_int_isic_fail_rate'].append("")
+    results['link_int_isic_fail_rate'].append("")
+    results['lower_int_isic_fail_rate'].append("")
+    results['frac_isic_fail_rate'].append("")
+    results['num_hypercube'].append(0)
+    results['num_gen_no_good'].append(0)
+    results['num_ben_binary'].append(0)
+    results["vf_solved"].append("")
+    results["ub_solved"].append("")
     #if ('1.0.0-opt' not in versions and
     #    'filmosi' not in versions):
     if 1:
-        results["vf_time"].append(-1)
-        results["ub_time"].append(-1)
+        results["vf_time"].append(0)
+        results["ub_time"].append(0)
     results["objval"].append(-1000000)
     results["gap"].append(1000000)
 
@@ -135,7 +138,7 @@ def parseFile(o_entry, d_entry, results, keywords, opt_values, etol):
                      results["num_full_int_idic_fail"][-1])
                 if n > 0:
                     results["full_int_idic_fail_rate"][-1] = \
-                        float(results["num_full_int_idic_fail"][-1])/n
+                        round(float(results["num_full_int_idic_fail"][-1])/n, 2)
             elif keywords["num_link_int_idic_fail"] in line:
                 results["num_link_int_idic_fail"][-1] = int(line.split(':')[1])
                 results["num_idic_fail"][-1] += results["num_link_int_idic_fail"][-1]
@@ -143,7 +146,7 @@ def parseFile(o_entry, d_entry, results, keywords, opt_values, etol):
                      results["num_link_int_idic_fail"][-1])
                 if n > 0:
                     results["link_int_idic_fail_rate"][-1] = \
-                        float(results["num_link_int_idic_fail"][-1])/n
+                        round(float(results["num_link_int_idic_fail"][-1])/n, 2)
             elif keywords["num_lower_int_idic_fail"] in line:
                 results["num_lower_int_idic_fail"][-1] = int(line.split(':')[1])
                 results["num_idic_fail"][-1] += results["num_lower_int_idic_fail"][-1]
@@ -151,7 +154,7 @@ def parseFile(o_entry, d_entry, results, keywords, opt_values, etol):
                      results["num_lower_int_idic_fail"][-1])
                 if n > 0:
                     results["lower_int_idic_fail_rate"][-1] = \
-                        float(results["num_lower_int_idic_fail"][-1])/n
+                        round(float(results["num_lower_int_idic_fail"][-1])/n,  2)
             elif keywords["num_frac_idic_fail"] in line:
                 results["num_frac_idic_fail"][-1] = int(line.split(':')[1])
                 results["num_idic_fail"][-1] += results["num_frac_idic_fail"][-1]
@@ -159,7 +162,7 @@ def parseFile(o_entry, d_entry, results, keywords, opt_values, etol):
                      results["num_frac_idic_fail"][-1])
                 if n > 0:
                     results["frac_idic_fail_rate"][-1] = \
-                        float(results["num_frac_idic_fail"][-1])/n
+                        round(float(results["num_frac_idic_fail"][-1])/n, 2)
             elif keywords["num_full_int_idic"] in line:
                 results["num_full_int_idic"][-1] = int(line.split(':')[1])
                 results["num_idic"][-1] += results["num_full_int_idic"][-1]
@@ -179,7 +182,7 @@ def parseFile(o_entry, d_entry, results, keywords, opt_values, etol):
                      results["num_full_int_isic_fail"][-1])
                 if n > 0:
                     results["full_int_isic_fail_rate"][-1] = \
-                        float(results["num_full_int_isic_fail"][-1])/n
+                        round(float(results["num_full_int_isic_fail"][-1])/n, 2)
             elif keywords["num_link_int_isic_fail"] in line:
                 results["num_link_int_isic_fail"][-1] = int(line.split(':')[1])
                 results["num_isic_fail"][-1] += results["num_link_int_isic_fail"][-1]
@@ -187,7 +190,7 @@ def parseFile(o_entry, d_entry, results, keywords, opt_values, etol):
                      results["num_link_int_isic_fail"][-1])
                 if n > 0:
                     results["link_int_isic_fail_rate"][-1] = \
-                        float(results["num_link_int_isic_fail"][-1])/n
+                        round(float(results["num_link_int_isic_fail"][-1])/n, 2)
             elif keywords["num_lower_int_isic_fail"] in line:
                 results["num_lower_int_isic_fail"][-1] = int(line.split(':')[1])
                 results["num_isic_fail"][-1] += results["num_lower_int_isic_fail"][-1]
@@ -195,7 +198,7 @@ def parseFile(o_entry, d_entry, results, keywords, opt_values, etol):
                      results["num_lower_int_isic_fail"][-1])
                 if n > 0:
                     results["lower_int_isic_fail_rate"][-1] = \
-                        float(results["num_lower_int_isic_fail"][-1])/n
+                        round(float(results["num_lower_int_isic_fail"][-1])/n, 2)
             elif keywords["num_frac_isic_fail"] in line:
                 results["num_frac_isic_fail"][-1] = int(line.split(':')[1])
                 results["num_isic_fail"][-1] += results["num_frac_isic_fail"][-1]
@@ -203,7 +206,7 @@ def parseFile(o_entry, d_entry, results, keywords, opt_values, etol):
                      results["num_frac_isic_fail"][-1])
                 if n > 0:
                     results["frac_isic_fail_rate"][-1] = \
-                        float(results["num_frac_isic_fail"][-1])/n
+                        round(float(results["num_frac_isic_fail"][-1])/n, 2)
             elif keywords["num_full_int_isic"] in line:
                 results["num_full_int_isic"][-1] = int(line.split(':')[1])
                 results["num_isic"][-1] += results["num_full_int_isic"][-1]
@@ -215,14 +218,21 @@ def parseFile(o_entry, d_entry, results, keywords, opt_values, etol):
                 results["num_isic"][-1] += results["num_lower_int_isic"][-1]
             elif (keywords["num_frac_isic"] in line and
                   'Fractional solutions will be separated' not in line and
+                  'Fractional cuts will be generated.' not in line and
                   'useFractionalCuts' not in line and
                   'MibSBranchingStrategyFractional' not in line):
                 results["num_frac_isic"][-1] = int(line.split(':')[1])
                 results["num_isic"][-1] += results["num_frac_isic"][-1]
-            #elif keywords['ul_int_var'] in line:
-            #    results['ul_int_var'].append(int(line.split(':')[1]))
-            #elif keywords['ll_int_var'] in line:
-            #    results['ll_int_var'].append(int(line.split(':')[1]))
+            elif keywords["num_hypercube"] in line:
+                results["num_hypercube"][-1] = int(line.split(':')[1])
+            elif keywords["num_gen_no_good"] in line:
+                results["num_gen_no_good"][-1] = int(line.split(':')[1])
+            elif keywords["num_ben_binary"] in line:
+                results["num_ben_binary"][-1] = int(line.split(':')[1])
+            elif keywords['ul_int_var'] in line:
+               results['ul_int_var'].append(int(line.split(':')[1]))
+            elif keywords['ll_int_var'] in line:
+               results['ll_int_var'].append(int(line.split(':')[1]))
             elif keywords["num_cuts"] in line:
                 found = True
                 results["num_cuts"][-1] = int(line.split(" ")[8])
@@ -302,65 +312,7 @@ def parseFile(o_entry, d_entry, results, keywords, opt_values, etol):
 
     return
 
-def dropFilter(df, scenarios, ds):
-    """
-    Prepare data for plotting performance profile; running time only.
-    Input:
-        df: pandas dataframe output from processTable
-        plotCol: columns to make single plots
-        scenarios: scenarios on one plot
-    """
-    df = df[scenarios.values()]
-    # replace unsolved cases by a large number
-    for scn in df.columns:
-        df[scn] = pd.to_numeric(df[scn], errors="coerce").replace(np.nan, 1e11)
-    # apply index filter on solution time
-    df_time = df.xs(
-        (ds, "cpu"), level=["datasets", "fields"], axis=1, drop_level=True
-    ).copy()
-    df_solved = df.xs(
-        (ds, "solved"), level=["datasets", "fields"], axis=1, drop_level=True
-    ).copy()
-    df_gap = df.xs(
-        (ds, "gap"), level=["datasets", "fields"], axis=1, drop_level=True
-    ).copy()
-    # df_time = pd.to_numeric(df_time, errors='coerce').replace(np.nan, 36000)
-    # filter out cases where time is < 5'' or > 3600'' for all methods
-    col_list = df_time.columns.values.tolist()
-    
-    drop_all_unsolved = df_solved[(df_solved[col_list] != True).all(axis=1)].index.tolist()
-    drop_any_unsolved = df_solved[(df_solved[col_list] != True).any(axis=1)].index.tolist()
-    drop_no_gap = df_gap[(df_gap[col_list] >= 1000000).all(axis=1)].index.tolist()
-    if 1: #ds == 'INTERD-DEN':
-        drop_easy = df_time[(df_time[col_list] < 1).all(axis=1)].index.tolist()
-        drop_small_time = df_time[(df_time[col_list] <= 0.01).any(axis=1)].index.tolist()
-        drop_list_time = list(set(drop_easy) | set(drop_all_unsolved) | set(drop_small_time))
-    else:
-        drop_easy = df_time[(df_time[col_list] < 5).all(axis=1)].index.tolist()
-        drop_list_time = list(set(drop_easy) | set(drop_all_unsolved))
-    ##drop_list_time.extend(["cap6000-0.100000","cap6000-0.500000","cap6000-0.900000"])
-    #drop_list_gap.extend(["cap6000-0.100000","cap6000-0.500000","cap6000-0.900000"])
-
-    df_solved = df.drop(drop_list_time)
-    df_all_solved = df.drop(list(set(drop_easy) | set(drop_any_unsolved) |
-                                 set(drop_small_time)))
-    df_has_soln = df.drop(list(set(drop_easy) | set(drop_small_time) |
-                               set(drop_no_gap)))
-
-    # with pd.option_context('display.max_rows', None,
-    #                        'display.max_columns', None,
-    #                        'display.precision', 3,
-    #                        'display.float_format', lambda x: '%.5f' % x,
-    #                        ):
-    #     print(df_solved)
-    #     print(col_list)
-    #     print(drop_all_unsolved)
-    #     print(drop_any_unsolved)
-
-    return df_all_solved, df_solved, df_has_soln
-
 def parseOutput(outputDir, versions, scenarios, keywords, dataSets,
-                writeCSV=True, columns=None, filename="summary.csv",
                 name='', debug=False):
     """
     This function parse the output files in the given directory.
@@ -445,8 +397,8 @@ def parseOutput(outputDir, versions, scenarios, keywords, dataSets,
                                 if results["instance"][-1] not in opt_values:
                                     opt_values[results["instance"][-1]] = np.inf
         
-                                parseFile(o_entry, d_entry, results, keywords,
-                                          opt_values, etol)
+                                parseInstanceOutput(o_entry, d_entry, results,
+                                                    keywords, opt_values, etol)
                                 a = [len(results[k]) for k in results]
                                 b = [k for k in results]
                                 for k in range(len(a)):
@@ -460,23 +412,57 @@ def parseOutput(outputDir, versions, scenarios, keywords, dataSets,
             print (k)
             print(len(results[k]))
 
-    df_result = pd.DataFrame(results)
+    df = pd.DataFrame(results)
 
-    # make some adjustment to formats
-    # display check feasibility time as % of search time?
-    # sum vf+ub time -> feasibility time (or read from output directly?)
+    # sum vf+ub time -> feasibility time
     if '1.0.0-opt' not in versions and 'filmosi' not in versions:
-        df_result["chk_feas_time"] = df_result["ub_time"] + df_result["vf_time"]
-        df_result["chk_feas_time"] = df_result["chk_feas_time"].astype(float).round(2)
+        df["chk_feas_time"] = df["ub_time"] + df["vf_time"]
+        df["chk_feas_time"] = df["chk_feas_time"].astype(float).round(2)
     #df_result["cpu"] = df_result["cpu"].astype(float).round(2)
 
+    return df
+
+def export(df, columns=None, filename="summary.csv"):
+
+    df_csv = df.copy()
+
+    # Select columns with numeric values and empty strings
+    def is_numeric_and_empty_string(column):
+        return column.apply(lambda x: isinstance(x, (int, float)) or x == '').all()
+
+    selected_columns = [col for col in df_csv.columns if is_numeric_and_empty_string(df_csv[col])]
+    for s in selected_columns:
+        df_csv[s] = pd.to_numeric(df_csv[s])
+
+    if 0:
+        average_values = df_csv.select_dtypes(include = ['number']).mean(skipna=True)
+        print()
+        df_csv.loc['Average'] = average_values
+    else:
+        # Means by (scenario, dataset)
+        group_means = df_csv.groupby(['scenario','dataset'])[selected_columns].mean()
+        group_means = group_means.reset_index()
+        #group_means['dataset'] = group_means['dataset'].astype(str) + '_mean'
+        #df_csv = pd.concat([group_means, df_csv], ignore_index=True)
+
+        # Means by scenario
+        group_means_s = df_csv.groupby('dataset')[selected_columns].mean()
+        group_means_s = group_means_s.reset_index()
+        #group_means['dataset'] = group_means['dataset'].astype(str) + '_mean'
+        group_means = pd.concat([group_means, group_means_s], ignore_index=True)
+
+        # Means by dataset
+        group_means_d = df_csv.groupby('scenario')[selected_columns].mean()
+        group_means_d = group_means_d.reset_index()
+        #group_means['dataset'] = group_means['dataset'].astype(str) + '_mean'
+        group_means = pd.concat([group_means, group_means_d], ignore_index=True)
+
     # write results to .csv file
-    if writeCSV:
-        # df_result.to_csv(filename, mode='a', header=False, index=False) # append results only
-        df_result.to_csv(filename, columns=columns, index=False)
+    # df.to_csv(filename, mode='a', header=False, index=False) # append results only
+    df_csv.to_csv(filename+".csv", columns=columns, index=False)
+    group_means.to_csv(filename+"_means.csv", columns=columns[2:], index=False)
 
-    return df_result
-
+    return
 
 def processTable(df, displayCols, writeLTX=False, filename="ltx_tb.txt"):
     """
@@ -538,6 +524,63 @@ def processTable(df, displayCols, writeLTX=False, filename="ltx_tb.txt"):
     # pass
 
     return df_forprint
+
+def dropFilter(df, scenarios, ds):
+    """
+    Prepare data for plotting performance profile; running time only.
+    Input:
+        df: pandas dataframe output from processTable
+        plotCol: columns to make single plots
+        scenarios: scenarios on one plot
+    """
+    df = df[scenarios.values()]
+    # replace unsolved cases by a large number
+    for scn in df.columns:
+        df[scn] = pd.to_numeric(df[scn], errors="coerce").replace(np.nan, 1e11)
+    # apply index filter on solution time
+    df_time = df.xs(
+        (ds, "cpu"), level=["datasets", "fields"], axis=1, drop_level=True
+    ).copy()
+    df_solved = df.xs(
+        (ds, "solved"), level=["datasets", "fields"], axis=1, drop_level=True
+    ).copy()
+    df_gap = df.xs(
+        (ds, "gap"), level=["datasets", "fields"], axis=1, drop_level=True
+    ).copy()
+    # df_time = pd.to_numeric(df_time, errors='coerce').replace(np.nan, 36000)
+    # filter out cases where time is < 5'' or > 3600'' for all methods
+    col_list = df_time.columns.values.tolist()
+    
+    drop_all_unsolved = df_solved[(df_solved[col_list] != True).all(axis=1)].index.tolist()
+    drop_any_unsolved = df_solved[(df_solved[col_list] != True).any(axis=1)].index.tolist()
+    drop_no_gap = df_gap[(df_gap[col_list] >= 1000000).all(axis=1)].index.tolist()
+    if 1: #ds == 'INTERD-DEN':
+        drop_easy = df_time[(df_time[col_list] < 1).all(axis=1)].index.tolist()
+        drop_small_time = df_time[(df_time[col_list] <= 0.01).any(axis=1)].index.tolist()
+        drop_list_time = list(set(drop_easy) | set(drop_all_unsolved) | set(drop_small_time))
+    else:
+        drop_easy = df_time[(df_time[col_list] < 5).all(axis=1)].index.tolist()
+        drop_list_time = list(set(drop_easy) | set(drop_all_unsolved))
+    ##drop_list_time.extend(["cap6000-0.100000","cap6000-0.500000","cap6000-0.900000"])
+    #drop_list_gap.extend(["cap6000-0.100000","cap6000-0.500000","cap6000-0.900000"])
+
+    df_solved = df.drop(drop_list_time)
+    df_all_solved = df.drop(list(set(drop_easy) | set(drop_any_unsolved) |
+                                 set(drop_small_time)))
+    df_has_soln = df.drop(list(set(drop_easy) | set(drop_small_time) |
+                               set(drop_no_gap)))
+
+    # with pd.option_context('display.max_rows', None,
+    #                        'display.max_columns', None,
+    #                        'display.precision', 3,
+    #                        'display.float_format', lambda x: '%.5f' % x,
+    #                        ):
+    #     print(df_solved)
+    #     print(col_list)
+    #     print(drop_all_unsolved)
+    #     print(drop_any_unsolved)
+
+    return df_all_solved, df_solved, df_has_soln
 
 def plotPerfProf(
         df, versions, plotname="perf_profile", plottitle="Performance Profile",

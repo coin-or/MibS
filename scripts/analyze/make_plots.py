@@ -10,7 +10,7 @@ import subprocess
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from performance_plots import *
+from performance_plots_new import *
 
 keywords = {
     "solved": "No solution found",
@@ -43,54 +43,20 @@ keywords = {
     "num_link_int_isic_fail" : "Linking Int ISIC (Fail)",
     "num_lower_int_isic_fail" : "Second-level Int ISIC (Fail)",
     "num_frac_isic_fail" : "Fractional ISIC (Fail)",
+    "num_hypercube" : "Number of Hypercube",
+    "num_gen_no_good" : "Number of Generalized",
+    "num_ben_binary" : "Number of Benders Binary",
 }
 
-dataSets = [
-    #'MIBLP-XU',
-    'IBLP-FIS',
-    #'INTERD-DEN',
-    'IBLP-DEN',
-    'IBLP-DEN2',
-    'IBLP-ZHANG',
-    'IBLP-ZHANG2',
-    #'BENCHMARK'
-    #'all'
-]
-
-aggregate = True
-#aggregate = False
-name = ''
-
-if aggregate:
-    for i in dataSets:
-        if i == 'MIBLP-XU':
-            name = name + 'X-'
-        elif i == "IBLP-FIS":
-            name = name + 'F-'
-        elif i == 'INTERD-DEN':
-            name = name + 'INT-'
-        elif i == 'IBLP-DEN':
-            name = name + 'D-'
-        elif i == 'IBLP-DEN2':
-            name = name + 'D2-'
-        elif i == 'IBLP-ZHANG':
-            name = name + 'Z-'
-        elif i == 'IBLP-ZHANG2':
-            name = name + 'Z2-'
-        elif i == 'BENCHMARK':
-            name = name + 'BENCH-'
-    name = name[:len(name)-1]
-
 versions = {
-    'filmosi':'filmosi',
+    #'filmosi':'filmosi',
     #'1.0.0-opt':'1.0.0',
     #'1.1.3-opt':'1.1.3',
     #'1.2.0-opt':'1.2.0',
     #'1.2.1-opt':'1.2.1',
     #'1.2.1-cplex-opt':'1.2.1-cplex',
     '1.2.2-opt':'1.2.2',
-    #'1.2.2-opt-5':'1.2.2-5',
-    '1.2.2-cplex-opt':'1.2.2-cplex',
+    #'1.2.2-cplex-opt':'1.2.2-cplex',
     #'1.2.2-opt-cg-fail':'1.2.2',
     #'old':'old'
 }
@@ -102,33 +68,33 @@ outputDir = ["/home/ted/Projects/MibS/output"]
 scenarios = {
     
     #### Interdiction
-    # 'default' : 'Default',
-    # 'noCut' : "No Cuts (link)",
-    # 'AlwaysIDIC-link': 'AlwaysIDIC (frac)',    
-    # 'LIntISICType1-link': 'LIntType 1 (frac)', 
-    # 'AlwaysISICType2-link': 'ISIC Type 2 (link)',
-    # 'bendersInterdiction-frac': 'Benders Interdict (frac)',
-    # 'bendersInterdiction-link': 'Benders Interdict (link)',
+#     'default' : 'Default',
+#     'noCut' : "No Cuts (link)",
+#     'AlwaysIDIC-link': 'Always IDIC (link)',    
+#     'LIntISICType1-link': 'LInt Type 1 (link)', 
+#     'AlwaysISICType2-link': 'Always Type 2 (link)',
+#     'bendersInterdiction-frac': 'Benders Interdict (frac)',
+#     'bendersInterdiction-link': 'Benders Interdict (link)',
     
     #### Pure Integer
-    # 'default' : 'Default',
-    # 'noCut' : "No Cuts (link)",
-    # 'AlwaysIDIC-frac': 'AlwaysIDIC (frac)',    
-    # 'LIntISICType1-frac': 'LIntType 1 (frac)', 
-    # 'XYIntISICType2-frac': 'XYIntType 2 (frac)',
-    # 'hyper-frac': 'Hypercube IC (frac)',    
-    # 'intNoGood-frac': 'Integer No Good (frac)',
+#     'default' : 'Default',
+#     'noCut+MIP' : "No MIBLP Cuts (link)",
+#     'AlwaysIDIC-frac': 'Always IDIC (frac)',    
+#     'LIntISICType1-frac': 'LInt Type 1 (frac)', 
+#     'XYIntISICType2-frac': 'XYInt Type 2 (frac)',
+#     'hyper-frac': 'Hypercube IC (frac)',    
+#     'intNoGood-frac': 'Integer No Good (frac)',
     
     #### Binary First-Level
-    # 'default' : 'Default',
-    # 'noCut' : "No Cuts (link)", 
-    # 'AlwaysIDIC-frac': 'AlwaysIDIC (frac)',
-    # 'YLIntISICType1-frac': 'YLInt Type 1 (frac)', 
-    # 'XYIntISICType2-frac': 'XYInt Type 2 (frac)',
-    # 'hyper-frac': 'Hypercube IC (frac)',    
-    # 'intNoGood-frac': 'Integer No Good (frac)',
-    # 'bendersBinary-frac': 'Benders Binary (frac)', 
-    # 'genNoGood-frac': 'Generalized No Good (frac)', 
+    'default' : 'Default',
+    'noCut+MIP' : "No Cuts (link)", 
+    'AlwaysIDIC-frac': 'Always IDIC (frac)',
+    'YLIntISICType1-frac': 'YLInt Type 1 (frac)', 
+    'XYIntISICType2-frac': 'XYInt Type 2 (frac)',
+    'hyper-frac': 'Hypercube IC (frac)',    
+    'intNoGood-frac': 'Integer No Good (frac)',
+    'bendersBinary-frac': 'Benders Binary (frac)', 
+    'genNoGood-frac': 'Generalized No Good (frac)', 
     
     ###### filmosi
     
@@ -140,48 +106,51 @@ scenarios = {
     
     ###### 1.2.2-opt
     
-    'default' : 'Default',
-    'sep++' : 'SEP++',
+    #'default' : 'Default',
+    #'sep++' : 'SEP++',
     #'default-MIP' : 'Default (no MIP cuts)',
-    # 'default+linking' : 'Default (Link)',
-    # 'default+ll': 'Default (Lower Level)',
+    #'default+MIP' : 'Default (MIP cuts)',
+    #'default+linking' : 'Default (Link)',
+    #'default+ll': 'Default (Lower Level)',
     #'AlwaysIDIC-frac' : 'AlwaysIDIC-frac',
-    # 'XYIntIDIC-frac' : 'XYIntIDIC-frac',
+    #'AlwaysIDIC-frac+MIP' : 'AlwaysIDIC-frac',
+    #'AlwaysIDIC-frac-MIP' : 'AlwaysIDIC-frac-MIP',
+    #'XYIntIDIC-frac' : 'XYIntIDIC-frac',
     # 'LIntIDIC-frac' : 'LIntIDIC-frac',
     # 'YIntIDIC-frac' : 'YIntIDIC-frac',
     # 'YLIntIDIC-frac' : 'YLIntIDIC-frac',
-    # 'AlwaysIDIC-link' : 'AlwaysIDIC-link',
-    # 'XYIntIDIC-link' : 'XYIntIDIC-link',
+    #'AlwaysIDIC-link' : 'AlwaysIDIC-link',
+    #'XYIntIDIC-link' : 'XYIntIDIC-link',
     # 'LIntIDIC-link' : 'LIntIDIC-link',
     # 'YIntIDIC-link' : 'YIntIDIC-link',
-    # 'AlwaysISICType1-frac' : 'AlwaysType1-frac',
+    #'AlwaysISICType1-frac' : 'AlwaysType1-frac',
     # 'XYIntISICType1-frac' : 'XYIntType1-frac',
     # 'LIntISICType1-frac' : 'LIntType1-frac', 
-    # 'YIntISICType1-frac' : 'YIntType1-frac',
-    # 'YLIntISICType1-frac' : 'YLIntType1-frac',
-    # 'AlwaysISICType1-link' : 'AlwaysType1-link',
-    # 'XYIntISICType1-link' : 'XYIntType1-link',
-    # 'LIntISICType1-link' : 'LIntType1-link',
-    # 'YIntISICType1-link' : 'YIntType1-link',
-    # 'YLIntISICType1-link' : 'YLIntType1-link',
+#     'YIntISICType1-frac' : 'YIntType1-frac',
+#     'YLIntISICType1-frac' : 'YLIntType1-frac',
+    #'AlwaysISICType1-link' : 'AlwaysType1-link',
+#     'XYIntISICType1-link' : 'XYIntType1-link',
+#     'LIntISICType1-link' : 'LIntType1-link',
+#     'YIntISICType1-link' : 'YIntType1-link',
+#     'YLIntISICType1-link' : 'YLIntType1-link',
     # 'AlwaysISICType2-frac' : 'AlwaysType2-frac', ########
     # 'XYIntISICType2-frac' : 'XYIntType2-frac',
     # 'LIntISICType2-frac' : 'LIntType2-frac',
-    # 'YIntISICType2-frac' : 'YIntType2-frac',
-    # 'YLIntISICType2-frac' : 'YLIntType2-frac',
-    # 'AlwaysISICType2-link' : 'AlwaysType2-link',
-    # 'XYIntISICType2-link' : 'XYIntType2-link',
-    # 'LIntISICType2-link' : 'LIntType2-link',
-    # 'YIntISICType2-link' : 'YIntType2-link',
-    # 'YLIntISICType2-link' : 'YLIntType2-link',
+#     'YIntISICType2-frac' : 'YIntType2-frac',
+#     'YLIntISICType2-frac' : 'YLIntType2-frac',
+#     'AlwaysISICType2-link' : 'AlwaysType2-link',
+#      'XYIntISICType2-link' : 'XYIntType2-link',
+#      'LIntISICType2-link' : 'LIntType2-link',
+#     'YIntISICType2-link' : 'YIntType2-link',
+    #'YLIntISICType2-link' : 'YLIntType2-link',
     # 'hyper-link': 'Hypercube IC (link)',
     # 'hyper-frac': 'Hypercube IC (frac)',    ##########
     # 'bendersBinary-frac': 'Benders Binary (frac)', ##########
     # 'bendersBinary-link': 'Benders Binary (link)',
     # 'genNoGood-frac': 'Generalized No Good (frac)', ##########
     # 'genNoGood-link': 'Generalized No Good (link)',
-    #'intNoGood-frac': 'Integer No Good (frac)',
-    #'intNoGood-link': 'Integer No Good (link)', ##########
+#     'intNoGood-frac': 'Integer No Good (frac)',
+#     'intNoGood-link': 'Integer No Good (link)', ##########
     # 'bendersInterdiction-frac': 'Benders Interdict (frac)',
     # 'bendersInterdiction-link': 'Benders Interdict (link)',
     # 'bendersInterdiction+AlwaysIDIC-link': 'Benders Interdict + Always IDIC (link)',
@@ -240,7 +209,7 @@ scenarios = {
     
     ###### 1.2.1-opt
     
-    # 'IDIC' : 'IDIC (link)',
+    #'IDIC' : 'IDIC (link)',
     # 'ISICType1' : 'ISIC Type1 (link)',
     # 'ISICType2' : 'ISIC Type2 (link)',
     # 'ISICType2-frac' : '',
@@ -268,11 +237,11 @@ scenarios = {
     # 'IDIC+MIP-frac' : 'IDIC+MIP (frac)',
     # 'IDIC+MIP2-frac' : 'IDIC+MIP2 (frac)',
     # 'default+FracRoot' : 'Default+FracRoot',
-    # 'default+MIP' : "Default + MIP",
+    # 'default+MIP' : "Default (MIP)",
     # 'default+NoFractionalCutsAndFrac' : 'No Frac Cuts (Frac)',
     # 'default+NoFractionalCutsAndLinking' : 'No Frac Cuts (Linking)',
-    #'defaultWithExtraOutput' : 'Default',
-    #'default+NoFractionalCutswithExtraOutput' : 'No Frac Cuts',
+    # 'defaultWithExtraOutput' : 'Default',
+    # 'default+NoFractionalCutswithExtraOutput' : 'No Frac Cuts',
     # 'default+Parallel' : 'Default Parallel',
     # 'default+frac' : 'Default (frac)',
     # 'default+linking': 'Default (Linking)',
@@ -401,15 +370,6 @@ scenarios = {
     #"ISICType2-frac" : "ISIC Type2 (frac)",
     # 'interdiction',
 }
-################# Process & Save | Load from CSV ###################
-# specify summary file name
-file_csv_out = "summary_"+name+".csv"
-#file_csv_in = "summary-1.2.1.csv"
-file_csv_in = "summary_branching.csv"
-
-################### Format Data & Print Table ####################
-# specify txt file name to print tables in LATEX
-file_txt = "ltx_tb_cut.txt"
 
 # columns to process and print
 displayCols = {
@@ -426,10 +386,19 @@ displayCols = {
     'num_cuts': 'Number of Cuts',
     'cut_time': 'Cut Generation Time',
     'time_per_cg_call': 'Time Per CG Call',
+#     'ul_int_var': "UL Variables (integer)",
+#     'll_int_var': "LL Variables (integer)",
+
+    ######## ALL CUTS ###############
+
+    'num_idic': 'Number of IDICs',
+    'num_isic': 'Number of ISICs',
+    "num_hypercube" : "Number of Hypercube Cuts",
+    "num_gen_no_good" : "Number of Generalized No Good Cuts",
+    "num_ben_binary" : "Number of Benders Binary Cuts",
 
     ######## IDIC ###################
 
-    'num_idic': 'Number of IDICs',
     'num_full_int_idic': 'Number of Full Int IDICs',
     'num_link_int_idic': 'Number of Link Int IDICs',
     'num_lower_int_idic': 'Number of Lower Int IDICs',
@@ -447,49 +416,98 @@ displayCols = {
 
     ######## ISIC ###################
 
-    # 'num_isic': 'Number of ISICs',
-    # 'num_full_int_isic': 'Number of Full Int ISICs',
-    # 'num_link_int_isic': 'Number of Link Int ISICs',
-    # 'num_lower_int_isic': 'Number of Lower Int ISICs',
-    # 'num_frac_isic': 'Number of Fractional ISICs',
-    # 'num_isic_fail': 'Number of ISIC Fails',
-    # 'num_full_int_isic_fail': 'Number of Full Int ISIC Fails',
-    # 'num_link_int_isic_fail': 'Number of Link Int ISIC Fails',
-    # 'num_lower_int_isic_fail': 'Number of Lower Int ISIC Fails',
-    # 'num_frac_isic_fail': 'Number of Fractional ISIC Fails',
-    # 'isic_fail_rate': 'ISIC Failure Rate',
-    # 'full_int_isic_fail_rate': 'Full Int ISIC Fail Rate',
-    # 'link_int_isic_fail_rate': 'Link Int ISIC Fail Rate',
-    # 'lower_int_isic_fail_rate': 'Lower Int ISIC Fail Rate',
-    # 'frac_isic_fail_rate': 'Fractional ISIC Fail Rate',
+    'num_full_int_isic': 'Number of Full Int ISICs',
+    'num_link_int_isic': 'Number of Link Int ISICs',
+    'num_lower_int_isic': 'Number of Lower Int ISICs',
+    'num_frac_isic': 'Number of Fractional ISICs',
+    'num_isic_fail': 'Number of ISIC Fails',
+    'num_full_int_isic_fail': 'Number of Full Int ISIC Fails',
+    'num_link_int_isic_fail': 'Number of Link Int ISIC Fails',
+    'num_lower_int_isic_fail': 'Number of Lower Int ISIC Fails',
+    'num_frac_isic_fail': 'Number of Fractional ISIC Fails',
+    'isic_fail_rate': 'ISIC Failure Rate',
+    'full_int_isic_fail_rate': 'Full Int ISIC Fail Rate',
+    'link_int_isic_fail_rate': 'Link Int ISIC Fail Rate',
+    'lower_int_isic_fail_rate': 'Lower Int ISIC Fail Rate',
+    'frac_isic_fail_rate': 'Fractional ISIC Fail Rate',
 }
 
 if '1.0.0-opt' not in versions and 'filmosi' not in versions:
     displayCols['chk_feas_time'] = 'Check Feasibility Time'
 
-
-columns = ['instance','scenario']
-if len(dataSets) > 1 and name == '':
-    columns.extend(['dataset'])
-if len(versions) > 1:
-    columns.extend(['version'])
+columns = ['instance','version','scenario','dataset']
 columns.extend(displayCols.keys())
 
+dataSets = [
+    #'MIBLP-XU',
+    'IBLP-FIS',
+#    'INTERD-DEN',
+#      'IBLP-DEN',
+#      'IBLP-DEN2',
+    'IBLP-ZHANG',
+#       'IBLP-ZHANG2',
+    #'BENCHMARK'
+    #'all'
+]
+
+aggregate = True
+#aggregate = False
+name = ''
+
+if aggregate:
+    for i in dataSets:
+        if i == 'MIBLP-XU':
+            name = name + 'X-'
+        elif i == "IBLP-FIS":
+            name = name + 'F-'
+        elif i == 'INTERD-DEN':
+            name = name + 'INT-'
+        elif i == 'IBLP-DEN':
+            name = name + 'D-'
+        elif i == 'IBLP-DEN2':
+            name = name + 'D2-'
+        elif i == 'IBLP-ZHANG':
+            name = name + 'Z-'
+        elif i == 'IBLP-ZHANG2':
+            name = name + 'Z2-'
+        elif i == 'BENCHMARK':
+            name = name + 'BENCH-'
+    name = name[:len(name)-1]
+elif len(dataSets) == 1:
+    name = dataSets[0]
+
+# specify file names
+file_txt = "ltx_tb_cut.txt"
+file_csv_out = "summary_" if name == '' else "summary_"+name
+file_csv_in = "/home/ted/Res/MibS/saharCutMibSPaper/rev5/summary_D-D2-Z2.csv"
+
 if 1:
-    df_r = parseOutput(outputDir, versions, scenarios, keywords, dataSets,
-                       writeCSV=True, columns=columns,
-                       filename=file_csv_out, name=name)
+    df_r = parseOutput(outputDir, versions, scenarios, keywords, dataSets, name)
+    export(df_r, columns, file_csv_out)
+
+    # This section of code exports a CSV with just the instances that could be solved
+    # by all methods.
+    # Step 1: Identify the instance values that always have solved == True
+    # valid_instances = df_r.groupby('instance')['solved'].all()
+    # valid_instances = valid_instances[valid_instances].index
+
+    # Step 2: Filter the DataFrame to include only those instances
+    # df_all_solved = df_r[df_r['instance'].isin(valid_instances)]
+
+    # export(df_all_solved, columns, file_csv_out+"_all_solved")
 else:
     try:
         df_r = pd.read_csv(file_csv_in)
-        set_cond = (df_r["scenario"].isin(scenarios.values())) | (
-            df_r["dataset"].isin(dataSets)
-        )
-        df_r = df_r[set_cond]
     except FileNotFoundError:
-        print("{} does not exist in current directory.".format(file_csv))
+        print("{} does not exist in current directory.".format(file_csv_in))
     else:
         print("Reading from", file_csv_in)
+        set_cond = df_r["scenario"].isin(scenarios.values())
+        try: 
+            set_cond |= df_r["dataset"].isin(dataSets)
+        except:
+            pass
+        df_r = df_r[set_cond]
 
 df_proc = processTable(df_r, displayCols, writeLTX=False, filename=file_txt)
 
@@ -510,13 +528,14 @@ plotCols = {
 
 baseline=None
 #baseline = ('IDIC-frac', '1.2.1-opt')
-#baseline = ('default', '1.2.1-opt')
+#baseline = ('default', '1.2.2-opt')
 #baseline = ("Type1IC", "1.2-opt")
 #baseline = ('GenNoGood+Type1+IntNoGood (link)', '1.2-opt')
 #baseline = ('Watermelon (frac+LV)', '1.2-opt')
 #baseline = ('FracWatermelon (frac)', '1.2-opt')
 #baseline = ('Benders Interdict (link)', '1.2.1-opt')
 #baseline = ('LIntISICType1-frac','1.2.2-opt-4')
+baseline = ('noCut+MIP', '1.2.2-opt')
 #baseline = ('noCut', '1.2.2-opt')
 #baseline = ('XYIntISICType1-frac', '1.2.2-opt')
 #baseline = ('Branch on linking variables', '1.2.1-opt')
@@ -531,12 +550,16 @@ if name != '':
 for ds in dataSets:
     df_all_solved, df_solved, df_has_soln = dropFilter(df_proc, scenarios, ds)
     for col in plotCols:
-        if col != "root_gap":
-            df_sub = df_solved.xs(
+        if col == "root_gap":
+            df_sub = df_has_soln.xs(
+                (ds, col), level=["datasets", "fields"], axis=1, drop_level=True
+            ).copy()
+        elif col == "nodes": 
+            df_sub = df_all_solved.xs(
                 (ds, col), level=["datasets", "fields"], axis=1, drop_level=True
             ).copy()
         else:
-            df_sub = df_has_soln.xs(
+            df_sub = df_solved.xs(
                 (ds, col), level=["datasets", "fields"], axis=1, drop_level=True
             ).copy()
         if versionlegend:
@@ -557,11 +580,11 @@ for ds in dataSets:
             print("")
             print("Creating baseline profile for "+col)
             print("")
-            df_sub = df_all_solved.xs(
-                (ds, col), level=["datasets", "fields"], axis=1, drop_level=True
-            ).copy()
             try:
                 if col != 'root_gap':
+                    df_sub = df_all_solved.xs(
+                        (ds, col), level=["datasets", "fields"], axis=1, drop_level=True
+                    ).copy()
                     plotBaselineProf(
                         df_sub, versions,
                         baseline = (scenarios[baseline[0]],baseline[1]),
