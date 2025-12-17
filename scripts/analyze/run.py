@@ -217,6 +217,8 @@ def runExperimentsPBS(instPaths, outDir, versions, params, pbsfile, gaps=[]):
     """
         Use to submit batch jobs via qsub. 
     """
+
+    total_jobs = 0
     # set up output directories
     # use hierarchy:  outDir/version/param_scenario_name/testset_name
     for v in versions:
@@ -256,6 +258,8 @@ def runExperimentsPBS(instPaths, outDir, versions, params, pbsfile, gaps=[]):
             exe = '/home/feb223/improvingDir/build-MibS-opt/bin/mibs'
         if v == 'idBC':
             exe = '/home/feb223/improvingDir/build-idBC-opt/bin/mibs'
+        if 'idBC-debug' in v:
+            exe = '/home/feb223/improvingDir/build-idBC-opt/bin/mibs'
         if v == '1.2':
             exe = '/home/feb223/improvingDir/build-1.2-opt/bin/mibs'
                 
@@ -291,7 +295,12 @@ def runExperimentsPBS(instPaths, outDir, versions, params, pbsfile, gaps=[]):
                             if instance.name.endswith('.mps'):
                                 outfile = os.path.join(outsubpath, instance.name[:-4]+'.out')
                                 errfile = os.path.join(outsubpath, instance.name[:-4]+'.err')
-                                if not os.path.exists(outfile):
+                                isComplete = False
+                                if os.path.exists(outfile):
+                                    with open(outfile, 'r') as f:
+                                        isComplete = "Number of problems (VF) solved" in f.read()
+                                isOutFileIncomplete = (os.path.isfile(errfile) and os.path.getsize(errfile) == 0 and not isComplete)
+                                if not os.path.exists(outfile) or isOutFileIncomplete:
                                     subprocess.run(["qsub", "-v", 
                                                     "EXECUTABLE="+exe+","
                                                     +"INSTANCENAME="+instance.path+","
@@ -301,6 +310,7 @@ def runExperimentsPBS(instPaths, outDir, versions, params, pbsfile, gaps=[]):
                                                     "-e", errfile,
                                                     "-N", testname,
                                                     pbsfile])
+                                    total_jobs += 1
                                     # exit(0)
 
                                 else:
@@ -308,7 +318,12 @@ def runExperimentsPBS(instPaths, outDir, versions, params, pbsfile, gaps=[]):
                             elif instance.name.endswith('.mps.gz'):
                                 outfile = os.path.join(outsubpath, instance.name[:-7]+'.out')
                                 errfile = os.path.join(outsubpath, instance.name[:-7]+'.err')
-                                if not os.path.exists(outfile):
+                                isComplete = False
+                                if os.path.exists(outfile):
+                                    with open(outfile, 'r') as f:
+                                        isComplete = "Number of problems (VF) solved" in f.read()
+                                isOutFileIncomplete = (os.path.isfile(errfile) and os.path.getsize(errfile) == 0 and not isComplete)
+                                if not os.path.exists(outfile) or isOutFileIncomplete:
                                     subprocess.run(["qsub", "-v", 
                                                     "EXECUTABLE="+exe+","
                                                     +"INSTANCENAME="+instance.path+","
@@ -318,10 +333,14 @@ def runExperimentsPBS(instPaths, outDir, versions, params, pbsfile, gaps=[]):
                                                     "-e", errfile,
                                                     "-N", testname,
                                                     pbsfile])
+                                    total_jobs += 1
                                     # exit(0)
                                     
                                 else:
                                     print("File", outfile, "exists!")
+    print("")
+    print("Launched ", total_jobs, "jobs!")
+    print("")
     return                    
 
 if __name__ == "__main__":
