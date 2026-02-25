@@ -1,11 +1,7 @@
-# Script to run MibS with different SL target gap.
-# The script may produce auxiliary folder/files in run directory.
-# Last edited by yux616
-# Apr 2020
-# Script path:  /MibS/scripts/analyze
-# Some os function requires Python 3.5+
-
-# add arg parser later
+# Script to replicate experiments of paper 
+# "Improving Directions in Mixed Integer Bilevel Linear Optimization"
+# Battista F. & Ted K. Ralphs
+# Last edited 2026
 
 import sys
 import os
@@ -16,6 +12,8 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
+
+from myrun import versions, outputDir
 
 
 def parseOutput(outputDir, versions, scenarios, writeCSV=True, filename="summary.csv"):
@@ -69,13 +67,8 @@ def parseOutput(outputDir, versions, scenarios, writeCSV=True, filename="summary
     # iterate over versions, scenarios, datasets, and files in each folder to read results
     for v in versions:
         for s in scenarios:
-            found = False
-            for dir in outputDir:
-                resultDir = os.path.join(dir, v, s)
-                if os.path.isdir(resultDir) == True:
-                    found = True
-                    break
-            if not found:
+            resultDir = os.path.join(outputDir, v, s)
+            if not os.path.isdir(resultDir):
                 continue
             # iterate over different datasets available
             with os.scandir(resultDir) as dataset_it:
@@ -334,37 +327,13 @@ def parseOutput(outputDir, versions, scenarios, writeCSV=True, filename="summary
     print("")
     df_result = pd.DataFrame(results)
 
-    # print("UL integer vars:", df_result["ul_int_var"].min(), df_result["ul_int_var"].max())
-    # print("LL integer vars:", df_result["ll_int_var"].min(), df_result["ll_int_var"].max())
-    # print("UL Constraints:", df_result["ul_constr"].min(), df_result["ul_constr"].max())
-    # print("LL Constraints:", df_result["ll_constr"].min(), df_result["ll_constr"].max())
-    # print("Align:", df_result["align"].min(), df_result["align"].max())
-
-
-    # make some adjustment to formats
-    # display check feasibility time as % of search time?
-    # sum vf+ub time -> feasibility time (or read from output directly?)
-    if '1.0-opt' not in versions:
-        df_result["chk_feas_time"] = df_result["ub_time"] + df_result["vf_time"]
-        df_result["chk_feas_time"] = df_result["chk_feas_time"].astype(float).round(2)
-    #df_result["cpu"] = df_result["cpu"].astype(float).round(2)
-
+    # Aggregate data
     # Tot CPU time finding IFDs
     df_result["idic_called"] = df_result["int_idic_called"] + df_result["frac_idic_called"]
     df_result["idic_cg_time"] = df_result["idic_ls_time"] + df_result["idic_milp_time"]
     df_result["idic_cg_avg_time"] = df_result["idic_cg_time"] / df_result["idic_called"]
     df_result["idic_cg_avg_time"].fillna(0, inplace=True)
-    # with pd.option_context('display.max_rows', None,
-    #                           'display.max_columns', None,
-    #                           'display.precision', 3,
-    #     ):
-        # print(df_result["idic_ls_time"])
-        # print(df_result["idic_milp_time"])
-        # print(df_result["idic_called"])
-        # print(df_result["idic_cg_time"])
-        # print(df_result["idic_cg_avg_time"])
-        # exit(0)
-
+    
     # compute percentages
     df_result["cg_fail_rate"] = df_result["cg_failed"] / df_result["cg_called"][df_result["cg_called"] > etol]
     df_result["cg_fail_rate"].fillna(0, inplace=True)
@@ -385,7 +354,6 @@ def parseOutput(outputDir, versions, scenarios, writeCSV=True, filename="summary
 
     # write results to .csv file
     if writeCSV:
-        # df_result.to_csv(filename, mode='a', header=False, index=False) # append results only
         df_result.to_csv(filename, index=False)
 
     return df_result
@@ -830,123 +798,20 @@ def plotBaselineProf(
     fig.tight_layout()
     fig.savefig(plotname + '.' + plotformat, dpi=fig.dpi)
 
-def plotBaselineProfSingle(
-        df, baseline, plotname="base_profile", plottitle="Baseline Profile", plotformat='png',
-        xmin=0.0, xmax=None, legendnames={}, versionlegend=False
-):
-    """
-    Generate a performance profile plot for the given dataframe.
-    Assume data given are in number types.
-    x-axis label: multiple of virtual best;
-    y-axis label: franction of instances.
-    Input:
-        df: instances as index, field-to-plot as columns
-        plotname: name of the plot
-        fixmin: the base value used to compute ratio; using df min if not given
-        xmin: the smallest x-ticker to display; set by xlim
-        xmax: the largest x-ticker to display; set by xlim
-        displaynames: a dictionary contains legend name; using df col name if not given
-    """
-
-    fig, ax = plt.subplots(1, 1)
-
-    # if given legend name len != col #, use defualt column name
-    if legendnames and (len(legendnames) != len(df.columns)):
-        legendnames = {}
-
-    # find min value in the dataframe
-    col_list = df.columns.values.tolist()
-
-    for col in col_list:
-        if col == baseline or col[0] == "virtual_best":
-            continue
-        #print(col)
-        # for each col, compute ratio
-        ratios = df[col] / df[baseline]
-        #print(df[col])
-        uniq_ratios = ratios.unique()
-        uniq_ratios.sort()  # sort in place
-        #print(uniq_ratios)
-        cum_cnt = np.sum(np.array([ratios <= ur for ur in uniq_ratios]), axis=1)
-        cum_frac = cum_cnt / len(ratios)
-
-        # form x-tickers: if xmax is not given, use current max and round up
-        if xmax == None:
-            xmax = np.ceil(uniq_ratios[-1])
-        elif uniq_ratios[-1] < xmax:
-            uniq_ratios = np.append(uniq_ratios, xmax)  # append array at the boundary point
-            cum_frac = np.append(cum_frac, cum_frac[-1])
-
-        #print(uniq_ratios)
-        #print(cum_frac)
-
-        x_val = []
-        y_val = []
-        x_val.append(0.0)
-        y_val.append(0.0)
-        x_val.append(uniq_ratios[0])
-        y_val.append(0)
-        x_val.append(uniq_ratios[0])
-        y_val.append(cum_frac[0])
-        for j, r in enumerate(uniq_ratios[1:]):
-            if r > 1:
-                x_val.append(r)
-                y_val.append(cum_frac[j])
-                break
-            x_val.extend([r, r])
-            # j is indexed starting at zero, not one!
-            y_val.extend([cum_frac[j], cum_frac[j + 1]])
-
-        if legendnames:
-            # , color=colors[i])
-            plt.plot(x_val, y_val, label=legendnames[col])
-        elif versionlegend:
-            plt.plot(x_val, y_val, label=col)  # , color=colors[i])
-        else:
-            plt.plot(x_val, y_val, label=col[0])  # , color=colors[i])
-
-    # set plot properties
-    ax.set_xlim(0, 1)
-    ax.set_ylim(-0.02, 1.05)
-    ax.tick_params(axis="both", direction="in", right=True)
-
-    # set other figure elements
-    ax.set_title(plottitle)
-    ax.set_xlabel("Ratio of baseline")
-    ax.set_ylabel("Fraction of instances")
-    ax.legend(
-        loc="upper right",
-        #bbox_to_anchor=(0.9, 0.05),
-        markerscale=1.25,
-        frameon=True,
-        labelspacing=0.35,
-        fontsize="x-small",
-    )
-
-    fig.tight_layout()
-    fig.savefig(plotname + '.' + plotformat, dpi=fig.dpi)
 
 if __name__ == "__main__":
+    colorPalette = 'tab20'  # Color palette name from matplotlib
+    plotformat = 'png'      # 'pdf' or 'png'
 
-    # Datasets: names correspond to the key in myrun.py instanceDirs
-    dataSets = [
-            'all',
-            # "interKpShi",
-            # "interDen"
-            "iblpDen",
-            "iblpDen2",
-            "iblpZhang",
-            "iblpZhang2",
-            'iblpFis'
-        ]
+    readFromCsv = True      # Whether trying to read CSV from file
+                            # must set this to False when scenarios dict changes
 
-    # Version: names correspond to versions in myrun.py
-    versions = ['idBC']
+    if len(versions) > 1:
+        versionlegend = True
+    else:
+        versionlegend = False
 
-    # Where the results are
-    outputDir = ["/home/feb223/results/MibS"]
-
-    # Scenarios
+    # Scenarios 
     #     keys: correspond to the keys of mibsParamsInputs in myrun.py
     #     values: is the name to use in plots
     scenarios = {
@@ -957,7 +822,7 @@ if __name__ == "__main__":
         'idBC-LS-k_3-dBnd_0_10_fracB'  : 'idB&C-LS-k_3-dBnd_0_10 (frac)',
         'idBC-LS-k_3-dBnd_10_Inf_fracB': 'idB&C-LS-k_3-dBnd_10_Inf (frac)',
         # 'idBC-LS-k_3-dBnd_0_8_fracB'   : 'idB&C-LS-k_3-dBnd_0_8 (frac)',
-        # 'idBC-LS-k_3-dBnd_8_Inf_fracB' : 'idB&C-LS-k_3-dBnd_8_Inf (frac)',
+        'idBC-LS-k_3-dBnd_8_Inf_fracB' : 'idB&C-LS-k_3-dBnd_8_Inf (frac)',
         # 'idBC-LS-k_3-dBnd_0_12_fracB'  : 'idB&C-LS-k_3-dBnd_0_12 (frac)',
         'idBC-LS-k_3-dBnd_12_Inf_fracB': 'idB&C-LS-k_3-dBnd_12_Inf (frac)',
         # 'idBC-LS-k_4-dBnd_Inf_fracB'   : 'idB&C-LS-k_4 (frac)',
@@ -976,41 +841,8 @@ if __name__ == "__main__":
         "MibS_1_2_IDIC_defaultB"       : "MibS IDIC-MILP (default)",
         # "MibS_1_2-LS-k_3_defaultB"     : "MibS IDIC-LS-k_3 (default)",
         "MibS_1_2-LS-k_2_defaultB"     : "MibS IDIC-LS-k_2 (default)"
-        }
+    }
 
-    ################# Process & Save | Load from CSV ###################
-    # Datasets name
-    # ds_name = "INT-DEN-SHI"
-    ds_name = "F-D-D2-Z-Z2"
-
-    # specify summary file name
-    file_csv_out = "summary_" + ds_name + ".csv"
-    #file_csv_in = "summary-1.2.1.csv"
-    file_csv_in = "summary_idBC_all_iblp.csv"
-    file_csv_in = "summary_" + ds_name + ".csv"
-    
-    # if len(args) == 0:
-    if 0:
-        df_r = parseOutput(
-            outputDir, versions, scenarios, writeCSV=True, filename=file_csv_out
-        )
-    else:
-        try:
-            df_r = pd.read_csv(file_csv_in)
-            set_cond = (df_r["scenario"].isin(scenarios.values())) | (
-                df_r["dataset"].isin(dataSets)
-            )
-            df_r = df_r[set_cond]
-        except FileNotFoundError:
-            print("{} does not exist in current directory.".format(file_csv_in))
-        else:
-            print("Reading from", file_csv_in)
-
-    ################### Format Data & Print Table ####################
-    # specify txt file name to print tables in LATEX
-    file_txt = "ltx_tb_cut.txt"
-
-    # columns to process and print
     # Columns to process and print
     displayCols = {
         # Basic data
@@ -1049,77 +881,133 @@ if __name__ == "__main__":
         # 'chk_feas_time': 'Check Feasibility Time'
     }
 
-    df_proc = processTable(df_r, displayCols, writeLTX=False, filename=file_txt)
+    ################# Process & Save | Load from CSV ###################
+    # # dataSetsGroups: how to group the datasets
+    # #     keys: names used in the plot and CSV file
+    # #   values: lists of datasets belonging to that group;
+    # #          names in the list correspond to the keys in myrun.py instanceDirs
+    # # 'all' is a special keyword meant to aggregate all
+    # # datasets of a same class (e.g., integer or interdiction)
+    # # in one single plot
+    # dataSetsGroups = {
+    #     # Integer datasets
+    #     "F-D-D2-Z-Z2" : 
+    #     [
+    #         'all',
+    #         "iblpDen",
+    #         "iblpDen2",
+    #         "iblpZhang",
+    #         "iblpZhang2",
+    #         'iblpFis'
+    #     ],
+    #     
+    # }
 
-    ################### Make Performance Profile ####################
+    #####################################################
+    ################### IBLP DATASET ####################
+    #####################################################
+
+    ds_name = "F-D-D2-Z-Z2"
+
+    # names in the list correspond to the keys in myrun.py instanceDirs
+    # 'all' is a special keyword meant to aggregate all
+    # datasets of a same class (e.g., IBLPs or interdiction)
+    # in one single plot
+    dataSets = [
+            'all',
+            "iblpDen",
+            "iblpDen2",
+            "iblpZhang",
+            "iblpZhang2",
+            'iblpFis'
+        ]
+
+    ################# Process & Save | Load from CSV ###################
+    # specify summary file name
+    file_csv_out = "summary_" + ds_name + ".csv"
+    file_csv_in = "summary_" + ds_name + ".csv"
+
+    if not readFromCsv or not os.path.isfile(file_csv_in):
+        # file_csv_in does not exist, parse the raw log files
+        df_r = parseOutput(
+            outputDir, versions, scenarios, writeCSV=True, filename=file_csv_out
+        )
+    else:
+        # read file_csv_in
+        try:
+            df_r = pd.read_csv(file_csv_in)
+            set_cond = (df_r["scenario"].isin(scenarios.values())) | (
+                df_r["dataset"].isin(dataSets)
+            )
+            df_r = df_r[set_cond]
+        except FileNotFoundError:
+            print("{} does not exist in current directory.".format(file_csv_in))
+        else:
+            print("Reading from", file_csv_in)
+
+    ################### Format Data & Print Table ####################
+    df_proc = processTable(df_r, displayCols)
+
+    ################### Make Profiles ################################
+    # ===============================
+    #   Figures 8 and 9
+    # ===============================
+    fignum = "fig_8_9"
     # columns to compare in the plot
+    #   key: matches one of the displayCols keys
+    #   values: a list with the name of the column to display and 
+    #           an integer to use as limit on the x-axis
     plotCols = {
         "cpu": ["CPU Time", 40],
-        # "cpu": ["CPU Time", 20],
         "nodes": ["Nodes Processed", 15],
         'cg_time': ["Finding IFDs total CPU Time", 50],
-        # 'cg_time': ["Cut Generation CPU Time", 30],
-        # 'idic_fail_rate': ["IFDs CG calls fail rate (%)", 50],
         'idic_cg_avg_time': ["Finding IFDs average CPU Time", 60]
     }
-
-    colorPalette = 'tab20'
-    # plotCols = {}
-
-    # manual input example:
-    # for k in scenarios:
-    #     if '01' in k:
-    #         scenarios[k] = 'linkingBranchStrategy'
-    #     else:
-    #         scenarios[k] = 'fractionalBranchStrategy'
-
-
-    baseline = None 
-    # baseline = ("MibS only IDICs (frac)", "idBC")
-    baseline = ("MibS (default)", "idBC")
-    # baseline = ("MibS IDIC-MILP (default)", "idBC")
-
-    # baseline = ("MibS_IDIC", 'ipco')
-    #baseline = ("Type1IC", "1.2-opt")
-    #baseline = ('GenNoGood+Type1+IntNoGood (link)', '1.2-opt')
-    #baseline = ('Watermelon (frac+LV)', '1.2-opt')
-    #baseline = ('FracWatermelon (frac)', '1.2-opt')
-    #baseline = ('Benders Interdict (link)', '1.2.1-final')
-    if len(versions) > 1:
-        versionlegend = True
-    else:
-        versionlegend = False
     
-    # plotformat = 'pdf'
-    plotformat = 'png'
+    scenariosToPlot = {
+        'idBC-LS-k_2-dBnd_Inf_fracB'   : "idB&C-LS-k_2 (frac)",
+        "idBC-LS-k_3-dBnd_Inf_fracB"   : "idB&C-LS-k_3 (frac)",
+        # 'idBC-LS-k_2-dBnd_0_10_fracB'  : 'idB&C-LS-k_2-dBnd_0_10 (frac)',
+        'idBC-LS-k_2-dBnd_10_Inf_fracB': 'idB&C-LS-k_2-dBnd_10_Inf (frac)',
+        # 'idBC-LS-k_3-dBnd_0_10_fracB'  : 'idB&C-LS-k_3-dBnd_0_10 (frac)',
+        'idBC-LS-k_3-dBnd_10_Inf_fracB': 'idB&C-LS-k_3-dBnd_10_Inf (frac)',
+        # 'idBC-LS-k_3-dBnd_0_8_fracB'   : 'idB&C-LS-k_3-dBnd_0_8 (frac)',
+        'idBC-LS-k_3-dBnd_8_Inf_fracB' : 'idB&C-LS-k_3-dBnd_8_Inf (frac)',
+        # 'idBC-LS-k_3-dBnd_0_12_fracB'  : 'idB&C-LS-k_3-dBnd_0_12 (frac)',
+        'idBC-LS-k_3-dBnd_12_Inf_fracB': 'idB&C-LS-k_3-dBnd_12_Inf (frac)',
+        # 'idBC-LS-k_4-dBnd_Inf_fracB'   : 'idB&C-LS-k_4 (frac)',
+        # 'idBC-LS-k_4-dBnd_0_10_fracB'  : 'idB&C-LS-k_4-dBnd_0_10 (frac)',
+        'idBC-LS-k_4-dBnd_10_Inf_fracB': 'idB&C-LS-k_4-dBnd_10_Inf (frac)',
+        # 'idBC-LS-k_5-dBnd_Inf_fracB'   : 'idB&C-LS-k_5 (frac)',
+        # 'idBC-LS-k_5-dBnd_0_10_fracB'  : 'idB&C-LS-k_5-dBnd_0_10 (frac)',
+        # 'idBC-LS-k_5-dBnd_10_Inf_fracB': 'idB&C-LS-k_5-dBnd_10_Inf (frac)',
+        "idBC-MILP_fracB"              : "idB&C-MILP (frac)",
+        'idBC-k_2-MILP_fracB'          : 'idB&C-MILP-k_2 (frac)',
+        # 'idBC-k_3-MILP_fracB'          : 'idB&C-MILP-k_3 (frac)',
+        # 'idBC-k_4-MILP_fracB'          : 'idB&C-MILP-k_4 (frac)',
+        # 'idBC-k_5-MILP_fracB'          : 'idB&C-MILP-k_5 (frac)',
+        "MibS_onlyIDIC_fracB"          : "MibS only IDICs (frac)",
+        # "MibS_1_2_defaultB"            : "MibS (default)",
+        # "MibS_1_2_IDIC_defaultB"       : "MibS IDIC-MILP (default)",
+        # "MibS_1_2-LS-k_3_defaultB"     : "MibS IDIC-LS-k_3 (default)",
+        # "MibS_1_2-LS-k_2_defaultB"     : "MibS IDIC-LS-k_2 (default)"
+    }
+
+    # baselise configuration: first element matches a value of scenarios,
+    # second matches the version
+    baseline = ("MibS only IDICs (frac)", "idBC")
     
     dataSets = ['all']
 
     for ds in dataSets:
-        df_solved, df_has_soln = dropFilter(df_proc, scenarios, ds)
-        # print(df_solved)
+        df_solved, df_has_soln = dropFilter(df_proc, scenariosToPlot, ds)
 
-        plotCumProf(df_has_soln, plotname=("cum_" + ds_name).replace(' ', '_'),
+        plotCumProf(df_has_soln, plotname=(fignum + "_" +"cum_" + ds_name).replace(' ', '_'),
                     plottitle="Cumulative Profile: Time-Gap ("+ds_name+")",
                     versionlegend = versionlegend, plotformat=plotformat
         )
 
-        if baseline is not None: 
-            print("")
-            print("Creating baseline profile for gap")
-            print("")
-            df_gap = df_has_soln.xs(
-                (dataSets[0], "gap"), level=["datasets", "fields"], axis=1, drop_level=True
-            ).copy()
-            print(len(df_gap))
-            df_baseline_has_gap = df_gap.drop(df_gap[df_gap[baseline] == 0].index.to_list())
-            plotBaselineProf(
-                df_baseline_has_gap, baseline = baseline,
-                plotname=("base_" + baseline[0] + "_" + "gap_" + ds_name).replace(' ', '_'),
-                plottitle = "Baseline Profile: Gap ("+ds_name+")",
-                xmax=25, versionlegend = versionlegend, plotformat=plotformat
-            )
-
+        # Create performance and baseline profile for each column
         for col in plotCols:
             if col != "root_gap":
                 df_sub = df_solved.xs(
@@ -1133,7 +1021,7 @@ if __name__ == "__main__":
             print("Creating performance profile for " + col , ", num instances: ", len(df_sub))
             print("")
             plotPerfProf(
-                df_sub, plotname=("perf_" + col + "_" + ds_name).replace(' ', '_'),
+                df_sub, plotname=(fignum + "_" +"perf_" + col + "_" + ds_name).replace(' ', '_'),
                 plottitle = "Performance Profile: "+plotCols[col][0]+" ("+ds_name+")",
                 xmin = 0.0, xmax=plotCols[col][1],
                 versionlegend = versionlegend, plotformat=plotformat
@@ -1142,16 +1030,464 @@ if __name__ == "__main__":
                 print("")
                 print("Creating baseline profile for "+col)
                 print("")
-                # plotBaselineProfSingle(
-                #     df_sub, baseline = baseline,
-                #     plotname="base_"+baseline[0]+"_"+col+"_"+ds,
-                #     plottitle = "Baseline Profile: "+plotCols[col][0]+" ("+ds+")",
-                #     xmax=plotCols[col][1],
-                #     versionlegend = versionlegend
-                # )
                 plotBaselineProf(
                     df_sub, baseline = baseline,
-                    plotname=("base_"+baseline[0]+"_"+col+"_"+ds_name).replace(' ', '_'),
+                    plotname=(fignum + "_" +"base_"+baseline[0]+"_"+col+"_"+ds_name).replace(' ', '_'),
+                    plottitle = "Baseline Profile: "+plotCols[col][0]+" ("+ds_name+")",
+                    xmax=plotCols[col][1],
+                    versionlegend = versionlegend, plotformat=plotformat
+                )
+
+    
+    # ===============================
+    #   Figures 12 (a)---(d)
+    # ===============================
+    fignum = "fig_12"
+    plotCols = {
+        "cpu": ["CPU Time", 40]
+    }
+    
+    scenariosToPlot = {
+        # 'idBC-LS-k_2-dBnd_Inf_fracB'   : "idB&C-LS-k_2 (frac)",
+        # "idBC-LS-k_3-dBnd_Inf_fracB"   : "idB&C-LS-k_3 (frac)",
+        # 'idBC-LS-k_2-dBnd_0_10_fracB'  : 'idB&C-LS-k_2-dBnd_0_10 (frac)',
+        # 'idBC-LS-k_2-dBnd_10_Inf_fracB': 'idB&C-LS-k_2-dBnd_10_Inf (frac)',
+        # 'idBC-LS-k_3-dBnd_0_10_fracB'  : 'idB&C-LS-k_3-dBnd_0_10 (frac)',
+        # 'idBC-LS-k_3-dBnd_10_Inf_fracB': 'idB&C-LS-k_3-dBnd_10_Inf (frac)',
+        # 'idBC-LS-k_3-dBnd_0_8_fracB'   : 'idB&C-LS-k_3-dBnd_0_8 (frac)',
+        # 'idBC-LS-k_3-dBnd_8_Inf_fracB' : 'idB&C-LS-k_3-dBnd_8_Inf (frac)',
+        # 'idBC-LS-k_3-dBnd_0_12_fracB'  : 'idB&C-LS-k_3-dBnd_0_12 (frac)',
+        # 'idBC-LS-k_3-dBnd_12_Inf_fracB': 'idB&C-LS-k_3-dBnd_12_Inf (frac)',
+        # 'idBC-LS-k_4-dBnd_Inf_fracB'   : 'idB&C-LS-k_4 (frac)',
+        # 'idBC-LS-k_4-dBnd_0_10_fracB'  : 'idB&C-LS-k_4-dBnd_0_10 (frac)',
+        # 'idBC-LS-k_4-dBnd_10_Inf_fracB': 'idB&C-LS-k_4-dBnd_10_Inf (frac)',
+        # 'idBC-LS-k_5-dBnd_Inf_fracB'   : 'idB&C-LS-k_5 (frac)',
+        # 'idBC-LS-k_5-dBnd_0_10_fracB'  : 'idB&C-LS-k_5-dBnd_0_10 (frac)',
+        # 'idBC-LS-k_5-dBnd_10_Inf_fracB': 'idB&C-LS-k_5-dBnd_10_Inf (frac)',
+        # "idBC-MILP_fracB"              : "idB&C-MILP (frac)",
+        # 'idBC-k_2-MILP_fracB'          : 'idB&C-MILP-k_2 (frac)',
+        # 'idBC-k_3-MILP_fracB'          : 'idB&C-MILP-k_3 (frac)',
+        # 'idBC-k_4-MILP_fracB'          : 'idB&C-MILP-k_4 (frac)',
+        # 'idBC-k_5-MILP_fracB'          : 'idB&C-MILP-k_5 (frac)',
+        "MibS_onlyIDIC_fracB"          : "MibS only IDICs (frac)",
+        "MibS_1_2_defaultB"            : "MibS (default)",
+        "MibS_1_2_IDIC_defaultB"       : "MibS IDIC-MILP (default)",
+        # "MibS_1_2-LS-k_3_defaultB"     : "MibS IDIC-LS-k_3 (default)",
+        "MibS_1_2-LS-k_2_defaultB"     : "MibS IDIC-LS-k_2 (default)"
+    }
+
+    baseline = ("MibS (default)", "idBC")
+    
+    dataSets = ['all']
+
+    for ds in dataSets:
+        df_solved, df_has_soln = dropFilter(df_proc, scenariosToPlot, ds)
+        # print(df_solved)
+
+        plotCumProf(df_has_soln, plotname=(fignum + "_" +"cum_" + ds_name).replace(' ', '_'),
+                    plottitle="Cumulative Profile: Time-Gap ("+ds_name+")",
+                    versionlegend = versionlegend, plotformat=plotformat
+        )
+
+        # Create performance and baseline profile for each column
+        for col in plotCols:
+            if col != "root_gap":
+                df_sub = df_solved.xs(
+                    (ds, col), level=["datasets", "fields"], axis=1, drop_level=True
+                ).copy()
+            else:
+                df_sub = df_has_soln.xs(
+                    (ds, col), level=["datasets", "fields"], axis=1, drop_level=True
+                ).copy()
+            print("")
+            print("Creating performance profile for " + col , ", num instances: ", len(df_sub))
+            print("")
+            plotPerfProf(
+                df_sub, plotname=(fignum + "_" +"perf_" + col + "_" + ds_name).replace(' ', '_'),
+                plottitle = "Performance Profile: "+plotCols[col][0]+" ("+ds_name+")",
+                xmin = 0.0, xmax=plotCols[col][1],
+                versionlegend = versionlegend, plotformat=plotformat
+            )
+            if baseline is not None: 
+                print("")
+                print("Creating baseline profile for "+col)
+                print("")
+                plotBaselineProf(
+                    df_sub, baseline = baseline,
+                    plotname=(fignum + "_" +"base_"+baseline[0]+"_"+col+"_"+ds_name).replace(' ', '_'),
+                    plottitle = "Baseline Profile: "+plotCols[col][0]+" ("+ds_name+")",
+                    xmax=plotCols[col][1],
+                    versionlegend = versionlegend, plotformat=plotformat
+                )
+                print("")
+                print("Creating baseline profile for gap")
+                print("")
+                df_gap = df_has_soln.xs(
+                    (dataSets[0], "gap"), level=["datasets", "fields"], axis=1, drop_level=True
+                ).copy()
+                print(len(df_gap))
+                df_baseline_has_gap = df_gap.drop(df_gap[df_gap[baseline] == 0].index.to_list())
+                plotBaselineProf(
+                    df_baseline_has_gap, baseline = baseline,
+                    plotname=(fignum + "_" +"base_" + baseline[0] + "_" + "gap_" + ds_name).replace(' ', '_'),
+                    plottitle = "Baseline Profile: Gap ("+ds_name+")",
+                    xmax=25, versionlegend = versionlegend, plotformat=plotformat
+                )
+
+    # ===============================
+    #   Figures 13 (a) and (b)
+    # ===============================
+    fignum = "fig_13"
+    plotCols = {
+        "cpu": ["CPU Time", 40],
+    }
+    
+    scenariosToPlot = {
+        'idBC-LS-k_2-dBnd_Inf_fracB'   : "idB&C-LS-k_2 (frac)",
+        "idBC-LS-k_3-dBnd_Inf_fracB"   : "idB&C-LS-k_3 (frac)",
+        # 'idBC-LS-k_2-dBnd_0_10_fracB'  : 'idB&C-LS-k_2-dBnd_0_10 (frac)',
+        'idBC-LS-k_2-dBnd_10_Inf_fracB': 'idB&C-LS-k_2-dBnd_10_Inf (frac)',
+        'idBC-LS-k_3-dBnd_0_10_fracB'  : 'idB&C-LS-k_3-dBnd_0_10 (frac)',
+        'idBC-LS-k_3-dBnd_10_Inf_fracB': 'idB&C-LS-k_3-dBnd_10_Inf (frac)',
+        # 'idBC-LS-k_3-dBnd_0_8_fracB'   : 'idB&C-LS-k_3-dBnd_0_8 (frac)',
+        # 'idBC-LS-k_3-dBnd_8_Inf_fracB' : 'idB&C-LS-k_3-dBnd_8_Inf (frac)',
+        # 'idBC-LS-k_3-dBnd_0_12_fracB'  : 'idB&C-LS-k_3-dBnd_0_12 (frac)',
+        'idBC-LS-k_3-dBnd_12_Inf_fracB': 'idB&C-LS-k_3-dBnd_12_Inf (frac)',
+        # 'idBC-LS-k_4-dBnd_Inf_fracB'   : 'idB&C-LS-k_4 (frac)',
+        # 'idBC-LS-k_4-dBnd_0_10_fracB'  : 'idB&C-LS-k_4-dBnd_0_10 (frac)',
+        'idBC-LS-k_4-dBnd_10_Inf_fracB': 'idB&C-LS-k_4-dBnd_10_Inf (frac)',
+        # 'idBC-LS-k_5-dBnd_Inf_fracB'   : 'idB&C-LS-k_5 (frac)',
+        # 'idBC-LS-k_5-dBnd_0_10_fracB'  : 'idB&C-LS-k_5-dBnd_0_10 (frac)',
+        'idBC-LS-k_5-dBnd_10_Inf_fracB': 'idB&C-LS-k_5-dBnd_10_Inf (frac)',
+        "idBC-MILP_fracB"              : "idB&C-MILP (frac)",
+        'idBC-k_2-MILP_fracB'          : 'idB&C-MILP-k_2 (frac)',
+        # 'idBC-k_3-MILP_fracB'          : 'idB&C-MILP-k_3 (frac)',
+        'idBC-k_4-MILP_fracB'          : 'idB&C-MILP-k_4 (frac)',
+        # 'idBC-k_5-MILP_fracB'          : 'idB&C-MILP-k_5 (frac)',
+        "MibS_onlyIDIC_fracB"          : "MibS only IDICs (frac)",
+        "MibS_1_2_defaultB"            : "MibS (default)",
+        "MibS_1_2_IDIC_defaultB"       : "MibS IDIC-MILP (default)",
+        # "MibS_1_2-LS-k_3_defaultB"     : "MibS IDIC-LS-k_3 (default)",
+        "MibS_1_2-LS-k_2_defaultB"     : "MibS IDIC-LS-k_2 (default)"
+    }
+
+    # baselise configuration: first element matches a value of scenarios,
+    # second matches the version
+    baseline = ("MibS (default)", "idBC")
+    
+    dataSets = ['all']
+
+    for ds in dataSets:
+        df_solved, df_has_soln = dropFilter(df_proc, scenariosToPlot, ds)
+
+        # Create performance and baseline profile for each column
+        for col in plotCols:
+            if col != "root_gap":
+                df_sub = df_solved.xs(
+                    (ds, col), level=["datasets", "fields"], axis=1, drop_level=True
+                ).copy()
+            else:
+                df_sub = df_has_soln.xs(
+                    (ds, col), level=["datasets", "fields"], axis=1, drop_level=True
+                ).copy()
+            print("")
+            print("Creating performance profile for " + col , ", num instances: ", len(df_sub))
+            print("")
+            plotPerfProf(
+                df_sub, plotname=(fignum + "_" + "perf_" + col + "_" + ds_name).replace(' ', '_'),
+                plottitle = "Performance Profile: "+plotCols[col][0]+" ("+ds_name+")",
+                xmin = 0.0, xmax=plotCols[col][1],
+                versionlegend = versionlegend, plotformat=plotformat
+            )
+            if baseline is not None: 
+                print("")
+                print("Creating baseline profile for "+col)
+                print("")
+                plotBaselineProf(
+                    df_sub, baseline = baseline,
+                    plotname=(fignum + "_" + "base_"+baseline[0]+"_"+col+"_"+ds_name).replace(' ', '_'),
+                    plottitle = "Baseline Profile: "+plotCols[col][0]+" ("+ds_name+")",
+                    xmax=plotCols[col][1],
+                    versionlegend = versionlegend, plotformat=plotformat
+                )
+
+    
+
+    #############################################################
+    ################### INTERDICTION DATASET ####################
+    #############################################################
+
+    ds_name = "INT-DEN-SHI"
+
+    dataSets = [
+            'all',
+            "interKpShi",
+            "interDen"
+        ]
+
+    ################# Process & Save | Load from CSV ###################
+    # specify summary file name
+    file_csv_out = "summary_" + ds_name + ".csv"
+    file_csv_in = "summary_" + ds_name + ".csv"
+
+    if not readFromCsv or not os.path.isfile(file_csv_in):
+        # file_csv_in does not exist, parse the raw log files
+        df_r = parseOutput(
+            outputDir, versions, scenarios, writeCSV=True, filename=file_csv_out
+        )
+    else:
+        # read file_csv_in
+        try:
+            df_r = pd.read_csv(file_csv_in)
+            set_cond = (df_r["scenario"].isin(scenarios.values())) | (
+                df_r["dataset"].isin(dataSets)
+            )
+            df_r = df_r[set_cond]
+        except FileNotFoundError:
+            print("{} does not exist in current directory.".format(file_csv_in))
+        else:
+            print("Reading from", file_csv_in)
+
+    ################### Format Data & Print Table ####################
+    df_proc = processTable(df_r, displayCols)
+    
+    ################### Make Profiles ################################
+    # ===============================
+    #   Figures 10 and 11
+    # ===============================
+    fignum = "fig_10_11"
+    # columns to compare in the plot
+    #   key: matches one of the displayCols keys
+    #   values: a list with the name of the column to display and 
+    #           an integer to use as limit on the x-axis
+    plotCols = {
+        "cpu": ["CPU Time", 20],
+        "nodes": ["Nodes Processed", 15],
+        'cg_time': ["Finding IFDs total CPU Time", 50],
+        'idic_cg_avg_time': ["Finding IFDs average CPU Time", 60]
+    }
+    
+    scenariosToPlot = {
+        'idBC-LS-k_2-dBnd_Inf_fracB'   : "idB&C-LS-k_2 (frac)",
+        "idBC-LS-k_3-dBnd_Inf_fracB"   : "idB&C-LS-k_3 (frac)",
+        # 'idBC-LS-k_2-dBnd_0_10_fracB'  : 'idB&C-LS-k_2-dBnd_0_10 (frac)',
+        'idBC-LS-k_2-dBnd_10_Inf_fracB': 'idB&C-LS-k_2-dBnd_10_Inf (frac)',
+        # 'idBC-LS-k_3-dBnd_0_10_fracB'  : 'idB&C-LS-k_3-dBnd_0_10 (frac)',
+        'idBC-LS-k_3-dBnd_10_Inf_fracB': 'idB&C-LS-k_3-dBnd_10_Inf (frac)',
+        # 'idBC-LS-k_3-dBnd_0_8_fracB'   : 'idB&C-LS-k_3-dBnd_0_8 (frac)',
+        'idBC-LS-k_3-dBnd_8_Inf_fracB' : 'idB&C-LS-k_3-dBnd_8_Inf (frac)',
+        # 'idBC-LS-k_3-dBnd_0_12_fracB'  : 'idB&C-LS-k_3-dBnd_0_12 (frac)',
+        'idBC-LS-k_3-dBnd_12_Inf_fracB': 'idB&C-LS-k_3-dBnd_12_Inf (frac)',
+        # 'idBC-LS-k_4-dBnd_Inf_fracB'   : 'idB&C-LS-k_4 (frac)',
+        # 'idBC-LS-k_4-dBnd_0_10_fracB'  : 'idB&C-LS-k_4-dBnd_0_10 (frac)',
+        'idBC-LS-k_4-dBnd_10_Inf_fracB': 'idB&C-LS-k_4-dBnd_10_Inf (frac)',
+        # 'idBC-LS-k_5-dBnd_Inf_fracB'   : 'idB&C-LS-k_5 (frac)',
+        # 'idBC-LS-k_5-dBnd_0_10_fracB'  : 'idB&C-LS-k_5-dBnd_0_10 (frac)',
+        # 'idBC-LS-k_5-dBnd_10_Inf_fracB': 'idB&C-LS-k_5-dBnd_10_Inf (frac)',
+        "idBC-MILP_fracB"              : "idB&C-MILP (frac)",
+        'idBC-k_2-MILP_fracB'          : 'idB&C-MILP-k_2 (frac)',
+        # 'idBC-k_3-MILP_fracB'          : 'idB&C-MILP-k_3 (frac)',
+        # 'idBC-k_4-MILP_fracB'          : 'idB&C-MILP-k_4 (frac)',
+        # 'idBC-k_5-MILP_fracB'          : 'idB&C-MILP-k_5 (frac)',
+        "MibS_onlyIDIC_fracB"          : "MibS only IDICs (frac)",
+        # "MibS_1_2_defaultB"            : "MibS (default)",
+        # "MibS_1_2_IDIC_defaultB"       : "MibS IDIC-MILP (default)",
+        # "MibS_1_2-LS-k_3_defaultB"     : "MibS IDIC-LS-k_3 (default)",
+        # "MibS_1_2-LS-k_2_defaultB"     : "MibS IDIC-LS-k_2 (default)"
+    }
+
+    # baselise configuration: first element matches a value of scenarios,
+    # second matches the version
+    baseline = ("MibS only IDICs (frac)", "idBC")
+    
+    dataSets = ['all']
+
+    for ds in dataSets:
+        df_solved, df_has_soln = dropFilter(df_proc, scenariosToPlot, ds)
+
+        plotCumProf(df_has_soln, plotname=(fignum + "_" +"cum_" + ds_name).replace(' ', '_'),
+                    plottitle="Cumulative Profile: Time-Gap ("+ds_name+")",
+                    versionlegend = versionlegend, plotformat=plotformat
+        )
+
+        # Create performance and baseline profile for each column
+        for col in plotCols:
+            if col != "root_gap":
+                df_sub = df_solved.xs(
+                    (ds, col), level=["datasets", "fields"], axis=1, drop_level=True
+                ).copy()
+            else:
+                df_sub = df_has_soln.xs(
+                    (ds, col), level=["datasets", "fields"], axis=1, drop_level=True
+                ).copy()
+            print("")
+            print("Creating performance profile for " + col , ", num instances: ", len(df_sub))
+            print("")
+            plotPerfProf(
+                df_sub, plotname=(fignum + "_" +"perf_" + col + "_" + ds_name).replace(' ', '_'),
+                plottitle = "Performance Profile: "+plotCols[col][0]+" ("+ds_name+")",
+                xmin = 0.0, xmax=plotCols[col][1],
+                versionlegend = versionlegend, plotformat=plotformat
+            )
+            if baseline is not None: 
+                print("")
+                print("Creating baseline profile for "+col)
+                print("")
+                plotBaselineProf(
+                    df_sub, baseline = baseline,
+                    plotname=(fignum + "_" +"base_"+baseline[0]+"_"+col+"_"+ds_name).replace(' ', '_'),
+                    plottitle = "Baseline Profile: "+plotCols[col][0]+" ("+ds_name+")",
+                    xmax=plotCols[col][1],
+                    versionlegend = versionlegend, plotformat=plotformat
+                )
+
+    # ===============================
+    #   Figures 12 (e) and (f)
+    # ===============================
+    fignum = "fig_12"
+    plotCols = {
+        "cpu": ["CPU Time", 40]
+    }
+    
+    scenariosToPlot = {
+        # 'idBC-LS-k_2-dBnd_Inf_fracB'   : "idB&C-LS-k_2 (frac)",
+        # "idBC-LS-k_3-dBnd_Inf_fracB"   : "idB&C-LS-k_3 (frac)",
+        # 'idBC-LS-k_2-dBnd_0_10_fracB'  : 'idB&C-LS-k_2-dBnd_0_10 (frac)',
+        # 'idBC-LS-k_2-dBnd_10_Inf_fracB': 'idB&C-LS-k_2-dBnd_10_Inf (frac)',
+        # 'idBC-LS-k_3-dBnd_0_10_fracB'  : 'idB&C-LS-k_3-dBnd_0_10 (frac)',
+        # 'idBC-LS-k_3-dBnd_10_Inf_fracB': 'idB&C-LS-k_3-dBnd_10_Inf (frac)',
+        # 'idBC-LS-k_3-dBnd_0_8_fracB'   : 'idB&C-LS-k_3-dBnd_0_8 (frac)',
+        # 'idBC-LS-k_3-dBnd_8_Inf_fracB' : 'idB&C-LS-k_3-dBnd_8_Inf (frac)',
+        # 'idBC-LS-k_3-dBnd_0_12_fracB'  : 'idB&C-LS-k_3-dBnd_0_12 (frac)',
+        # 'idBC-LS-k_3-dBnd_12_Inf_fracB': 'idB&C-LS-k_3-dBnd_12_Inf (frac)',
+        # 'idBC-LS-k_4-dBnd_Inf_fracB'   : 'idB&C-LS-k_4 (frac)',
+        # 'idBC-LS-k_4-dBnd_0_10_fracB'  : 'idB&C-LS-k_4-dBnd_0_10 (frac)',
+        # 'idBC-LS-k_4-dBnd_10_Inf_fracB': 'idB&C-LS-k_4-dBnd_10_Inf (frac)',
+        # 'idBC-LS-k_5-dBnd_Inf_fracB'   : 'idB&C-LS-k_5 (frac)',
+        # 'idBC-LS-k_5-dBnd_0_10_fracB'  : 'idB&C-LS-k_5-dBnd_0_10 (frac)',
+        # 'idBC-LS-k_5-dBnd_10_Inf_fracB': 'idB&C-LS-k_5-dBnd_10_Inf (frac)',
+        # "idBC-MILP_fracB"              : "idB&C-MILP (frac)",
+        # 'idBC-k_2-MILP_fracB'          : 'idB&C-MILP-k_2 (frac)',
+        # 'idBC-k_3-MILP_fracB'          : 'idB&C-MILP-k_3 (frac)',
+        # 'idBC-k_4-MILP_fracB'          : 'idB&C-MILP-k_4 (frac)',
+        # 'idBC-k_5-MILP_fracB'          : 'idB&C-MILP-k_5 (frac)',
+        "MibS_onlyIDIC_fracB"          : "MibS only IDICs (frac)",
+        "MibS_1_2_defaultB"            : "MibS (default)",
+        "MibS_1_2_IDIC_defaultB"       : "MibS IDIC-MILP (default)",
+        # "MibS_1_2-LS-k_3_defaultB"     : "MibS IDIC-LS-k_3 (default)",
+        "MibS_1_2-LS-k_2_defaultB"     : "MibS IDIC-LS-k_2 (default)"
+    }
+
+    baseline = ("MibS (default)", "idBC")
+    
+    dataSets = ['all']
+
+    for ds in dataSets:
+        df_solved, df_has_soln = dropFilter(df_proc, scenariosToPlot, ds)
+
+        # Create performance and baseline profile for each column
+        for col in plotCols:
+            if col != "root_gap":
+                df_sub = df_solved.xs(
+                    (ds, col), level=["datasets", "fields"], axis=1, drop_level=True
+                ).copy()
+            else:
+                df_sub = df_has_soln.xs(
+                    (ds, col), level=["datasets", "fields"], axis=1, drop_level=True
+                ).copy()
+            print("")
+            print("Creating performance profile for " + col , ", num instances: ", len(df_sub))
+            print("")
+            plotPerfProf(
+                df_sub, plotname=(fignum + "_" +"perf_" + col + "_" + ds_name).replace(' ', '_'),
+                plottitle = "Performance Profile: "+plotCols[col][0]+" ("+ds_name+")",
+                xmin = 0.0, xmax=plotCols[col][1],
+                versionlegend = versionlegend, plotformat=plotformat
+            )
+            if baseline is not None: 
+                print("")
+                print("Creating baseline profile for "+col)
+                print("")
+                plotBaselineProf(
+                    df_sub, baseline = baseline,
+                    plotname=(fignum + "_" +"base_"+baseline[0]+"_"+col+"_"+ds_name).replace(' ', '_'),
+                    plottitle = "Baseline Profile: "+plotCols[col][0]+" ("+ds_name+")",
+                    xmax=plotCols[col][1],
+                    versionlegend = versionlegend, plotformat=plotformat
+                )
+
+    # ===============================
+    #   Figures 13 (c) and (d)
+    # ===============================
+    fignum = "fig_13"
+    plotCols = {
+        "cpu": ["CPU Time", 40],
+    }
+    
+    scenariosToPlot = {
+        'idBC-LS-k_2-dBnd_Inf_fracB'   : "idB&C-LS-k_2 (frac)",
+        "idBC-LS-k_3-dBnd_Inf_fracB"   : "idB&C-LS-k_3 (frac)",
+        # 'idBC-LS-k_2-dBnd_0_10_fracB'  : 'idB&C-LS-k_2-dBnd_0_10 (frac)',
+        'idBC-LS-k_2-dBnd_10_Inf_fracB': 'idB&C-LS-k_2-dBnd_10_Inf (frac)',
+        'idBC-LS-k_3-dBnd_0_10_fracB'  : 'idB&C-LS-k_3-dBnd_0_10 (frac)',
+        'idBC-LS-k_3-dBnd_10_Inf_fracB': 'idB&C-LS-k_3-dBnd_10_Inf (frac)',
+        # 'idBC-LS-k_3-dBnd_0_8_fracB'   : 'idB&C-LS-k_3-dBnd_0_8 (frac)',
+        # 'idBC-LS-k_3-dBnd_8_Inf_fracB' : 'idB&C-LS-k_3-dBnd_8_Inf (frac)',
+        # 'idBC-LS-k_3-dBnd_0_12_fracB'  : 'idB&C-LS-k_3-dBnd_0_12 (frac)',
+        'idBC-LS-k_3-dBnd_12_Inf_fracB': 'idB&C-LS-k_3-dBnd_12_Inf (frac)',
+        # 'idBC-LS-k_4-dBnd_Inf_fracB'   : 'idB&C-LS-k_4 (frac)',
+        # 'idBC-LS-k_4-dBnd_0_10_fracB'  : 'idB&C-LS-k_4-dBnd_0_10 (frac)',
+        'idBC-LS-k_4-dBnd_10_Inf_fracB': 'idB&C-LS-k_4-dBnd_10_Inf (frac)',
+        # 'idBC-LS-k_5-dBnd_Inf_fracB'   : 'idB&C-LS-k_5 (frac)',
+        # 'idBC-LS-k_5-dBnd_0_10_fracB'  : 'idB&C-LS-k_5-dBnd_0_10 (frac)',
+        'idBC-LS-k_5-dBnd_10_Inf_fracB': 'idB&C-LS-k_5-dBnd_10_Inf (frac)',
+        "idBC-MILP_fracB"              : "idB&C-MILP (frac)",
+        'idBC-k_2-MILP_fracB'          : 'idB&C-MILP-k_2 (frac)',
+        # 'idBC-k_3-MILP_fracB'          : 'idB&C-MILP-k_3 (frac)',
+        'idBC-k_4-MILP_fracB'          : 'idB&C-MILP-k_4 (frac)',
+        # 'idBC-k_5-MILP_fracB'          : 'idB&C-MILP-k_5 (frac)',
+        "MibS_onlyIDIC_fracB"          : "MibS only IDICs (frac)",
+        "MibS_1_2_defaultB"            : "MibS (default)",
+        "MibS_1_2_IDIC_defaultB"       : "MibS IDIC-MILP (default)",
+        # "MibS_1_2-LS-k_3_defaultB"     : "MibS IDIC-LS-k_3 (default)",
+        "MibS_1_2-LS-k_2_defaultB"     : "MibS IDIC-LS-k_2 (default)"
+    }
+
+    # baselise configuration: first element matches a value of scenarios,
+    # second matches the version
+    baseline = ("MibS (default)", "idBC")
+    
+    dataSets = ['all']
+
+    for ds in dataSets:
+        df_solved, df_has_soln = dropFilter(df_proc, scenariosToPlot, ds)
+
+        # Create performance and baseline profile for each column
+        for col in plotCols:
+            if col != "root_gap":
+                df_sub = df_solved.xs(
+                    (ds, col), level=["datasets", "fields"], axis=1, drop_level=True
+                ).copy()
+            else:
+                df_sub = df_has_soln.xs(
+                    (ds, col), level=["datasets", "fields"], axis=1, drop_level=True
+                ).copy()
+            print("")
+            print("Creating performance profile for " + col , ", num instances: ", len(df_sub))
+            print("")
+            plotPerfProf(
+                df_sub, plotname=(fignum + "_" + "perf_" + col + "_" + ds_name).replace(' ', '_'),
+                plottitle = "Performance Profile: "+plotCols[col][0]+" ("+ds_name+")",
+                xmin = 0.0, xmax=plotCols[col][1],
+                versionlegend = versionlegend, plotformat=plotformat
+            )
+            if baseline is not None: 
+                print("")
+                print("Creating baseline profile for "+col)
+                print("")
+                plotBaselineProf(
+                    df_sub, baseline = baseline,
+                    plotname=(fignum + "_" + "base_"+baseline[0]+"_"+col+"_"+ds_name).replace(' ', '_'),
                     plottitle = "Baseline Profile: "+plotCols[col][0]+" ("+ds_name+")",
                     xmax=plotCols[col][1],
                     versionlegend = versionlegend, plotformat=plotformat
