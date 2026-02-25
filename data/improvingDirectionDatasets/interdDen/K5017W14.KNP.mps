@@ -1,0 +1,43 @@
+NAME          BLANK   
+ROWS
+ N  OBJROW
+ L  R0000000
+COLUMNS
+    C0000000  OBJROW     -30.          R0000000  91.         
+    C0000001  OBJROW     -773.         R0000000  160.        
+    C0000002  OBJROW     -412.         R0000000  929.        
+    C0000003  OBJROW     -236.         R0000000  881.        
+    C0000004  OBJROW     -375.         R0000000  505.        
+    C0000005  OBJROW     -28.          R0000000  632.        
+    C0000006  OBJROW     -7.           R0000000  723.        
+    C0000007  OBJROW     -544.         R0000000  237.        
+    C0000008  OBJROW     -505.         R0000000  316.        
+    C0000009  OBJROW     -650.         R0000000  663.        
+    C0000010  OBJROW     -331.         R0000000  944.        
+    C0000011  OBJROW     -712.         R0000000  565.        
+    C0000012  OBJROW     -308.         R0000000  651.        
+    C0000013  OBJROW     -926.         R0000000  917.        
+    C0000014  OBJROW     -179.         R0000000  360.        
+    C0000015  OBJROW     -460.         R0000000  702.        
+    C0000016  OBJROW     -694.         R0000000  820.        
+RHS
+    RHS       R0000000  14110.      
+BOUNDS
+ BV BOUND     C0000000  1.          
+ BV BOUND     C0000001  1.          
+ BV BOUND     C0000002  1.          
+ BV BOUND     C0000003  1.          
+ BV BOUND     C0000004  1.          
+ BV BOUND     C0000005  1.          
+ BV BOUND     C0000006  1.          
+ BV BOUND     C0000007  1.          
+ BV BOUND     C0000008  1.          
+ BV BOUND     C0000009  1.          
+ BV BOUND     C0000010  1.          
+ BV BOUND     C0000011  1.          
+ BV BOUND     C0000012  1.          
+ BV BOUND     C0000013  1.          
+ BV BOUND     C0000014  1.          
+ BV BOUND     C0000015  1.          
+ BV BOUND     C0000016  1.          
+ENDATA
