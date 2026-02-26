@@ -21,7 +21,7 @@ the most recent release is
 branch will become major version 2 and can additionally solve _stochastic_
 MIBLPs. Once released, this version will subsume all capabilities of version 1
 and version 1 will be deprecated. It has not yet had a release, but is well tested.
-  * There is also a major verion 3 of `MibS` under development that incorporates the
+  * There is also a major version 3 of `MibS` under development that incorporates the
 ability to solve MIBLPs under the assumption of _bounded rationality_.
 
 ## Building and Installing
@@ -42,7 +42,7 @@ Framework and more specifically with the [Abstract Library for Parallel Search
 classes for implementing parallel search algorithms. You can find a detailed
 description of the algorithms and the important parameters of major version 1
 of `MibS`
-[here](https://arxiv.org/abs/2104.09010http://www.optimization-online.org/DB_FILE/2017/04/5977.pdf).
+[here](https://arxiv.org/abs/2104.09010).
 
 ### Modelling Systems
 
@@ -69,7 +69,7 @@ be necessary.
 To solve a deterministic mixed integer bilevel linear optimization problem
 with `MibS` version 1, you must provide both an MPS, LP, or GMPL/AMPL file and
 an auxiliary information file that specifies which variables and constraints
-are associated with the each level (see [here](input.html)). Then call `mibs` like this:
+are associated with each level (see [here](input.html)). Then call `mibs` like this:
 ```bash
 mibs -instance file.mps -auxiliaryInfoFile file.aux
 ```
@@ -87,7 +87,7 @@ mibs -param MibS/src/mibs.par
 
 #### Version 2
 
-Major version 2 of`MibS` is additionally capable of solving two-stage mixed
+Major version 2 of `MibS` is additionally capable of solving two-stage mixed
 integer stochastic bilevel linear optimization problems. There are two
 different ways to specify such problems to `MibS`. 
 
@@ -108,8 +108,8 @@ different ways to specify such problems to `MibS`.
     deterministic bilevel problems. In this case, the probability
     distributions of the random variables must also be specified by setting
     the values of corresponding parameters (`MibS` currently supports only the
-    discrete uniform distribution). For a sample parameter file, see
-    [https://github.com/coin-or/MibS/blob/master/src/mibsStochastic.par.in].
+    discrete uniform distribution). For a sample parameter file, see [here]
+    (https://github.com/coin-or/MibS/blob/master/src/mibsStochastic.par.in).
 
 ### The C++ API
 
@@ -201,6 +201,10 @@ int main(int argc, char* argv[])
 }
 ```
 
-There are also function in `MibSModel` for directly parsing MPS/LP/AMPL/GMPL
-files, as well as axiliary files if thoe are to be read directly. See
-[MibSModel.hpp](https://github.com/coin-or/MibS/blob/master/src/MibSModel.hpp).
+There are also functions in `MibSModel` for directly parsing MPS/LP/AMPL/GMPL
+files, as well as auxiliary files if those are to be read directly. See
+[MibSModel.hpp](https://github.com/coin-or/MibS/blob/stable/1.2/src/MibSModel.hpp).
+
+&nbsp;
+
+&nbsp;

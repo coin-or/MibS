@@ -10,7 +10,7 @@ navigation: 3
 
 Major version 1 of MibS requires two input files.
  1. An _instance file_ in MPS, LP, or GMPL/AMPL format that contains a
- description of the upper level objective, the variables (upper and lower
+ description of the upper level objective function, the variables (upper and lower
  level), and the constraints (upper and lower level); and 
  2. An _auxiliary (aux) file_ that contains information necessary to
  identify the upper and lower level constraints and variables.
@@ -23,38 +23,38 @@ can be easily found with an Internet search.
 
 ### The Auxiliary File (Name-based)
 
-In the name-based format (recommended), keywords are proceeded by an `@`. The
+In the name-based format (recommended), keywords are preceded by an `@`. The
 following are the keywords. Note that there is no keyword for objective sense. 
 This is by design. The lower-level objective is minimized by default in this file
 format. To maximize, simply negate the objective. 
 
 | Keyword       | Meaning                                                         |
 |---------------|-----------------------------------------------------------------|
-| @NUMVARS      | Next line contains umber of lower-level variables               |
-| @NUMCONSTR    | Next line contains number of lower-level constraints            |
+| @NUMVARS      | Next line contains number of lower-level variables              |
+| @NUMCONSTRS   | Next line contains number of lower-level constraints            |
 | @VARSBEGIN    | Marks beginning of variables section                            |
 | @VARSEND      | Marks end of variables section                                  |
-| @CONSTRBEGIN  | Marks beginning of constraints section                          |
-| @CONSTREND    | Marks end of constraints section                                |
+| @CONSTRSBEGIN | Marks beginning of constraints section                          |
+| @CONSTRSEND   | Marks end of constraints section                                |
 | @NAME         | Next line contains the name of the instance (optional)          |
 | @MPS          | Next line contains the name of the MPS file with which this instance is associated |
 | @LP           | Next line contains the name of the LP file with which this instance is associated  |
 
 In the variables section, each line consists of the name of one of the variables from 
-the instance file that should be aken to be a lower-level variables, followed by its objective 
+the instance file that should be taken to be a lower-level variables, followed by its objective 
 coefficient in the lower-level problem (separated by a space). In the constraints section, each 
 row consists of the name of one of the constraints from the instance file that should be 
 considered a lower-level constraint. 
 
 Note that the bounds on the lower-level variables are always considered constraints of the
-lower-leel problem, although they could technically also be taken as constraints at the 
+lower-level problem, although they could technically also be taken as constraints at the 
 upper-level. If the latter is desired, simply represent them explicitly as constraints rather
 than listing them in the variable bounds section of the instance file. 
 
 The instance file itself can be either in MPS or LP format, so exactly one of the keywords
 `@MPS` and `@LP` can appear in the auxiliary file. Specifying a name is optional and the name 
-can be different than the name of the underlying instace from the MPS/LP file. This is to
-make it possible to associate multiple axiliary files with a single underlying instance file.
+can be different than the name of the underlying instance from the MPS/LP file. This is to
+make it possible to associate multiple auxiliary files with a single underlying instance file.
 
 #### Example
 
@@ -68,7 +68,7 @@ s.t. −3x + 2y ≤ 12
                       -2x + 4z ≤ 16,
                       z ≤ 5}
 ```
-The MPS file `genealExample.mps`:
+The MPS file `generalExample.mps`:
 
 ```
 NAME generalExample
@@ -147,8 +147,9 @@ In this format, the variables and constraints are identified by index.
 This is not recommended, as it is rather fragile. It depends on the underlying
 MIP solver ordering the constraints and variables in the same way as the MPS/LP file,
 as well as requiring the user to manually index the constraints from the file.
-When indentified by index, variables and constraints are assumed to be in the order they
-appear in the input file (indices start at 0). For the lower level objective, coefficients 
+When identified by index, variables and constraints are assumed to be in the order they
+appear in the input file (indices start at 0). Note that the objective function row is 
+not included in the constraint indexing. For the lower level objective, coefficients 
 are assumed to be in the order of lower level variables. 
 
 #### Example
@@ -181,5 +182,8 @@ formats.
     random variables also should be specified by setting the values of
     corresponding parameters (`MibS` currently supports only the discrete
     uniform distribution). For a sample parameter file, see
-    [src/mibsStochastic.par.in].
+    [`src/mibsStochastic.par.in`](https://github.com/coin-or/MibS/blob/master/src/mibsStochastic.par.in).
 
+&nbsp;
+
+&nbsp;
