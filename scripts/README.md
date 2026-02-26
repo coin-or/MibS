@@ -68,7 +68,7 @@ All generated plots and CSV can be found in the current directory.
 By default, `<scripts-dir>/analyze/process.py` is configured to reproduce all plots presented in the manuscript. It assumes that all datasets have been solved under every configuration specified in the experimental setup. If this is not the case, the script must be adjusted accordingly (see the inline comments for guidance).
 
 # Notes
-Before running the full experiments, you can verify that the workflow works correctly using the small example datasets: `iblpSmall` and `interSmall`. To do this:
+Before running the full experiments, you can verify that the pipeline works correctly using the small example datasets: `iblpSmall` and `interSmall`. To do this:
 1. Modify `myrun.py` and `process.py` accordingly to use only those datasets;
 2. Run the scripts to ensure the workflow executes as expected.
 
