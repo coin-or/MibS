@@ -10,7 +10,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 # Import myrun
-from myrun import instanceDirs, outputDir, mibsParamsInputs, pbsfile, testname, versions, commonParams, binariesPath, writeParams
+from myrun import instanceDirs, outputDir, mibsParamsInputs, testname, versions, commonParams, binariesPath, writeParams
 
 def writeParamsToFile(outDir, params):
     """
@@ -38,6 +38,8 @@ def runExperiments(instPaths, outDir, versions, params):
     """
 
     # set up output directories
+    if not os.path.exists(outDir):
+        os.mkdir(outDir)
     # use hierarchy:  outDir/version/param_scenario_name/testset_name/
     for v in versions:
         currpath = os.path.join(outDir, v)
@@ -102,7 +104,7 @@ def runExperiments(instPaths, outDir, versions, params):
                                 argList += paramcmd.split()
                             
                             # Run command and redirect output to outfile
-                            # subprocess.run(argList, stdout=outfile)
+                            subprocess.run(argList, stdout=outfile)
                             outfile.close()
                             print('Complete {}'.format(instance.name))                 
 

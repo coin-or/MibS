@@ -2,18 +2,26 @@
 # "Improving Directions in Mixed Integer Bilevel Linear Optimization"
 # Battista F. & Ted K. Ralphs
 # Last edited 2026
+import os
+
+# All paths should be given as absolute
+mibsDir = "<path/to/MibS>" # <---- CHANGE ME!
 
 # Instance path
 # Directory name and path containing test instances in .mps format
 # Keys are used to name subdirs in output dir
 instanceDirs = {
-    "iblpDen"    : "../../data/improvingDirectionDatasets/iblpDen",
-    "iblpDen2"   : "../../data/improvingDirectionDatasets/iblpDen2",
-    "iblpZhang"  : "../../data/improvingDirectionDatasets/iblpZhang",
-    "iblpZhang2" : "../../data/improvingDirectionDatasets/iblpZhang2",
-    "iblpFis"    : "../../data/improvingDirectionDatasets/iblpFis",
-    "interKpShi" : "../../data/improvingDirectionDatasets/interKpShi",
-    "interDen"   : "../../data/improvingDirectionDatasets/interdDen",
+    # Small toy datasets
+    # "iblpSmall"     :  os.path.join(mibsDir, "data/improvingDirectionDatasets/iblpSmall"),
+    # "interSmall"    :  os.path.join(mibsDir, "data/improvingDirectionDatasets/interSmall"),
+    # Datasets used in the experiments
+    "iblpDen"       :  os.path.join(mibsDir, "data/improvingDirectionDatasets/iblpDen"),
+    "iblpDen2"      :  os.path.join(mibsDir, "data/improvingDirectionDatasets/iblpDen2"),
+    "iblpZhang"     :  os.path.join(mibsDir, "data/improvingDirectionDatasets/iblpZhang"),
+    "iblpZhang2"    :  os.path.join(mibsDir, "data/improvingDirectionDatasets/iblpZhang2"),
+    "iblpFis"       :  os.path.join(mibsDir, "data/improvingDirectionDatasets/iblpFis"),
+    "interKpShi"    :  os.path.join(mibsDir, "data/improvingDirectionDatasets/interKpShi"),
+    "interDen"      :  os.path.join(mibsDir, "data/improvingDirectionDatasets/interdDen")
 }
 
 # Versions
@@ -22,17 +30,17 @@ versions = ['idBC']
 # Path to binaries
 # Keys are versions and values are path to binary files
 binariesPath = {
-    'idBC' : '../../../build-idBC-opt/bin/mibs',
+    'idBC' : os.path.join(mibsDir, '../build-idBC-opt/bin/mibs'),
 }
 
 # Output parent path (must exists)
-outputDir = '../../../results/MibS'
+outputDir = os.path.join(mibsDir, '../results')
 
 # Name of the test
 testname = 'idBC'
 
 # Write parameters into files?
-# If true, parameters are written inside outputDir/parameters
+# If true, parameters are written inside <outputDir>/parameters
 writeParams = True
 
 # Set up senarios

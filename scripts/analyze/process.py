@@ -881,28 +881,6 @@ if __name__ == "__main__":
         # 'chk_feas_time': 'Check Feasibility Time'
     }
 
-    ################# Process & Save | Load from CSV ###################
-    # # dataSetsGroups: how to group the datasets
-    # #     keys: names used in the plot and CSV file
-    # #   values: lists of datasets belonging to that group;
-    # #          names in the list correspond to the keys in myrun.py instanceDirs
-    # # 'all' is a special keyword meant to aggregate all
-    # # datasets of a same class (e.g., integer or interdiction)
-    # # in one single plot
-    # dataSetsGroups = {
-    #     # Integer datasets
-    #     "F-D-D2-Z-Z2" : 
-    #     [
-    #         'all',
-    #         "iblpDen",
-    #         "iblpDen2",
-    #         "iblpZhang",
-    #         "iblpZhang2",
-    #         'iblpFis'
-    #     ],
-    #     
-    # }
-
     #####################################################
     ################### IBLP DATASET ####################
     #####################################################
@@ -915,6 +893,7 @@ if __name__ == "__main__":
     # in one single plot
     dataSets = [
             'all',
+            # 'iblpSmall'
             "iblpDen",
             "iblpDen2",
             "iblpZhang",
@@ -964,6 +943,8 @@ if __name__ == "__main__":
         'idic_cg_avg_time': ["Finding IFDs average CPU Time", 60]
     }
     
+    # These are the subset of Scenarios that will actually 
+    # appear in the plots
     scenariosToPlot = {
         'idBC-LS-k_2-dBnd_Inf_fracB'   : "idB&C-LS-k_2 (frac)",
         "idBC-LS-k_3-dBnd_Inf_fracB"   : "idB&C-LS-k_3 (frac)",
@@ -1002,10 +983,17 @@ if __name__ == "__main__":
     for ds in dataSets:
         df_solved, df_has_soln = dropFilter(df_proc, scenariosToPlot, ds)
 
-        plotCumProf(df_has_soln, plotname=(fignum + "_" +"cum_" + ds_name).replace(' ', '_'),
-                    plottitle="Cumulative Profile: Time-Gap ("+ds_name+")",
-                    versionlegend = versionlegend, plotformat=plotformat
-        )
+        # Only plot cumulative profile if df_has_soln is not empty
+        if not df_has_soln.empty:
+            plotCumProf(
+                df_has_soln,
+                plotname=(fignum + "_" + "cum_" + ds_name).replace(' ', '_'),
+                plottitle="Cumulative Profile: Time-Gap (" + ds_name + ")",
+                versionlegend=versionlegend,
+                plotformat=plotformat
+            )
+        else:
+            print(f"Skipping cumulative profile for {ds_name}: no solved instances.")
 
         # Create performance and baseline profile for each column
         for col in plotCols:
@@ -1017,25 +1005,32 @@ if __name__ == "__main__":
                 df_sub = df_has_soln.xs(
                     (ds, col), level=["datasets", "fields"], axis=1, drop_level=True
                 ).copy()
-            print("")
-            print("Creating performance profile for " + col , ", num instances: ", len(df_sub))
-            print("")
+
+            if df_sub.empty:
+                print(f"Skipping profiles for column '{col}' in dataset '{ds_name}': empty DataFrame.")
+                continue
+
+            print("\nCreating performance profile for", col, ", num instances:", len(df_sub), "\n")
             plotPerfProf(
-                df_sub, plotname=(fignum + "_" +"perf_" + col + "_" + ds_name).replace(' ', '_'),
-                plottitle = "Performance Profile: "+plotCols[col][0]+" ("+ds_name+")",
-                xmin = 0.0, xmax=plotCols[col][1],
-                versionlegend = versionlegend, plotformat=plotformat
+                df_sub,
+                plotname=(fignum + "_" + "perf_" + col + "_" + ds_name).replace(' ', '_'),
+                plottitle="Performance Profile: " + plotCols[col][0] + " (" + ds_name + ")",
+                xmin=0.0,
+                xmax=plotCols[col][1],
+                versionlegend=versionlegend,
+                plotformat=plotformat
             )
-            if baseline is not None: 
-                print("")
-                print("Creating baseline profile for "+col)
-                print("")
+
+            if baseline is not None:
+                print("\nCreating baseline profile for", col, "\n")
                 plotBaselineProf(
-                    df_sub, baseline = baseline,
-                    plotname=(fignum + "_" +"base_"+baseline[0]+"_"+col+"_"+ds_name).replace(' ', '_'),
-                    plottitle = "Baseline Profile: "+plotCols[col][0]+" ("+ds_name+")",
+                    df_sub,
+                    baseline=baseline,
+                    plotname=(fignum + "_" + "base_" + baseline[0] + "_" + col + "_" + ds_name).replace(' ', '_'),
+                    plottitle="Baseline Profile: " + plotCols[col][0] + " (" + ds_name + ")",
                     xmax=plotCols[col][1],
-                    versionlegend = versionlegend, plotformat=plotformat
+                    versionlegend=versionlegend,
+                    plotformat=plotformat
                 )
 
     
@@ -1084,10 +1079,17 @@ if __name__ == "__main__":
         df_solved, df_has_soln = dropFilter(df_proc, scenariosToPlot, ds)
         # print(df_solved)
 
-        plotCumProf(df_has_soln, plotname=(fignum + "_" +"cum_" + ds_name).replace(' ', '_'),
-                    plottitle="Cumulative Profile: Time-Gap ("+ds_name+")",
-                    versionlegend = versionlegend, plotformat=plotformat
-        )
+        # Only plot cumulative profile if df_has_soln is not empty
+        if not df_has_soln.empty:
+            plotCumProf(
+                df_has_soln,
+                plotname=(fignum + "_" + "cum_" + ds_name).replace(' ', '_'),
+                plottitle="Cumulative Profile: Time-Gap (" + ds_name + ")",
+                versionlegend=versionlegend,
+                plotformat=plotformat
+            )
+        else:
+            print(f"Skipping cumulative profile for {ds_name}: no solved instances.")
 
         # Create performance and baseline profile for each column
         for col in plotCols:
@@ -1099,6 +1101,11 @@ if __name__ == "__main__":
                 df_sub = df_has_soln.xs(
                     (ds, col), level=["datasets", "fields"], axis=1, drop_level=True
                 ).copy()
+
+            if df_sub.empty:
+                print(f"Skipping profiles for column '{col}' in dataset '{ds_name}': empty DataFrame.")
+                continue
+
             print("")
             print("Creating performance profile for " + col , ", num instances: ", len(df_sub))
             print("")
@@ -1119,20 +1126,27 @@ if __name__ == "__main__":
                     xmax=plotCols[col][1],
                     versionlegend = versionlegend, plotformat=plotformat
                 )
+
+        if baseline is not None:
+            df_gap = df_has_soln.xs(
+                (dataSets[0], "gap"), level=["datasets", "fields"], axis=1, drop_level=True
+            ).copy()
+
+            df_baseline_has_gap = df_gap.drop(df_gap[df_gap[baseline] == 0].index.to_list())
+
+            if not df_baseline_has_gap.empty:
                 print("")
                 print("Creating baseline profile for gap")
                 print("")
-                df_gap = df_has_soln.xs(
-                    (dataSets[0], "gap"), level=["datasets", "fields"], axis=1, drop_level=True
-                ).copy()
-                print(len(df_gap))
-                df_baseline_has_gap = df_gap.drop(df_gap[df_gap[baseline] == 0].index.to_list())
+                
                 plotBaselineProf(
                     df_baseline_has_gap, baseline = baseline,
                     plotname=(fignum + "_" +"base_" + baseline[0] + "_" + "gap_" + ds_name).replace(' ', '_'),
                     plottitle = "Baseline Profile: Gap ("+ds_name+")",
                     xmax=25, versionlegend = versionlegend, plotformat=plotformat
                 )
+            else:
+                print("Skipping baseline profile for gap: empty DataFrame.")
 
     # ===============================
     #   Figures 13 (a) and (b)
@@ -1190,6 +1204,11 @@ if __name__ == "__main__":
                 df_sub = df_has_soln.xs(
                     (ds, col), level=["datasets", "fields"], axis=1, drop_level=True
                 ).copy()
+
+            if df_sub.empty:
+                print(f"Skipping profiles for column '{col}' in dataset '{ds_name}': empty DataFrame.")
+                continue
+
             print("")
             print("Creating performance profile for " + col , ", num instances: ", len(df_sub))
             print("")
@@ -1221,6 +1240,7 @@ if __name__ == "__main__":
 
     dataSets = [
             'all',
+            # 'interSmall'
             "interKpShi",
             "interDen"
         ]
@@ -1305,10 +1325,17 @@ if __name__ == "__main__":
     for ds in dataSets:
         df_solved, df_has_soln = dropFilter(df_proc, scenariosToPlot, ds)
 
-        plotCumProf(df_has_soln, plotname=(fignum + "_" +"cum_" + ds_name).replace(' ', '_'),
-                    plottitle="Cumulative Profile: Time-Gap ("+ds_name+")",
-                    versionlegend = versionlegend, plotformat=plotformat
-        )
+        # Only plot cumulative profile if df_has_soln is not empty
+        if not df_has_soln.empty:
+            plotCumProf(
+                df_has_soln,
+                plotname=(fignum + "_" + "cum_" + ds_name).replace(' ', '_'),
+                plottitle="Cumulative Profile: Time-Gap (" + ds_name + ")",
+                versionlegend=versionlegend,
+                plotformat=plotformat
+            )
+        else:
+            print(f"Skipping cumulative profile for {ds_name}: no solved instances.")
 
         # Create performance and baseline profile for each column
         for col in plotCols:
@@ -1320,6 +1347,11 @@ if __name__ == "__main__":
                 df_sub = df_has_soln.xs(
                     (ds, col), level=["datasets", "fields"], axis=1, drop_level=True
                 ).copy()
+
+            if df_sub.empty:
+                print(f"Skipping profiles for column '{col}' in dataset '{ds_name}': empty DataFrame.")
+                continue
+
             print("")
             print("Creating performance profile for " + col , ", num instances: ", len(df_sub))
             print("")
@@ -1395,6 +1427,11 @@ if __name__ == "__main__":
                 df_sub = df_has_soln.xs(
                     (ds, col), level=["datasets", "fields"], axis=1, drop_level=True
                 ).copy()
+
+            if df_sub.empty:
+                print(f"Skipping profiles for column '{col}' in dataset '{ds_name}': empty DataFrame.")
+                continue
+            
             print("")
             print("Creating performance profile for " + col , ", num instances: ", len(df_sub))
             print("")
@@ -1472,6 +1509,11 @@ if __name__ == "__main__":
                 df_sub = df_has_soln.xs(
                     (ds, col), level=["datasets", "fields"], axis=1, drop_level=True
                 ).copy()
+
+            if df_sub.empty:
+                print(f"Skipping profiles for column '{col}' in dataset '{ds_name}': empty DataFrame.")
+                continue
+        
             print("")
             print("Creating performance profile for " + col , ", num instances: ", len(df_sub))
             print("")
