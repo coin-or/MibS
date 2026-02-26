@@ -14,12 +14,12 @@ mibs -instance file.mps -auxiliaryInfoFile file.aux
 ```
 (see the description of the input file format [here](input.html)). Note that specifying the name and location of the 
 auxiliary file is unnecessary if it has the same base name and is in the same folder.
-To specify parameters in a separate parameter file, list one parameter name and value oer line (no `-`). Then
+To specify parameters in a separate parameter file, list one parameter name and value per line (no `-`). Then
 call MibS like this.
 ```bash
 mibs -param mibs.par 
 ```
-You can see an example of what the paramter file might look like 
+You can see an example of what the parameter file might look like 
 [here](https://github.com/coin-or/MibS/blob/stable/1.2/examples/mibs.par.in) (lines starting with a `#` are
 ignored). The header file [`MibParams.hpp`](https://github.com/coin-or/MibS/blob/stable/1.2/src/MibSParams.hpp) 
 also provides additional information.
@@ -43,7 +43,7 @@ prefixes are used. As of version 1.2, however, the prefix can be left off as lon
 
 ### Heuristics
 
-These paramters conrol the MILP heuristics built into BLIS. MibS has its own heuristics (see below)
+These parameters conrol the MILP heuristics built into BLIS. MibS has its own heuristics (see below)
 
 | Parameter Name | Description                                     |
 |----------------|-------------------------------------------------|
@@ -54,17 +54,19 @@ These paramters conrol the MILP heuristics built into BLIS. MibS has its own heu
 
 ### Branching
 
-These paramters conrol the strategy for choosing from among the candidates. 
-MibS has its own startegies for chosing the list of candidates (see below)
+These parameters conrol the strategy for choosing from among the candidates. 
+MibS has its own strartegies for choosing the list of candidates (see below)
 
+| Parameter Name | Description                                     |
+|----------------|-------------------------------------------------|
 | Blis_branchStrategy |  MibS uses pseudocost branching by default and the other strategies are untested. <br> `0`: max infeasibility <br> `1`: pseudocost <br> `2`: reliability <br> `3`: strong |
 
 ### Cuts
 
-These are parameters for controlling generation of inequalites valid for
+These are parameters for controlling generation of inequalities valid for
 MILPs, which can be used to eliminate fractional solutions if desired. 
-In general, one should not (need to) adjust these paramters. MibS has its
-parameters for overall generaion of MILP cuts (whether or not to generate
+In general, one should not (need to) adjust these parameters. MibS has its
+parameters for overall generation of MILP cuts (whether or not to generate
 MILP cuts at all, etc.) and these should be used in most cases. 
 MibS also has its own bilevel-specific cuts (see below)
 Note that `Blis_scaleConFactor` and `Blis_denseConFactor` do affect the addition of bilevel-specific cuts.
@@ -133,7 +135,7 @@ These are parameters for controlling heuristics.
 
 ### Branching
 
-These are parameters for controlling which variables are cnadidates for branching.
+These are parameters for controlling which variables are candidates for branching.
 
 | Parameter Name | Description                                     |
 |----------------|-------------------------------------------------|
@@ -142,7 +144,7 @@ These are parameters for controlling which variables are cnadidates for branchin
 ### Cuts
 
 These are parameters for controlling generation of valid inequalities. For an explanation, please see this [technical report]( http://coral.ie.lehigh.edu/~ted/files/papers/MibSCuts20.pdf). 
-Note that some parameter names related to cuts were changed in version 1.2 to corespond to the names in the report. The names used in earlier versions still work for backwards compatibility, 
+Note that some parameter names related to cuts were changed in version 1.2 to correspond to the names in the report. The names used in earlier versions still work for backwards compatibility, 
 but are not documented. 
 
 | Parameter Name | Description                                     |
@@ -164,8 +166,11 @@ but are not documented.
 | MibS_ISICGenStrategy | `0`: Separate all solutions <br> `1`: Separate all solutions in root only <br> `2`: Separate only solution that are fully integer <br> `3`: Separate only solution where the linking variables are all integer <br> `4`: Separate only solution where the second-level variables are all integer <br> `5`: Separate solution where either all of the linking variables or all of the second-level variables are integer <br>
 | MibS_useImprovingDirectionIC | Whether to generate improving direction intersection cuts <br> `0`: false <br> `1`: true |
 | MibS_IDICGenStrategy | `0`: Separate all solutions <br> `1`: Separate all solutions in root only <br> `2`: Separate only solution that are fully integer <br> `3`: Separate only solution where the linking variables are all integer <br> `4`: Separate only solution where the second-level variables are all integer <br> `5`: Separate solution where either all of the linking variables or all of the second-level variables are integer <br>
-| MibS_useHypecubeIC | Whether to generate hypercube intersection cuts <br> `0`: false <br> `1`: true |
+| MibS_useHypercubeIC | Whether to generate hypercube intersection cuts <br> `0`: false <br> `1`: true |
 | MibS_useBoundCut | Whether to generate this cut (see tech report) <br> `0`: false <br> `1`: true |
 | MibS_boundCutOptimal | What kind of bound cut to generate (there is currently only one option) <br> `0`: false <br> `1`: true |
 
 
+&nbsp;
+
+&nbsp;
