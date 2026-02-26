@@ -42,7 +42,7 @@ The file `<scripts-dir>/analyze/myrun.py` is used to configure and manage the co
 - The configurations to be tested (i.e., different parameter settings of MibS to compare),
 - The output directory where all raw log files will be stored. 
 
-By default, the file is preconfigured with relative paths consistent with the setup instructions provided above. 
+By default, the file is preconfigured with paths consistent with the setup instructions provided above. 
 It includes all datasets and parameter configurations required to reproduce the experiments reported in the manuscript. 
 Please, note that:
 1. The path of `mibsDir` must be changed to match `<mibs-dir>`;
