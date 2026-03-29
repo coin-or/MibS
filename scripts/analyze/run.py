@@ -3,14 +3,13 @@
 # Battista F. & Ted K. Ralphs
 # Last edited 2026
 
-import sys, os, collections
-import shutil, subprocess
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
+import os
+import subprocess
+
+from parameters import Parameters
 
 # Import myrun
-from myrun import instanceDirs, outputDir, mibsParamsInputs, testname, versions, commonParams, binariesPath, writeParams
+from myrun import mibsParamsInputs, commonParams
 
 def writeParamsToFile(outDir, params):
     """
@@ -25,17 +24,18 @@ def writeParamsToFile(outDir, params):
         paramsubpath1 = os.path.join(parampath, scenario)
         if not os.path.exists(paramsubpath1):
             os.mkdir(paramsubpath1)
-        os.chdir(paramsubpath1)
-        file = open(scenario+'.par', 'w')
-        for k, v in params[scenario].items():
-            file.write(k + ' ' + v + '\n')
-        file.close()
+        paramfile = os.path.join(paramsubpath1, scenario + '.par')
+        with open(paramfile, 'w') as file:
+            for k, v in params[scenario].items():
+                file.write(k + ' ' + v + '\n')
 
 
-def runExperiments(instPaths, outDir, versions, params):
+def runExperiments(instPaths, outDir, versions, params, pbsfile=None, testname='mibs'):
     """
-        Use to run experiments on local machine. 
+        Use to run experiments on local machine or using qsub. 
     """
+
+    # TODO: integrate gaps call for bounded rationality
 
     # set up output directories
     if not os.path.exists(outDir):
@@ -46,7 +46,6 @@ def runExperiments(instPaths, outDir, versions, params):
         if not os.path.exists(currpath):
             os.mkdir(currpath)
         for scenario in params:
-            print(scenario)
             currpath = os.path.join(outDir, v, scenario)
             if not os.path.exists(currpath):
                 os.mkdir(currpath)
@@ -63,59 +62,131 @@ def runExperiments(instPaths, outDir, versions, params):
     parampath = os.path.join(outDir, 'parameters')
 
     for v in versions:
+        print(f"Version: {v}")
+
         exe = binariesPath[v]
         for scenario in params:
+            print(f"   Scenario: {scenario}")
             paramsubpath = os.path.join(parampath, scenario)     
             for testset in instPaths:
                 paramfile = os.path.join(paramsubpath, scenario + '.par')
                 outsubpath = os.path.join(outDir, v, scenario, testset)
-                os.chdir(outsubpath)
-                with os.scandir(instPaths[testset]) as inst_it: 
-                    for instance in inst_it:
-                        # Run experiments only on .mps files
-                        if instance.name.endswith('.mps') or \
-                            instance.name.endswith('.mps.gz'):
+                with os.scandir(instPaths[testset]) as inst_it:
+                    instances = [
+                        instance for instance in inst_it
+                        if instance.name.endswith('.mps') or instance.name.endswith('.mps.gz')
+                    ]
 
-                            if instance.name.endswith('.mps'):
-                                outname = instance.name[:-4] + '.out'
-                                auxname = instance.path[:-4] + ".aux"
-                            elif instance.name.endswith('.mps.gz'):
-                                outname = instance.name[:-7] + '.out'
-                                auxname = instance.path[:-7] + ".aux"
-                            else:
-                                # Something went wrong
-                                print("Something went wrong with file extension!")
-                                print(instance.name)
-                                exit(1)
+                total_instances = len(instances)
+                print(f"      Dataset: {testset} ({total_instances} instances)")
+                for index, instance in enumerate(instances, start=1):
+                    remaining = total_instances - index
 
-                            outfile = open(outname,'w')
+                    if instance.name.endswith('.mps'):
+                        auxname = instance.path[:-4] + ".aux"
+                        outname = os.path.join(outsubpath, instance.name[:-4] + '.out')
+                        errname = os.path.join(outsubpath, instance.name[:-4] + ".err")
+                    elif instance.name.endswith('.mps.gz'):
+                        auxname = instance.path[:-7] + ".aux"
+                        outname = os.path.join(outsubpath, instance.name[:-7] + '.out')
+                        errname = os.path.join(outsubpath, instance.name[:-7] + ".err")
+                    else:
+                        # Something went wrong. Raise exception and exit.
+                        raise ValueError("Unexpected file extension!")
+
+                    print(
+                        "         "
+                        f"Instance: {instance.name} "
+                        f"({index}/{total_instances}, {remaining} remaining)"
+                    )
+
+                    # Check if output file already exists and is complete
+                    isComplete = False
+                    if os.path.exists(outname):
+                        with open(outname, 'r') as f:
+                            isComplete = "Number of problems (VF) solved" in f.read()
+                    
+                    isComplete = isComplete and (os.path.isfile(errname) and \
+                                           os.path.getsize(errname) == 0)
+                    
+                    if not isComplete:
+                        # prepare command for execution
+                        if pbsfile:
+                            # qsub 
+                            argList = ["qsub", "-v", 
+                                            "EXECUTABLE="+exe+","
+                                            +"INSTANCENAME="+instance.path+","
+                                            +"AUXNAME="+auxname+".aux"]
+                        else:
+                            # Local
                             argList = [exe,
                                         "-Alps_instance", instance.path,
                                         "-MibS_auxiliaryInfoFile", auxname]
 
-                            # How do we pass parameters?      
-                            if writeParams:
-                                # Using file previously created
-                                argList += ["-param", paramfile]
+                        # How do we pass parameters?      
+                        if writeParams:
+                            # Using file previously created
+                            if pbsfile:
+                                argList[-1] += ",PARAMARG=-param " + paramfile
                             else:
-                                # Using command line
-                                paramcmd = ' -'.join(' '.join(_) for _ in params[scenario].items())
-                                paramcmd = '' + paramcmd
+                                argList += ["-param", paramfile]
+                        else:
+                            # Using command line
+                            paramcmd = ' -'.join(' '.join(_) for _ in params[scenario].items())
+                            paramcmd = '' + paramcmd
+                            if pbsfile:
+                                argList[-1] += ",PARAMARG=" + paramcmd
+                            else:
                                 argList += paramcmd.split()
-                            
-                            # Run command and redirect output to outfile
-                            subprocess.run(argList, stdout=outfile)
+                        
+                        # Run command and redirect output to outfile and errfile
+                        if pbsfile:
+                            argList += ["-o", outname,
+                                        "-e", errname,
+                                        "-N", testname,
+                                        pbsfile]
+                            subprocess.run(argList)
+                            print("            Submitted")
+
+                        else: 
+                            outfile = open(outname,'w')
+                            errfile = open(errname, 'w')
+                            subprocess.run(argList, stdout=outfile, stderr=errfile)
                             outfile.close()
-                            print('Complete {}'.format(instance.name))                 
+                            errfile.close()
+                            print("            Complete")
+    
+                    else:
+                        print("            Skipping already complete output")
 
 if __name__ == "__main__":
 
+    # Update mibsParamsInputs with commonParams
     for t in mibsParamsInputs:
         mibsParamsInputs[t].update(commonParams)
 
-    ######################### Run Experimests #########################
-    # local: provide paths in myrun.py
-    runExperiments(instanceDirs, outputDir, versions, mibsParamsInputs)
+    # Read arguments from CLI
+    params = Parameters()
+    params.parse()
+
+    # Validate required arguments
+    if  not params['binariesPath'] or \
+        not params['instanceDirs']:
+          raise ValueError("Missing required arguments: --binariesPath, --instanceDirs, are required.")
     
+    binariesPath = params['binariesPath']
+    instanceDirs = params['instanceDirs']
+    versions = params['versions']
+    outputDir = params['outputDir']
+    writeParams = params['writeParams']
+    testName = params['testName']
+    pbsFile = params['pbsFile']
 
-
+    ######################### Run Experimests #########################
+    runExperiments(instanceDirs, 
+                   outputDir, 
+                   versions, 
+                   mibsParamsInputs, 
+                   pbsfile=pbsFile, 
+                   testname=testName)
+    

@@ -4,8 +4,10 @@
 # Last edited 2026
 
 import os
+import sys
 import pandas as pd
 
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from performance_plots import *
 
 def make_plots_improving_directions(params, keywords):

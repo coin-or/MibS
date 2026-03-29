@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 from performance_plots import *
 from parameters import Parameters
 
-from make_plots_id_paper import make_plots_improving_directions
+from replication.make_plots_id_paper import make_plots_improving_directions
 
 keywords = {
     "solved": "No solution found",
