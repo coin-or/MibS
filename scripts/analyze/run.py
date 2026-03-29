@@ -9,7 +9,7 @@ import subprocess
 from parameters import Parameters
 
 # Import myrun
-from myrun import mibsParamsInputs, commonParams
+from replication.myrun import mibsParamsInputs, commonParams
 
 def writeParamsToFile(outDir, params):
     """
