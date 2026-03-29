@@ -99,7 +99,8 @@ class Parameters:
         self.parser.add_argument(
             "--writeParams",
             action="store_true",
-            help="Write parameter files to <outputDir>/parameters instead of passing parameters on the command line.",
+            help="Write parameter files to <outputDir>/parameters instead of passing parameters on the \
+                    command line.",
         )
 
         self.parser.add_argument(
@@ -111,7 +112,8 @@ class Parameters:
         self.parser.add_argument(
             "--pbsFile",
             default=None,
-            help="Path to the PBS submission script to use with qsub. If omitted, experiments are run locally.",
+            help="Path to the PBS submission script to use with qsub. If omitted, experiments are run \
+                    locally.",
         )
 
         # make_plots.py parameters
@@ -132,7 +134,15 @@ class Parameters:
         self.parser.add_argument(
             "--fileCsvIn",
             default=None,
-            help="Path to an existing summary CSV file to read instead of parsing raw output files in <outputDir>.",
+            help="Path to an existing summary CSV file to read instead of parsing raw output files \
+                    in <outputDir>.",
+        )
+
+        self.parser.add_argument(
+            "--makePlotsImprovingDirectionsPaper",
+            action="store_true",
+            help="If set, use the specific plotting configuration for the 'Improving Directions in \
+                    Mixed Integer Bilevel Linear Optimization' paper.",
         )
 
 
@@ -168,6 +178,7 @@ class Parameters:
         self.parameters["dataSets"] = args.dataSets
         self.parameters['aggregateDatasets'] = args.aggregateDatasets
         self.parameters['fileCsvIn'] = _abs_path(args.fileCsvIn)
+        self.parameters['makePlotsImprovingDirectionsPaper'] = args.makePlotsImprovingDirectionsPaper
 
         # TODO: read mibsParamsInputs and commonParams from CLI as well?
         # Each configuration could be a file with parameters, and we can have

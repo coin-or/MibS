@@ -15,6 +15,36 @@ import subprocess
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import matplotlib as mpl
+
+
+COLOR_PALETTE = "tab20"
+
+
+def get_plot_colors(num_lines, palette=COLOR_PALETTE):
+    """
+    Return a list of colors sampled from a named Matplotlib palette.
+
+    Resampling lets us request one color per plotted configuration while
+    keeping a consistent palette choice across the plotting functions.
+    """
+    if num_lines <= 0:
+        return []
+
+    base_cmap = mpl.colormaps.get_cmap(palette)
+    # Qualitative palettes such as tab20 have a fixed number of distinct base
+    # colors; warn when we need more plotted series than that.
+    palette_size = getattr(base_cmap, "N", None)
+    if palette_size is not None and num_lines > palette_size:
+        print(
+            "Warning: plotting %d configurations with palette '%s', which "
+            "provides %d base colors. Colors may repeat or become hard to "
+            "distinguish." % (num_lines, palette, palette_size)
+        )
+
+    # Resample the palette so each series gets a deterministic color slot.
+    cmap = base_cmap.resampled(num_lines)
+    return [cmap(i) for i in range(num_lines)]
 
 def parseInstanceOutput(o_entry, d_entry, results, keywords, opt_values, etol):
 
@@ -658,7 +688,9 @@ def plotPerfProf(
 
     #print(df["virtual_best"])
     
-    for col in col_list:
+    colors = get_plot_colors(len(col_list))
+
+    for i, col in enumerate(col_list):
         #print(col)
         # for each col, compute ratio
         ratios = df[col] / df["virtual_best"]
@@ -703,12 +735,13 @@ def plotPerfProf(
             y_val.append(1.0)
 
         if legendnames:
-            # , color=colors[i])
-            plt.plot(x_val, y_val, label=legendnames[col])
+            plt.plot(x_val, y_val, label=legendnames[col], color=colors[i])
         elif versionlegend:
-            plt.plot(x_val, y_val, label=col[0]+':'+versions[col[1]])  # , color=colors[i])
+            plt.plot(
+                x_val, y_val, label=col[0]+':'+versions[col[1]], color=colors[i]
+            )
         else:
-            plt.plot(x_val, y_val, label=col[0])  # , color=colors[i])
+            plt.plot(x_val, y_val, label=col[0], color=colors[i])
 
     # set plot properties
     ax.set_xlim(xmin, xmax)
@@ -730,6 +763,7 @@ def plotPerfProf(
 
     fig.tight_layout()
     fig.savefig(plotname, dpi=fig.dpi)
+    plt.close(fig)
 
 
 def plotCumProf(df_time, df_gap, versions, plotname="cum_profile",
@@ -751,7 +785,9 @@ def plotCumProf(df_time, df_gap, versions, plotname="cum_profile",
     #     print(df_time)
     #     print(df_gap)
 
-    for col in col_list:
+    colors = get_plot_colors(len(col_list))
+
+    for i, col in enumerate(col_list):
         #print(col)
         times = df_time[col]
         #print(times)
@@ -760,11 +796,14 @@ def plotCumProf(df_time, df_gap, versions, plotname="cum_profile",
         #print(cum_frac)
         x_val = []
         if legendnames:
-            ax[0].plot(time_buckets, cum_frac, label=legendnames[col])
+            ax[0].plot(time_buckets, cum_frac, label=legendnames[col], color=colors[i])
         elif versionlegend:
-            ax[0].plot(time_buckets, cum_frac, label=col[0]+':'+versions[col[1]])  # , color=colors[i])
+            ax[0].plot(
+                time_buckets, cum_frac, label=col[0]+':'+versions[col[1]],
+                color=colors[i]
+            )
         else:
-            ax[0].plot(time_buckets, cum_frac, label=col[0])
+            ax[0].plot(time_buckets, cum_frac, label=col[0], color=colors[i])
 
     ax[0].set_xlim(0, 3599)
     ax[0].set_ylim(0.0, 1)
@@ -776,7 +815,7 @@ def plotCumProf(df_time, df_gap, versions, plotname="cum_profile",
 
     gap_buckets = np.linspace(0, 100, 1000)
 
-    for col in col_list:
+    for i, col in enumerate(col_list):
         #print(col)
         gaps = df_gap[col]
         #print(gaps)
@@ -785,11 +824,14 @@ def plotCumProf(df_time, df_gap, versions, plotname="cum_profile",
         #print(cum_frac)
         x_val = []
         if legendnames:
-            ax[1].plot(gap_buckets, cum_frac, label=legendnames[col])
+            ax[1].plot(gap_buckets, cum_frac, label=legendnames[col], color=colors[i])
         elif versionlegend:
-            ax[1].plot(gap_buckets, cum_frac, label=col[0]+':'+versions[col[1]])  # , color=colors[i])
+            ax[1].plot(
+                gap_buckets, cum_frac, label=col[0]+':'+versions[col[1]],
+                color=colors[i]
+            )
         else:
-            ax[1].plot(gap_buckets, cum_frac, label=col[0])
+            ax[1].plot(gap_buckets, cum_frac, label=col[0], color=colors[i])
 
     ax[1].set_xlim(0.0, 100)
     ax[1].tick_params(axis="both", direction="in", right=True)
@@ -809,6 +851,7 @@ def plotCumProf(df_time, df_gap, versions, plotname="cum_profile",
     fig.suptitle(plottitle)
     fig.tight_layout()
     fig.savefig(plotname, dpi=fig.dpi)
+    plt.close(fig)
     # fig.savefig("./performance/barchart/"+plotname+'.eps', format='eps', dpi=600)
 
 def plotBaselineProf(
@@ -840,6 +883,12 @@ def plotBaselineProf(
 
     # find min value in the dataframe
     col_list = df.columns.values.tolist()
+
+    plot_cols = [
+        col for col in col_list if col != baseline and col[0] != "virtual_best"
+    ]
+    colors = get_plot_colors(len(plot_cols))
+    color_by_col = dict(zip(plot_cols, colors))
 
     for col in col_list:
         if col == baseline or col[0] == "virtual_best":
@@ -890,12 +939,16 @@ def plotBaselineProf(
                 y_val.extend([cum_frac[j], cum_frac[j + 1]])
 
             if legendnames:
-                # , color=colors[i])
-                ax[0].plot(x_val, y_val, label=legendnames[col])
+                ax[0].plot(
+                    x_val, y_val, label=legendnames[col], color=color_by_col[col]
+                )
             elif versionlegend:
-                ax[0].plot(x_val, y_val, label=col[0]+':'+versions[col[1]])  # , color=colors[i])
+                ax[0].plot(
+                    x_val, y_val, label=col[0]+':'+versions[col[1]],
+                    color=color_by_col[col]
+                )
             else:
-                ax[0].plot(x_val, y_val, label=col[0])  # , color=colors[i])
+                ax[0].plot(x_val, y_val, label=col[0], color=color_by_col[col])
 
         # add turning points and form series to plot
         x_val = []
@@ -915,12 +968,16 @@ def plotBaselineProf(
             y_val.extend([cum_frac[k+j], cum_frac[k+j+1]])
 
         if legendnames:
-            # , color=colors[i])
-            ax[1].plot(x_val, y_val, label=legendnames[col])
+            ax[1].plot(
+                x_val, y_val, label=legendnames[col], color=color_by_col[col]
+            )
         elif versionlegend:
-            ax[1].plot(x_val, y_val, label=col[0]+':'+versions[col[1]])  # , color=colors[i])
+            ax[1].plot(
+                x_val, y_val, label=col[0]+':'+versions[col[1]],
+                color=color_by_col[col]
+            )
         else:
-            ax[1].plot(x_val, y_val, label=col[0])  # , color=colors[i])
+            ax[1].plot(x_val, y_val, label=col[0], color=color_by_col[col])
 
     # set plot properties
     ax[0].set_xlim(0, 1)
@@ -947,6 +1004,7 @@ def plotBaselineProf(
     fig.suptitle(plottitle)
     fig.tight_layout()
     fig.savefig(plotname, dpi=fig.dpi)
+    plt.close(fig)
 
 def plotBaselineProfSingle(
         df, versions, baseline, plotname="base_profile",
@@ -975,6 +1033,12 @@ def plotBaselineProfSingle(
 
     # find min value in the dataframe
     col_list = df.columns.values.tolist()
+
+    plot_cols = [
+        col for col in col_list if col != baseline and col[0] != "virtual_best"
+    ]
+    colors = get_plot_colors(len(plot_cols))
+    color_by_col = dict(zip(plot_cols, colors))
 
     for col in col_list:
         if col == baseline or col[0] == "virtual_best":
@@ -1017,12 +1081,14 @@ def plotBaselineProfSingle(
             y_val.extend([cum_frac[j], cum_frac[j + 1]])
 
         if legendnames:
-            # , color=colors[i])
-            plt.plot(x_val, y_val, label=legendnames[col])
+            plt.plot(x_val, y_val, label=legendnames[col], color=color_by_col[col])
         elif versionlegend:
-            plt.plot(x_val, y_val, label=col[0]+':'+versions[col[1]])  # , color=colors[i])
+            plt.plot(
+                x_val, y_val, label=col[0]+':'+versions[col[1]],
+                color=color_by_col[col]
+            )
         else:
-            plt.plot(x_val, y_val, label=col[0])  # , color=colors[i])
+            plt.plot(x_val, y_val, label=col[0], color=color_by_col[col])
 
     # set plot properties
     ax.set_xlim(0, 1)
@@ -1047,3 +1113,4 @@ def plotBaselineProfSingle(
 
     fig.tight_layout()
     fig.savefig(plotname, dpi=fig.dpi)
+    plt.close(fig)

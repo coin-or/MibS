@@ -13,12 +13,7 @@ import matplotlib.pyplot as plt
 from performance_plots import *
 from parameters import Parameters
 
-# Read CLI parameters
-params = Parameters()
-params.parse()
-
-if params['dataSets'] is None:
-    raise ValueError("Missing required argument: --dataSets is required.")
+from make_plots_id_paper import make_plots_improving_directions
 
 keywords = {
     "solved": "No solution found",
@@ -80,6 +75,17 @@ versions = {
     #### ID paper
     'idbc':'idBC',
 }
+
+# Read CLI parameters
+params = Parameters()
+params.parse()
+
+if params['makePlotsImprovingDirectionsPaper']:
+    make_plots_improving_directions(params, keywords)
+    sys.exit(0)
+
+if params['dataSets'] is None:
+    raise ValueError("Missing required argument: --dataSets is required.")
     
 
 # Output parent path
@@ -604,8 +610,8 @@ baseline=None
 #baseline = ('noCut', '1.2.2-opt')
 #baseline = ('XYIntISICType1-frac', '1.2.2-opt')
 #baseline = ('Branch on linking variables', '1.2.1-opt')
-baseline = ("MibS only IDICs (frac)", "idBC")
-# baseline = ("MibS (default)", "idBC")
+baseline = ("MibS_onlyIDIC_fracB", "idbc")
+# baseline = ("MibS_1_2_defaultB", "idbc")
 
 if len(versions) > 1:
     versionlegend = True
@@ -671,7 +677,7 @@ for ds in dataSets:
                         versionlegend = versionlegend
                     )
             except KeyError:
-                pass
+                print("   Baseline {} not found, skipping baseline profile.".format(baseline))
         if col == 'cpu':
             
             df_time = df_has_soln.xs(
