@@ -29,8 +29,8 @@ The recommended command to build MibS is the following
 ./coinbrew build MibS -b build-idBC-opt -p --tests none -j 12
 ```
 
-This command builds MibS inside the directory `./build-idBC-opt`. The executable can be found at
-`./build-idBC-opt/bin/mibs`.
+This command builds MibS inside the directory `./build-idBC-opt` (referred to as `<build-dir>` in the
+`scripts` README). The executable can be found at `<build-dir>/bin/mibs`.
 The source for the manuscript was compiled using the version 11.4.0 of `gcc`.
 
 ## USING
@@ -39,23 +39,23 @@ The source for the manuscript was compiled using the version 11.4.0 of `gcc`.
 
 To solve a deterministic mixed integer bilevel linear optimization problem,
 you must provide both an MPS file and an auxiliary information file that
-specifies which variables and constraints are associated with the each level
+specifies which variables and constraints are associated with each level
 (see a description of the file format
 [here](https://coin-or.github.io/MibS/input.html)).
 Then call `mibs` like this: 
 ``` 
-<build_or_install_dir>/bin/mibs -Alps_instance file.mps -MibS_auxiliaryInfoFile file.aux 
+<build-dir>/bin/mibs -Alps_instance file.mps -MibS_auxiliaryInfoFile file.aux 
 ``` 
 Specifying the path to the auxiliry file is unnecessary provided it has the same root name as the MPS file and is in the same location. 
 
 It is also possible to
 specify additional settings either on the command line or in a parameter file with, e.g.,  
 ```
-<build_or_install_dir>/bin/mibs -Alps_instance file.mps -MibS_branchStrategy 1
+<build-dir>/bin/mibs -Alps_instance file.mps -MibS_branchStrategy 1
 ```
 or
 ```
-<build_or_install_dir>/bin/mibs -param <build_or_install_dir>/MibS/src/mibs.par 
+<build-dir>/bin/mibs -param <build-dir>/MibS/src/mibs.par 
 ``` 
 MibS has many parameters. See the
 example parameter file `mibs.par` and the header file `MibParams.hpp` for

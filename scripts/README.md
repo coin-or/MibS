@@ -15,7 +15,7 @@ In the next sections, we refer to the address of this directory by `<scripts-dir
 
 # Setting a Python environment
 To run the scripts, it is strongly recommended using Python 3.10 under virtual environment,
-e.g., `conda` or `venv`. The Python dependencies are contained in `<scripts-dir>/analyze/requirements.txt`.
+e.g., `conda` or `venv`. The Python dependencies are contained in `<scripts-dir>/analyze/replication/requirements.txt`.
 The following commands show how to replicate an environment using `conda`.
 
 ```
@@ -26,51 +26,85 @@ conda create -n myenv python=3.10
 conda activate myenv
 
 # Install dependencies using pip
-pip install -r <scripts-dir>/analyze/requirements.txt
+pip install -r <scripts-dir>/analyze/replication/requirements.txt
 ```
 
 # Test Sets
 
-The datasets for this experiments are contained in `<mibs-dir>/data/improvingDirectionDatasets`.
+The datasets for these experiments are contained in `<mibs-dir>/data/improvingDirectionDatasets`.
 
 # Conducting the experiments
 
-The file `<scripts-dir>/analyze/myrun.py` is used to configure and manage the computational experiments. In particular, it allows you to specify:
-
-- The datasets to be used and their corresponding locations;
-- The path to the MibS executable;
-- The configurations to be tested (i.e., different parameter settings of MibS to compare),
-- The output directory where all raw log files will be stored. 
-
-By default, the file is preconfigured with paths consistent with the setup instructions provided above. 
-It includes all datasets and parameter configurations required to reproduce the experiments reported in the manuscript. 
-Please, note that:
-1. The path of `mibsDir` must be changed to match `<mibs-dir>`;
-2. If your directory structure differs from the one described in the "BUILDING from source" instructions, please update the paths accordingly.
+The file `<scripts-dir>/analyze/replication/myrun.py` contains the parameter configurations for
+the computational experiments. It defines all MibS parameter settings (scenarios) and common
+parameters (e.g., time limit) required to reproduce the experiments reported in the manuscript.
+This file should not need to be modified unless the user wants to test different configurations.
 
 All experiments were conducted on compute nodes running Linux (Debian 8.11) operating system with dual AMD Opteron 6128 processors and 32GB of RAM. All experiments were run sequentially with a time limit of 3600 seconds.
 On this setup, all computations were completed in (approximately) 10 days.
 
-To start the experiments, run the following command.
+To start the experiments, run the following commands from `<mibs-dir>`.
 
 ```
-cd <scripts-dir>/analyze
-python run.py
+cd scripts/analyze
+python run.py \
+    --binariesPath idbc ../../../build-idBC-opt/bin/mibs \
+    --instanceDirs \
+        iblpDen    ../../data/improvingDirectionDatasets/iblpDen \
+        iblpDen2   ../../data/improvingDirectionDatasets/iblpDen2 \
+        iblpZhang  ../../data/improvingDirectionDatasets/iblpZhang \
+        iblpZhang2 ../../data/improvingDirectionDatasets/iblpZhang2 \
+        iblpFis    ../../data/improvingDirectionDatasets/iblpFis \
+    --outputDir <results-dir>
 ```
 
-Once computations are done, run the below command to create all plots.
+The `--binariesPath` argument takes `VERSION PATH` pairs and `--instanceDirs` takes `DATASET DIRECTORY` pairs.
+The `--outputDir` defaults to `./results` if omitted.
+If an output file for an instance already exists and is complete, `run.py` will skip it automatically,
+so the script can be safely restarted after an interruption.
+
+The paths above assume the standard setup described in the "Building and Installing MibS" section:
+`coinbrew` run from the parent of `<mibs-dir>`, with build directory `build-idBC-opt`.
+If your directory layout differs, adjust `--binariesPath` and `--instanceDirs` accordingly.
+
+After `run.py` completes, `<results-dir>` will have the following structure.
 
 ```
-python process.py
+<results-dir>/
+└── idbc/
+    ├── idBC-MILP_fracB/
+    │   ├── iblpDen/
+    │   │   ├── instance1.out
+    │   │   ├── instance1.err
+    │   │   └── ...
+    │   ├── iblpDen2/
+    │   ├── iblpFis/
+    │   ├── iblpZhang/
+    │   └── iblpZhang2/
+    ├── idBC-LS-k_2-dBnd_Inf_fracB/
+    │   └── ... (same dataset subdirectories)
+    └── ... (one subdirectory per scenario)
 ```
-All generated plots and CSV can be found in the current directory.
 
-By default, `<scripts-dir>/analyze/process.py` is configured to reproduce all plots presented in the manuscript. It assumes that all datasets have been solved under every configuration specified in the experimental setup. If this is not the case, the script must be adjusted accordingly (see the inline comments for guidance).
+Once computations are done, run the below command to create all plots presented in the manuscript.
+
+```
+python make_plots.py \
+    --outputDir <results-dir> \
+    --makePlotsImprovingDirectionsPaper
+```
+
+All generated plots are saved under `<results-dir>/figures/` and summary CSV files are written to `<results-dir>/`.
+
+The `--makePlotsImprovingDirectionsPaper` flag activates the plotting configuration specific to this
+paper. Without it, `make_plots.py` can also be used to generate plots for individual datasets by
+passing `--dataSets <dataset-name> [...]` and optionally `--aggregateDatasets` to combine them;
+see the inline comments in the script for further guidance.
 
 # Notes
 Before running the full experiments, you can verify that the pipeline works correctly using the small example datasets: `iblpSmall` and `interSmall`. To do this:
-1. Modify `myrun.py` and `process.py` accordingly to use only those datasets;
-2. Run the scripts to ensure the workflow executes as expected.
+1. Run `run.py` passing only those datasets via `--instanceDirs`;
+2. Run `make_plots.py` with `--dataSets iblpSmall interSmall` (without `--makePlotsImprovingDirectionsPaper`) to ensure the workflow executes as expected.
 
 This helps catch any issues early before processing the full datasets.
 
