@@ -62,12 +62,13 @@ python run.py \
 
 The `--binariesPath` argument takes `VERSION PATH` pairs and `--instanceDirs` takes `DATASET DIRECTORY` pairs.
 The `--outputDir` defaults to `./results` if omitted.
+
 If an output file for an instance already exists and is complete, `run.py` will skip it automatically,
 so the script can be safely restarted after an interruption by executing the same command again.
 
-The paths above assume the standard setup described in the "Building and Installing MibS" section:
-`coinbrew` run from the parent of `<mibs-dir>`, with build directory `build-idBC-opt`.
-If your directory layout differs, adjust `--binariesPath` and `--instanceDirs` accordingly.
+The paths above assume the standard setup described in the "Building and Installing MibS" section, 
+with build directory `build-idBC-opt`. If your directory layout differs, adjust `--binariesPath` 
+and `--instanceDirs` accordingly.
 
 After `run.py` completes, `<results-dir>` will have the following structure.
 
