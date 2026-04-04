@@ -20,13 +20,13 @@ The following commands show how to replicate an environment using `conda`.
 
 ```
 # Create environment with specific Python version
-conda create -n myenv python=3.10
+conda create -n myenv python=3.10.16
 
 # Activate
 conda activate myenv
 
 # Install dependencies using pip
-pip install -r <scripts-dir>/analyze/replication/requirements.txt
+python -m pip install -r <scripts-dir>/analyze/replication/requirements.txt
 ```
 
 # Test Sets
@@ -55,13 +55,15 @@ python run.py \
         iblpZhang  ../../data/improvingDirectionDatasets/iblpZhang \
         iblpZhang2 ../../data/improvingDirectionDatasets/iblpZhang2 \
         iblpFis    ../../data/improvingDirectionDatasets/iblpFis \
+        interdDen  ../../data/improvingDirectionDatasets/interdDen \
+        interKpShi ../../data/improvingDirectionDatasets/interKpShi \
     --outputDir <results-dir>
 ```
 
 The `--binariesPath` argument takes `VERSION PATH` pairs and `--instanceDirs` takes `DATASET DIRECTORY` pairs.
 The `--outputDir` defaults to `./results` if omitted.
 If an output file for an instance already exists and is complete, `run.py` will skip it automatically,
-so the script can be safely restarted after an interruption.
+so the script can be safely restarted after an interruption by executing the same command again.
 
 The paths above assume the standard setup described in the "Building and Installing MibS" section:
 `coinbrew` run from the parent of `<mibs-dir>`, with build directory `build-idBC-opt`.
@@ -98,8 +100,8 @@ All generated plots are saved under `<results-dir>/figures/` and summary CSV fil
 
 The `--makePlotsImprovingDirectionsPaper` flag activates the plotting configuration specific to this
 paper. Without it, `make_plots.py` can also be used to generate plots for individual datasets by
-passing `--dataSets <dataset-name> [...]` and optionally `--aggregateDatasets` to combine them;
-see the inline comments in the script for further guidance.
+passing `--dataSets <dataset-name> [...]` and optionally `--aggregateDatasets` to combine them into the same plots;
+add `--help` for further guidance.
 
 # Notes
 Before running the full experiments, you can verify that the pipeline works correctly using the small example datasets: `iblpSmall` and `interSmall`. To do this:

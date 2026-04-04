@@ -26,12 +26,12 @@ The `coinbrew` script will fetch the additional projects specified in the Depend
 
 The recommended command to build MibS is the following
 ```
-./coinbrew build MibS -b build-idBC-opt -p --tests none -j 12
+./coinbrew build MibS@improving-directions -b build-idBC-opt -p --tests none -j 12
 ```
 
 This command builds MibS inside the directory `./build-idBC-opt` (referred to as `<build-dir>` in the
 `scripts` README). The executable can be found at `<build-dir>/bin/mibs`.
-The source for the manuscript was compiled using the version 11.4.0 of `gcc`.
+The source for the manuscript was compiled using the version 12.2.0 of `g++`.
 
 ## USING
 
