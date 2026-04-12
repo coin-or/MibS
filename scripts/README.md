@@ -1,10 +1,27 @@
 This script is a guidance for conducting the experiments illustrated
-[here](https://arxiv.org/abs/2511.03566).
+in this [manuscript](https://arxiv.org/abs/2511.03566).
 
 # Building and Installing MibS
 
-In order to download and install this fork of `MibS`, see
-[here](https://github.com/febattista/MibS/blob/improving-directions/README.md).
+The instructions assume you are in a bash shell. 
+
+To download MibS from source, execute the 
+following on the command line. 
+```
+wget https://raw.githubusercontent.com/coin-or/coinbrew/master/coinbrew
+chmod u+x coinbrew
+./coinbrew fetch https://github.com/febattista/MibS@improving-directions
+```
+For more detailed instructions on coinbrew, see https://coin-or.github.io/coinbrew.
+The `coinbrew` script will fetch the additional projects specified in the Dependencies section of [config.yml](.coin-or/config.yml).
+
+The recommended command to build MibS is the following
+```
+./coinbrew build MibS@improving-directions -b build-idBC-opt -p --tests none -j 12
+```
+
+This command builds MibS inside the directory `./build-idBC-opt`. 
+The source for the manuscript was compiled using the version 12.2.0 of `g++`.
 
 The addresses of the directories in which `MibS` is placed and installed
 are referred by `<mibs-dir>` and `<build-dir>` respectively in the next sections.
