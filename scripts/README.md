@@ -1,4 +1,4 @@
-This script is a guidance for conducting the experiments illustrated
+This README is a guidance for conducting the experiments illustrated
 in this [manuscript](https://arxiv.org/abs/2511.03566).
 
 # Building and Installing MibS
