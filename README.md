@@ -3,7 +3,7 @@
 This README explains how to download and build this specific fork of MibS in order to replicate the computational experiments illustrated in this [manuscript](https://arxiv.org/abs/2511.03566).
 
 For information on how to replicate the experiments illustrated in the manuscript, see the
-`README` file in the directory `scripts` ([here](https://github.com/febattista/MibS/tree/master/scripts)).
+`README` file in the directory `scripts` ([here](https://github.com/febattista/MibS/tree/improving-directions/scripts)).
 
 For general usage instructions and information about other releases of MibS, please refer to the official
 [MibS repository](https://github.com/coin-or/MibS).
