@@ -56,6 +56,16 @@
 #include "OsiCpxSolverInterface.hpp"
 #endif
 
+#ifdef COIN_HAS_SYMPHONY
+#include "symphony.h"
+#include "SymConfig.h"
+#include "OsiSymSolverInterface.hpp"
+#endif
+#ifdef COIN_HAS_CPLEX
+#include "cplex.h"
+#include "OsiCpxSolverInterface.hpp"
+#endif
+
 #include "MibSModel.hpp"
 #include "MibSSolution.hpp"
 #include "MibSCutGenerator.hpp"
@@ -4392,4 +4402,33 @@ MibSModel::printProblemInfo(){
     //if (MibSPar_->entry(MibSParams::printParameters)){
     //   writeParameters(std::cout);
     //}
+}
+
+OsiSolverInterface* MibSModel::createFeasCheckSolver() {
+
+   std::string feasCheckSolver = MibSPar_->entry(MibSParams::feasCheckSolver);
+
+   if (feasCheckSolver == "Cbc"){
+      return new OsiCbcSolverInterface();
+   }
+
+   if (feasCheckSolver == "SYMPHONY"){
+   #ifdef COIN_HAS_SYMPHONY
+      return new OsiSymSolverInterface();
+   #else
+      throw CoinError("SYMPHONY chosen as solver, but it has not been enabled",
+            "setUpUBModel", "MibsBilevel");
+   #endif
+   }
+   
+   if (feasCheckSolver == "CPLEX"){
+   #ifdef COIN_HAS_CPLEX
+      return new OsiCpxSolverInterface();
+   #else
+      throw CoinError("CPLEX chosen as solver, but it has not been enabled",
+            "setUpUBModel", "MibsBilevel");
+   #endif
+   }
+
+   throw CoinError("Unknown solver chosen", "createFeasCheckSolver", "MibSModel");
 }
