@@ -66,14 +66,16 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
   MibSBranchingStrategy branchPar = static_cast<MibSBranchingStrategy>
       (model_->MibSPar_->entry(MibSParams::branchStrategy));
 
-  int solveSecondLevelWhenXYVarsInt(model_->MibSPar_->entry
-			   (MibSParams::solveSecondLevelWhenXYVarsInt));
-  int solveSecondLevelWhenXVarsInt(model_->MibSPar_->entry
-			  (MibSParams::solveSecondLevelWhenXVarsInt));
-  int solveSecondLevelWhenLVarsInt(model_->MibSPar_->entry
-			  (MibSParams::solveSecondLevelWhenLVarsInt));
-  int solveSecondLevelWhenLVarsFixed(model_->MibSPar_->entry
-			    (MibSParams::solveSecondLevelWhenLVarsFixed));
+  bool solveSecondLevelEveryIteration(model_->MibSPar_->entry
+                                     (MibSParams::solveSecondLevelEveryIteration) == PARAM_ON);
+  bool solveSecondLevelWhenXYVarsInt(model_->MibSPar_->entry
+                                     (MibSParams::solveSecondLevelWhenXYVarsInt) == PARAM_ON);
+  bool solveSecondLevelWhenXVarsInt(model_->MibSPar_->entry
+                                    (MibSParams::solveSecondLevelWhenXVarsInt) == PARAM_ON);
+  bool solveSecondLevelWhenLVarsInt(model_->MibSPar_->entry
+                                    (MibSParams::solveSecondLevelWhenLVarsInt) == PARAM_ON);
+  bool solveSecondLevelWhenLVarsFixed(model_->MibSPar_->entry
+                                      (MibSParams::solveSecondLevelWhenLVarsFixed) == PARAM_ON);
   int cutStrategy(model_->MibSPar_->entry
 		  (MibSParams::cutStrategy));
 
@@ -117,9 +119,9 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
   CoinZeroN(optLowerSolutionOrd_, lN);
   
   if(shouldStoreSolution == true){
-      if(!lowerSolutionOrd_)
-	  lowerSolutionOrd_ = new double[lN];
-  
+      if(!lowerSolutionOrd_){
+         lowerSolutionOrd_ = new double[lN];
+      }  
       CoinZeroN(lowerSolutionOrd_, lN);
   }
   
@@ -193,74 +195,42 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
   /* put the solution in order by integers first */
 
   int pos(0);
-
-  if((shouldStoreSolution == true) && (numScenarios == 1)){
-      for (i = 0; i < numElements; i++){
-	  index = indices[i];
-          pos = binarySearch(0, lN - 1, index, lowerColInd);
-	  if (pos < 0){
-	      pos = binarySearch(0, uN - 1, index, upperColInd);
-	      if ((mibs->solver()->isInteger(index)) &&
-		  (((values[i] - floor(values[i])) < etol) ||
-		   ((ceil(values[i]) - values[i]) < etol))){
-		  upperSolutionOrd_[pos] = (double) floor(values[i] + 0.5);
-	      }else{
-		  upperSolutionOrd_[pos] = values[i];
-	      }
-	      optUpperSolutionOrd_[pos] = upperSolutionOrd_[pos];
-	  }else{
-	      if ((mibs->solver()->isInteger(index)) &&
-		  (((values[i] - floor(values[i])) < etol) ||
-		   ((ceil(values[i]) - values[i]) < etol))){
-		  lowerSolutionOrd_[pos] = (double) floor(values[i] + 0.5);
-	      }else{
-		  lowerSolutionOrd_[pos] = values[i];
-	      }
-	      optLowerSolutionOrd_[pos] = lowerSolutionOrd_[pos];	
-	  }
+   // YX: #Scns==1 always inplies shouldStoreSolution?
+   for (i = 0; i < numElements; i++){
+      index = indices[i];
+      if(numScenarios == 1){                
+         pos = binarySearch(0, lN - 1, index, lowerColInd);
+      }else{
+         if(index < uN){
+            pos = -1;
+         }else{
+            pos = index - uN;
+         }
       }
-  }
-  else{
-      for (i = 0; i < numElements; i++){
-	  index = indices[i];
-	  if(numScenarios == 1){
-	      pos = binarySearch(0, lN - 1, index, lowerColInd);
-	  }
-	  else{
-	      if(index < uN){
-		  pos = -1;
-	      }
-	      else{
-		  pos = index - uN;
-	      }
-	  }
-	  if(pos < 0){
-	      pos = binarySearch(0, uN - 1, index, upperColInd);
-	      if ((mibs->solver()->isInteger(index)) &&
-		  (((values[i] - floor(values[i])) < etol) ||
-		   ((ceil(values[i]) - values[i]) < etol))){
-		  upperSolutionOrd_[pos] = (double) floor(values[i] + 0.5);
-	      }
-	      else{
-		  upperSolutionOrd_[pos] = values[i];
-	      }
-	      optUpperSolutionOrd_[pos] = upperSolutionOrd_[pos];
-	  }
-	  else{
-	      if ((mibs->solver()->isInteger(index)) &&
-		  (((values[i] - floor(values[i])) < etol) ||
-		   ((ceil(values[i]) - values[i]) < etol))){
-		  optLowerSolutionOrd_[pos] = (double) floor(values[i] + 0.5);
-	      }
-	      else{
-		  optLowerSolutionOrd_[pos] = values[i];
-	      }
-	      if(shouldStoreSolution == true){
-		  lowerSolutionOrd_[pos] = lowerSolutionOrd_[pos];
-	      }
-	  }
-      }
-  }
+      if (pos < 0){
+         pos = binarySearch(0, uN - 1, index, upperColInd);
+         if ((mibs->solver()->isInteger(index)) &&
+         (((values[i] - floor(values[i])) < etol) ||
+         ((ceil(values[i]) - values[i]) < etol))){
+            upperSolutionOrd_[pos] = (double) floor(values[i] + 0.5);
+         }else{
+            upperSolutionOrd_[pos] = values[i];
+         }
+         optUpperSolutionOrd_[pos] = upperSolutionOrd_[pos];
+      }else{
+         // YX: swapped LL var assgn cuz of stochastic setting        
+         if ((mibs->solver()->isInteger(index)) &&
+         (((values[i] - floor(values[i])) < etol) ||
+         ((ceil(values[i]) - values[i]) < etol))){
+            optLowerSolutionOrd_[pos] = (double) floor(values[i] + 0.5);
+         }else{
+            optLowerSolutionOrd_[pos] = values[i];
+         }
+         if(shouldStoreSolution == true){
+            lowerSolutionOrd_[pos] = optLowerSolutionOrd_[pos];
+         }
+      }         	
+   }
 
 
   int solType(0);
@@ -309,24 +279,24 @@ MibSBilevel::createBilevel(CoinPackedVector* sol,
 
   //step 7
   if(!shouldPrune_){
-      if(((tagInSeenLinkingPool_ == MibSLinkingPoolTagLowerIsFeasible)
-	  || (tagInSeenLinkingPool_ == MibSLinkingPoolTagUBIsSolved)) ||
-	 ((!isContainedInLinkingPool_) &&
-	  (((branchPar == MibSBranchingStrategyLinking) &&
-	    (isIntegral_) && (isLinkVarsFixed_)) ||
-	   ((branchPar == MibSBranchingStrategyFractional)
-	    && (isIntegral_)) ||
-	   ((solveSecondLevelWhenXYVarsInt == PARAM_ON) && (isIntegral_)) ||
-	   ((solveSecondLevelWhenXVarsInt == PARAM_ON) && (isUpperIntegral_)) ||
-	   ((solveSecondLevelWhenLVarsInt == PARAM_ON) && (isLinkVarsIntegral_)) ||
-	   ((solveSecondLevelWhenLVarsFixed == PARAM_ON) && (isLinkVarsFixed_ ))))){
+     if((tagInSeenLinkingPool_ == MibSLinkingPoolTagLowerIsFeasible ||
+          tagInSeenLinkingPool_ == MibSLinkingPoolTagUBIsSolved) ||
+         (!isContainedInLinkingPool_ &&
+	  ((branchPar == MibSBranchingStrategyLinking && isIntegral_ && isLinkVarsFixed_) ||
+	   (branchPar == MibSBranchingStrategyFractional && isIntegral_) ||
+	   (solveSecondLevelEveryIteration) ||
+	   (solveSecondLevelWhenXYVarsInt && isIntegral_) ||
+	   (solveSecondLevelWhenXVarsInt && isUpperIntegral_) ||
+	   (solveSecondLevelWhenLVarsInt && isLinkVarsIntegral_) ||
+	   (solveSecondLevelWhenLVarsFixed && isLinkVarsFixed_ )))){
 #ifdef _OPENMPMIBS
 	storeSol = checkBilevelFeasiblityParallel(mibs->isRoot_);
 #else
 	storeSol = checkBilevelFeasiblity(mibs->isRoot_);
 #endif
-      }
+	 }
   }
+  
   if(cutStrategy == 1){
       useBilevelBranching_ = false;
   }
@@ -374,7 +344,7 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
     MibSSolType storeSol(MibSNoSol);
     int truncLN(model_->truncLowerDim_);;
     int lN(model_->lowerDim_); // lower-level dimension
-    int uN(model_->upperDim_); // lower-level dimension
+    int uN(model_->upperDim_); // upper-level dimension
     int i(0), j(0), k(0),  index(0), length(0), pos(0), begPos(0);
     int lpStat;
     int sizeFixedInd(model_->sizeFixedInd_);
@@ -400,18 +370,20 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
     }
 
     //saharSto: Check these changes
-    double *lowerSol = NULL;
+   //  double *lowerSol = NULL;
     std::vector<double> shouldStoreValuesLowerSol(1);
     std::vector<double> shouldStoreValuesUBSol(1);
     std::vector<double> shouldStoreObjValues;
-    
+
+   double *lowerSol = new double[lN]; // YX: store yhat in all cases
+   CoinFillN(lowerSol, lN, 0.0);
 
     if(shouldStoreSolution == true){
         shouldStoreValuesLowerSol.resize(lN);
         shouldStoreValuesUBSol.resize(lN + uN);
     }
 
-    const double * sol = model_->solver()->getColSolution();
+    const double * sol = oSolver->getColSolution();
     
     std::vector<double> linkSol;
     for(i = 0; i < uN; i++){
@@ -576,7 +548,7 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 	    if(!lSolver->isProvenOptimal()){
 		LPSolStatus_ = MibSLPSolStatusInfeasible;
 		isProvenOptimal_ = false;
-	        if(useLinkingSolutionPool){
+	        if(useLinkingSolutionPool && isLinkVarsIntegral_){
 		    //step 10
 		    //Adding x_L to set E
 		    shouldStoreObjValues.push_back(0);
@@ -592,7 +564,6 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 	        break;
 	    }
 	    else{
-		//const double * sol = model_->solver()->getColSolution();
 		objVal = lSolver->getObjValue() * model_->getLowerObjSense();
 
 	        //objVal_ = objVal;
@@ -606,17 +577,21 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 
 	        const double * values = lSolver->getColSolution();
 
-		if(useLinkingSolutionPool){
-		    begPos = i * truncLN;
+		begPos = i * truncLN;
+		// YX: round lSolver solution; sol (LR) not rounded; truncLN and begPos for Stoc;
+        for (j = 0; j < truncLN; j++){
+            if ((lSolver->isInteger(j)) &&
+                (((values[j] - floor(values[j])) < etol) ||
+                ((ceil(values[j]) - values[j]) < etol))){
+                lowerSol[j+begPos] = (double) floor(values[j] + 0.5);
+            }else{
+                lowerSol[j+begPos] = (double) values[j];
+            }
+        }
+
+		if(useLinkingSolutionPool && isLinkVarsIntegral_){
 		    if(shouldStoreSolution == true){
-		        std::copy(values, values + lN, shouldStoreValuesLowerSol.begin() + begPos);
-		    }
-		    else{
-			if(lowerSol == NULL){
-			    lowerSol = new double[lN];
-			    CoinFillN(lowerSol, lN, 0.0);
-			}
-			CoinDisjointCopyN(values, truncLN, lowerSol + begPos);
+		        std::copy(lowerSol, lowerSol + lN, shouldStoreValuesLowerSol.begin() + begPos);
 		    }
 
 		    //step 12
@@ -628,15 +603,6 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 			shouldStoreValuesLowerSol.clear();
 		        shouldStoreObjValues.clear();
 		    }
-		}
-		else{
-		    if(lowerSol == NULL){
-			lowerSol = new double[lN];
-		        CoinFillN(lowerSol, lN, 0.0);
-		    }
-		    //memcpy(lowerSol, values, sizeof(double) * lN);
-		    begPos = i * truncLN;
-		    CoinDisjointCopyN(values, truncLN, lowerSol + begPos);
 		}
 
 		if(i == numScenarios - 1){
@@ -664,14 +630,11 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
     }
 
     //step 13
-    if(((!useLinkingSolutionPool) && (isProvenOptimal_)) ||
+    if(((!useLinkingSolutionPool || !isLinkVarsIntegral_) && (isProvenOptimal_)) ||
        ((tagInSeenLinkingPool_ == MibSLinkingPoolTagLowerIsFeasible) ||
 	(tagInSeenLinkingPool_ == MibSLinkingPoolTagUBIsSolved))){
 	
-	//double *lowerSol = new double[lN];
-	//CoinFillN(lowerSol, lN, 0.0);
-
-	if(useLinkingSolutionPool){
+	if(useLinkingSolutionPool && isLinkVarsIntegral_){
 	    //get optimal value  of (VF) from solution pool
 	    //model_->it = seenLinkingSolutions.find(linkSol);
 	    //objVal = model_->it->second.lowerObjVal1;
@@ -686,10 +649,6 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
           
 
 	    if(shouldStoreSolution == true){
-		if(lowerSol == NULL){
-		    lowerSol = new double[lN];
-		    CoinFillN(lowerSol, lN, 0.0);
-		}
 	    std::copy(model_->seenLinkingSolutions[linkSol].lowerSolution.begin(),
 		      model_->seenLinkingSolutions[linkSol].lowerSolution.end(), lowerSol);
 	    }
@@ -717,9 +676,11 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 		}
 	    }
 	    else{
-		if(lowerSol != NULL){
+			// YX: NEED TO CHECK copy length truncLN or lN for Stoc.?
 		    memcpy(optLowerSolutionOrd_, lowerSol, sizeof(double) * lN);
-		}
+		    if(isUpperIntegral_){
+		    	storeSol = MibSHeurSol;
+		    }
 		break;
 	    }
 	}
@@ -731,7 +692,7 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 	       (((branchPar == MibSBranchingStrategyLinking) &&
 		 (isIntegral_) && (isLinkVarsFixed_)) ||
 		((computeBestUBWhenXVarsInt == PARAM_ON) && (isUpperIntegral_)) ||
-		((computeBestUBWhenLVarsInt == PARAM_ON)) ||
+		((computeBestUBWhenLVarsInt == PARAM_ON)) && (isLinkVarsIntegral_)||
 		((computeBestUBWhenLVarsFixed == PARAM_ON) && (isLinkVarsFixed_)))){
 		/*if(UBSolver_){
 		    UBSolver_ = setUpUBModel(model_->getSolver(), shouldStoreObjValues,
@@ -882,9 +843,6 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 		UBSolver->branchAndBound();
 		model_->timerUB_ += model_->broker_->subTreeTimer().getTime() - startTimeUB;
 		model_->counterUB_ ++;
-		if(i == numDecomposedProbs - 1){
-		  isUBSolved_ = true;
-		}
 
 		if(feasCheckSolver == "SYMPHONY"){
 #ifdef MIBS_HAS_SYMPHONY
@@ -911,6 +869,10 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 #endif
 		}
 
+		if(i == numDecomposedProbs - 1){
+		  isUBSolved_ = true;
+		}
+
 		if(UBSolver->isProvenOptimal()){
 		    isUBProvenOptimal = true;
 		    const double *partialValuesUB = UBSolver->getColSolution();
@@ -921,7 +883,7 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 			int begPos = uN + i * truncLN;
 			CoinDisjointCopyN(partialValuesUB, truncLN, valuesUB + begPos);
 		    }
-		    objVal += UBSolver->getObjValue() * model_->solver()->getObjSense();
+		    objVal += UBSolver->getObjValue() * oSolver->getObjSense();
 		}
 		else{
 		    isUBProvenOptimal = false;
@@ -945,6 +907,7 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 		    for (i = 0; i < uN + lN; i++){
 			pos = binarySearch(0, uN - 1, i, upperColInd);
 			if (pos >= 0){
+			    // YX: MAY CHANGE TO UBSolver
 			    if ((oSolver->isInteger(i)) &&
 				(((valuesUB[i] - floor(valuesUB[i])) < etol) ||
 				 ((ceil(valuesUB[i]) - valuesUB[i]) < etol))){
@@ -975,10 +938,11 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 		}else{
 		    shouldStoreObjValues.push_back(0);
 		    isProvenOptimal_ = false;
+		    storeSol = MibSNoSol;
 		}
 		//step 22
 		//Adding x_L to set E
-		if(useLinkingSolutionPool){
+		if(useLinkingSolutionPool && isLinkVarsIntegral_){
 		    addSolutionToSeenLinkingSolutionPool
 			(MibSLinkingPoolTagUBIsSolved, shouldStoreValuesUBSol,
 			 shouldStoreObjValues);
@@ -998,29 +962,6 @@ MibSBilevel::checkBilevelFeasiblity(bool isRoot)
 		}
 		if(multA2XOpt){
 		    delete [] multA2XOpt;
-		}
-	    }
-	    else if ((tagInSeenLinkingPool_ != MibSLinkingPoolTagUBIsSolved) ||
-		     ((!useLinkingSolutionPool) && (isUBSolved_))){
-		if(lowerSol != NULL){
-		    for (i = 0; i < lN; i++){
-			if(numScenarios == 1){
-			    index = lowerColInd[i];
-			}
-			else{
-			    index = uN + i;
-			}
-			if ((model_->solver()->isInteger(index)) &&
-			    (((lowerSol[i] - floor(lowerSol[i])) < etol) ||
-			     ((ceil(lowerSol[i]) - lowerSol[i]) < etol))){
-			    optLowerSolutionOrd_[i] = (double) floor(lowerSol[i] + 0.5);
-			}else{
-			    optLowerSolutionOrd_[i] = (double) lowerSol[i];
-			}
-		    }
-		    if(isUpperIntegral_){
-			storeSol = MibSHeurSol;
-		    }
 		}
 	    }
 	}

@@ -60,19 +60,17 @@ class MIBSLIB_EXPORT mcSol{
   double * getColumnSol() {return colSol_;}
 
   
-  mcSol &operator=(mcSol &other)
+  mcSol &operator=(mcSol &rhs)
   {
-     if (this == &other){
-        return *this;
+     if (this != &rhs){
+        if(len_ > 0){
+           delete [] colSol_;
+           colSol_ = new double[len_];
+           memcpy(colSol_, rhs.colSol_, sizeof(double) * len_);
+        }
+        objPair_ = rhs.objPair_;
+        len_ = rhs.len_;
      }
-     
-     if(len_ > 0){
-	delete [] colSol_;
-	colSol_ = new double[len_];
-	memcpy(colSol_, other.colSol_, sizeof(double) * len_);
-     }
-     objPair_ = other.objPair_;
-     len_ = other.len_;
      return *this;
   }
   
@@ -122,22 +120,19 @@ class MIBSLIB_EXPORT bfSol{
   void setObjVal(double val) {objVal_ = val;}
   void setColumnSol(double * sol) {colSol_ = sol;}
 
-  bfSol &operator=(bfSol &other)
+  bfSol &operator=(bfSol &rhs)
   {
-     if (this == &other){
-        return *this;
+     if (this != &rhs){
+        if(len_ > 0){
+           delete [] colSol_;
+           colSol_ = new double[len_];
+           memcpy(colSol_, rhs.colSol_, sizeof(double) * len_);
+        }
+        objVal_ = rhs.objVal_;
+        len_ = rhs.len_;
      }
-     
-     if(len_ > 0){
-	delete [] colSol_;
-	colSol_ = new double[len_];
-	memcpy(colSol_, other.colSol_, sizeof(double) * len_);
-     }
-     objVal_ = other.objVal_;
-     len_ = other.len_;
      return *this;
-  }
-
+   }
 };
 
 //#############################################################################

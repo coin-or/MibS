@@ -158,12 +158,6 @@ MibSParams::createKeywordList() {
    keys_.push_back(make_pair(std::string("MibS_bendersCutType"),
 			     AlpsParameter(AlpsIntPar, bendersCutType)));
 
-   keys_.push_back(make_pair(std::string("MibS_useIntersectionCut"),
-                             AlpsParameter(AlpsIntPar, useIntersectionCut)));
-
-   //keys_.push_back(make_pair(std::string("MibS_intersectionCutType"),
-   //			     AlpsParameter(AlpsIntPar, intersectionCutType)));
-
    keys_.push_back(make_pair(std::string("MibS_useTypeIC"),
 			     AlpsParameter(AlpsIntPar, useTypeIC)));
 
@@ -182,7 +176,13 @@ MibSParams::createKeywordList() {
    keys_.push_back(make_pair(std::string("MibS_bilevelFreeSetTypeIC"),
 			     AlpsParameter(AlpsIntPar, bilevelFreeSetTypeIC)));
 
+   keys_.push_back(make_pair(std::string("MibS_useFractionalCuts"),
+			     AlpsParameter(AlpsIntPar, useFractionalCuts)));
+
    //solve lower-level Parameters
+   keys_.push_back(make_pair(std::string("MibS_solveSecondLevelEveryIteration"),
+			     AlpsParameter(AlpsIntPar, solveSecondLevelEveryIteration)));
+
    keys_.push_back(make_pair(std::string("MibS_solveSecondLevelWhenXYVarsInt"),
 			     AlpsParameter(AlpsIntPar, solveSecondLevelWhenXYVarsInt)));
 
@@ -235,6 +235,9 @@ MibSParams::createKeywordList() {
    keys_.push_back(make_pair(std::string("MibS_maxActiveNodes"),
 			     AlpsParameter(AlpsIntPar, maxActiveNodes)));
 
+   keys_.push_back(make_pair(std::string("MibS_maxCutDepth"),
+   			     AlpsParameter(AlpsIntPar, maxCutDepth)));
+                 
    //parameters for stochastic and SAA
    //this parameter should be set to false, when the problem is
    //stochastic and A2 is not random.
@@ -377,11 +380,11 @@ MibSParams::setDefaultEntries() {
 
    setEntry(maxNumActiveCons, BIGCONSTANT);
 
-   setEntry(bilevelProblemType, PARAM_NOTSET);
+   setEntry(bilevelProblemType, GENERAL);
 
    setEntry(bilevelCutTypes, GENERALONLY);
 
-   setEntry(cutStrategy, CUTONLY);
+   setEntry(cutStrategy, BRANCHANDCUT);
 
    setEntry(objBoundStrategy, LPBOUND);
 
@@ -419,10 +422,6 @@ MibSParams::setDefaultEntries() {
 
    setEntry(bendersCutType, MibSBendersCutTypeJustOneCut);
 
-   setEntry(useIntersectionCut, PARAM_NOTSET);
-
-   //setEntry(intersectionCutType, MibSIntersectionCutTypeNotSet);
-
    setEntry(useTypeIC, PARAM_NOTSET);
 
    setEntry(useTypeWatermelon, PARAM_NOTSET);
@@ -433,7 +432,11 @@ MibSParams::setDefaultEntries() {
 
    setEntry(useTypeHybridIC, PARAM_NOTSET);
 
+   setEntry(useFractionalCuts, 0);
+
    setEntry(bilevelFreeSetTypeIC, MibSBilevelFreeSetTypeICNotSet);
+
+   setEntry(solveSecondLevelEveryIteration, PARAM_NOTSET);
 
    setEntry(solveSecondLevelWhenXYVarsInt, PARAM_NOTSET);
 
@@ -466,6 +469,8 @@ MibSParams::setDefaultEntries() {
    setEntry(boundCutNodeLim, ALPS_INT_MAX);
 
    setEntry(relaxTypeParamBoundCut, MibSRelaxTypeParamBoundCutLP);
+
+   setEntry(maxCutDepth, ALPS_INT_MAX);
 
    setEntry(maxActiveNodes, 1);
 
