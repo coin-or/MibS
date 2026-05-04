@@ -771,26 +771,7 @@ MibSBilevel::setUpUBModel(OsiSolverInterface * oSolver, double objValLL,
 	    }
 	}
     
-        if (feasCheckSolver == "Cbc"){
-	    nSolver = new OsiCbcSolverInterface();
-	}else if (feasCheckSolver == "SYMPHONY"){
-#ifdef COIN_HAS_SYMPHONY
-	    nSolver = new OsiSymSolverInterface();
-#else
-	    throw CoinError("SYMPHONY chosen as solver, but it has not been enabled",
-			    "setUpUBModel", "MibsBilevel");
-#endif
-	}else if (feasCheckSolver == "CPLEX"){
-#ifdef COIN_HAS_CPLEX
-	    nSolver = new OsiCpxSolverInterface();
-#else
-	    throw CoinError("CPLEX chosen as solver, but it has not been enabled",
-			    "setUpUBModel", "MibsBilevel");
-#endif
-	}else{
-	    throw CoinError("Unknown solver chosen",
-			    "setUpUBModel", "MibsBilevel");
-	}
+	nSolver = model_->createFeasCheckSolver();
     
         int * integerVars = new int[colNum];
         double * objCoeffs = new double[colNum];
@@ -934,26 +915,7 @@ MibSBilevel::setUpModel(OsiSolverInterface * oSolver, bool newOsi,
 	  rowUb[i] = origRowUb[index1];
       }
       
-     if (feasCheckSolver == "Cbc"){
-	nSolver = new OsiCbcSolverInterface();
-     }else if (feasCheckSolver == "SYMPHONY"){
-#ifdef COIN_HAS_SYMPHONY
-	nSolver = new OsiSymSolverInterface();
-#else
-	throw CoinError("SYMPHONY chosen as solver, but it has not been enabled",
-			"setUpModel", "MibsBilevel");
-#endif
-     }else if (feasCheckSolver == "CPLEX"){
-#ifdef COIN_HAS_CPLEX
-	nSolver = new OsiCpxSolverInterface();
-#else
-	throw CoinError("CPLEX chosen as solver, but it has not been enabled",
-			"setUpModel", "MibsBilevel");
-#endif
-     }else{
-	throw CoinError("Unknown solver chosen",
-			"setUpModel", "MibsBilevel");
-     }
+     nSolver = model_->createFeasCheckSolver();
 
      double * colUb = new double[lCols];
      double * colLb = new double[lCols];

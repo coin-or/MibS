@@ -25,6 +25,8 @@
 #include "MibSHelp.hpp"
 #include "MibSConstants.hpp"
 
+#include <functional>
+
 class MibSBilevel;
 class MibSCutGenerator;
 
@@ -400,7 +402,7 @@ private:
 public:
 
     MibSModel();
-    ~MibSModel();
+    virtual ~MibSModel();
 
     enum colSign {
        colSignPositive,
@@ -791,6 +793,8 @@ public:
     double lowerObjectiveBound();
 
     double interdictionBound();
+
+    virtual OsiSolverInterface* createFeasCheckSolver();
 
 private:
 
