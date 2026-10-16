@@ -1456,10 +1456,11 @@ MibSCutGenerator::findLowerLevelSolImprovingDirectionIC(double *uselessIneqs, do
     for(i = 0; i < lCols; i++){
 	colIndex = lColInd[i];
 	value = lpSol[colIndex];
-	nSolver->setColLower(i, ceil(origColLb[colIndex] - value -
-                                      localModel_->etol_));
-        nSolver->setColUpper(i, floor(origColUb[colIndex] - value +
-                                     localModel_->etol_));
+  // feb223: w = 0 should be always a feasible direction
+	nSolver->setColLower(i, CoinMin(ceil(origColLb[colIndex] - value -
+                                      localModel_->etol_), 0.0));
+  nSolver->setColUpper(i, CoinMax(floor(origColUb[colIndex] - value +
+                                localModel_->etol_), 0.0));
     }
 
     remainingTime = timeLimit - localModel_->broker_->subTreeTimer().getTime();
