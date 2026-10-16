@@ -158,26 +158,7 @@ MibSHeuristic::lowerObjHeuristic()
 
   OsiSolverInterface * hSolver;
 
-  if (feasCheckSolver == "Cbc"){
-    hSolver = new OsiCbcSolverInterface();
-  }else if (feasCheckSolver == "SYMPHONY"){
-#ifdef COIN_HAS_SYMPHONY
-    hSolver = new OsiSymSolverInterface();
-#else
-    throw CoinError("SYMPHONY chosen as solver, but it has not been enabled",
-		    "lowerObjHeuristic", "MibSHeuristic");
-#endif
-  }else if (feasCheckSolver == "CPLEX"){
-#ifdef COIN_HAS_CPLEX
-    hSolver = new OsiCpxSolverInterface();
-#else
-    throw CoinError("CPLEX chosen as solver, but it has not been enabled",
-		    "lowerObjHeuristic", "MibSHeuristic");
-#endif
-  }else{
-    throw CoinError("Unknown solver chosen",
-		    "lowerObjHeuristic", "MibSHeuristic");
-  }
+  hSolver = model->createFeasCheckSolver();
 
   int i(0), j(0);
   int index(0), solType(0);
@@ -669,26 +650,7 @@ MibSHeuristic::objCutHeuristic()
     }
   }
 
-  if (feasCheckSolver == "Cbc"){
-    hSolver = new OsiCbcSolverInterface();
-  }else if (feasCheckSolver == "SYMPHONY"){
-#ifdef COIN_HAS_SYMPHONY
-    hSolver = new OsiSymSolverInterface();
-#else
-    throw CoinError("SYMPHONY chosen as solver, but it has not been enabled",
-		    "objCutHeuristic", "MibSHeuristic");
-#endif
-  }else if (feasCheckSolver == "CPLEX"){
-#ifdef COIN_HAS_CPLEX
-    hSolver = new OsiCpxSolverInterface();
-#else
-    throw CoinError("CPLEX chosen as solver, but it has not been enabled",
-		    "objCutHeuristic", "MibSHeuristic");
-#endif
-  }else{
-    throw CoinError("Unknown solver chosen",
-		    "objCutHeuristic", "MibSHeuristic");
-  }
+  hSolver = model->createFeasCheckSolver();
 
   hSolver->loadProblem(*oSolver->getMatrixByCol(),
 		       oSolver->getColLower(), oSolver->getColUpper(),
@@ -1765,26 +1727,7 @@ MibSHeuristic::solveSubproblem(double beta, bool &foundSolution)
 
   foundSolution = true;
 
-  if (feasCheckSolver == "Cbc"){
-    sSolver = new OsiCbcSolverInterface();
-  }else if (feasCheckSolver == "SYMPHONY"){
-#ifdef COIN_HAS_SYMPHONY
-    sSolver = new OsiSymSolverInterface();
-#else
-    throw CoinError("SYMPHONY chosen as solver, but it has not been enabled",
-		    "solveSubproblem", "MibSHeuristic");
-#endif
-  }else if (feasCheckSolver == "CPLEX"){
-#ifdef COIN_HAS_CPLEX
-    sSolver = new OsiCpxSolverInterface();
-#else
-    throw CoinError("CPLEX chosen as solver, but it has not been enabled",
-		    "solveSubproblem", "MibSHeuristic");
-#endif
-  }else{
-    throw CoinError("Unknown solver chosen",
-		    "solveSubproblem", "MibSHeuristic");
-  }
+  sSolver = model->createFeasCheckSolver();
 
   int i(0);
   int index(0);

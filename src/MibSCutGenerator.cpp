@@ -979,26 +979,7 @@ MibSCutGenerator::findLowerLevelSolImprovingSolutionIC(double *uselessIneqs,
 
     OsiSolverInterface * nSolver;
 
-    if(feasCheckSolver == "Cbc"){
-        nSolver = new OsiCbcSolverInterface();
-    }else if (feasCheckSolver == "SYMPHONY"){
-#ifdef COIN_HAS_SYMPHONY
-	nSolver = new OsiSymSolverInterface();
-#else
-	throw CoinError("SYMPHONY chosen as solver, but it has not been enabled",
-			"findLowerLevelSolImprovingSolutionIC", "MibSCutGenerator");
-#endif
-    }else if (feasCheckSolver == "CPLEX"){
-#ifdef COIN_HAS_CPLEX
-	nSolver = new OsiCpxSolverInterface();
-#else
-	throw CoinError("CPLEX chosen as solver, but it has not been enabled",
-			"findLowerLevelSolImprovingSolutionIC", "MibsBilevel");
-#endif
-    }else{
-	throw CoinError("Unknown solver chosen",
-			"findLowerLevelSolImprovingSolutionIC", "MibsBilevel");
-    }
+    nSolver = localModel_->createFeasCheckSolver();
 
     nSolver->loadProblem(*newMatrix, newColLb, newColUb,
 			 newObjCoeff, newRowLb, newRowUb);
@@ -1398,26 +1379,7 @@ MibSCutGenerator::findLowerLevelSolImprovingDirectionIC(double *uselessIneqs, do
 	    }
 	}
 
-	if(feasCheckSolver == "Cbc"){
-	    ImprovingDirectionICSolver_ = new OsiCbcSolverInterface();
-	}else if (feasCheckSolver == "SYMPHONY"){
-#ifdef COIN_HAS_SYMPHONY
-	    ImprovingDirectionICSolver_ = new OsiSymSolverInterface();
-#else
-	    throw CoinError("SYMPHONY chosen as solver, but it has not been enabled",
-			    "findLowerLevelSolImprovingDirectionIC", "MibSCutGenerator");
-#endif
-	}else if (feasCheckSolver == "CPLEX"){
-#ifdef COIN_HAS_CPLEX
-	    ImprovingDirectionICSolver_ = new OsiCpxSolverInterface();
-#else
-	    throw CoinError("CPLEX chosen as solver, but it has not been enabled",
-			    "findLowerLevelSolImprovingDirectionIC", "MibSCutGenerator");
-#endif
-	}else{
-	    throw CoinError("Unknown solver chosen",
-			    "findLowerLevelSolImprovingDirectionIC", "MibSCutGenerator");
-	}
+	ImprovingDirectionICSolver_ = localModel_->createFeasCheckSolver();
 
 	ImprovingDirectionICSolver_->loadProblem(*newMatrix, newColLb, newColUb,
 					 newObjCoeff, newRowLb, newRowUb);
@@ -2846,26 +2808,8 @@ MibSCutGenerator::solveLeafNode(int leafNodeIndex, bool *isTimeLimReached)
     CoinDisjointCopyN(origRowUb, numRows, rowUbUB);
     
     OsiSolverInterface *UBSolver;
-    if (feasCheckSolver == "Cbc"){
-      UBSolver = new OsiCbcSolverInterface();
-    }else if (feasCheckSolver == "SYMPHONY"){
-#ifdef COIN_HAS_SYMPHONY
-      UBSolver = new OsiSymSolverInterface();
-#else
-      throw CoinError("SYMPHONY chosen as solver, but it has not been enabled",
-		      "solveLeafNode", "MibSCutGenerator");
-#endif
-    }else if (feasCheckSolver == "CPLEX"){
-#ifdef COIN_HAS_CPLEX
-      UBSolver = new OsiCpxSolverInterface();
-#else
-      throw CoinError("CPLEX chosen as solver, but it has not been enabled",
-		      "solveLeafNode", "MibSCutGenerator");
-#endif
-    }else{
-      throw CoinError("Unknown solver chosen",
-		      "solveLeafNode", "MibSCutGenerator");
-    }
+    
+    UBSolver = localModel_->createFeasCheckSolver();
     
     CoinPackedVector row;
     double *objCoeffs = new double[numCols];
@@ -2943,26 +2887,8 @@ MibSCutGenerator::solveLeafNode(int leafNodeIndex, bool *isTimeLimReached)
     if(relaxType == MibSRelaxTypeParamBoundCutMIP){
 
       OsiSolverInterface *relaxSolver;
-      if (feasCheckSolver == "Cbc"){
-	relaxSolver = new OsiCbcSolverInterface();
-      }else if (feasCheckSolver == "SYMPHONY"){
-#ifdef COIN_HAS_SYMPHONY
-	relaxSolver = new OsiSymSolverInterface();
-#else
-	throw CoinError("SYMPHONY chosen as solver, but it has not been enabled",
-			"solveLeafNode", "MibSCutGenerator");
-#endif
-      }else if (feasCheckSolver == "CPLEX"){
-	#ifdef COIN_HAS_CPLEX
-	relaxSolver = new OsiCpxSolverInterface();
-#else
-	throw CoinError("CPLEX chosen as solver, but it has not been enabled",
-			"solveLeafNode", "MibSCutGenerator");
-#endif
-      }else{
-	throw CoinError("Unknown solver chosen",
-			"solveLeafNode", "MibSCutGenerator");
-      }
+      
+      relaxSolver = localModel_->createFeasCheckSolver();
 
       relaxSolver->loadProblem(*newMatrix, newColLb, newColUb,
 			       objCoeffs, rowLb, rowUb);
@@ -4898,26 +4824,7 @@ MibSCutGenerator::findBigMBendersBinaryCut(double &bigM)
     CoinFillN(objCoeffs, colNum, 0.0);
     CoinFillN(integerVars, colNum, 0);
 
-    if (feasCheckSolver == "Cbc"){
-	nSolver = new OsiCbcSolverInterface();
-    }else if (feasCheckSolver == "SYMPHONY"){
-#ifdef COIN_HAS_SYMPHONY
-	nSolver = new OsiSymSolverInterface();
-#else
-	throw CoinError("SYMPHONY chosen as solver, but it has not been enabled",
-			"findBigMBendersBinaryCut", "MibSCutGenerator");
-#endif
-    }else if (feasCheckSolver == "CPLEX"){
-#ifdef COIN_HAS_CPLEX
-	nSolver = new OsiCpxSolverInterface();
-#else
-	throw CoinError("CPLEX chosen as solver, but it has not been enabled",
-			"findBigMBendersBinaryCut", "MibSCutGenerator");
-#endif
-    }else{
-	throw CoinError("Unknown solver chosen",
-			"findBigMBendersBinaryCut", "MibSCutGenerator");
-    }
+    nSolver = localModel_->createFeasCheckSolver();
 
     CoinPackedMatrix matrix = *localModel_->origConstCoefMatrix_;
 
