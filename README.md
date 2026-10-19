@@ -29,7 +29,7 @@ More detailed documentation is available [here](https://coin-or.github.io/MibS).
 
 MibS is written in C++ and is released as open source under the [Eclipse Public License 2.0](http://www.opensource.org/licenses/EPL-2.0).
 
-It is distributed under the auspices of the [COIN-OR Foundation](https://www.coin-or.org)
+It is distributed under the auspices of the [COIN-OR Foundation](https://www.coin-or.org).
 
 The MibS development site is https://github.com/coin-or/MibS.
 
@@ -51,7 +51,7 @@ Paper: https://doi.org/10.1007/s12532-020-00183-6
 
 There is a Docker image that provides MibS, as well as other projects
 in the [COIN-OR Optimization
-Suite](https://github.com/coin-or/COIN-OR-OptimizationSuite) [here](https://hub.docker.com/repository/docker/coinor/coin-or-optimization-suite)
+Suite](https://github.com/coin-or/COIN-OR-OptimizationSuite) [here](https://hub.docker.com/r/coinor/coin-or-optimization-suite).
 
 ### Binaries
 
@@ -64,7 +64,7 @@ are archived as part of MibS
 Due to license incompatibilities, pre-compiled binaries may lack some
 functionality. If binaries are not available for your platform for the latest
 version and you would like to request them to be built and posted, feel free
-to let us know in the discussion formum.
+to open a discussion on Github.
 
 ### Source
 
@@ -86,7 +86,7 @@ MibS has a number of dependencies, which are detailed in
 automatically downloaded when obtaining the source with `coinbrew`. For some
 of the remaining third-party dependencies, automatic download scripts and
 build wrappers are provided (and will also be automatically run for required
-and recommended dependencies), while other libraries that are aeasy to obtain
+and recommended dependencies), while other libraries that are easy to obtain
 must be installed using an appropriate package manager (or may come with your
 OS by default). 
 
@@ -111,7 +111,7 @@ The `coinbrew` script will fetch the additional projects specified in the Depend
 
  * Download the source code, e.g., by cloning the git repo https://github.com/coin-or/MibS
  * Download and install the source code for the dependencies listed in [config.yml](.coin-or/config.yml)
- * Build the code as follows (make sure to set PKG_CONFIG_PTH to install directory for dependencies).
+ * Build the code as follows (make sure to set `PKG_CONFIG_PATH` to the `lib/pkgconfig` directory of the installation of the dependencies).
 
 ```
 ./configure -C
@@ -196,7 +196,6 @@ solve these problems, there are two ways:
  * [COIN-OR general discussion forum](https://github.com/orgs/coin-or/discussions)
  * [MibS Discussion forum](https://github.com/coin-or/MibS/discussions)
  * [Report a bug](https://github.com/coin-or/MibS/issues/new)
- * [Doxygen generated documentation](http://coin-or.github.io/MibS/Doxygen)
 
 ## ACKNOWLEDGEMENT
 
