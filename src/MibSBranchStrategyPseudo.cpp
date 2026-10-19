@@ -415,7 +415,6 @@ MibSBranchStrategyPseudo::createCandBranchObjects(int numPassesLeft, double ub)
             else {
                 preferDir = -1;
             }
-            
             branchObjects_[i] = infObjects[i]->createBranchObject(model,
                                                                   preferDir);
             score = infObjects[i]->pseudocost().getScore();
